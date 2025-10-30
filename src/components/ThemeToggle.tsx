@@ -49,8 +49,7 @@ export default function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
   // Expanded view - show all options
   return (
     <div className="space-y-2">
-      <p className="text-xs text-text-muted px-4 mb-2">Theme</p>
-      <div className="flex gap-2 px-4">
+      <div className="flex gap-3">
         {themes.map((t) => {
           const Icon = t.icon;
           const isActive = theme === t.value;
