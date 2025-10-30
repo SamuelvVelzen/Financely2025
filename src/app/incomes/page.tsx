@@ -11,7 +11,11 @@ export default function IncomesPage() {
     <>
       <Container className="mb-4">
         <Title className="flex items-center justify-between">
-          <span>Incomes</span>
+          <div className="flex gap-2">
+            <HiArrowTrendingUp />
+
+            <span>Incomes</span>
+          </div>
 
           <IconButton className={"text-xl"}>
             <HiPlus />

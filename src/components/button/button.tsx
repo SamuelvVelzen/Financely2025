@@ -11,7 +11,7 @@ export type IButtonProps = {
 export default function Button({ children, className, clicked }: IButtonProps) {
   return (
     <button
-      className={`hover:bg-surface-hover p-2 rounded-full ${className}`}
+      className={`hover:bg-surface-hover p-2 border border-border rounded-full ${className}`}
       onClick={() => clicked()}>
       {children}
     </button>

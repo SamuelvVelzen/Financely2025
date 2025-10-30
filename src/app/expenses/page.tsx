@@ -11,7 +11,11 @@ export default function ExpensesPage() {
     <>
       <Container className="mb-4">
         <Title className="flex items-center justify-between">
-          <span>Expenses</span>
+          <div className="flex gap-2">
+            <HiArrowTrendingDown />
+
+            <span>Expenses</span>
+          </div>
 
           <IconButton className={"text-xl"}>
             <HiPlus />
