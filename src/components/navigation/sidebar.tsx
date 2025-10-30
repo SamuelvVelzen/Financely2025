@@ -13,7 +13,7 @@ import {
   HiUser,
 } from "react-icons/hi2";
 import ThemeToggle from "../ThemeToggle";
-import NavItem from "./NavItem";
+import NavItem from "./nav-item";
 
 export default function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(true);
