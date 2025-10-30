@@ -12,6 +12,7 @@ import {
   HiTag,
   HiUser,
 } from "react-icons/hi2";
+import ThemeToggle from "../ThemeToggle";
 import NavItem from "./NavItem";
 
 export default function Sidebar() {
@@ -141,6 +142,7 @@ export default function Sidebar() {
       <div className="mt-auto pt-4 space-y-4">
         {/* Bottom Actions */}
         <div className="space-y-2">
+          <ThemeToggle isExpanded={isExpanded} />
           <NavItem
             href={ROUTES.ACCOUNT}
             label="Account"
