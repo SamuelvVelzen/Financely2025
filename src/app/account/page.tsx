@@ -1,18 +1,21 @@
+import Container from "@/components/container/container";
+import Title from "@/components/typography/title";
+
 export default function AccountPage() {
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text mb-2">Account</h1>
+    <>
+      <Container className="mb-4">
+        <Title>Account</Title>
         <p className="text-text-muted">
           Manage your account settings and preferences.
         </p>
-      </div>
+      </Container>
 
-      <div className="bg-surface border border-border rounded-[2rem] p-8">
+      <Container>
         <p className="text-text-muted text-center">
           Account settings will be available here.
         </p>
-      </div>
-    </div>
+      </Container>
+    </>
   );
 }

@@ -1,16 +1,35 @@
-export default function ExpensesPage() {
-  return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text mb-2">Expenses</h1>
-        <p className="text-text-muted">Track and manage your expenses here.</p>
-      </div>
+import IconButton from "@/components/button/icon-button";
+import Container from "@/components/container/container";
+import EmptyContainer from "@/components/container/empty-container";
+import Title from "@/components/typography/title";
+import { HiArrowTrendingDown, HiPlus } from "react-icons/hi2";
 
-      <div className="bg-surface border border-border rounded-[2rem] p-8">
-        <p className="text-text-muted text-center">
-          No expenses yet. Start by adding your first expense.
-        </p>
-      </div>
-    </div>
+export default function ExpensesPage() {
+  const expenses = [];
+
+  return (
+    <>
+      <Container className="mb-4">
+        <Title className="flex items-center justify-between">
+          <span>Expenses</span>
+
+          <IconButton className={"text-xl"}>
+            <HiPlus />
+          </IconButton>
+        </Title>
+      </Container>
+
+      {expenses.length === 0 && (
+        <EmptyContainer
+          icon={<HiArrowTrendingDown />}
+          emptyText={"No expenses yet. Start by adding your first expense."}
+          button={{
+            buttonText: "Add expense",
+            // buttonAction: () => addExpense(),
+          }}></EmptyContainer>
+      )}
+
+      {expenses.length > 0 && <Container>expenses</Container>}
+    </>
   );
 }
