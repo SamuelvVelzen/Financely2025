@@ -1,5 +1,10 @@
-import { createRootRoute, HeadContent, Outlet } from "@tanstack/react-router";
-import { Scripts } from "@tanstack/react-start";
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from "@tanstack/react-router";
+
 import appCss from "./globals.css?url";
 
 export const Route = createRootRoute({

@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Financely
+
+A financial management application built with TanStack Start.
+
+## Tech Stack
+
+- **[TanStack Start](https://tanstack.com/start)** - Full-stack React framework
+- **[TanStack Router](https://tanstack.com/router)** - Type-safe routing
+- **[TanStack React Query](https://tanstack.com/query)** - Data fetching and state management
+- **[React](https://react.dev)** 19 - UI library
+- **[TypeScript](https://www.typescriptlang.org)** - Type safety
+- **[Vite](https://vitejs.dev)** - Build tool and dev server
+- **[Tailwind CSS](https://tailwindcss.com)** - Styling
+- **[Prisma](https://www.prisma.io)** - Database ORM
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies:
 
 ```bash
-npm run dev
+yarn install
 # or
+npm install
+```
+
+Then, run the development server:
+
+```bash
 yarn dev
 # or
-pnpm dev
-# or
-bun dev
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+You can start editing by modifying files in the `src/routes` directory. The page auto-updates as you edit the file.
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+To learn more about the technologies used, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [TanStack Start Documentation](https://tanstack.com/start) - Learn about TanStack Start features and API
+- [TanStack Router Documentation](https://tanstack.com/router) - Learn about type-safe routing
+- [TanStack React Query Documentation](https://tanstack.com/query) - Learn about data fetching and caching
+- [React Documentation](https://react.dev) - Learn about React
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Build and Deploy
 
-## Deploy on Vercel
+Build the application:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+yarn build
+# or
+npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Start the production server:
+
+```bash
+yarn start
+# or
+npm start
+```
