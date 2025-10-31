@@ -13,7 +13,7 @@ export default function Title({
   const titleContent = children ? children : title;
 
   return (
-    <h1 className={"text-3xl font-bold text-text " + className}>
+    <h1 className={"text-2xl font-bold text-text " + className}>
       {titleContent}
     </h1>
   );
