@@ -1,5 +1,3 @@
-"use client";
-
 import { ROUTES } from "@/config/routes";
 import { useEffect, useState } from "react";
 import {
@@ -16,11 +14,20 @@ import ThemeToggle from "../ThemeToggle";
 import NavItem from "./nav-item";
 
 export default function Sidebar() {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
+  // Initialize with default value, will be updated from localStorage on client
+  const [isExpanded, setIsExpanded] = useState(() => {
+    // Safe access to localStorage on initial render (client-side only)
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("sidebar-expanded");
+      if (saved !== null) {
+        return saved === "true";
+      }
+    }
+    return true;
+  });
 
   useEffect(() => {
-    setIsMounted(true);
+    // Read from localStorage on mount (client-side only)
     const saved = localStorage.getItem("sidebar-expanded");
     if (saved !== null) {
       setIsExpanded(saved === "true");
@@ -30,14 +37,10 @@ export default function Sidebar() {
   const toggleSidebar = () => {
     const newState = !isExpanded;
     setIsExpanded(newState);
-    localStorage.setItem("sidebar-expanded", String(newState));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("sidebar-expanded", String(newState));
+    }
   };
-
-  if (!isMounted) {
-    return (
-      <aside className="h-screen bg-background w-16 md:w-80 flex-shrink-0" />
-    );
-  }
 
   return (
     <aside
@@ -83,16 +86,18 @@ export default function Sidebar() {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={toggleSidebar}
-                className="flex items-center justify-center w-8 h-8 rounded-2xl hover:bg-surface transition-all duration-300 flex-shrink-0"
+                className="flex items-center justify-center w-8 h-8 rounded-2xl hover:bg-surface transition-all duration-300 flex-shrink-0 cursor-pointer"
                 aria-label="Collapse sidebar">
                 <HiChevronLeft className="w-5 h-5 text-text-muted" />
               </button>
             </>
           ) : (
             <button
+              type="button"
               onClick={toggleSidebar}
-              className="flex items-center justify-center w-full py-2 rounded-2xl hover:bg-surface transition-all duration-300"
+              className="flex items-center justify-center w-full py-2 rounded-2xl hover:bg-surface transition-all duration-300 cursor-pointer"
               aria-label="Expand sidebar">
               <HiChevronRight className="w-5 h-5 text-text-muted" />
             </button>

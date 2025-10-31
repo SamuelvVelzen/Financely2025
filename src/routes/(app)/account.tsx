@@ -1,7 +1,12 @@
 import Container from "@/components/container/container";
 import Title from "@/components/typography/title";
+import { createFileRoute } from "@tanstack/react-router";
 
-export default function AccountPage() {
+export const Route = createFileRoute("/(app)/account")({
+  component: AccountPage,
+});
+
+function AccountPage() {
   return (
     <>
       <Container className="mb-4">

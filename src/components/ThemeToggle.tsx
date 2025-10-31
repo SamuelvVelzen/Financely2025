@@ -1,5 +1,3 @@
-"use client";
-
 import { HiComputerDesktop, HiMoon, HiSun } from "react-icons/hi2";
 import { useTheme } from "./ThemeProvider";
 
@@ -9,6 +7,10 @@ interface ThemeToggleProps {
 
 export default function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
+
+  const handleClick = (newTheme: typeof theme) => {
+    setTheme(newTheme);
+  };
 
   const themes = [
     { value: "light" as const, icon: HiSun, label: "Light" },
@@ -30,8 +32,9 @@ export default function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
           return (
             <button
               key={t.value}
-              onClick={() => setTheme(t.value)}
-              className={`flex items-center justify-center w-full py-2 rounded-2xl transition-colors ${
+              type="button"
+              onClick={() => handleClick(t.value)}
+              className={`flex items-center justify-center w-full py-2 rounded-2xl transition-colors cursor-pointer ${
                 isActive
                   ? "bg-surface text-text"
                   : "text-text-muted hover:bg-surface hover:text-text"
@@ -57,8 +60,9 @@ export default function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
           return (
             <button
               key={t.value}
-              onClick={() => setTheme(t.value)}
-              className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-2xl transition-colors ${
+              type="button"
+              onClick={() => handleClick(t.value)}
+              className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-2xl transition-colors cursor-pointer ${
                 isActive
                   ? "bg-surface text-text font-semibold"
                   : "text-text-muted hover:bg-surface hover:text-text"

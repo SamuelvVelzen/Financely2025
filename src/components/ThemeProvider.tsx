@@ -1,6 +1,10 @@
-"use client";
-
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -13,67 +17,106 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
-  const [mounted, setMounted] = useState(false);
+  // Initialize with safe defaults that work on both server and client
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("theme");
+      if (saved === "light" || saved === "dark" || saved === "system") {
+        return saved;
+      }
+    }
+    return "system";
+  });
 
-  // Get system preference
-  const getSystemTheme = (): "light" | "dark" => {
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
     return window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
       : "light";
-  };
+  });
 
-  // Apply theme to HTML element
-  const applyTheme = (newTheme: Theme) => {
+  // Apply theme to HTML element whenever theme changes
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const root = document.documentElement;
-    const resolved = newTheme === "system" ? getSystemTheme() : newTheme;
+
+    // Get system preference
+    const getSystemTheme = (): "light" | "dark" => {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    };
+
+    const resolved = theme === "system" ? getSystemTheme() : theme;
+
+    console.log("Applying theme:", {
+      theme,
+      resolved,
+      currentClasses: root.classList.toString(),
+    });
 
     if (resolved === "dark") {
       root.classList.add("dark");
+      console.log("Added dark class, new classes:", root.classList.toString());
     } else {
       root.classList.remove("dark");
+      console.log(
+        "Removed dark class, new classes:",
+        root.classList.toString()
+      );
     }
 
     setResolvedTheme(resolved);
-  };
+  }, [theme]);
 
   // Set theme and save to localStorage
-  const setTheme = (newTheme: Theme) => {
+  const setTheme = useCallback((newTheme: Theme) => {
+    console.log("setTheme called with:", newTheme);
     setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
-    applyTheme(newTheme);
-  };
-
-  // Initialize theme on mount
-  useEffect(() => {
-    setMounted(true);
-
-    // Read from localStorage, default to "system"
-    const savedTheme = (localStorage.getItem("theme") as Theme) || "system";
-    setThemeState(savedTheme);
-    applyTheme(savedTheme);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme", newTheme);
+    }
   }, []);
 
-  // Listen for system preference changes
+  // Initialize theme on mount - read from localStorage
   useEffect(() => {
-    if (theme !== "system") return;
+    if (typeof window === "undefined") return;
+
+    const savedTheme = (localStorage.getItem("theme") as Theme) || "system";
+    if (savedTheme !== theme) {
+      setThemeState(savedTheme);
+    }
+  }, []);
+
+  // Listen for system preference changes when theme is "system"
+  useEffect(() => {
+    if (theme !== "system" || typeof window === "undefined") return;
+
+    const getSystemTheme = (): "light" | "dark" => {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    };
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
-      applyTheme("system");
+      // Reapply system theme when preference changes
+      const resolved = getSystemTheme();
+      const root = document.documentElement;
+      if (resolved === "dark") {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+      setResolvedTheme(resolved);
     };
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme]);
 
-  // Prevent rendering until mounted to avoid hydration mismatch
-  if (!mounted) {
-    return <>{children}</>;
-  }
-
+  // Always provide the context, even during SSR
   return (
     <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
       {children}

@@ -1,7 +1,12 @@
 import Container from "@/components/container/container";
 import Title from "@/components/typography/title";
+import { createFileRoute } from "@tanstack/react-router";
 
-export default function Home() {
+export const Route = createFileRoute("/(app)/")({
+  component: Home,
+});
+
+function Home() {
   return (
     <>
       <Container className="mb-4">

@@ -3,40 +3,44 @@ import EmptyContainer from "@/components/container/empty-container";
 import Dropdown from "@/components/dropdown/dropdown";
 import DropdownItem from "@/components/dropdown/dropdown-item";
 import Title from "@/components/typography/title";
-import { HiOutlineTag } from "react-icons/hi2";
+import { createFileRoute } from "@tanstack/react-router";
+import { HiArrowTrendingUp } from "react-icons/hi2";
 
-export default function LabelsPage() {
-  const labels = [];
+export const Route = createFileRoute("/(app)/incomes")({
+  component: IncomesPage,
+});
+
+export default function IncomesPage() {
+  const incomes = [];
 
   return (
     <>
       <Container className="mb-4">
         <Title className="flex items-center justify-between">
           <div className="flex gap-2">
-            <HiOutlineTag />
+            <HiArrowTrendingUp />
 
-            <span>Labels</span>
+            <span>Incomes</span>
           </div>
 
           <Dropdown>
-            <DropdownItem icon={<HiOutlineTag />}>Add label</DropdownItem>
+            <DropdownItem icon={<HiArrowTrendingUp />}>Add income</DropdownItem>
           </Dropdown>
         </Title>
       </Container>
-
-      {labels.length === 0 && (
+      {incomes.length === 0 && (
         <EmptyContainer
-          icon={<HiOutlineTag />}
+          icon={<HiArrowTrendingUp />}
           emptyText={
-            "No labels yet. Create your first label to organize your finances."
+            " No income entries yet. Start by adding your first income source."
           }
           button={{
-            buttonText: "Add label",
+            buttonText: "Add income",
             // buttonAction: () => addExpense(),
           }}></EmptyContainer>
       )}
 
-      {labels.length > 0 && <Container>labels</Container>}
+      {incomes.length > 0 && <Container>incomes</Container>}
     </>
   );
 }

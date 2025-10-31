@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "@tanstack/react-router";
 import React from "react";
 
 interface NavItemProps {
@@ -19,7 +18,7 @@ export default function NavItem({
   isAction = false,
   customIcon,
 }: NavItemProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
 
   const isActive = () => {
     if (href === "/") {
@@ -47,13 +46,14 @@ export default function NavItem({
   const stateClasses = isAction
     ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
     : isActive()
-    ? "bg-surface text-text font-semibold"
-    : "text-text-muted hover:bg-surface hover:text-text";
+      ? "bg-surface text-text font-semibold"
+      : "text-text-muted hover:bg-surface hover:text-text";
 
   if (isAction) {
     return (
       <button
-        className={`w-full ${baseClasses} ${stateClasses}`}
+        type="button"
+        className={`w-full ${baseClasses} ${stateClasses} cursor-pointer`}
         title={isExpanded ? label : label}>
         {content}
       </button>
@@ -62,9 +62,13 @@ export default function NavItem({
 
   return (
     <Link
-      href={href}
+      to={href}
       className={`${baseClasses} ${stateClasses}`}
-      title={isExpanded ? label : label}>
+      title={isExpanded ? label : label}
+      preload="intent"
+      activeProps={{ className: `${baseClasses} ${stateClasses}` }}
+      hash={undefined}
+      search={undefined}>
       {content}
     </Link>
   );
