@@ -1,8 +1,9 @@
-import IconButton from "@/components/button/icon-button";
 import Container from "@/components/container/container";
 import EmptyContainer from "@/components/container/empty-container";
+import Dropdown from "@/components/dropdown/dropdown";
+import DropdownItem from "@/components/dropdown/dropdown-item";
 import Title from "@/components/typography/title";
-import { HiArrowTrendingDown, HiPlus } from "react-icons/hi2";
+import { HiArrowTrendingDown } from "react-icons/hi2";
 
 export default function ExpensesPage() {
   const expenses = [];
@@ -17,9 +18,11 @@ export default function ExpensesPage() {
             <span>Expenses</span>
           </div>
 
-          <IconButton className={"text-xl"}>
-            <HiPlus />
-          </IconButton>
+          <Dropdown>
+            <DropdownItem icon={<HiArrowTrendingDown />}>
+              Add expense
+            </DropdownItem>
+          </Dropdown>
         </Title>
       </Container>
 

@@ -1,8 +1,9 @@
-import IconButton from "@/components/button/icon-button";
 import Container from "@/components/container/container";
 import EmptyContainer from "@/components/container/empty-container";
+import Dropdown from "@/components/dropdown/dropdown";
+import DropdownItem from "@/components/dropdown/dropdown-item";
 import Title from "@/components/typography/title";
-import { HiArrowTrendingUp, HiPlus } from "react-icons/hi2";
+import { HiArrowTrendingUp } from "react-icons/hi2";
 
 export default function IncomesPage() {
   const incomes = [];
@@ -17,9 +18,9 @@ export default function IncomesPage() {
             <span>Incomes</span>
           </div>
 
-          <IconButton className={"text-xl"}>
-            <HiPlus />
-          </IconButton>
+          <Dropdown>
+            <DropdownItem icon={<HiArrowTrendingUp />}>Add income</DropdownItem>
+          </Dropdown>
         </Title>
       </Container>
       {incomes.length === 0 && (

@@ -1,8 +1,9 @@
-import IconButton from "@/components/button/icon-button";
 import Container from "@/components/container/container";
 import EmptyContainer from "@/components/container/empty-container";
+import Dropdown from "@/components/dropdown/dropdown";
+import DropdownItem from "@/components/dropdown/dropdown-item";
 import Title from "@/components/typography/title";
-import { HiPlus, HiTag } from "react-icons/hi2";
+import { HiOutlineTag } from "react-icons/hi2";
 
 export default function LabelsPage() {
   const labels = [];
@@ -12,13 +13,14 @@ export default function LabelsPage() {
       <Container className="mb-4">
         <Title className="flex items-center justify-between">
           <div className="flex gap-2">
-            <HiTag />
+            <HiOutlineTag />
 
             <span>Labels</span>
           </div>
-          <IconButton className={"text-xl"}>
-            <HiPlus />
-          </IconButton>
+
+          <Dropdown>
+            <DropdownItem icon={<HiOutlineTag />}>Add label</DropdownItem>
+          </Dropdown>
         </Title>
       </Container>
 
