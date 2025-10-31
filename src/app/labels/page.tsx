@@ -24,7 +24,7 @@ export default function LabelsPage() {
 
       {labels.length === 0 && (
         <EmptyContainer
-          icon={<HiTag />}
+          icon={<HiOutlineTag />}
           emptyText={
             "No labels yet. Create your first label to organize your finances."
           }

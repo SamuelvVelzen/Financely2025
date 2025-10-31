@@ -9,7 +9,7 @@ import {
   HiChartBar,
   HiChevronLeft,
   HiChevronRight,
-  HiTag,
+  HiOutlineTag,
   HiUser,
 } from "react-icons/hi2";
 import ThemeToggle from "../ThemeToggle";
@@ -131,7 +131,7 @@ export default function Sidebar() {
             <NavItem
               href={ROUTES.LABELS}
               label="Labels"
-              icon={HiTag}
+              icon={HiOutlineTag}
               isExpanded={isExpanded}
             />
           </li>
