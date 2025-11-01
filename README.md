@@ -23,13 +23,99 @@ yarn install
 npm install
 ```
 
-Then, run the development server:
+### Database Setup
+
+This project uses [Prisma](https://www.prisma.io) with SQLite for local development. The database file is stored in `data/dev.db`.
+
+**Note:** SQLite is used for local development only. Production deployments will use a server database (e.g., PostgreSQL). Switching providers only requires changing the `provider` in `prisma/schema.prisma` and re-running migrations.
+
+#### Initial Setup
+
+1. Create the `.env` file (if it doesn't exist) with:
+
+   ```
+   DATABASE_URL="file:./data/dev.db"
+   ```
+
+2. Generate the Prisma Client:
+
+   ```bash
+   yarn prisma:generate
+   # or
+   npm run prisma:generate
+   ```
+
+3. Run migrations to create the database:
+   ```bash
+   yarn prisma:migrate:dev
+   # or
+   npm run prisma:migrate:dev
+   ```
+
+#### Working with the Database
+
+- **Create a new migration** (after schema changes):
+
+  ```bash
+  yarn prisma:migrate:dev --name migration_name
+  ```
+
+- **Apply migrations** (in production/CI):
+
+  ```bash
+  yarn prisma:migrate
+  ```
+
+- **Reset the development database** (drops all data and re-applies migrations):
+
+  ```bash
+  yarn db:reset
+  # or
+  npm run db:reset
+  ```
+
+- **Open Prisma Studio** (visual database browser):
+  ```bash
+  yarn prisma:studio
+  # or
+  npm run prisma:studio
+  ```
+
+#### Using Prisma Client in Code
+
+Import the Prisma client singleton from `@/util/prisma`:
+
+```typescript
+import { prisma } from "@/util/prisma";
+import type { User, Transaction, Currency } from "@/util/prisma";
+
+// Example: Query transactions
+const transactions = await prisma.transaction.findMany({
+  where: { userId: "user-id" },
+  include: { tags: true },
+});
+
+// Use exported types
+const currency: Currency = Currency.USD;
+```
+
+#### Schema Changes
+
+1. Edit `prisma/schema.prisma`
+2. Create a migration: `yarn prisma:migrate:dev --name descriptive_name`
+3. The Prisma Client is automatically regenerated during migration
+
+### Running the Development Server
+
+After setting up the database, run the development server:
 
 ```bash
 yarn dev
 # or
 npm run dev
 ```
+
+The `dev` script automatically generates the Prisma Client before starting.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
@@ -54,6 +140,8 @@ yarn build
 npm run build
 ```
 
+The `build` script automatically generates the Prisma Client before building.
+
 Start the production server:
 
 ```bash
@@ -61,3 +149,13 @@ yarn start
 # or
 npm start
 ```
+
+### Production Database
+
+For production, you'll need to:
+
+1. Update `prisma/schema.prisma` to change the `provider` from `sqlite` to your target database (e.g., `postgresql`)
+2. Update `DATABASE_URL` in your production environment variables
+3. Run migrations: `yarn prisma:migrate`
+
+The schema is designed to be provider-agnostic, so switching databases should only require changing the provider configuration.

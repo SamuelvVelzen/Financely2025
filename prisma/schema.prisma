@@ -1,0 +1,131 @@
+// ----------
+// Prisma setup
+// ----------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ----------
+// Enums
+// ----------
+
+enum TransactionType {
+  EXPENSE
+  INCOME
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  CAD
+  AUD
+  JPY
+}
+
+// ----------
+// Models
+// ----------
+
+model User {
+  id            String         @id @default(cuid())
+  email       String           @unique
+  name        String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  transactions  Transaction[]
+  tags          Tag[]
+  budgets       Budget[]
+}
+
+model Transaction {
+  id            String           @id @default(cuid())
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+
+  type          TransactionType
+  amount        Decimal
+  currency      Currency
+  occurredAt    DateTime
+
+  name          String
+  description   String?
+  notes         String?
+  externalId    String?
+
+  // many-to-many relation to tags
+  tags          Tag[] 
+
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([userId, occurredAt])
+  @@index([userId, type, occurredAt])
+}
+
+model Tag {
+  id            String         @id @default(cuid())
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+
+  name          String
+  color         String?         // optional color like #FF6600
+  description   String?
+
+  transactions  Transaction[]
+  budgetLines  BudgetLine[]
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@unique([userId, name])
+}
+
+model Budget {
+  id            String         @id @default(cuid())
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+
+  name          String
+  currency      Currency
+  startDate     DateTime
+  endDate       DateTime
+  notes         String?
+
+  lines         BudgetLine[]
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([userId, startDate, endDate])
+  @@unique([userId, name, startDate, endDate])
+}
+
+model BudgetLine {
+  id            String           @id @default(cuid())
+  budget        Budget           @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budgetId      String
+
+  direction     TransactionType
+  tag           Tag?             @relation(fields: [tagId], references: [id], onDelete: SetNull)
+  tagId         String?
+
+  plannedAmount Decimal
+  name          String?
+  notes         String?
+
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([budgetId, direction, tagId])
+  @@index([budgetId, direction])
+  @@index([tagId])
+}
+
