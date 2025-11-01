@@ -10,6 +10,7 @@ import {
   HiOutlineTag,
   HiUser,
 } from "react-icons/hi2";
+import Container from "../container/container";
 import ThemeToggle from "../ThemeToggle";
 import NavItem from "./nav-item";
 
@@ -42,14 +43,13 @@ export default function Sidebar() {
     }
   };
 
+  const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
+  const containerClasses = `h-screen bg-background flex-shrink-0 transition-all duration-300 rounded-0 py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
+
   return (
-    <aside
-      className={`h-screen bg-background flex-shrink-0 transition-all duration-300 rounded-r-[2rem] py-6 ${
-        isExpanded ? "w-80 px-6" : "w-20 px-3"
-      } md:${
-        isExpanded ? "w-80 px-6" : "w-20 px-3"
-      } flex flex-col border-r border-border`}>
-      {/* Header with Logo, User Info and Toggle */}
+    <Container
+      as="aside"
+      className={containerClasses}>
       <div className="mb-6">
         {/* Logo - always visible */}
         <div className="h-10 flex items-center mb-6">
@@ -74,7 +74,7 @@ export default function Sidebar() {
         </div>
 
         {/* User greeting and toggle button */}
-        <div className="h-12 flex items-center overflow-hidden mb-6">
+        <div className="h-12 flex items-center mb-6">
           {isExpanded ? (
             <>
               <div className="flex-1">
@@ -168,6 +168,6 @@ export default function Sidebar() {
           />
         </div>
       </div>
-    </aside>
+    </Container>
   );
 }
