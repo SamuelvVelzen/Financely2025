@@ -103,7 +103,12 @@ const currency: Currency = Currency.USD;
 
 1. Edit `prisma/schema.prisma`
 2. Create a migration: `yarn prisma:migrate:dev --name descriptive_name`
-3. The Prisma Client is automatically regenerated during migration
+3. The Prisma Client and Zod schemas are automatically regenerated during migration
+
+**Auto-Generated Zod Schemas**: When you run `prisma generate`, Zod schemas are automatically generated from your Prisma schema. The enums (Currency, TransactionType) are imported from the generated schemas, so changes to enum values in Prisma will automatically be reflected in your validation schemas.
+
+- Generated schemas location: `src/lib/validation/generated.ts/`
+- Custom API schemas: `src/lib/validation/schemas.ts` (imports enums from generated, applies API-specific transformations)
 
 ### Running the Development Server
 

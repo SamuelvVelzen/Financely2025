@@ -50,21 +50,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const resolved = theme === "system" ? getSystemTheme() : theme;
 
-    console.log("Applying theme:", {
-      theme,
-      resolved,
-      currentClasses: root.classList.toString(),
-    });
-
     if (resolved === "dark") {
       root.classList.add("dark");
-      console.log("Added dark class, new classes:", root.classList.toString());
     } else {
       root.classList.remove("dark");
-      console.log(
-        "Removed dark class, new classes:",
-        root.classList.toString()
-      );
     }
 
     setResolvedTheme(resolved);
@@ -72,7 +61,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Set theme and save to localStorage
   const setTheme = useCallback((newTheme: Theme) => {
-    console.log("setTheme called with:", newTheme);
     setThemeState(newTheme);
     if (typeof window !== "undefined") {
       localStorage.setItem("theme", newTheme);

@@ -41,8 +41,14 @@ yarn-error.log*
 next-env.d.ts
 dist/*
 
+# tanstack
+.tanstack/
+
 # database
 data/*.db
 data/*.db-journal
 data/*.db-wal
 data/*.db-shm
+
+# generated prisma zod schemas (auto-generated from schema.prisma)
+src/lib/validation/generated.ts/

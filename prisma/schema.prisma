@@ -6,6 +6,14 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider                 = "prisma-zod-generator"
+  output                   = "../src/lib/validation/generated.ts"
+  createInputTypes         = true
+  writeNullishInOptionalTypes = false
+  useDecimalJs             = false
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")

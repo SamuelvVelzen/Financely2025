@@ -1,10 +1,10 @@
+import { QueryProvider } from "@/lib/query/client";
 import {
   createRootRoute,
   HeadContent,
   Outlet,
   Scripts,
 } from "@tanstack/react-router";
-
 import appCss from "./globals.css?url";
 
 export const Route = createRootRoute({
@@ -17,12 +17,7 @@ export const Route = createRootRoute({
       },
       { title: "TanStack Start Starter" },
     ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-    ],
+    links: [{ rel: "stylesheet", href: appCss }],
   }),
   component: RootLayout,
 });
@@ -34,7 +29,9 @@ function RootLayout() {
         <HeadContent />
       </head>
       <body>
-        <Outlet />
+        <QueryProvider>
+          <Outlet />
+        </QueryProvider>
         <Scripts />
       </body>
     </html>

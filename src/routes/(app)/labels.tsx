@@ -3,6 +3,7 @@ import EmptyContainer from "@/components/container/empty-container";
 import Dropdown from "@/components/dropdown/dropdown";
 import DropdownItem from "@/components/dropdown/dropdown-item";
 import Title from "@/components/typography/title";
+import { useTags } from "@/lib/query/hooks/tags";
 import { createFileRoute } from "@tanstack/react-router";
 import { HiOutlineTag } from "react-icons/hi2";
 
@@ -11,7 +12,8 @@ export const Route = createFileRoute("/(app)/labels")({
 });
 
 export default function LabelsPage() {
-  const labels = [];
+  const { data, isLoading, error } = useTags();
+  const labels = data?.data ?? [];
 
   return (
     <>
@@ -29,7 +31,21 @@ export default function LabelsPage() {
         </Title>
       </Container>
 
-      {labels.length === 0 && (
+      {isLoading && (
+        <Container>
+          <p className="text-text-muted text-center">Loading labels...</p>
+        </Container>
+      )}
+
+      {error && (
+        <Container>
+          <p className="text-red-500 text-center">
+            Error loading labels: {error.message}
+          </p>
+        </Container>
+      )}
+
+      {!isLoading && !error && labels.length === 0 && (
         <EmptyContainer
           icon={<HiOutlineTag />}
           emptyText={
@@ -41,7 +57,32 @@ export default function LabelsPage() {
           }}></EmptyContainer>
       )}
 
-      {labels.length > 0 && <Container>labels</Container>}
+      {!isLoading && !error && labels.length > 0 && (
+        <Container>
+          <div className="space-y-2">
+            {labels.map((label) => (
+              <div
+                key={label.id}
+                className="flex items-center justify-between p-3 bg-surface rounded-lg">
+                <div className="flex items-center gap-3">
+                  {label.color && (
+                    <div
+                      className="w-4 h-4 rounded"
+                      style={{ backgroundColor: label.color }}
+                    />
+                  )}
+                  <span className="text-text">{label.name}</span>
+                  {label.description && (
+                    <span className="text-sm text-text-muted">
+                      {label.description}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      )}
     </>
   );
 }
