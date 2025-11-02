@@ -44,7 +44,7 @@ export default function Sidebar() {
   };
 
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
-  const containerClasses = `h-screen bg-background flex-shrink-0 transition-all duration-300 rounded-0 py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
+  const containerClasses = `h-screen bg-background flex-shrink-0 transition-all duration-300 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
 
   return (
     <Container

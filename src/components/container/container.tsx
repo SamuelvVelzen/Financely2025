@@ -1,20 +1,23 @@
 "use client";
 
 import { PropsWithClassName } from "@/util/type-helpers/props";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, createElement, type ElementType } from "react";
 
-type IContainerProps = {} & PropsWithChildren & PropsWithClassName;
+type IContainerProps = {
+  as?: ElementType;
+} & PropsWithChildren &
+  PropsWithClassName;
 
 export default function Container({
   children,
   className = "",
+  as: Component = "div",
 }: IContainerProps) {
-  return (
-    <div
-      className={
-        "bg-surface border border-border rounded-2xl p-4 " + className
-      }>
-      {children}
-    </div>
+  return createElement(
+    Component,
+    {
+      className: "bg-surface border border-border rounded-2xl p-4 " + className,
+    },
+    children
   );
 }
