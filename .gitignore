@@ -51,4 +51,4 @@ data/*.db-wal
 data/*.db-shm
 
 # generated prisma zod schemas (auto-generated from schema.prisma)
-src/lib/validation/generated.ts/
+src/features/shared/validation/generated.ts/

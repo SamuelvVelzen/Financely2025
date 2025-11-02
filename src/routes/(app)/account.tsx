@@ -1,6 +1,6 @@
-import Container from "@/components/container/container";
-import Title from "@/components/typography/title";
-import { useMe } from "@/lib/query/hooks/user";
+import Container from "@/features/ui/container/container";
+import Title from "@/features/ui/typography/title";
+import { useMe } from "@/features/users/hooks/useUser";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/account")({

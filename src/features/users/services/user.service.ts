@@ -1,4 +1,7 @@
-import { UserSchema, type UserResponse } from "@/lib/validation/schemas";
+import {
+  UserSchema,
+  type UserResponse,
+} from "@/features/shared/validation/schemas";
 import { prisma } from "@/util/prisma";
 
 /**

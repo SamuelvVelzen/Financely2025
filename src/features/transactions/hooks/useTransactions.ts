@@ -1,21 +1,25 @@
 import {
-  addTagToTransaction,
-  createTransaction,
-  deleteTransaction,
-  getTransactions,
-  removeTagFromTransaction,
-  updateTransaction,
-} from "@/lib/api/endpoints";
+  useFinInfiniteQuery,
+  useFinMutation,
+  useFinQuery,
+} from "@/features/shared/query/core";
+import { queryKeys } from "@/features/shared/query/keys";
 import type {
   CreateTransactionInput,
   PaginatedTransactionsResponse,
   Transaction,
   TransactionsQuery,
   UpdateTransactionInput,
-} from "@/lib/validation/schemas";
+} from "@/features/shared/validation/schemas";
+import {
+  addTagToTransaction,
+  createTransaction,
+  deleteTransaction,
+  getTransactions,
+  removeTagFromTransaction,
+  updateTransaction,
+} from "@/features/transactions/api/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { queryKeys } from "../keys";
-import { useFinInfiniteQuery, useFinMutation, useFinQuery } from "./core";
 
 /**
  * Query transactions with pagination

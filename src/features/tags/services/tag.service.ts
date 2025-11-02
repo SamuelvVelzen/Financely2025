@@ -7,7 +7,7 @@ import {
   type Tag,
   type TagsQuery,
   type UpdateTagInput,
-} from "@/lib/validation/schemas";
+} from "@/features/shared/validation/schemas";
 import { prisma } from "@/util/prisma";
 
 /**

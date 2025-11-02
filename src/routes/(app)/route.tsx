@@ -1,5 +1,5 @@
-import Sidebar from "@/components/navigation/sidebar";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import Sidebar from "@/features/ui/navigation/sidebar";
+import { ThemeProvider } from "@/features/ui/ThemeProvider";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 // Pathless route group - wraps all routes without adding to URL

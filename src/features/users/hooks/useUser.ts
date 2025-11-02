@@ -1,7 +1,7 @@
-import { getMe } from "@/lib/api/endpoints";
-import type { UserResponse } from "@/lib/validation/schemas";
-import { queryKeys } from "../keys";
-import { useFinQuery } from "./core";
+import { useFinQuery } from "@/features/shared/query/core";
+import { queryKeys } from "@/features/shared/query/keys";
+import type { UserResponse } from "@/features/shared/validation/schemas";
+import { getMe } from "@/features/users/api/client";
 
 /**
  * Query current user

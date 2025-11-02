@@ -1,8 +1,8 @@
-import Container from "@/components/container/container";
-import EmptyContainer from "@/components/container/empty-container";
-import Dropdown from "@/components/dropdown/dropdown";
-import DropdownItem from "@/components/dropdown/dropdown-item";
-import Title from "@/components/typography/title";
+import Container from "@/features/ui/container/container";
+import EmptyContainer from "@/features/ui/container/empty-container";
+import Dropdown from "@/features/ui/dropdown/dropdown";
+import DropdownItem from "@/features/ui/dropdown/dropdown-item";
+import Title from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import { HiArrowTrendingUp } from "react-icons/hi2";
 

@@ -1,13 +1,18 @@
-import { createTag, deleteTag, getTags, updateTag } from "@/lib/api/endpoints";
+import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
+import { queryKeys } from "@/features/shared/query/keys";
 import type {
   CreateTagInput,
   Tag,
   TagsQuery,
   TagsResponse,
   UpdateTagInput,
-} from "@/lib/validation/schemas";
-import { queryKeys } from "../keys";
-import { useFinMutation, useFinQuery } from "./core";
+} from "@/features/shared/validation/schemas";
+import {
+  createTag,
+  deleteTag,
+  getTags,
+  updateTag,
+} from "@/features/tags/api/client";
 
 /**
  * Query tags list

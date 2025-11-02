@@ -1,4 +1,4 @@
-import { ErrorResponseSchema } from "@/lib/validation/schemas";
+import { ErrorResponseSchema } from "@/features/shared/validation/schemas";
 import { z } from "zod";
 
 /**

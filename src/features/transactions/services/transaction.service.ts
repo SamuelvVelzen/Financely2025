@@ -9,7 +9,7 @@ import {
   type Transaction,
   type TransactionsQuery,
   type UpdateTransactionInput,
-} from "@/lib/validation/schemas";
+} from "@/features/shared/validation/schemas";
 import { prisma } from "@/util/prisma";
 import { Prisma } from "@prisma/client";
 

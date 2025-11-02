@@ -1,5 +1,5 @@
-import Container from "@/components/container/container";
-import Title from "@/components/typography/title";
+import Container from "@/features/ui/container/container";
+import Title from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/")({

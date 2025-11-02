@@ -1,4 +1,4 @@
-import { QueryProvider } from "@/lib/query/client";
+import { QueryProvider } from "@/features/shared/query/client";
 import {
   createRootRoute,
   HeadContent,

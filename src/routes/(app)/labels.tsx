@@ -1,9 +1,9 @@
-import Container from "@/components/container/container";
-import EmptyContainer from "@/components/container/empty-container";
-import Dropdown from "@/components/dropdown/dropdown";
-import DropdownItem from "@/components/dropdown/dropdown-item";
-import Title from "@/components/typography/title";
-import { useTags } from "@/lib/query/hooks/tags";
+import { useTags } from "@/features/tags/hooks/useTags";
+import Container from "@/features/ui/container/container";
+import EmptyContainer from "@/features/ui/container/empty-container";
+import Dropdown from "@/features/ui/dropdown/dropdown";
+import DropdownItem from "@/features/ui/dropdown/dropdown-item";
+import Title from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import { HiOutlineTag } from "react-icons/hi2";
 

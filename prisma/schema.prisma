@@ -8,7 +8,7 @@ generator client {
 
 generator zod {
   provider                 = "prisma-zod-generator"
-  output                   = "../src/lib/validation/generated.ts"
+  output                   = "../src/features/shared/validation/generated.ts"
   createInputTypes         = true
   writeNullishInOptionalTypes = false
   useDecimalJs             = false

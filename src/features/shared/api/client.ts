@@ -1,4 +1,4 @@
-import type { ErrorResponse } from "@/lib/validation/schemas";
+import type { ErrorResponse } from "@/features/shared/validation/schemas";
 
 /**
  * API Client Configuration
