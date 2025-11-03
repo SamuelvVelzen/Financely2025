@@ -49,6 +49,10 @@ data/*.db
 data/*.db-journal
 data/*.db-wal
 data/*.db-shm
+prisma/data/*.db
+prisma/data/*.db-journal
+prisma/data/*.db-wal
+prisma/data/*.db-shm
 
 # generated prisma zod schemas (auto-generated from schema.prisma)
 src/features/shared/validation/generated.ts/
