@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import { HiX } from "react-icons/hi";
 import { Button } from "../button/button";
 import { DialogOverlay } from "./dialog-overlay";
-import type { DialogProps } from "./types";
+import type { DialogProps, DialogStatus } from "./types";
 
 /**
  * Dialog component provides a fully accessible modal dialog system
@@ -292,6 +292,14 @@ export function Dialog({
     : undefined;
   const finalAriaLabelledBy = ariaLabelledBy || titleId;
 
+  const statusClasses: Record<DialogStatus | "none", string> = {
+    none: "",
+    danger: "text-danger",
+    info: "text-info",
+    warning: "text-warning",
+    success: "text-success",
+  };
+
   const dialogContent = (
     <>
       <DialogOverlay
@@ -316,20 +324,17 @@ export function Dialog({
         {/* Header - Always rendered */}
         <header
           className={cn(
-            "flex items-center justify-between gap-4 px-6 py-4 border-b",
-            status === "danger"
-              ? "border-danger"
-              : status === "info"
-                ? "border-info"
-                : status === "warning"
-                  ? "border-warning"
-                  : status === "success"
-                    ? "border-success"
-                    : "border-border"
+            "flex items-center justify-between gap-4 px-6 py-4 border-b border-border"
           )}
           id={titleId}>
           <div className="flex-1">
-            <h2 className="text-xl font-semibold">{title}</h2>
+            <h2
+              className={cn(
+                "text-xl font-semibold",
+                statusClasses[status ?? "none"]
+              )}>
+              {title}
+            </h2>
           </div>
 
           <button
