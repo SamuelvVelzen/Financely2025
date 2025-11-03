@@ -1,3 +1,4 @@
+import { cn } from "@/util/cn";
 import { Link, useLocation } from "@tanstack/react-router";
 import React from "react";
 
@@ -31,17 +32,19 @@ export function NavItem({
     <>
       {customIcon || (Icon && <Icon className="w-6 h-6 flex-shrink-0" />)}
       <span
-        className={`whitespace-nowrap text-base transition-all duration-300 overflow-hidden ${
+        className={cn(
+          "whitespace-nowrap text-base transition-all duration-300 overflow-hidden",
           isExpanded ? "opacity-100 ml-4 max-w-xs" : "opacity-0 ml-0 max-w-0"
-        }`}>
+        )}>
         {label}
       </span>
     </>
   );
 
-  const baseClasses = `flex items-center py-3.5 rounded-3xl transition-all duration-300 overflow-hidden ${
+  const baseClasses = cn(
+    "flex items-center py-3.5 rounded-3xl transition-all duration-300 overflow-hidden",
     isExpanded ? "px-4" : "justify-center px-0"
-  }`;
+  );
 
   const stateClasses = isAction
     ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
@@ -53,20 +56,22 @@ export function NavItem({
     return (
       <button
         type="button"
-        className={`w-full ${baseClasses} ${stateClasses} cursor-pointer`}
+        className={cn("w-full", baseClasses, stateClasses, "cursor-pointer")}
         title={isExpanded ? label : label}>
         {content}
       </button>
     );
   }
 
+  const combinedClasses = cn(baseClasses, stateClasses);
+
   return (
     <Link
       to={href}
-      className={`${baseClasses} ${stateClasses}`}
+      className={combinedClasses}
       title={isExpanded ? label : label}
       preload="intent"
-      activeProps={{ className: `${baseClasses} ${stateClasses}` }}
+      activeProps={{ className: combinedClasses }}
       hash={undefined}
       search={undefined}>
       {content}

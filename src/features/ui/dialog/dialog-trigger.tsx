@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/util/cn";
 import { cloneElement, isValidElement, useEffect, useRef } from "react";
 import type { DialogTriggerProps } from "./types";
 
@@ -77,8 +78,7 @@ export function DialogTrigger({
           originalOnClick(e);
         }
       },
-      className:
-        `${className} ${(children.props as any).className || ""}`.trim(),
+      className: cn(className, (children.props as any).className),
     } as any);
   }
 

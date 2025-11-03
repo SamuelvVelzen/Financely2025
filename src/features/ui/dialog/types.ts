@@ -13,6 +13,11 @@ export type DialogVariant = "modal" | "fullscreen";
 export type DialogSize = "sm" | "md" | "lg" | "xl" | "full";
 
 /**
+ * Dialog status determines the color theme
+ */
+export type DialogStatus = "danger" | "info" | "warning" | "success";
+
+/**
  * Event handlers for dialog lifecycle
  */
 export interface DialogEvents {
@@ -49,6 +54,8 @@ export interface DialogProps
   variant?: DialogVariant;
   /** Dialog size (for modal variant) */
   size?: DialogSize;
+  /** Dialog status determines the color theme */
+  status?: DialogStatus;
   /** Custom transition className */
   transitionClassName?: string;
   /** ARIA label for dialog */

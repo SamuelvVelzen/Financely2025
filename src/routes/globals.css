@@ -14,6 +14,19 @@
   --surface-hover: #e5e5e5;
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-bg: #fee2e2;
+  --info: #2563eb;
+  --info-hover: #1d4ed8;
+  --info-bg: #dbeafe;
+  --warning: #d97706;
+  --warning-hover: #b45309;
+  --warning-bg: #fef3c7;
+  --success: #16a34a;
+  --success-hover: #15803d;
+  --success-bg: #dcfce7;
+  --white: #ffffff;
 }
 
 @theme inline {
@@ -27,6 +40,19 @@
   --color-surface-hover: var(--surface-hover);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-bg: var(--danger-bg);
+  --color-info: var(--info);
+  --color-info-hover: var(--info-hover);
+  --color-info-bg: var(--info-bg);
+  --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
+  --color-warning-bg: var(--warning-bg);
+  --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-bg: var(--success-bg);
+  --color-white: var(--white);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -41,6 +67,19 @@
   --surface-hover: #262626;
   --primary: #3b82f6;
   --primary-hover: #60a5fa;
+  --danger: #ef4444;
+  --danger-hover: #f87171;
+  --danger-bg: #7f1d1d;
+  --info: #3b82f6;
+  --info-hover: #60a5fa;
+  --info-bg: #1e3a8a;
+  --warning: #f59e0b;
+  --warning-hover: #fbbf24;
+  --warning-bg: #78350f;
+  --success: #22c55e;
+  --success-hover: #4ade80;
+  --success-bg: #14532d;
+  --white: #ffffff;
 }
 
 body {

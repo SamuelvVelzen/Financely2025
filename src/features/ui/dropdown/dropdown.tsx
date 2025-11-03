@@ -1,6 +1,12 @@
 "use client";
 
-import { PropsWithChildren, ReactNode, useEffect, useState } from "react";
+import {
+  PropsWithChildren,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import { Button } from "../button/button";
 
@@ -8,13 +14,36 @@ type IDropdownProps = { dropdownSelector?: ReactNode } & PropsWithChildren;
 
 export function Dropdown({ children, dropdownSelector }: IDropdownProps) {
   const [dropdownIsOpen, setDropdownState] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selector = dropdownSelector ? dropdownSelector : <HiDotsVertical />;
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!dropdownRef.current) return;
+
+      const target = event.target as Node;
+
+      // Close dropdown only if click is outside the dropdown container
+      // Clicks inside dropdown items are handled by their own onClick handlers
+      if (!dropdownRef.current.contains(target)) {
+        setDropdownState(false);
+      }
+    };
+
+    if (dropdownIsOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownIsOpen]);
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      ref={dropdownRef}>
       <Button
         className="text-xl"
         clicked={() => setDropdownState((oldState) => !oldState)}>

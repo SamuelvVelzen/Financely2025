@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/util/cn";
 import {
   useCallback,
   useEffect,
@@ -64,6 +65,7 @@ export function Dialog({
   keepMounted = false,
   variant = "modal",
   size = "md",
+  status,
   transitionClassName,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
@@ -256,32 +258,30 @@ export function Dialog({
   };
 
   const variantClasses = {
-    modal: `
-      fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-      ${sizeClasses[size]}
-      w-[calc(100%-2rem)] max-h-[90vh]
-      motion-safe:transition-all motion-safe:duration-200
-      data-[state=open]:motion-safe:opacity-100 data-[state=open]:motion-safe:scale-100
-      data-[state=closed]:motion-safe:opacity-0 data-[state=closed]:motion-safe:scale-95
-    `,
-    fullscreen: `
-      fixed inset-0 w-full h-full
-      motion-safe:transition-opacity motion-safe:duration-200
-      data-[state=open]:motion-safe:opacity-100
-      data-[state=closed]:motion-safe:opacity-0
-    `,
+    modal: cn(
+      "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+      sizeClasses[size],
+      "w-[calc(100%-2rem)] max-h-[90vh]",
+      "motion-safe:transition-all motion-safe:duration-200",
+      "data-[state=open]:motion-safe:opacity-100 data-[state=open]:motion-safe:scale-100",
+      "data-[state=closed]:motion-safe:opacity-0 data-[state=closed]:motion-safe:scale-95"
+    ),
+    fullscreen: cn(
+      "fixed inset-0 w-full h-full",
+      "motion-safe:transition-opacity motion-safe:duration-200",
+      "data-[state=open]:motion-safe:opacity-100",
+      "data-[state=closed]:motion-safe:opacity-0"
+    ),
   };
 
-  const baseClasses = `
-    z-50 bg-surface border border-border rounded-2xl
-    shadow-lg outline-none
-    flex flex-col overflow-hidden
-    ${variantClasses[variant]}
-    ${transitionClassName || ""}
-    ${className}
-  `
-    .trim()
-    .replace(/\s+/g, " ");
+  const baseClasses = cn(
+    "z-50 bg-surface border border-border rounded-2xl",
+    "shadow-lg outline-none",
+    "flex flex-col overflow-hidden",
+    variantClasses[variant],
+    transitionClassName,
+    className
+  );
 
   // Determine content to display (content prop takes precedence over children)
   const bodyContent = content !== undefined ? content : children;
@@ -308,15 +308,25 @@ export function Dialog({
         data-state={open ? "open" : "closed"}
         data-variant={variant}
         data-size={size}
+        data-status={status}
         className={baseClasses}
         style={style}
         onKeyDown={handleKeyDown}
         tabIndex={-1}>
         {/* Header - Always rendered */}
         <header
-          className={
-            "flex items-center justify-between gap-4 px-6 py-4 border-b border-border "
-          }
+          className={cn(
+            "flex items-center justify-between gap-4 px-6 py-4 border-b",
+            status === "danger"
+              ? "border-danger"
+              : status === "info"
+                ? "border-info"
+                : status === "warning"
+                  ? "border-warning"
+                  : status === "success"
+                    ? "border-success"
+                    : "border-border"
+          )}
           id={titleId}>
           <div className="flex-1">
             <h2 className="text-xl font-semibold">{title}</h2>

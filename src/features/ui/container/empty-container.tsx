@@ -8,7 +8,7 @@ import { Container } from "./container";
 type IEmptyPageProps = {
   emptyText: string;
   icon?: ReactNode;
-  button?: { buttonText: string; buttonAction?: () => void };
+  button?: { buttonText: string; buttonAction: () => void };
 } & PropsWithClassName;
 
 export function EmptyContainer({

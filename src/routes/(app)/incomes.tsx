@@ -2,6 +2,8 @@ import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { List } from "@/features/ui/list/list";
+import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import { HiArrowTrendingUp } from "react-icons/hi2";
@@ -11,7 +13,7 @@ export const Route = createFileRoute("/(app)/incomes")({
 });
 
 export function IncomesPage() {
-  const incomes = [];
+  const incomes: unknown[] = [];
 
   return (
     <>
@@ -36,11 +38,30 @@ export function IncomesPage() {
           }
           button={{
             buttonText: "Add income",
-            // buttonAction: () => addExpense(),
+            buttonAction: () => {
+              // TODO: Add income functionality
+            },
           }}></EmptyContainer>
       )}
 
-      {incomes.length > 0 && <Container>incomes</Container>}
+      {incomes.length > 0 && (
+        <Container>
+          <List data={incomes}>
+            {(income: any) => (
+              <ListItem>
+                <div className="flex items-center gap-3">
+                  <span className="text-text">{income.name}</span>
+                  {income.description && (
+                    <span className="text-sm text-text-muted">
+                      {income.description}
+                    </span>
+                  )}
+                </div>
+              </ListItem>
+            )}
+          </List>
+        </Container>
+      )}
     </>
   );
 }

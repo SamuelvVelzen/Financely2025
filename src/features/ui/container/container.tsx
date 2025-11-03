@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/util/cn";
 import { PropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren, createElement, type ElementType } from "react";
 
@@ -16,7 +17,10 @@ export function Container({
   return createElement(
     Component,
     {
-      className: "bg-surface border border-border rounded-2xl p-4 " + className,
+      className: cn(
+        "bg-surface border border-border rounded-2xl p-4",
+        className
+      ),
     },
     children
   );

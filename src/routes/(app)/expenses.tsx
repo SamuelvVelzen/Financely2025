@@ -2,6 +2,8 @@ import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { List } from "@/features/ui/list/list";
+import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import { HiArrowTrendingDown } from "react-icons/hi2";
@@ -11,7 +13,7 @@ export const Route = createFileRoute("/(app)/expenses")({
 });
 
 export function ExpensesPage() {
-  const expenses = [];
+  const expenses: unknown[] = [];
 
   return (
     <>
@@ -37,11 +39,30 @@ export function ExpensesPage() {
           emptyText={"No expenses yet. Start by adding your first expense."}
           button={{
             buttonText: "Add expense",
-            // buttonAction: () => addExpense(),
+            buttonAction: () => {
+              // TODO: Add expense functionality
+            },
           }}></EmptyContainer>
       )}
 
-      {expenses.length > 0 && <Container>expenses</Container>}
+      {expenses.length > 0 && (
+        <Container>
+          <List data={expenses}>
+            {(expense: any) => (
+              <ListItem>
+                <div className="flex items-center gap-3">
+                  <span className="text-text">{expense.name}</span>
+                  {expense.description && (
+                    <span className="text-sm text-text-muted">
+                      {expense.description}
+                    </span>
+                  )}
+                </div>
+              </ListItem>
+            )}
+          </List>
+        </Container>
+      )}
     </>
   );
 }

@@ -1,11 +1,20 @@
-import { useTags } from "@/features/tags/hooks/useTags";
+import {
+  useCreateTag,
+  useDeleteTag,
+  useTags,
+} from "@/features/tags/hooks/useTags";
+import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
+import { Dialog } from "@/features/ui/dialog/dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { List } from "@/features/ui/list/list";
+import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
-import { HiOutlineTag } from "react-icons/hi2";
+import { useState } from "react";
+import { HiOutlineTag, HiTrash } from "react-icons/hi2";
 
 export const Route = createFileRoute("/(app)/labels")({
   component: LabelsPage,
@@ -14,6 +23,41 @@ export const Route = createFileRoute("/(app)/labels")({
 export function LabelsPage() {
   const { data, isLoading, error } = useTags();
   const labels = data?.data ?? [];
+  const { mutate: createTag } = useCreateTag();
+  const { mutate: deleteTag } = useDeleteTag();
+  const [labelToDelete, setLabelToDelete] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const createLabel = () => {
+    // TODO: Add form/dialog to collect tag name, color, description
+    createTag({
+      name: "New Tag",
+      color: "#000000",
+    });
+  };
+
+  const handleDeleteClick = (labelId: string) => {
+    setLabelToDelete(labelId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (labelToDelete) {
+      deleteTag(labelToDelete, {
+        onSuccess: () => {
+          setIsDeleteDialogOpen(false);
+          setLabelToDelete(null);
+        },
+      });
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteDialogOpen(false);
+    setLabelToDelete(null);
+  };
+
+  const labelToDeleteData = labels.find((label) => label.id === labelToDelete);
 
   return (
     <>
@@ -26,7 +70,11 @@ export function LabelsPage() {
           </div>
 
           <Dropdown>
-            <DropdownItem icon={<HiOutlineTag />}>Add label</DropdownItem>
+            <DropdownItem
+              icon={<HiOutlineTag />}
+              clicked={() => createLabel()}>
+              Add label
+            </DropdownItem>
           </Dropdown>
         </Title>
       </Container>
@@ -53,17 +101,15 @@ export function LabelsPage() {
           }
           button={{
             buttonText: "Add label",
-            // buttonAction: () => addExpense(),
+            buttonAction: () => createLabel(),
           }}></EmptyContainer>
       )}
 
       {!isLoading && !error && labels.length > 0 && (
         <Container>
-          <div className="space-y-2">
-            {labels.map((label) => (
-              <div
-                key={label.id}
-                className="flex items-center justify-between p-3 bg-surface rounded-lg">
+          <List data={labels}>
+            {(label) => (
+              <ListItem className="group">
                 <div className="flex items-center gap-3">
                   {label.color && (
                     <div
@@ -78,11 +124,40 @@ export function LabelsPage() {
                     </span>
                   )}
                 </div>
-              </div>
-            ))}
-          </div>
+                <IconButton
+                  clicked={() => handleDeleteClick(label.id)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-danger hover:text-danger-hover p-1">
+                  <HiTrash className="w-5 h-5" />
+                </IconButton>
+              </ListItem>
+            )}
+          </List>
         </Container>
       )}
+
+      <Dialog
+        title="Delete Label"
+        status="danger"
+        content={
+          labelToDeleteData
+            ? `Are you sure you want to delete the label "${labelToDeleteData.name}"? This action cannot be undone.`
+            : "Are you sure you want to delete this label? This action cannot be undone."
+        }
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        footerButtons={[
+          {
+            buttonContent: "Cancel",
+            clicked: handleDeleteCancel,
+            className: "hover:bg-surface-hover",
+          },
+          {
+            buttonContent: "Delete",
+            clicked: handleDeleteConfirm,
+            variant: "danger",
+          },
+        ]}
+      />
     </>
   );
 }
