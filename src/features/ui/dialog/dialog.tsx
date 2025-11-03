@@ -1,0 +1,369 @@
+"use client";
+
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
+import { createPortal } from "react-dom";
+import { HiX } from "react-icons/hi";
+import { Button } from "../button/button";
+import { DialogOverlay } from "./dialog-overlay";
+import type { DialogProps } from "./types";
+
+/**
+ * Dialog component provides a fully accessible modal dialog system
+ *
+ * Features:
+ * - Controlled and uncontrolled modes
+ * - Multiple variants (modal, fullscreen)
+ * - Full accessibility support (ARIA, focus trap, keyboard navigation)
+ * - SSR safe portal rendering
+ * - Configurable animations with motion preference support
+ * - Always renders header and footer (header shows title, footer shows actions)
+ *
+ * @example
+ * ```tsx
+ * // Simple usage with title and content
+ * <Dialog
+ *   title="Dialog Title"
+ *   content="Dialog content text"
+ *   footer={<button onClick={() => setOpen(false)}>Close</button>}
+ *   open={open}
+ *   onOpenChange={setOpen}
+ * />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // With custom content as ReactNode
+ * <Dialog
+ *   title="Confirm Delete"
+ *   content={<p>Are you sure?</p>}
+ *   footer={
+ *     <>
+ *       <button>Cancel</button>
+ *       <button>Confirm</button>
+ *     </>
+ *   }
+ *   showCloseButton={true}
+ *   open={open}
+ *   onOpenChange={setOpen}
+ * />
+ * ```
+ */
+export function Dialog({
+  children,
+  open: controlledOpen,
+  onOpenChange,
+  dismissible = true,
+  portal = true,
+  portalContainer,
+  keepMounted = false,
+  variant = "modal",
+  size = "md",
+  transitionClassName,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
+  className = "",
+  style,
+  onOpen,
+  onClose,
+  onAfterOpen,
+  onAfterClose,
+  title,
+  content,
+  footerButtons,
+  scrollable = true,
+}: DialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
+
+  // Determine if controlled or uncontrolled
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+
+  // Set mounted state for SSR safety
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Handle open state changes
+  const handleOpenChange = useCallback(
+    (newOpen: boolean) => {
+      if (!isControlled) {
+        setInternalOpen(newOpen);
+      }
+      onOpenChange?.(newOpen);
+    },
+    [isControlled, onOpenChange]
+  );
+
+  // Track active element before opening
+  useEffect(() => {
+    if (open && typeof window !== "undefined") {
+      previousActiveElement.current =
+        (document.activeElement as HTMLElement) || null;
+
+      // Store trigger element if available (for focus restoration)
+      const storedTrigger = sessionStorage.getItem("dialog-trigger-id");
+      if (storedTrigger) {
+        const element = document.getElementById(storedTrigger);
+        if (element) {
+          triggerRef.current = element as HTMLElement;
+        }
+      }
+
+      onOpen?.();
+
+      // Call onAfterOpen after a brief delay (for animations)
+      const timer = setTimeout(() => {
+        onAfterOpen?.();
+      }, 150);
+
+      return () => clearTimeout(timer);
+    } else if (!open && previousActiveElement.current) {
+      onClose?.();
+
+      // Call onAfterClose after a brief delay
+      const timer = setTimeout(() => {
+        onAfterClose?.();
+        // Restore focus
+        if (triggerRef.current) {
+          triggerRef.current.focus();
+          triggerRef.current = null;
+        } else if (previousActiveElement.current) {
+          previousActiveElement.current.focus();
+        }
+        previousActiveElement.current = null;
+      }, 150);
+
+      return () => clearTimeout(timer);
+    }
+  }, [open, onOpen, onClose, onAfterOpen, onAfterClose]);
+
+  // Get all focusable elements within dialog
+  const getFocusableElements = useCallback(() => {
+    if (!dialogRef.current || typeof window === "undefined") return [];
+
+    const focusableSelectors = [
+      "a[href]",
+      "button:not([disabled])",
+      "textarea:not([disabled])",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(", ");
+
+    return Array.from(
+      dialogRef.current.querySelectorAll<HTMLElement>(focusableSelectors)
+    ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
+  }, []);
+
+  // Focus trap: handle Tab and Shift+Tab
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Escape" && dismissible) {
+        handleOpenChange(false);
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) {
+        // No focusable elements, prevent tabbing out
+        e.preventDefault();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement as HTMLElement;
+
+      // Check if focus is within dialog
+      const isFocusInDialog =
+        dialogRef.current?.contains(activeElement) ||
+        activeElement === dialogRef.current;
+
+      if (!isFocusInDialog) {
+        // Focus escaped, bring it back
+        e.preventDefault();
+        firstElement.focus();
+        return;
+      }
+
+      if (e.shiftKey) {
+        // Shift+Tab
+        if (
+          activeElement === firstElement ||
+          activeElement === dialogRef.current
+        ) {
+          e.preventDefault();
+          lastElement.focus();
+        }
+      } else {
+        // Tab
+        if (
+          activeElement === lastElement ||
+          activeElement === dialogRef.current
+        ) {
+          e.preventDefault();
+          firstElement.focus();
+        }
+      }
+    },
+    [dismissible, handleOpenChange, getFocusableElements]
+  );
+
+  // Focus first element when dialog opens
+  useEffect(() => {
+    if (!open || !dialogRef.current || typeof window === "undefined") return;
+
+    const focusableElements = getFocusableElements();
+    if (focusableElements.length > 0) {
+      // Small delay to ensure dialog is visible
+      setTimeout(() => {
+        focusableElements[0].focus();
+      }, 100);
+    } else {
+      // Focus dialog container if no focusable elements
+      dialogRef.current.focus();
+    }
+  }, [open, getFocusableElements]);
+
+  const handleClose = useCallback(() => {
+    handleOpenChange(false);
+  }, [handleOpenChange]);
+
+  // Don't render on server when closed
+  if (!isMounted && !open) return null;
+
+  // If closed and not keepMounted, don't render
+  if (!open && !keepMounted) return null;
+
+  const sizeClasses = {
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
+    full: "max-w-full",
+  };
+
+  const variantClasses = {
+    modal: `
+      fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+      ${sizeClasses[size]}
+      w-[calc(100%-2rem)] max-h-[90vh]
+      motion-safe:transition-all motion-safe:duration-200
+      data-[state=open]:motion-safe:opacity-100 data-[state=open]:motion-safe:scale-100
+      data-[state=closed]:motion-safe:opacity-0 data-[state=closed]:motion-safe:scale-95
+    `,
+    fullscreen: `
+      fixed inset-0 w-full h-full
+      motion-safe:transition-opacity motion-safe:duration-200
+      data-[state=open]:motion-safe:opacity-100
+      data-[state=closed]:motion-safe:opacity-0
+    `,
+  };
+
+  const baseClasses = `
+    z-50 bg-surface border border-border rounded-2xl
+    shadow-lg outline-none
+    flex flex-col overflow-hidden
+    ${variantClasses[variant]}
+    ${transitionClassName || ""}
+    ${className}
+  `
+    .trim()
+    .replace(/\s+/g, " ");
+
+  // Determine content to display (content prop takes precedence over children)
+  const bodyContent = content !== undefined ? content : children;
+
+  // Generate title ID for aria-labelledby if title is provided
+  const titleId = title
+    ? `dialog-title-${Math.random().toString(36).substr(2, 9)}`
+    : undefined;
+  const finalAriaLabelledBy = ariaLabelledBy || titleId;
+
+  const dialogContent = (
+    <>
+      <DialogOverlay
+        open={open}
+        dismissible={dismissible}
+        onClick={handleClose}
+      />
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={ariaLabel}
+        aria-labelledby={finalAriaLabelledBy}
+        data-state={open ? "open" : "closed"}
+        data-variant={variant}
+        data-size={size}
+        className={baseClasses}
+        style={style}
+        onKeyDown={handleKeyDown}
+        tabIndex={-1}>
+        {/* Header - Always rendered */}
+        <header
+          className={
+            "flex items-center justify-between gap-4 px-6 py-4 border-b border-border "
+          }
+          id={titleId}>
+          <div className="flex-1">
+            <h2 className="text-xl font-semibold">{title}</h2>
+          </div>
+
+          <button
+            type="button"
+            className="flex-shrink-0 hover:bg-surface-hover p-2 border border-border rounded-full transition-colors"
+            onClick={handleClose}
+            aria-label="Close dialog">
+            <HiX className="w-5 h-5" />
+          </button>
+        </header>
+
+        <div
+          className={
+            "px-6 py-4 " +
+            (scrollable ? "overflow-y-auto max-h-[60vh] " : "") +
+            ""
+          }>
+          {bodyContent}
+        </div>
+
+        {footerButtons && footerButtons.length > 0 && (
+          <footer
+            className={
+              "flex items-center gap-3 px-6 py-4 border-t border-border justify-end "
+            }>
+            {footerButtons?.map((buttonProps, index) => (
+              <Button
+                key={index}
+                {...buttonProps}
+              />
+            ))}
+          </footer>
+        )}
+      </div>
+    </>
+  );
+
+  // Portal rendering with SSR safety
+  if (portal && isMounted && typeof window !== "undefined") {
+    const container = portalContainer || document.body;
+    return createPortal(dialogContent, container);
+  }
+
+  // Fallback for SSR or non-portal mode
+  if (!isMounted) return null;
+  return dialogContent;
+}

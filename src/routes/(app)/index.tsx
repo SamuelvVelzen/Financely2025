@@ -1,5 +1,6 @@
-import Container from "@/features/ui/container/container";
-import Title from "@/features/ui/typography/title";
+import { Dialog } from "@/features/ui/dialog/dialog";
+import { DialogTrigger } from "@/features/ui/dialog/dialog-trigger";
+import { useDialog } from "@/features/ui/dialog/use-dialog";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/")({
