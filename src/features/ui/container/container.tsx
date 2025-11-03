@@ -8,7 +8,7 @@ type IContainerProps = {
 } & PropsWithChildren &
   PropsWithClassName;
 
-export default function Container({
+export function Container({
   children,
   className = "",
   as: Component = "div",

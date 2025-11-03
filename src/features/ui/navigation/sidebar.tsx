@@ -10,11 +10,11 @@ import {
   HiOutlineTag,
   HiUser,
 } from "react-icons/hi2";
-import Container from "../container/container";
-import ThemeToggle from "../ThemeToggle";
-import NavItem from "./nav-item";
+import { Container } from "../container/container";
+import { ThemeToggle } from "../ThemeToggle";
+import { NavItem } from "./nav-item";
 
-export default function Sidebar() {
+export function Sidebar() {
   // Initialize with default value, will be updated from localStorage on client
   const [isExpanded, setIsExpanded] = useState(() => {
     // Safe access to localStorage on initial render (client-side only)

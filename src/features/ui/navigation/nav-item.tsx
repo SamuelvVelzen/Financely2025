@@ -10,7 +10,7 @@ interface NavItemProps {
   customIcon?: React.ReactNode;
 }
 
-export default function NavItem({
+export function NavItem({
   href,
   label,
   icon: Icon,

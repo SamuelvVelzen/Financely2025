@@ -9,7 +9,7 @@ type IDropdownItemProps = {
 } & PropsWithChildren &
   PropsWithClassName;
 
-export default function DropdownItem({
+export function DropdownItem({
   className = "",
   children,
   text,

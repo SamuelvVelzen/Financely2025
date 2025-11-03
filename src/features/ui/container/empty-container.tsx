@@ -2,8 +2,8 @@
 
 import { PropsWithClassName } from "@/util/type-helpers/props";
 import { ReactNode } from "react";
-import Button from "../button/button";
-import Container from "./container";
+import { Button } from "../button/button";
+import { Container } from "./container";
 
 type IEmptyPageProps = {
   emptyText: string;
@@ -11,7 +11,7 @@ type IEmptyPageProps = {
   button?: { buttonText: string; buttonAction?: () => void };
 } & PropsWithClassName;
 
-export default function EmptyContainer({
+export function EmptyContainer({
   className = "",
   emptyText,
   button,

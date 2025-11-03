@@ -1,4 +1,4 @@
-import Sidebar from "@/features/ui/navigation/sidebar";
+import { Sidebar } from "@/features/ui/navigation/sidebar";
 import { ThemeProvider } from "@/features/ui/ThemeProvider";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 

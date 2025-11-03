@@ -1,8 +1,8 @@
-import Container from "@/features/ui/container/container";
-import EmptyContainer from "@/features/ui/container/empty-container";
-import Dropdown from "@/features/ui/dropdown/dropdown";
-import DropdownItem from "@/features/ui/dropdown/dropdown-item";
-import Title from "@/features/ui/typography/title";
+import { Container } from "@/features/ui/container/container";
+import { EmptyContainer } from "@/features/ui/container/empty-container";
+import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import { HiArrowTrendingDown } from "react-icons/hi2";
 
@@ -10,7 +10,7 @@ export const Route = createFileRoute("/(app)/expenses")({
   component: ExpensesPage,
 });
 
-export default function ExpensesPage() {
+export function ExpensesPage() {
   const expenses = [];
 
   return (

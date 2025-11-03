@@ -2,7 +2,7 @@
 
 import { PropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren, ReactNode } from "react";
-import Button from "./button";
+import { Button } from "./button";
 
 type IIconButton = {
   icon?: ReactNode;
@@ -10,7 +10,7 @@ type IIconButton = {
 } & PropsWithChildren &
   PropsWithClassName;
 
-export default function IconButton({
+export function IconButton({
   children,
   className,
   icon,
@@ -21,8 +21,8 @@ IIconButton) {
   return (
     <Button
       className={` ${className}`}
-      clicked={() => {}}>
-      {iconButtonContent}
-    </Button>
+      clicked={() => {}}
+      buttonContent={iconButtonContent}
+    />
   );
 }

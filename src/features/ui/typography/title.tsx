@@ -5,11 +5,7 @@ import { PropsWithChildren } from "react";
 
 type ITitleProps = { title?: string } & PropsWithChildren & PropsWithClassName;
 
-export default function Title({
-  children,
-  title,
-  className = "",
-}: ITitleProps) {
+export function Title({ children, title, className = "" }: ITitleProps) {
   const titleContent = children ? children : title;
 
   return (

@@ -5,7 +5,7 @@ interface ThemeToggleProps {
   isExpanded: boolean;
 }
 
-export default function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
+export function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
 
   const handleClick = (newTheme: typeof theme) => {

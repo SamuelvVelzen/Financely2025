@@ -1,9 +1,9 @@
 import { useTags } from "@/features/tags/hooks/useTags";
-import Container from "@/features/ui/container/container";
-import EmptyContainer from "@/features/ui/container/empty-container";
-import Dropdown from "@/features/ui/dropdown/dropdown";
-import DropdownItem from "@/features/ui/dropdown/dropdown-item";
-import Title from "@/features/ui/typography/title";
+import { Container } from "@/features/ui/container/container";
+import { EmptyContainer } from "@/features/ui/container/empty-container";
+import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import { HiOutlineTag } from "react-icons/hi2";
 
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/(app)/labels")({
   component: LabelsPage,
 });
 
-export default function LabelsPage() {
+export function LabelsPage() {
   const { data, isLoading, error } = useTags();
   const labels = data?.data ?? [];
 

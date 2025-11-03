@@ -2,14 +2,11 @@
 
 import { PropsWithChildren, ReactNode, useEffect, useState } from "react";
 import { HiDotsVertical } from "react-icons/hi";
-import Button from "../button/button";
+import { Button } from "../button/button";
 
 type IDropdownProps = { dropdownSelector?: ReactNode } & PropsWithChildren;
 
-export default function Dropdown({
-  children,
-  dropdownSelector,
-}: IDropdownProps) {
+export function Dropdown({ children, dropdownSelector }: IDropdownProps) {
   const [dropdownIsOpen, setDropdownState] = useState(false);
 
   const selector = dropdownSelector ? dropdownSelector : <HiDotsVertical />;

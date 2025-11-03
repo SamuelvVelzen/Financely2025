@@ -1,5 +1,5 @@
-import Container from "@/features/ui/container/container";
-import Title from "@/features/ui/typography/title";
+import { Container } from "@/features/ui/container/container";
+import { Title } from "@/features/ui/typography/title";
 import { useMe } from "@/features/users/hooks/useUser";
 import { createFileRoute } from "@tanstack/react-router";
 
