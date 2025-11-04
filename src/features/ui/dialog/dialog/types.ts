@@ -1,6 +1,6 @@
 import { PropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren } from "react";
-import type { IButtonProps } from "../button/button";
+import type { IButtonProps } from "../../button/button";
 
 /**
  * Dialog variant determines the layout and behavior

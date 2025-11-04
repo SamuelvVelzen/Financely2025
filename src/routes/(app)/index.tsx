@@ -1,9 +1,9 @@
 "use client";
 
 import { Container } from "@/features/ui/container/container";
-import { Dialog } from "@/features/ui/dialog/dialog";
-import { DialogTrigger } from "@/features/ui/dialog/dialog-trigger";
-import { useDialog } from "@/features/ui/dialog/use-dialog";
+import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { DialogTrigger } from "@/features/ui/dialog/dialog/dialog-trigger";
+import { useDialog } from "@/features/ui/dialog/dialog/use-dialog";
 import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useState } from "react";

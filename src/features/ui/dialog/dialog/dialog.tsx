@@ -10,7 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { HiX } from "react-icons/hi";
-import { Button } from "../button/button";
+import { Button } from "../../button/button";
 import { DialogOverlay } from "./dialog-overlay";
 import type { DialogProps, DialogStatus } from "./types";
 
