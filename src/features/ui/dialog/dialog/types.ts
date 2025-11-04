@@ -44,21 +44,14 @@ export interface DialogProps
   onOpenChange?: (open: boolean) => void;
   /** Whether dialog can be dismissed (by clicking overlay or pressing Esc) */
   dismissible?: boolean;
-  /** Whether to render in a portal (default: true) */
-  portal?: boolean;
-  /** Portal container element (default: document.body) */
-  portalContainer?: HTMLElement;
-  /** Keep dialog mounted when closed (for animations) */
-  keepMounted?: boolean;
+
   /** Dialog variant */
   variant?: DialogVariant;
   /** Dialog size (for modal variant) */
   size?: DialogSize;
   /** Dialog status determines the color theme */
   status?: DialogStatus;
-  /** Custom transition className */
-  transitionClassName?: string;
-  /** ARIA label for dialog */
+
   "aria-label"?: string;
   /** ARIA labelled by element id */
   "aria-labelledby"?: string;
@@ -70,8 +63,6 @@ export interface DialogProps
   content?: string | React.ReactNode;
   /** Footer buttons (array of button props). Always rendered */
   footerButtons?: IButtonProps[];
-  /** Whether body content is scrollable */
-  scrollable?: boolean;
 }
 
 /**

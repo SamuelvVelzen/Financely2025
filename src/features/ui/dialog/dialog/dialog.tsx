@@ -60,13 +60,9 @@ export function Dialog({
   open: controlledOpen,
   onOpenChange,
   dismissible = true,
-  portal = true,
-  portalContainer,
-  keepMounted = false,
   variant = "modal",
   size = "md",
   status,
-  transitionClassName,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   className = "",
@@ -78,7 +74,6 @@ export function Dialog({
   title,
   content,
   footerButtons,
-  scrollable = true,
 }: DialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -246,8 +241,8 @@ export function Dialog({
   // Don't render on server when closed
   if (!isMounted && !open) return null;
 
-  // If closed and not keepMounted, don't render
-  if (!open && !keepMounted) return null;
+  // If closed don't render
+  if (!open) return null;
 
   const sizeClasses = {
     sm: "max-w-sm",
@@ -279,7 +274,6 @@ export function Dialog({
     "shadow-lg outline-none",
     "flex flex-col overflow-hidden",
     variantClasses[variant],
-    transitionClassName,
     className
   );
 
@@ -346,12 +340,7 @@ export function Dialog({
           </button>
         </header>
 
-        <div
-          className={
-            "px-6 py-4 " +
-            (scrollable ? "overflow-y-auto max-h-[60vh] " : "") +
-            ""
-          }>
+        <div className={"px-6 py-4 overflow-y-auto max-h-[60vh]"}>
           {bodyContent}
         </div>
 
@@ -373,8 +362,8 @@ export function Dialog({
   );
 
   // Portal rendering with SSR safety
-  if (portal && isMounted && typeof window !== "undefined") {
-    const container = portalContainer || document.body;
+  if (isMounted && typeof window !== "undefined") {
+    const container = document.body;
     return createPortal(dialogContent, container);
   }
 
