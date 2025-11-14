@@ -5,7 +5,7 @@ import {
   ErrorCodes,
 } from "@/features/shared/api/errors";
 import { TagsQuerySchema } from "@/features/shared/validation/schemas";
-import { TagService } from "@/features/tags/services/tag.service";
+import { TagService } from "@/features/tag/services/tag.service";
 import { json } from "@tanstack/react-start";
 
 /**

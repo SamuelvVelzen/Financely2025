@@ -1,4 +1,4 @@
-import { TagOverview } from "@/features/tags/components/tag-overview";
+import { TagOverview } from "@/features/tag/components/tag-overview";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/labels")({

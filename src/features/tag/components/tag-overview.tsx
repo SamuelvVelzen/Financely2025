@@ -2,7 +2,7 @@ import {
   useCreateTag,
   useDeleteTag,
   useTags,
-} from "@/features/tags/hooks/useTags";
+} from "@/features/tag/hooks/useTags";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";

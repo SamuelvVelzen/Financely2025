@@ -4,7 +4,7 @@ import {
   createErrorResponse,
   ErrorCodes,
 } from "@/features/shared/api/errors";
-import { TagService } from "@/features/tags/services/tag.service";
+import { TagService } from "@/features/tag/services/tag.service";
 
 /**
  * PATCH /api/tags/:id

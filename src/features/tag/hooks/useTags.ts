@@ -12,7 +12,7 @@ import {
   deleteTag,
   getTags,
   updateTag,
-} from "@/features/tags/api/client";
+} from "@/features/tag/api/client";
 
 /**
  * Query tags list
