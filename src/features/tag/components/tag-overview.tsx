@@ -17,13 +17,13 @@ import { HiOutlineTag, HiTrash } from "react-icons/hi2";
 
 export function TagOverview() {
   const { data, isLoading, error } = useTags();
-  const labels = data?.data ?? [];
+  const tags = data?.data ?? [];
   const { mutate: createTag } = useCreateTag();
   const { mutate: deleteTag } = useDeleteTag();
-  const [labelToDelete, setLabelToDelete] = useState<string | null>(null);
+  const [tagToDelete, setTagToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const createLabel = () => {
+  const handleCreateTag = () => {
     // TODO: Add form/dialog to collect tag name, color, description
     createTag({
       name: "New Tag",
@@ -31,17 +31,17 @@ export function TagOverview() {
     });
   };
 
-  const handleDeleteClick = (labelId: string) => {
-    setLabelToDelete(labelId);
+  const handleDeleteClick = (tagId: string) => {
+    setTagToDelete(tagId);
     setIsDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = () => {
-    if (labelToDelete) {
-      deleteTag(labelToDelete, {
+    if (tagToDelete) {
+      deleteTag(tagToDelete, {
         onSuccess: () => {
           setIsDeleteDialogOpen(false);
-          setLabelToDelete(null);
+          setTagToDelete(null);
         },
       });
     }
@@ -49,10 +49,10 @@ export function TagOverview() {
 
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
-    setLabelToDelete(null);
+    setTagToDelete(null);
   };
 
-  const labelToDeleteData = labels.find((label) => label.id === labelToDelete);
+  const tagToDeleteData = tags.find((tag) => tag.id === tagToDelete);
 
   return (
     <>
@@ -61,14 +61,14 @@ export function TagOverview() {
           <div className="flex gap-2">
             <HiOutlineTag />
 
-            <span>Labels</span>
+            <span>Tags</span>
           </div>
 
           <Dropdown>
             <DropdownItem
               icon={<HiOutlineTag />}
-              clicked={() => createLabel()}>
-              Add label
+              clicked={() => handleCreateTag()}>
+              Add tag
             </DropdownItem>
           </Dropdown>
         </Title>
@@ -76,51 +76,51 @@ export function TagOverview() {
 
       {isLoading && (
         <Container>
-          <p className="text-text-muted text-center">Loading labels...</p>
+          <p className="text-text-muted text-center">Loading tags...</p>
         </Container>
       )}
 
       {error && (
         <Container>
           <p className="text-red-500 text-center">
-            Error loading labels: {error.message}
+            Error loading tags: {error.message}
           </p>
         </Container>
       )}
 
-      {!isLoading && !error && labels.length === 0 && (
+      {!isLoading && !error && tags.length === 0 && (
         <EmptyContainer
           icon={<HiOutlineTag />}
           emptyText={
-            "No labels yet. Create your first label to organize your finances."
+            "No tags yet. Create your first tag to organize your finances."
           }
           button={{
-            buttonText: "Add label",
-            buttonAction: () => createLabel(),
+            buttonText: "Add tag",
+            buttonAction: () => handleCreateTag(),
           }}></EmptyContainer>
       )}
 
-      {!isLoading && !error && labels.length > 0 && (
+      {!isLoading && !error && tags.length > 0 && (
         <Container>
-          <List data={labels}>
-            {(label) => (
+          <List data={tags}>
+            {(tag) => (
               <ListItem className="group">
                 <div className="flex items-center gap-3">
-                  {label.color && (
+                  {tag.color && (
                     <div
                       className="w-4 h-4 rounded"
-                      style={{ backgroundColor: label.color }}
+                      style={{ backgroundColor: tag.color }}
                     />
                   )}
-                  <span className="text-text">{label.name}</span>
-                  {label.description && (
+                  <span className="text-text">{tag.name}</span>
+                  {tag.description && (
                     <span className="text-sm text-text-muted">
-                      {label.description}
+                      {tag.description}
                     </span>
                   )}
                 </div>
                 <IconButton
-                  clicked={() => handleDeleteClick(label.id)}
+                  clicked={() => handleDeleteClick(tag.id)}
                   className="opacity-0 group-hover:opacity-100 transition-opacity text-danger hover:text-danger-hover p-1">
                   <HiTrash className="w-5 h-5" />
                 </IconButton>
@@ -131,11 +131,11 @@ export function TagOverview() {
       )}
 
       <DeleteDialog
-        title="Delete Label"
+        title="Delete Tag"
         content={
-          labelToDeleteData
-            ? `Are you sure you want to delete the label "${labelToDeleteData.name}"? This action cannot be undone.`
-            : "Are you sure you want to delete this label? This action cannot be undone."
+          tagToDeleteData
+            ? `Are you sure you want to delete the tag "${tagToDeleteData.name}"? This action cannot be undone.`
+            : "Are you sure you want to delete this tag? This action cannot be undone."
         }
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

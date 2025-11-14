@@ -2,7 +2,7 @@ export const ROUTES = {
   ROOT: "/",
   INCOMES: "/incomes",
   EXPENSES: "/expenses",
-  LABELS: "/labels",
+  TAGS: "/tags",
   ACCOUNT: "/account",
   LOGOUT: "/logout",
 } as const;

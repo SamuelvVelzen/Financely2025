@@ -131,10 +131,9 @@ export function Sidebar() {
           </li>
           <li>
             <NavItem
-              href={ROUTES.LABELS}
-              label="Labels"
+              href={ROUTES.TAGS}
+              label="Tags"
               icon={HiOutlineTag}
-              isExpanded={isExpanded}
             />
           </li>
         </ul>

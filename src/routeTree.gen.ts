@@ -14,7 +14,7 @@ import { Route as appIndexRouteImport } from './routes/(app)/index'
 import { Route as ApiTransactionsRouteImport } from './routes/api/transactions'
 import { Route as ApiTagsRouteImport } from './routes/api/tags'
 import { Route as ApiMeRouteImport } from './routes/api/me'
-import { Route as appLabelsRouteImport } from './routes/(app)/labels'
+import { Route as appTagsRouteImport } from './routes/(app)/tags'
 import { Route as appIncomesRouteImport } from './routes/(app)/incomes'
 import { Route as appExpensesRouteImport } from './routes/(app)/expenses'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
@@ -46,9 +46,9 @@ const ApiMeRoute = ApiMeRouteImport.update({
   path: '/api/me',
   getParentRoute: () => rootRouteImport,
 } as any)
-const appLabelsRoute = appLabelsRouteImport.update({
-  id: '/labels',
-  path: '/labels',
+const appTagsRoute = appTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
   getParentRoute: () => appRouteRoute,
 } as any)
 const appIncomesRoute = appIncomesRouteImport.update({
@@ -88,7 +88,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
-  '/labels': typeof appLabelsRoute
+  '/tags': typeof appTagsRoute
   '/api/me': typeof ApiMeRoute
   '/api/tags': typeof ApiTagsRouteWithChildren
   '/api/transactions': typeof ApiTransactionsRouteWithChildren
@@ -101,7 +101,7 @@ export interface FileRoutesByTo {
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
-  '/labels': typeof appLabelsRoute
+  '/tags': typeof appTagsRoute
   '/api/me': typeof ApiMeRoute
   '/api/tags': typeof ApiTagsRouteWithChildren
   '/api/transactions': typeof ApiTransactionsRouteWithChildren
@@ -116,7 +116,7 @@ export interface FileRoutesById {
   '/(app)/account': typeof appAccountRoute
   '/(app)/expenses': typeof appExpensesRoute
   '/(app)/incomes': typeof appIncomesRoute
-  '/(app)/labels': typeof appLabelsRoute
+  '/(app)/tags': typeof appTagsRoute
   '/api/me': typeof ApiMeRoute
   '/api/tags': typeof ApiTagsRouteWithChildren
   '/api/transactions': typeof ApiTransactionsRouteWithChildren
@@ -131,7 +131,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/expenses'
     | '/incomes'
-    | '/labels'
+    | '/tags'
     | '/api/me'
     | '/api/tags'
     | '/api/transactions'
@@ -144,7 +144,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/expenses'
     | '/incomes'
-    | '/labels'
+    | '/tags'
     | '/api/me'
     | '/api/tags'
     | '/api/transactions'
@@ -158,7 +158,7 @@ export interface FileRouteTypes {
     | '/(app)/account'
     | '/(app)/expenses'
     | '/(app)/incomes'
-    | '/(app)/labels'
+    | '/(app)/tags'
     | '/api/me'
     | '/api/tags'
     | '/api/transactions'
@@ -212,11 +212,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/labels': {
-      id: '/(app)/labels'
-      path: '/labels'
-      fullPath: '/labels'
-      preLoaderRoute: typeof appLabelsRouteImport
+    '/(app)/tags': {
+      id: '/(app)/tags'
+      path: '/tags'
+      fullPath: '/tags'
+      preLoaderRoute: typeof appTagsRouteImport
       parentRoute: typeof appRouteRoute
     }
     '/(app)/incomes': {
@@ -268,7 +268,7 @@ interface appRouteRouteChildren {
   appAccountRoute: typeof appAccountRoute
   appExpensesRoute: typeof appExpensesRoute
   appIncomesRoute: typeof appIncomesRoute
-  appLabelsRoute: typeof appLabelsRoute
+  appTagsRoute: typeof appTagsRoute
   appIndexRoute: typeof appIndexRoute
 }
 
@@ -276,7 +276,7 @@ const appRouteRouteChildren: appRouteRouteChildren = {
   appAccountRoute: appAccountRoute,
   appExpensesRoute: appExpensesRoute,
   appIncomesRoute: appIncomesRoute,
-  appLabelsRoute: appLabelsRoute,
+  appTagsRoute: appTagsRoute,
   appIndexRoute: appIndexRoute,
 }
 
