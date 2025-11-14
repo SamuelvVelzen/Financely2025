@@ -6,7 +6,7 @@ import {
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { List } from "@/features/ui/list/list";
@@ -135,9 +135,8 @@ export function LabelsPage() {
         </Container>
       )}
 
-      <Dialog
+      <DeleteDialog
         title="Delete Label"
-        status="danger"
         content={
           labelToDeleteData
             ? `Are you sure you want to delete the label "${labelToDeleteData.name}"? This action cannot be undone.`
