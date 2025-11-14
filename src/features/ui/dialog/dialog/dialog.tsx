@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { DialogOverlay } from "./dialog-overlay";
-import type { DialogProps, DialogStatus } from "./types";
+import type { DialogStatus, IDialogProps } from "./types";
 
 /**
  * Dialog component provides a fully accessible modal dialog system
@@ -74,7 +74,7 @@ export function Dialog({
   title,
   content,
   footerButtons,
-}: DialogProps) {
+}: IDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);

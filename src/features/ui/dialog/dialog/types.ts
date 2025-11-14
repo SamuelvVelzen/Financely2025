@@ -34,7 +34,7 @@ export interface DialogEvents {
 /**
  * Base props for Dialog component
  */
-export interface DialogProps
+export interface IDialogProps
   extends PropsWithChildren,
     PropsWithClassName,
     DialogEvents {
