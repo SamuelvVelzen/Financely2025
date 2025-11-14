@@ -3,12 +3,12 @@ import { PropsWithClassName } from "@/util/type-helpers/props";
 import { Link } from "@tanstack/react-router";
 import React from "react";
 import { useIsActiveLink } from "./useIsActiveLink";
+import { useSidebar } from "./useSidebar";
 
 type NavItemProps = {
   href: string;
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
-  isExpanded: boolean;
   isAction?: boolean;
   customIcon?: React.ReactNode;
 } & PropsWithClassName;
@@ -18,11 +18,11 @@ export function NavItem({
   href,
   label,
   icon: Icon,
-  isExpanded,
   isAction = false,
   customIcon,
 }: NavItemProps) {
   const { isActive } = useIsActiveLink(href);
+  const { isExpanded } = useSidebar();
 
   const content = (
     <>

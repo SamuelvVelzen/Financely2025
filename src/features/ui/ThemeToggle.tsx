@@ -1,12 +1,10 @@
 import { HiComputerDesktop, HiMoon, HiSun } from "react-icons/hi2";
 import { useTheme } from "./ThemeProvider";
+import { useSidebar } from "./navigation/useSidebar";
 
-interface ThemeToggleProps {
-  isExpanded: boolean;
-}
-
-export function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
+export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const { isExpanded } = useSidebar();
 
   const handleClick = (newTheme: typeof theme) => {
     setTheme(newTheme);

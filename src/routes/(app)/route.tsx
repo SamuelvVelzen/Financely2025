@@ -1,4 +1,5 @@
 import { Sidebar } from "@/features/ui/navigation/sidebar";
+import { SidebarProvider } from "@/features/ui/navigation/useSidebar";
 import { ThemeProvider } from "@/features/ui/ThemeProvider";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
@@ -11,10 +12,12 @@ function AppLayout() {
   return (
     <div className="flex h-screen overflow-hidden">
       <ThemeProvider>
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto bg-background p-8">
-          <Outlet />
-        </main>
+        <SidebarProvider>
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto bg-background p-8">
+            <Outlet />
+          </main>
+        </SidebarProvider>
       </ThemeProvider>
     </div>
   );

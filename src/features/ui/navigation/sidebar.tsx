@@ -1,6 +1,5 @@
 import { ROUTES } from "@/config/routes";
 import { useMe } from "@/features/users/hooks/useUser";
-import { useEffect, useState } from "react";
 import {
   HiArrowRightOnRectangle,
   HiArrowTrendingDown,
@@ -15,37 +14,11 @@ import { Container } from "../container/container";
 import { Logo } from "../logo/logo";
 import { ThemeToggle } from "../ThemeToggle";
 import { NavItem } from "./nav-item";
+import { useSidebar } from "./useSidebar";
 
 export function Sidebar() {
   const { data: user, isLoading, error } = useMe();
-
-  // Initialize with default value, will be updated from localStorage on client
-  const [isExpanded, setIsExpanded] = useState(() => {
-    // Safe access to localStorage on initial render (client-side only)
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("sidebar-expanded");
-      if (saved !== null) {
-        return saved === "true";
-      }
-    }
-    return true;
-  });
-
-  useEffect(() => {
-    // Read from localStorage on mount (client-side only)
-    const saved = localStorage.getItem("sidebar-expanded");
-    if (saved !== null) {
-      setIsExpanded(saved === "true");
-    }
-  }, []);
-
-  const toggleSidebar = () => {
-    const newState = !isExpanded;
-    setIsExpanded(newState);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("sidebar-expanded", String(newState));
-    }
-  };
+  const { isExpanded, toggleSidebar } = useSidebar();
 
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
   const containerClasses = `h-screen flex-shrink-0 transition-all duration-300 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
@@ -110,7 +83,6 @@ export function Sidebar() {
               href={ROUTES.ROOT}
               label="Dashboard"
               icon={HiChartBar}
-              isExpanded={isExpanded}
             />
           </li>
           <li>
@@ -118,7 +90,6 @@ export function Sidebar() {
               href={ROUTES.INCOMES}
               label="Income"
               icon={HiArrowTrendingUp}
-              isExpanded={isExpanded}
             />
           </li>
           <li>
@@ -126,7 +97,6 @@ export function Sidebar() {
               href={ROUTES.EXPENSES}
               label="Expense"
               icon={HiArrowTrendingDown}
-              isExpanded={isExpanded}
             />
           </li>
           <li>
@@ -143,12 +113,11 @@ export function Sidebar() {
       <div className="mt-auto pt-4 space-y-4">
         {/* Bottom Actions */}
         <div className="space-y-2">
-          <ThemeToggle isExpanded={isExpanded} />
+          <ThemeToggle />
           <NavItem
             href={ROUTES.ACCOUNT}
             label="Account"
             icon={HiUser}
-            isExpanded={isExpanded}
             customIcon={
               <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs font-semibold">SV</span>
@@ -159,7 +128,6 @@ export function Sidebar() {
             href={ROUTES.LOGOUT}
             label="Logout"
             icon={HiArrowRightOnRectangle}
-            isExpanded={isExpanded}
             isAction={true}
             className="text-danger"
           />
