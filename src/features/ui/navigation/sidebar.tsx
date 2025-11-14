@@ -1,4 +1,5 @@
 import { ROUTES } from "@/config/routes";
+import { useMe } from "@/features/users/hooks/useUser";
 import { useEffect, useState } from "react";
 import {
   HiArrowRightOnRectangle,
@@ -11,10 +12,13 @@ import {
   HiUser,
 } from "react-icons/hi2";
 import { Container } from "../container/container";
+import { Logo } from "../logo/logo";
 import { ThemeToggle } from "../ThemeToggle";
 import { NavItem } from "./nav-item";
 
 export function Sidebar() {
+  const { data: user, isLoading, error } = useMe();
+
   // Initialize with default value, will be updated from localStorage on client
   const [isExpanded, setIsExpanded] = useState(() => {
     // Safe access to localStorage on initial render (client-side only)
@@ -44,7 +48,7 @@ export function Sidebar() {
   };
 
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
-  const containerClasses = `h-screen bg-background flex-shrink-0 transition-all duration-300 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
+  const containerClasses = `h-screen flex-shrink-0 transition-all duration-300 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
 
   return (
     <Container
@@ -54,14 +58,7 @@ export function Sidebar() {
         {/* Logo - always visible */}
         <div className="h-10 flex items-center mb-6">
           <div className="flex items-center overflow-hidden">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24">
-                <path d="M12 2C10.3 2 9 3.3 9 5c0 1.2.7 2.3 1.7 2.8C8.4 8.7 7 10.7 7 13c0 2.8 2.2 5 5 5s5-2.2 5-5c0-2.3-1.4-4.3-3.7-5.2 1-.5 1.7-1.6 1.7-2.8 0-1.7-1.3-3-3-3z" />
-              </svg>
-            </div>
+            <Logo />
             <span
               className={`font-bold text-text text-lg whitespace-nowrap transition-all duration-300 overflow-hidden ${
                 isExpanded
@@ -79,16 +76,16 @@ export function Sidebar() {
             <>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-text mb-1 whitespace-nowrap">
-                  Hello Samuel!
+                  Hello {user?.name}
                 </h2>
                 <p className="text-sm text-text-muted whitespace-nowrap">
-                  samuelvvelzen@gmail.com
+                  {user?.email}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="flex items-center justify-center w-8 h-8 rounded-2xl hover:bg-surface transition-all duration-300 flex-shrink-0 cursor-pointer"
+                className="flex items-center justify-center w-8 h-8 rounded-2xl hover:bg-background transition-all duration-300 flex-shrink-0 cursor-pointer"
                 aria-label="Collapse sidebar">
                 <HiChevronLeft className="w-5 h-5 text-text-muted" />
               </button>
@@ -165,6 +162,7 @@ export function Sidebar() {
             icon={HiArrowRightOnRectangle}
             isExpanded={isExpanded}
             isAction={true}
+            className="text-danger"
           />
         </div>
       </div>

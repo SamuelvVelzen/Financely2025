@@ -1,17 +1,20 @@
 import { cn } from "@/util/cn";
-import { Link, useLocation } from "@tanstack/react-router";
+import { PropsWithClassName } from "@/util/type-helpers/props";
+import { Link } from "@tanstack/react-router";
 import React from "react";
+import { useIsActiveLink } from "./useIsActiveLink";
 
-interface NavItemProps {
+type NavItemProps = {
   href: string;
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
   isExpanded: boolean;
   isAction?: boolean;
   customIcon?: React.ReactNode;
-}
+} & PropsWithClassName;
 
 export function NavItem({
+  className = "",
   href,
   label,
   icon: Icon,
@@ -19,14 +22,7 @@ export function NavItem({
   isAction = false,
   customIcon,
 }: NavItemProps) {
-  const { pathname } = useLocation();
-
-  const isActive = () => {
-    if (href === "/") {
-      return pathname === "/";
-    }
-    return pathname.startsWith(href);
-  };
+  const { isActive } = useIsActiveLink(href);
 
   const content = (
     <>
@@ -46,24 +42,28 @@ export function NavItem({
     isExpanded ? "px-4" : "justify-center px-0"
   );
 
-  const stateClasses = isAction
-    ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20"
-    : isActive()
-      ? "bg-surface text-text font-semibold"
-      : "text-text-muted hover:bg-surface hover:text-text";
+  const stateClasses = isActive
+    ? "bg-background text-text font-semibold"
+    : "text-text-muted hover:bg-background hover:text-text";
 
   if (isAction) {
     return (
       <button
         type="button"
-        className={cn("w-full", baseClasses, stateClasses, "cursor-pointer")}
+        className={cn(
+          "w-full",
+          baseClasses,
+          stateClasses,
+          "cursor-pointer",
+          className
+        )}
         title={isExpanded ? label : label}>
         {content}
       </button>
     );
   }
 
-  const combinedClasses = cn(baseClasses, stateClasses);
+  const combinedClasses = cn(className, baseClasses, stateClasses);
 
   return (
     <Link

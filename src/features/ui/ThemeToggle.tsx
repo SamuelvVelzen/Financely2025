@@ -19,10 +19,6 @@ export function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
   ];
 
   if (!isExpanded) {
-    // Collapsed view - show current theme icon as button
-    const currentTheme = themes.find((t) => t.value === theme) || themes[2];
-    const Icon = currentTheme.icon;
-
     return (
       <div className="flex flex-col gap-2">
         {themes.map((t) => {
@@ -36,8 +32,8 @@ export function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
               onClick={() => handleClick(t.value)}
               className={`flex items-center justify-center w-full py-2 rounded-2xl transition-colors cursor-pointer ${
                 isActive
-                  ? "bg-surface text-text"
-                  : "text-text-muted hover:bg-surface hover:text-text"
+                  ? "bg-background text-text"
+                  : "text-text-muted hover:bg-background hover:text-text"
               }`}
               title={t.label}
               aria-label={`Switch to ${t.label} theme`}>
@@ -62,10 +58,10 @@ export function ThemeToggle({ isExpanded = true }: ThemeToggleProps) {
               key={t.value}
               type="button"
               onClick={() => handleClick(t.value)}
-              className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-2xl transition-colors cursor-pointer ${
+              className={`flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-2xl transition-colors cursor-pointer ${
                 isActive
-                  ? "bg-surface text-text font-semibold"
-                  : "text-text-muted hover:bg-surface hover:text-text"
+                  ? "bg-background text-text font-semibold"
+                  : "text-text-muted hover:bg-background hover:text-text"
               }`}
               aria-label={`Switch to ${t.label} theme`}>
               <Icon className="w-5 h-5" />
