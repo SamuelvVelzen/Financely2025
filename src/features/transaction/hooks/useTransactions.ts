@@ -11,6 +11,7 @@ import type {
   TransactionsQuery,
   UpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   addTagToTransaction,
   createTransaction,
@@ -18,8 +19,7 @@ import {
   getTransactions,
   removeTagFromTransaction,
   updateTransaction,
-} from "@/features/transactions/api/client";
-import { useQueryClient } from "@tanstack/react-query";
+} from "../api/client";
 
 /**
  * Query transactions with pagination
