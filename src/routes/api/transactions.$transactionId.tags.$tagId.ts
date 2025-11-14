@@ -1,7 +1,7 @@
 import {
   DELETE,
   POST,
-} from "@/features/transactions/api/handlers/transactions.$transactionId.tags.$tagId";
+} from "@/features/transaction/api/handlers/transactions.$transactionId.tags.$tagId";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(

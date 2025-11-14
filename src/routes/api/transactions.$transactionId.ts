@@ -1,7 +1,7 @@
 import {
   DELETE,
   PATCH,
-} from "@/features/transactions/api/handlers/transactions.$transactionId";
+} from "@/features/transaction/api/handlers/transactions.$transactionId";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/api/transactions/$transactionId")({

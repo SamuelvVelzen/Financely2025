@@ -4,7 +4,7 @@ import {
   createErrorResponse,
   ErrorCodes,
 } from "@/features/shared/api/errors";
-import { TransactionService } from "@/features/transactions/services/transaction.service";
+import { TransactionService } from "../../services/transaction.service";
 
 /**
  * PATCH /api/transactions/:id

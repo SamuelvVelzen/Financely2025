@@ -5,8 +5,8 @@ import {
   ErrorCodes,
 } from "@/features/shared/api/errors";
 import { TransactionsQuerySchema } from "@/features/shared/validation/schemas";
-import { TransactionService } from "@/features/transactions/services/transaction.service";
 import { json } from "@tanstack/react-start";
+import { TransactionService } from "../../services/transaction.service";
 
 /**
  * GET /api/transactions
