@@ -56,7 +56,7 @@ function DefaultDialogExample() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
         Open Default Dialog
       </button>
       <Dialog
@@ -84,7 +84,7 @@ function DefaultDialogExample() {
           {
             clicked: () => setOpen(false),
             className:
-              "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors",
+              "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors",
             buttonContent: "Cancel",
           },
           {
@@ -93,7 +93,7 @@ function DefaultDialogExample() {
               setOpen(false);
             },
             className:
-              "px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors",
+              "px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors",
             buttonContent: "Confirm",
           },
         ]}
@@ -123,7 +123,7 @@ function CustomDialogExample() {
       <button
         type="button"
         onClick={dialog.open}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
         Open Custom Dialog
       </button>
       <Dialog
@@ -160,7 +160,7 @@ function CustomDialogExample() {
           {
             clicked: dialog.close,
             className:
-              "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors",
+              "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors",
             buttonContent: "Close",
           },
         ]}
@@ -245,7 +245,7 @@ function FormDialogExample() {
         onOpenChange={setOpen}>
         <button
           type="button"
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
           Open Form Dialog
         </button>
       </DialogTrigger>
@@ -296,14 +296,14 @@ function FormDialogExample() {
               form.reset();
               setOpen(false);
             },
-            className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
             buttonContent: "Cancel",
           },
           {
             clicked: () => {
               form.handleSubmit(handleSubmit)();
             },
-            className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
             buttonContent: pending ? "Submitting..." : "Submit",
           },
         ]}

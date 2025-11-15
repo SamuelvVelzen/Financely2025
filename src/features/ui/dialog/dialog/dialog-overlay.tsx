@@ -50,7 +50,7 @@ export function DialogOverlay({
     <div
       className={
         "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm " +
-        "motion-safe:transition-opacity motion-safe:duration-200 " +
+        "motion-safe:transition-opacity motion-safe:duration-300 " +
         "data-[state=open]:motion-safe:opacity-100 data-[state=closed]:motion-safe:opacity-0 " +
         className
       }

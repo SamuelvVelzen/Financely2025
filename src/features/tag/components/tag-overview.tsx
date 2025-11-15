@@ -121,7 +121,7 @@ export function TagOverview() {
                 </div>
                 <IconButton
                   clicked={() => handleDeleteClick(tag.id)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-danger hover:text-danger-hover p-1">
+                  className="opacity-0 group-hover:opacity-100 motion-safe:transition-opacity text-danger hover:text-danger-hover p-1">
                   <HiTrash className="w-5 h-5" />
                 </IconButton>
               </ListItem>

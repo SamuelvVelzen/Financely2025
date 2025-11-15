@@ -257,13 +257,13 @@ export function Dialog({
       "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
       sizeClasses[size],
       "w-[calc(100%-2rem)] max-h-[90vh]",
-      "motion-safe:transition-all motion-safe:duration-200",
+      "motion-safe:transition-all motion-safe:duration-300",
       "data-[state=open]:motion-safe:opacity-100 data-[state=open]:motion-safe:scale-100",
       "data-[state=closed]:motion-safe:opacity-0 data-[state=closed]:motion-safe:scale-95"
     ),
     fullscreen: cn(
       "fixed inset-0 w-full h-full",
-      "motion-safe:transition-opacity motion-safe:duration-200",
+      "motion-safe:transition-opacity motion-safe:duration-300",
       "data-[state=open]:motion-safe:opacity-100",
       "data-[state=closed]:motion-safe:opacity-0"
     ),
@@ -333,7 +333,7 @@ export function Dialog({
 
           <button
             type="button"
-            className="flex-shrink-0 hover:bg-surface-hover p-2 border border-border rounded-full transition-colors"
+            className="flex-shrink-0 hover:bg-surface-hover p-2 border border-border rounded-full motion-safe:transition-colors"
             onClick={handleClose}
             aria-label="Close dialog">
             <HiX className="w-5 h-5" />

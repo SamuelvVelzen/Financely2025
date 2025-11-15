@@ -19,7 +19,7 @@ export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
 
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
-  const containerClasses = `h-screen flex-shrink-0 transition-[width,padding-left,padding-right] duration-300 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
+  const containerClasses = `h-screen flex-shrink-0 motion-safe:transition-[width,padding-left,padding-right,color,background-color,border-color] motion-safe:duration-300 motion-safe:ease-in-out rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
 
   return (
     <Container
@@ -32,7 +32,7 @@ export function Sidebar() {
           <div className="flex items-center overflow-hidden">
             <Logo />
             <span
-              className={`font-bold text-text text-lg whitespace-nowrap transition-[opacity,margin-left,max-width] duration-300 overflow-hidden ${
+              className={`font-bold text-text text-lg whitespace-nowrap motion-safe:transition-[opacity,margin-left,max-width,color,background-color] motion-safe:duration-300 motion-safe:ease-in-out overflow-hidden ${
                 isExpanded
                   ? "opacity-100 ml-3 max-w-xs"
                   : "opacity-0 ml-0 max-w-0"

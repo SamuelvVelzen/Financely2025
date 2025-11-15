@@ -29,7 +29,7 @@ export function UserHeaderSidebar() {
       <button
         type="button"
         onClick={toggleSidebar}
-        className="flex items-center justify-center w-8 h-8 rounded-2xl hover:bg-background transition-colors duration-300 flex-shrink-0 cursor-pointer"
+        className="flex items-center justify-center w-8 h-8 rounded-2xl hover:bg-background motion-safe:transition-colors motion-safe:duration-300 flex-shrink-0 cursor-pointer"
         aria-label="Collapse sidebar">
         <HiChevronLeft className="w-5 h-5 text-text-muted" />
       </button>
