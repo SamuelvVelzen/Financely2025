@@ -4,12 +4,15 @@ import { Container } from "@/features/ui/container/container";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { DialogTrigger } from "@/features/ui/dialog/dialog/dialog-trigger";
 import { useDialog } from "@/features/ui/dialog/dialog/use-dialog";
-import { ColorInput } from "@/features/ui/input/color-input";
+import { Form } from "@/features/ui/form/form";
 import { NumberInput } from "@/features/ui/input/number-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { Title } from "@/features/ui/typography/title";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useState } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 export const Route = createFileRoute("/(app)/")({
   component: Home,
@@ -177,50 +180,53 @@ function CustomDialogExample() {
  * Form Dialog Example
  *
  * Demonstrates:
- * - Form handling within dialog
+ * - Form handling within dialog with React Hook Form
  * - Pending state (disables dismissal)
- * - Error handling
+ * - Error handling with Zod validation
  * - Form validation
  */
+const formSchema = z.object({
+  name: z.string().optional(),
+  email: z
+    .string()
+    .email("Please enter a test valid email address")
+    .min(1, "Email is required"),
+  age: z.coerce
+    .number()
+    .int("Age must be an integer")
+    .min(0, "Age must be at least 0")
+    .max(150, "Age must be at most 150"),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
 function FormDialogExample() {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showErrorState, setShowErrorState] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    age: "",
-    color: "#000000",
-  });
-  const formRef = React.useRef<HTMLFormElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema) as any,
+    defaultValues: {
+      name: "",
+      email: "",
+      age: 0,
+    },
+  });
+
+  const handleSubmit = async (data: FormData) => {
     setPending(true);
-    setError(null);
 
     // Simulate API call
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Simple validation
-      if (!formData.email.trim() || !formData.age) {
-        throw new Error("Please fill in all required fields");
-      }
-
-      const age = parseInt(formData.age);
-      if (isNaN(age) || age < 0 || age > 150) {
-        throw new Error("Please enter a valid age");
-      }
-
       alert(
-        `Form submitted: ${formData.name} - ${formData.email} - Age: ${age} - Color: ${formData.color}`
+        `Form submitted: ${data.name || "N/A"} - ${data.email} - Age: ${data.age}`
       );
-      setFormData({ name: "", email: "", age: "", color: "#000000" });
+      form.reset();
       setOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit");
+      throw err; // Let Form component handle the error
     } finally {
       setPending(false);
     }
@@ -228,7 +234,9 @@ function FormDialogExample() {
 
   return (
     <div className="space-y-2">
-      <h3 className="font-medium text-sm">Form Dialog (With Validation)</h3>
+      <h3 className="font-medium text-sm">
+        Form Dialog (With React Hook Form)
+      </h3>
       <DialogTrigger
         open={open}
         onOpenChange={setOpen}>
@@ -241,70 +249,29 @@ function FormDialogExample() {
       <Dialog
         title="Create New Item"
         content={
-          <form
-            ref={formRef}
+          <Form<FormData>
+            form={form}
             onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <div className="p-3 bg-surface-hover rounded-lg border border-border">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showErrorState}
-                    onChange={(e) => setShowErrorState(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-sm font-medium">
-                    Show error state (for demo)
-                  </span>
-                </label>
-              </div>
               <TextInput
+                name="name"
                 label="Name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
                 disabled={pending}
-                error={!!error || showErrorState}
               />
               <TextInput
+                name="email"
                 label="Email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
                 disabled={pending}
-                error={!!error || showErrorState}
                 required
               />
               <NumberInput
+                name="age"
                 label="Age"
-                value={formData.age}
-                onChange={(e) =>
-                  setFormData({ ...formData, age: e.target.value })
-                }
                 disabled={pending}
-                error={!!error || showErrorState}
                 min={0}
                 max={150}
                 required
               />
-              <ColorInput
-                label="Color"
-                value={formData.color}
-                onChange={(e) =>
-                  setFormData({ ...formData, color: e.target.value })
-                }
-                disabled={pending}
-                error={!!error || showErrorState}
-              />
-              {error && (
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                  <p className="text-sm text-red-600 dark:text-red-400">
-                    {error}
-                  </p>
-                </div>
-              )}
               {pending && (
                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                   <p className="text-sm text-blue-600 dark:text-blue-400">
@@ -313,17 +280,20 @@ function FormDialogExample() {
                 </div>
               )}
             </div>
-          </form>
+          </Form>
         }
         footerButtons={[
           {
-            clicked: () => setOpen(false),
+            clicked: () => {
+              form.reset();
+              setOpen(false);
+            },
             className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
             buttonContent: "Cancel",
           },
           {
             clicked: () => {
-              formRef.current?.requestSubmit();
+              form.handleSubmit(handleSubmit)();
             },
             className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
             buttonContent: pending ? "Submitting..." : "Submit",
