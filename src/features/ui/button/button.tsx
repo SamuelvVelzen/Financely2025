@@ -33,7 +33,7 @@ export function Button({
     success: "bg-success hover:bg-success-hover text-white border-success",
   };
 
-  const baseClasses = "p-2 border rounded-full";
+  const baseClasses = "p-2 border rounded-full cursor-pointer";
 
   return (
     <button
