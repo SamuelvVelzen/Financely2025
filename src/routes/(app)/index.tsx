@@ -4,6 +4,9 @@ import { Container } from "@/features/ui/container/container";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { DialogTrigger } from "@/features/ui/dialog/dialog/dialog-trigger";
 import { useDialog } from "@/features/ui/dialog/dialog/use-dialog";
+import { ColorInput } from "@/features/ui/input/color-input";
+import { NumberInput } from "@/features/ui/input/number-input";
+import { TextInput } from "@/features/ui/input/text-input";
 import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useState } from "react";
@@ -183,7 +186,13 @@ function FormDialogExample() {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [showErrorState, setShowErrorState] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    age: "",
+    color: "#000000",
+  });
   const formRef = React.useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -196,12 +205,19 @@ function FormDialogExample() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Simple validation
-      if (!formData.name.trim() || !formData.email.trim()) {
-        throw new Error("Please fill in all fields");
+      if (!formData.email.trim() || !formData.age) {
+        throw new Error("Please fill in all required fields");
       }
 
-      alert(`Form submitted: ${formData.name} - ${formData.email}`);
-      setFormData({ name: "", email: "" });
+      const age = parseInt(formData.age);
+      if (isNaN(age) || age < 0 || age > 150) {
+        throw new Error("Please enter a valid age");
+      }
+
+      alert(
+        `Form submitted: ${formData.name} - ${formData.email} - Age: ${age} - Color: ${formData.color}`
+      );
+      setFormData({ name: "", email: "", age: "", color: "#000000" });
       setOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit");
@@ -229,42 +245,59 @@ function FormDialogExample() {
             ref={formRef}
             onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="form-name"
-                  className="block text-sm font-medium mb-1">
-                  Name
+              <div className="p-3 bg-surface-hover rounded-lg border border-border">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showErrorState}
+                    onChange={(e) => setShowErrorState(e.target.checked)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm font-medium">
+                    Show error state (for demo)
+                  </span>
                 </label>
-                <input
-                  id="form-name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  disabled={pending}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-                  required
-                />
               </div>
-              <div>
-                <label
-                  htmlFor="form-email"
-                  className="block text-sm font-medium mb-1">
-                  Email
-                </label>
-                <input
-                  id="form-email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  disabled={pending}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-                  required
-                />
-              </div>
+              <TextInput
+                label="Name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                disabled={pending}
+                error={!!error || showErrorState}
+              />
+              <TextInput
+                label="Email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                disabled={pending}
+                error={!!error || showErrorState}
+                required
+              />
+              <NumberInput
+                label="Age"
+                value={formData.age}
+                onChange={(e) =>
+                  setFormData({ ...formData, age: e.target.value })
+                }
+                disabled={pending}
+                error={!!error || showErrorState}
+                min={0}
+                max={150}
+                required
+              />
+              <ColorInput
+                label="Color"
+                value={formData.color}
+                onChange={(e) =>
+                  setFormData({ ...formData, color: e.target.value })
+                }
+                disabled={pending}
+                error={!!error || showErrorState}
+              />
               {error && (
                 <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <p className="text-sm text-red-600 dark:text-red-400">
