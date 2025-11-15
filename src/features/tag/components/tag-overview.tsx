@@ -1,8 +1,5 @@
-import {
-  useCreateTag,
-  useDeleteTag,
-  useTags,
-} from "@/features/tag/hooks/useTags";
+import type { Tag } from "@/features/shared/validation/schemas";
+import { useDeleteTag, useTags } from "@/features/tag/hooks/useTags";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
@@ -13,35 +10,38 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
 import { useState } from "react";
-import { HiOutlineTag, HiTrash } from "react-icons/hi2";
+import { HiOutlineTag, HiPencil, HiTrash } from "react-icons/hi2";
+import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
 
 export function TagOverview() {
   const { data, isLoading, error } = useTags();
   const tags = data?.data ?? [];
-  const { mutate: createTag } = useCreateTag();
   const { mutate: deleteTag } = useDeleteTag();
-  const [tagToDelete, setTagToDelete] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<Tag | undefined>(undefined);
 
   const handleCreateTag = () => {
-    // TODO: Add form/dialog to collect tag name, color, description
-    createTag({
-      name: "New Tag",
-      color: "#000000",
-    });
+    setSelectedTag(undefined);
+    setIsTagDialogOpen(true);
+  };
+
+  const handleEditTag = (tag: Tag) => {
+    setSelectedTag(tag);
+    setIsTagDialogOpen(true);
   };
 
   const handleDeleteClick = (tagId: string) => {
-    setTagToDelete(tagId);
+    setSelectedTag(tags.find((tag) => tag.id === tagId));
     setIsDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = () => {
-    if (tagToDelete) {
-      deleteTag(tagToDelete, {
+    if (selectedTag) {
+      deleteTag(selectedTag.id, {
         onSuccess: () => {
           setIsDeleteDialogOpen(false);
-          setTagToDelete(null);
+          setSelectedTag(undefined);
         },
       });
     }
@@ -49,10 +49,10 @@ export function TagOverview() {
 
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
-    setTagToDelete(null);
+    setSelectedTag(undefined);
   };
 
-  const tagToDeleteData = tags.find((tag) => tag.id === tagToDelete);
+  const tagToDeleteData = selectedTag;
 
   return (
     <>
@@ -119,24 +119,33 @@ export function TagOverview() {
                     </span>
                   )}
                 </div>
-                <IconButton
-                  clicked={() => handleDeleteClick(tag.id)}
-                  className="opacity-0 group-hover:opacity-100 motion-safe:transition-opacity text-danger hover:text-danger-hover p-1">
-                  <HiTrash className="w-5 h-5" />
-                </IconButton>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
+                  <IconButton
+                    clicked={() => handleEditTag(tag)}
+                    className="text-text-muted hover:text-text p-1">
+                    <HiPencil className="w-5 h-5" />
+                  </IconButton>
+                  <IconButton
+                    clicked={() => handleDeleteClick(tag.id)}
+                    className="text-danger hover:text-danger-hover p-1">
+                    <HiTrash className="w-5 h-5" />
+                  </IconButton>
+                </div>
               </ListItem>
             )}
           </List>
         </Container>
       )}
 
+      <AddOrCreateTagDialog
+        open={isTagDialogOpen}
+        onOpenChange={setIsTagDialogOpen}
+        tag={selectedTag}
+      />
+
       <DeleteDialog
         title="Delete Tag"
-        content={
-          tagToDeleteData
-            ? `Are you sure you want to delete the tag "${tagToDeleteData.name}"? This action cannot be undone.`
-            : "Are you sure you want to delete this tag? This action cannot be undone."
-        }
+        content={`Are you sure you want to delete the tag "${selectedTag?.name}"? This action cannot be undone.`}
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         footerButtons={[
