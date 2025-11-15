@@ -5,6 +5,7 @@ import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { DialogTrigger } from "@/features/ui/dialog/dialog/dialog-trigger";
 import { useDialog } from "@/features/ui/dialog/dialog/use-dialog";
 import { Form } from "@/features/ui/form/form";
+import { ColorInput } from "@/features/ui/input/color-input";
 import { NumberInput } from "@/features/ui/input/number-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { Title } from "@/features/ui/typography/title";
@@ -196,6 +197,7 @@ const formSchema = z.object({
     .int("Age must be an integer")
     .min(0, "Age must be at least 0")
     .max(150, "Age must be at most 150"),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -210,6 +212,7 @@ function FormDialogExample() {
       name: "",
       email: "",
       age: 0,
+      color: "#000000",
     },
   });
 
@@ -221,7 +224,7 @@ function FormDialogExample() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       alert(
-        `Form submitted: ${data.name || "N/A"} - ${data.email} - Age: ${data.age}`
+        `Form submitted: ${data.name || "N/A"} - ${data.email} - Age: ${data.age} - Color: ${data.color}`
       );
       form.reset();
       setOpen(false);
@@ -271,6 +274,11 @@ function FormDialogExample() {
                 min={0}
                 max={150}
                 required
+              />
+              <ColorInput
+                name="color"
+                label="Color"
+                disabled={pending}
               />
               {pending && (
                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">

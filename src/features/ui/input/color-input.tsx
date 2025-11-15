@@ -1,9 +1,9 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import React, { useEffect, useId, useState } from "react";
-import { Input, InputProps } from "./input";
-import { TextInput } from "./text-input";
+import { PropsWithClassName } from "@/util/type-helpers/props";
+import React, { useId, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
 
 /**
  * Converts CSS color names (e.g., "red", "navy", "cornflowerblue") to hex codes
@@ -39,95 +39,128 @@ function cssColorToHex(color: string): string {
   return color;
 }
 
-export type ColorInputProps = Omit<InputProps, "type" | "label"> & {
-  label: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-};
+export type ColorInputProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "id" | "name" | "type"
+> &
+  PropsWithClassName & {
+    name: string;
+    label: string;
+    id?: string;
+  };
 
-export const ColorInput = React.forwardRef<HTMLInputElement, ColorInputProps>(
-  ({ label, value, onChange, className, error, disabled, ...props }, ref) => {
-    const generatedId = useId();
-    const colorPickerId = `${generatedId}-color-picker`;
-    const textInputId = `${generatedId}-text-input`;
-    const [textValue, setTextValue] = useState(value);
+export function ColorInput({
+  label,
+  name,
+  id,
+  className,
+  disabled,
+  ...props
+}: ColorInputProps) {
+  const generatedId = useId();
+  const colorPickerId = id || `${generatedId}-color-picker`;
+  const textInputId = `${generatedId}-text-input`;
+  const form = useFormContext();
+  const error = form.formState.errors[name];
+  const [textValue, setTextValue] = useState("");
 
-    // Sync text value when external value changes (e.g., from color picker)
-    useEffect(() => {
-      setTextValue(value);
-    }, [value]);
+  const baseClasses =
+    "w-full px-3 py-2 border rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
+  const borderClass = error ? "border-danger" : "border-border";
 
-    const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value;
-      // Allow free typing - just update local state
-      setTextValue(inputValue);
-    };
+  return (
+    <Controller
+      name={name}
+      control={form.control}
+      render={({ field }) => {
+        const currentFieldValue = field.value || "";
 
-    const handleTextBlur = () => {
-      // Convert CSS color names to hex, or keep hex codes as-is when user finishes typing
-      const hexColor = cssColorToHex(textValue);
-      // Create a synthetic event with the converted hex color
-      const syntheticEvent = {
-        target: { value: hexColor },
-      } as React.ChangeEvent<HTMLInputElement>;
-      onChange(syntheticEvent);
-    };
+        // Sync text value when field value changes from outside (e.g., form reset)
+        // Only sync if text input is not currently focused
+        if (
+          currentFieldValue !== textValue &&
+          document.activeElement?.id !== textInputId
+        ) {
+          setTextValue(currentFieldValue);
+        }
 
-    const handleTextKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      // Convert on Enter key as well
-      if (e.key === "Enter") {
-        e.currentTarget.blur();
-      }
-    };
+        const displayTextValue = textValue || currentFieldValue || "";
 
-    const colorPicker = (
-      <Input
-        id={colorPickerId}
-        type="color"
-        label=""
-        value={value}
-        onChange={onChange}
-        disabled={disabled}
-        error={error}
-        className={cn("w-16 h-10 cursor-pointer", className)}
-        ref={ref}
-        {...props}
-      />
-    );
+        const handleColorPickerChange = (
+          e: React.ChangeEvent<HTMLInputElement>
+        ) => {
+          const newValue = e.target.value;
+          field.onChange(newValue);
+          setTextValue(newValue);
+        };
 
-    const textInput = (
-      <TextInput
-        id={textInputId}
-        label=""
-        value={textValue}
-        onChange={handleTextChange}
-        onBlur={handleTextBlur}
-        onKeyDown={handleTextKeyDown}
-        disabled={disabled}
-        error={error}
-        placeholder="#000000 or red, navy, etc."
-        className="flex-1"
-      />
-    );
+        const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const inputValue = e.target.value;
+          // Allow free typing - just update local state
+          setTextValue(inputValue);
+        };
 
-    const content = (
-      <div className="flex items-center gap-3">
-        {colorPicker}
-        {textInput}
-      </div>
-    );
+        const handleTextBlur = () => {
+          // Convert CSS color names to hex, or keep hex codes as-is when user finishes typing
+          const hexColor = cssColorToHex(textValue);
+          field.onChange(hexColor);
+          setTextValue(hexColor);
+        };
 
-    return (
-      <div className="space-y-1">
-        <label
-          htmlFor={colorPickerId}
-          className="block text-sm font-medium">
-          {label}
-        </label>
-        {content}
-      </div>
-    );
-  }
-);
+        const handleTextKeyDown = (
+          e: React.KeyboardEvent<HTMLInputElement>
+        ) => {
+          // Convert on Enter key as well
+          if (e.key === "Enter") {
+            e.currentTarget.blur();
+          }
+        };
 
-ColorInput.displayName = "ColorInput";
+        return (
+          <div className={label ? "space-y-1" : ""}>
+            {label && (
+              <label
+                htmlFor={colorPickerId}
+                className="block text-sm font-medium">
+                {label}
+              </label>
+            )}
+            <div className="flex items-center gap-3">
+              {/* Color Picker */}
+              <input
+                type="color"
+                id={colorPickerId}
+                value={currentFieldValue || "#000000"}
+                onChange={handleColorPickerChange}
+                disabled={disabled}
+                className={cn(
+                  "w-16 h-10 cursor-pointer rounded-lg border",
+                  borderClass,
+                  className
+                )}
+                {...props}
+              />
+              {/* Text Input */}
+              <input
+                type="text"
+                id={textInputId}
+                value={displayTextValue}
+                onChange={handleTextChange}
+                onBlur={handleTextBlur}
+                onKeyDown={handleTextKeyDown}
+                disabled={disabled}
+                placeholder="#000000 or red, navy, etc."
+                className={cn(baseClasses, borderClass, "flex-1")}
+              />
+            </div>
+            {error && (
+              <p className="text-sm text-danger mt-1">
+                {error.message as string}
+              </p>
+            )}
+          </div>
+        );
+      }}
+    />
+  );
+}
