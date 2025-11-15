@@ -28,7 +28,7 @@ export function ThemeToggle() {
               key={t.value}
               type="button"
               onClick={() => handleClick(t.value)}
-              className={`flex items-center justify-center w-full py-2 rounded-2xl transition-colors cursor-pointer ${
+              className={`flex items-center justify-center w-full py-2 rounded-2xl cursor-pointer ${
                 isActive
                   ? "bg-background text-text"
                   : "text-text-muted hover:bg-background hover:text-text"
@@ -56,7 +56,7 @@ export function ThemeToggle() {
               key={t.value}
               type="button"
               onClick={() => handleClick(t.value)}
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-2xl transition-colors cursor-pointer ${
+              className={`flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-2xl cursor-pointer ${
                 isActive
                   ? "bg-background text-text font-semibold"
                   : "text-text-muted hover:bg-background hover:text-text"

@@ -29,7 +29,7 @@ export function NavItem({
       {customIcon || (Icon && <Icon className="w-6 h-6 flex-shrink-0" />)}
       <span
         className={cn(
-          "whitespace-nowrap text-base transition-all duration-300 overflow-hidden",
+          "whitespace-nowrap text-base transition-[opacity,margin-left,max-width] duration-300 overflow-hidden",
           isExpanded ? "opacity-100 ml-4 max-w-xs" : "opacity-0 ml-0 max-w-0"
         )}>
         {label}
@@ -38,7 +38,7 @@ export function NavItem({
   );
 
   const baseClasses = cn(
-    "flex items-center py-3.5 rounded-3xl transition-all duration-300 overflow-hidden",
+    "flex items-center py-3.5 rounded-3xl transition-[padding-left,padding-right] duration-300 overflow-hidden",
     isExpanded ? "px-4" : "justify-center px-0"
   );
 

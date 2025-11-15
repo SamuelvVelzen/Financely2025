@@ -1,11 +1,9 @@
 import { ROUTES } from "@/config/routes";
-import { useMe } from "@/features/users/hooks/useUser";
 import {
   HiArrowRightOnRectangle,
   HiArrowTrendingDown,
   HiArrowTrendingUp,
   HiChartBar,
-  HiChevronLeft,
   HiChevronRight,
   HiOutlineTag,
   HiUser,
@@ -14,26 +12,27 @@ import { Container } from "../container/container";
 import { Logo } from "../logo/logo";
 import { ThemeToggle } from "../ThemeToggle";
 import { NavItem } from "./nav-item";
+import { UserHeaderSidebar } from "./user-header-sidebar";
 import { useSidebar } from "./useSidebar";
 
 export function Sidebar() {
-  const { data: user, isLoading, error } = useMe();
   const { isExpanded, toggleSidebar } = useSidebar();
 
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
-  const containerClasses = `h-screen flex-shrink-0 transition-all duration-300 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
+  const containerClasses = `h-screen flex-shrink-0 transition-[width,padding-left,padding-right] duration-300 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
 
   return (
     <Container
       as="aside"
       className={containerClasses}>
-      <div className="mb-6">
+      <div className="flex flex-col gap-6 mb-6">
         {/* Logo - always visible */}
-        <div className="h-10 flex items-center mb-6">
+        <div
+          className={"h-10 flex " + (isExpanded ? "items-center" : "mx-auto")}>
           <div className="flex items-center overflow-hidden">
             <Logo />
             <span
-              className={`font-bold text-text text-lg whitespace-nowrap transition-all duration-300 overflow-hidden ${
+              className={`font-bold text-text text-lg whitespace-nowrap transition-[opacity,margin-left,max-width] duration-300 overflow-hidden ${
                 isExpanded
                   ? "opacity-100 ml-3 max-w-xs"
                   : "opacity-0 ml-0 max-w-0"
@@ -44,30 +43,14 @@ export function Sidebar() {
         </div>
 
         {/* User greeting and toggle button */}
-        <div className="h-12 flex items-center mb-6">
+        <div className="flex w-full items-center">
           {isExpanded ? (
-            <>
-              <div className="flex-1">
-                <h2 className="text-2xl font-bold text-text mb-1 whitespace-nowrap">
-                  Hello {user?.name}
-                </h2>
-                <p className="text-sm text-text-muted whitespace-nowrap">
-                  {user?.email}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={toggleSidebar}
-                className="flex items-center justify-center w-8 h-8 rounded-2xl hover:bg-background transition-all duration-300 flex-shrink-0 cursor-pointer"
-                aria-label="Collapse sidebar">
-                <HiChevronLeft className="w-5 h-5 text-text-muted" />
-              </button>
-            </>
+            <UserHeaderSidebar />
           ) : (
             <button
               type="button"
               onClick={toggleSidebar}
-              className="flex items-center justify-center w-full py-2 rounded-2xl hover:bg-surface transition-all duration-300 cursor-pointer"
+              className="flex items-center justify-center w-full py-2 rounded-2xl hover:bg-background cursor-pointer"
               aria-label="Expand sidebar">
               <HiChevronRight className="w-5 h-5 text-text-muted" />
             </button>
