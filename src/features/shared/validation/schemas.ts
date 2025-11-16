@@ -27,6 +27,33 @@ export const TransactionTypeSchema = GeneratedTransactionTypeSchema;
 export type Currency = z.infer<typeof CurrencySchema>;
 export type TransactionType = z.infer<typeof TransactionTypeSchema>;
 
+/**
+ * Currency options for select inputs
+ * Type-safe array that matches CurrencySchema enum values
+ */
+const CURRENCY_VALUES: readonly Currency[] = [
+  "USD",
+  "EUR",
+  "GBP",
+  "CAD",
+  "AUD",
+  "JPY",
+] as const;
+
+/**
+ * Get currency options for select inputs
+ * Returns formatted options array for UI components
+ */
+export function getCurrencyOptions(): Array<{
+  value: Currency;
+  label: string;
+}> {
+  return CURRENCY_VALUES.map((value) => ({
+    value,
+    label: value,
+  }));
+}
+
 // ============================================================================
 // Date handling (ISO strings)
 // ============================================================================

@@ -97,3 +97,23 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Date input dark mode support */
+input[type="date"],
+input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+/* Set color-scheme on html element for Firefox compatibility */
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+.dark input[type="date"],
+.dark input[type="datetime-local"] {
+  color-scheme: dark;
+}

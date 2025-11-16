@@ -27,7 +27,7 @@ export function EmptyContainer({
       <p>{emptyText}</p>
 
       {button && (
-        <Button clicked={() => button?.buttonAction}>
+        <Button clicked={() => button.buttonAction()}>
           {button.buttonText}
         </Button>
       )}

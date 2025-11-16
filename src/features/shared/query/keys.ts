@@ -27,4 +27,26 @@ export const queryKeys = {
     q?: string;
     sort?: string; // e.g., "occurredAt:desc"
   }) => ["transactions", params] as const,
+
+  // Expense queries (transactions with type EXPENSE)
+  expenses: (params?: {
+    page?: number;
+    limit?: number;
+    from?: string; // ISO date string
+    to?: string; // ISO date string
+    tagIds?: string[];
+    q?: string;
+    sort?: string; // e.g., "occurredAt:desc"
+  }) => ["expenses", params] as const,
+
+  // Income queries (transactions with type INCOME)
+  incomes: (params?: {
+    page?: number;
+    limit?: number;
+    from?: string; // ISO date string
+    to?: string; // ISO date string
+    tagIds?: string[];
+    q?: string;
+    sort?: string; // e.g., "occurredAt:desc"
+  }) => ["incomes", params] as const,
 } as const;

@@ -264,3 +264,123 @@ export function useRemoveTagFromTransaction() {
     },
   });
 }
+
+// ============================================================================
+// Expense hooks (transactions with type EXPENSE)
+// ============================================================================
+
+/**
+ * Query expenses list (transactions with type EXPENSE)
+ * - staleTime: 30 seconds (short, transactions change frequently)
+ * - Supports pagination, filtering, sorting
+ */
+export function useExpenses(query?: Omit<TransactionsQuery, "type">) {
+  return useFinQuery<PaginatedTransactionsResponse, Error>({
+    queryKey: queryKeys.expenses(query),
+    queryFn: () =>
+      getTransactions({ ...query, type: "EXPENSE" } as TransactionsQuery),
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Create expense mutation
+ * - Invalidates expenses and transactions queries on success
+ */
+export function useCreateExpense() {
+  return useFinMutation<
+    Transaction,
+    Error,
+    Omit<CreateTransactionInput, "type">
+  >({
+    mutationFn: (input) => createTransaction({ ...input, type: "EXPENSE" }),
+    invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+  });
+}
+
+/**
+ * Update expense mutation
+ * - Invalidates expenses and transactions queries on success
+ */
+export function useUpdateExpense() {
+  return useFinMutation<
+    Transaction,
+    Error,
+    { transactionId: string; input: Omit<UpdateTransactionInput, "type"> }
+  >({
+    mutationFn: ({ transactionId, input }) =>
+      updateTransaction(transactionId, input),
+    invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+  });
+}
+
+/**
+ * Delete expense mutation
+ * - Invalidates expenses and transactions queries on success
+ */
+export function useDeleteExpense() {
+  return useFinMutation<{ success: boolean }, Error, string>({
+    mutationFn: deleteTransaction,
+    invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+  });
+}
+
+// ============================================================================
+// Income hooks (transactions with type INCOME)
+// ============================================================================
+
+/**
+ * Query incomes list (transactions with type INCOME)
+ * - staleTime: 30 seconds (short, transactions change frequently)
+ * - Supports pagination, filtering, sorting
+ */
+export function useIncomes(query?: Omit<TransactionsQuery, "type">) {
+  return useFinQuery<PaginatedTransactionsResponse, Error>({
+    queryKey: queryKeys.incomes(query),
+    queryFn: () =>
+      getTransactions({ ...query, type: "INCOME" } as TransactionsQuery),
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Create income mutation
+ * - Invalidates incomes and transactions queries on success
+ */
+export function useCreateIncome() {
+  return useFinMutation<
+    Transaction,
+    Error,
+    Omit<CreateTransactionInput, "type">
+  >({
+    mutationFn: (input) => createTransaction({ ...input, type: "INCOME" }),
+    invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+  });
+}
+
+/**
+ * Update income mutation
+ * - Invalidates incomes and transactions queries on success
+ */
+export function useUpdateIncome() {
+  return useFinMutation<
+    Transaction,
+    Error,
+    { transactionId: string; input: Omit<UpdateTransactionInput, "type"> }
+  >({
+    mutationFn: ({ transactionId, input }) =>
+      updateTransaction(transactionId, input),
+    invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+  });
+}
+
+/**
+ * Delete income mutation
+ * - Invalidates incomes and transactions queries on success
+ */
+export function useDeleteIncome() {
+  return useFinMutation<{ success: boolean }, Error, string>({
+    mutationFn: deleteTransaction,
+    invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+  });
+}

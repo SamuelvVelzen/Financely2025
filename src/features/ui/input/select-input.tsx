@@ -5,24 +5,25 @@ import { PropsWithClassName } from "@/util/type-helpers/props";
 import React, { useId } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-export type InputProps = Omit<
-  React.InputHTMLAttributes<HTMLInputElement>,
+export type SelectInputProps = Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
   "id" | "name"
 > &
   PropsWithClassName & {
     name: string;
     label: string;
     id?: string;
+    options: Array<{ value: string; label: string }>;
   };
 
-export function Input({
+export function SelectInput({
   className,
-  type,
   label,
   name,
   id,
+  options,
   ...props
-}: InputProps) {
+}: SelectInputProps) {
   const generatedId = useId();
   const inputId = id || generatedId;
   const form = useFormContext();
@@ -45,14 +46,17 @@ export function Input({
               {label}
             </label>
           )}
-          <input
-            type={type}
+          <select
             id={inputId}
             className={cn(baseClasses, borderClass, className)}
             {...field}
-            ref={field.ref}
-            {...props}
-          />
+            {...props}>
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           {error && (
             <p className="text-sm text-danger mt-1">
               {error.message as string}
@@ -63,3 +67,4 @@ export function Input({
     />
   );
 }
+
