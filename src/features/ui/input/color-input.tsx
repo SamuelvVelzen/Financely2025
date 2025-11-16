@@ -127,19 +127,33 @@ export function ColorInput({
             )}
             <div className="flex items-center gap-3">
               {/* Color Picker */}
-              <input
-                type="color"
-                id={colorPickerId}
-                value={currentFieldValue || "#000000"}
-                onChange={handleColorPickerChange}
-                disabled={disabled}
-                className={cn(
-                  "w-16 h-10 cursor-pointer rounded-lg border",
-                  borderClass,
-                  className
-                )}
-                {...props}
-              />
+              <div
+                className={cn("rounded-lg overflow-hidden shrink-0")}
+                style={{
+                  width: "4rem",
+                  height: "2.5rem",
+                  boxShadow: error
+                    ? "inset 0 0 0 1px var(--danger)"
+                    : "inset 0 0 0 1px var(--border)",
+                }}>
+                <input
+                  type="color"
+                  id={colorPickerId}
+                  value={currentFieldValue || "#000000"}
+                  onChange={handleColorPickerChange}
+                  disabled={disabled}
+                  className={cn(
+                    "w-full h-full cursor-pointer border-0 rounded-lg appearance-none",
+                    "[-webkit-appearance:none]",
+                    className
+                  )}
+                  style={{
+                    padding: 0,
+                    margin: 0,
+                  }}
+                  {...props}
+                />
+              </div>
               {/* Text Input */}
               <input
                 type="text"
