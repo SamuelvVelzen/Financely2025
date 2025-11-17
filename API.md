@@ -4,7 +4,7 @@ This document describes all available API endpoints for the Financely applicatio
 
 ## Base URL
 
-All endpoints are prefixed with `/api`.
+All endpoints are prefixed with `/api/v1`.
 
 ## Authentication
 
@@ -83,7 +83,7 @@ Amounts are represented as strings to preserve precision (e.g., `"123.45"`).
 
 Returns the currently authenticated user.
 
-**Endpoint:** `GET /api/me`
+**Endpoint:** `GET /api/v1/me`
 
 **Authentication:** Required
 
@@ -100,13 +100,14 @@ Returns the currently authenticated user.
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized` - User not authenticated
 - `404 Not Found` - User not found
 
 **Example Request:**
 
 ```bash
-curl -X GET http://localhost:3000/api/me
+curl -X GET http://localhost:3000/api/v1/me
 ```
 
 **Example Response:**
@@ -129,16 +130,16 @@ curl -X GET http://localhost:3000/api/me
 
 List all tags for the authenticated user with optional filtering and sorting.
 
-**Endpoint:** `GET /api/tags`
+**Endpoint:** `GET /api/v1/tags`
 
 **Authentication:** Required
 
 **Query Parameters:**
 
-| Parameter | Type   | Required | Default | Description                                    |
-| --------- | ------ | -------- | ------- | ---------------------------------------------- |
-| `q`       | string | No       | -       | Search query to filter tags by name            |
-| `sort`    | string | No       | `name:asc` | Sort order: `name:asc` or `name:desc`       |
+| Parameter | Type   | Required | Default    | Description                           |
+| --------- | ------ | -------- | ---------- | ------------------------------------- |
+| `q`       | string | No       | -          | Search query to filter tags by name   |
+| `sort`    | string | No       | `name:asc` | Sort order: `name:asc` or `name:desc` |
 
 **Response:** `200 OK`
 
@@ -160,7 +161,7 @@ List all tags for the authenticated user with optional filtering and sorting.
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:3000/api/tags?q=groceries&sort=name:asc"
+curl -X GET "http://localhost:3000/api/v1/tags?q=groceries&sort=name:asc"
 ```
 
 **Example Response:**
@@ -184,7 +185,7 @@ curl -X GET "http://localhost:3000/api/tags?q=groceries&sort=name:asc"
 
 Create a new tag for the authenticated user.
 
-**Endpoint:** `POST /api/tags`
+**Endpoint:** `POST /api/v1/tags`
 
 **Authentication:** Required
 
@@ -212,13 +213,14 @@ Create a new tag for the authenticated user.
 ```
 
 **Error Responses:**
+
 - `400 Bad Request` - Validation error
 - `409 Conflict` - Tag with this name already exists
 
 **Example Request:**
 
 ```bash
-curl -X POST http://localhost:3000/api/tags \
+curl -X POST http://localhost:3000/api/v1/tags \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Groceries",
@@ -244,7 +246,7 @@ curl -X POST http://localhost:3000/api/tags \
 
 Update an existing tag.
 
-**Endpoint:** `PATCH /api/tags/:tagId`
+**Endpoint:** `PATCH /api/v1/tags/:tagId`
 
 **Authentication:** Required
 
@@ -280,6 +282,7 @@ All fields are optional. Only include fields you want to update.
 ```
 
 **Error Responses:**
+
 - `400 Bad Request` - Validation error
 - `404 Not Found` - Tag not found
 - `409 Conflict` - Tag with this name already exists
@@ -287,7 +290,7 @@ All fields are optional. Only include fields you want to update.
 **Example Request:**
 
 ```bash
-curl -X PATCH http://localhost:3000/api/tags/clx1234567890 \
+curl -X PATCH http://localhost:3000/api/v1/tags/clx1234567890 \
   -H "Content-Type: application/json" \
   -d '{
     "color": "#00FF00",
@@ -299,7 +302,7 @@ curl -X PATCH http://localhost:3000/api/tags/clx1234567890 \
 
 Delete a tag.
 
-**Endpoint:** `DELETE /api/tags/:tagId`
+**Endpoint:** `DELETE /api/v1/tags/:tagId`
 
 **Authentication:** Required
 
@@ -318,12 +321,13 @@ Delete a tag.
 ```
 
 **Error Responses:**
+
 - `404 Not Found` - Tag not found
 
 **Example Request:**
 
 ```bash
-curl -X DELETE http://localhost:3000/api/tags/clx1234567890
+curl -X DELETE http://localhost:3000/api/v1/tags/clx1234567890
 ```
 
 ---
@@ -334,22 +338,22 @@ curl -X DELETE http://localhost:3000/api/tags/clx1234567890
 
 List transactions for the authenticated user with pagination, filtering, and sorting.
 
-**Endpoint:** `GET /api/transactions`
+**Endpoint:** `GET /api/v1/transactions`
 
 **Authentication:** Required
 
 **Query Parameters:**
 
-| Parameter | Type            | Required | Default | Description                                                                    |
-| --------- | --------------- | -------- | ------- | ------------------------------------------------------------------------------ |
-| `page`    | number          | No       | `1`     | Page number (min: 1)                                                           |
-| `limit`   | number          | No       | `20`    | Items per page (min: 1, max: 100)                                             |
-| `from`    | ISO date string | No       | -       | Filter transactions from this date (inclusive)                                  |
-| `to`      | ISO date string | No       | -       | Filter transactions to this date (inclusive)                                   |
-| `type`    | TransactionType | No       | -       | Filter by transaction type: `EXPENSE` or `INCOME`                              |
-| `tagIds`  | string[]        | No       | -       | Filter by tag IDs (can be provided multiple times: `?tagIds=id1&tagIds=id2`)    |
-| `q`       | string          | No       | -       | Search query to filter by name or description                                  |
-| `sort`    | string          | No       | `occurredAt:desc` | Sort order: `occurredAt:asc|desc`, `amount:asc|desc`, `name:asc|desc` |
+| Parameter | Type            | Required | Default           | Description                                                                  |
+| --------- | --------------- | -------- | ----------------- | ---------------------------------------------------------------------------- | ------------------ | ---------------- | ----- |
+| `page`    | number          | No       | `1`               | Page number (min: 1)                                                         |
+| `limit`   | number          | No       | `20`              | Items per page (min: 1, max: 100)                                            |
+| `from`    | ISO date string | No       | -                 | Filter transactions from this date (inclusive)                               |
+| `to`      | ISO date string | No       | -                 | Filter transactions to this date (inclusive)                                 |
+| `type`    | TransactionType | No       | -                 | Filter by transaction type: `EXPENSE` or `INCOME`                            |
+| `tagIds`  | string[]        | No       | -                 | Filter by tag IDs (can be provided multiple times: `?tagIds=id1&tagIds=id2`) |
+| `q`       | string          | No       | -                 | Search query to filter by name or description                                |
+| `sort`    | string          | No       | `occurredAt:desc` | Sort order: `occurredAt:asc                                                  | desc`, `amount:asc | desc`, `name:asc | desc` |
 
 **Response:** `200 OK`
 
@@ -385,7 +389,7 @@ List transactions for the authenticated user with pagination, filtering, and sor
 **Example Request:**
 
 ```bash
-curl -X GET "http://localhost:3000/api/transactions?page=1&limit=10&type=EXPENSE&from=2024-01-01T00:00:00.000Z&sort=occurredAt:desc"
+curl -X GET "http://localhost:3000/api/v1/transactions?page=1&limit=10&type=EXPENSE&from=2024-01-01T00:00:00.000Z&sort=occurredAt:desc"
 ```
 
 **Example Response:**
@@ -423,7 +427,7 @@ curl -X GET "http://localhost:3000/api/transactions?page=1&limit=10&type=EXPENSE
 
 Create a new transaction.
 
-**Endpoint:** `POST /api/transactions`
+**Endpoint:** `POST /api/v1/transactions`
 
 **Authentication:** Required
 
@@ -466,13 +470,14 @@ Create a new transaction.
 ```
 
 **Error Responses:**
+
 - `400 Bad Request` - Validation error
 - `404 Not Found` - One or more tags not found
 
 **Example Request:**
 
 ```bash
-curl -X POST http://localhost:3000/api/transactions \
+curl -X POST http://localhost:3000/api/v1/transactions \
   -H "Content-Type: application/json" \
   -d '{
     "type": "EXPENSE",
@@ -489,14 +494,14 @@ curl -X POST http://localhost:3000/api/transactions \
 
 Update an existing transaction.
 
-**Endpoint:** `PATCH /api/transactions/:transactionId`
+**Endpoint:** `PATCH /api/v1/transactions/:transactionId`
 
 **Authentication:** Required
 
 **Path Parameters:**
 
-| Parameter       | Type   | Required | Description              |
-| --------------- | ------ | -------- | ------------------------ |
+| Parameter       | Type   | Required | Description                |
+| --------------- | ------ | -------- | -------------------------- |
 | `transactionId` | string | Yes      | The transaction identifier |
 
 **Request Body:**
@@ -542,13 +547,14 @@ All fields are optional. Only include fields you want to update.
 ```
 
 **Error Responses:**
+
 - `400 Bad Request` - Validation error
 - `404 Not Found` - Transaction not found or one or more tags not found
 
 **Example Request:**
 
 ```bash
-curl -X PATCH http://localhost:3000/api/transactions/clx1234567890 \
+curl -X PATCH http://localhost:3000/api/v1/transactions/clx1234567890 \
   -H "Content-Type: application/json" \
   -d '{
     "amount": "150.00",
@@ -560,14 +566,14 @@ curl -X PATCH http://localhost:3000/api/transactions/clx1234567890 \
 
 Delete a transaction.
 
-**Endpoint:** `DELETE /api/transactions/:transactionId`
+**Endpoint:** `DELETE /api/v1/transactions/:transactionId`
 
 **Authentication:** Required
 
 **Path Parameters:**
 
-| Parameter       | Type   | Required | Description              |
-| --------------- | ------ | -------- | ------------------------ |
+| Parameter       | Type   | Required | Description                |
+| --------------- | ------ | -------- | -------------------------- |
 | `transactionId` | string | Yes      | The transaction identifier |
 
 **Response:** `200 OK`
@@ -579,28 +585,29 @@ Delete a transaction.
 ```
 
 **Error Responses:**
+
 - `404 Not Found` - Transaction not found
 
 **Example Request:**
 
 ```bash
-curl -X DELETE http://localhost:3000/api/transactions/clx1234567890
+curl -X DELETE http://localhost:3000/api/v1/transactions/clx1234567890
 ```
 
 #### Add Tag to Transaction
 
 Add a tag to an existing transaction.
 
-**Endpoint:** `POST /api/transactions/:transactionId/tags/:tagId`
+**Endpoint:** `POST /api/v1/transactions/:transactionId/tags/:tagId`
 
 **Authentication:** Required
 
 **Path Parameters:**
 
-| Parameter       | Type   | Required | Description              |
-| --------------- | ------ | -------- | ------------------------ |
+| Parameter       | Type   | Required | Description                |
+| --------------- | ------ | -------- | -------------------------- |
 | `transactionId` | string | Yes      | The transaction identifier |
-| `tagId`         | string | Yes      | The tag identifier        |
+| `tagId`         | string | Yes      | The tag identifier         |
 
 **Response:** `200 OK`
 
@@ -628,28 +635,29 @@ Returns the updated transaction:
 ```
 
 **Error Responses:**
+
 - `404 Not Found` - Transaction not found or tag not found
 
 **Example Request:**
 
 ```bash
-curl -X POST http://localhost:3000/api/transactions/clx1234567890/tags/clx9876543210
+curl -X POST http://localhost:3000/api/v1/transactions/clx1234567890/tags/clx9876543210
 ```
 
 #### Remove Tag from Transaction
 
 Remove a tag from an existing transaction.
 
-**Endpoint:** `DELETE /api/transactions/:transactionId/tags/:tagId`
+**Endpoint:** `DELETE /api/v1/transactions/:transactionId/tags/:tagId`
 
 **Authentication:** Required
 
 **Path Parameters:**
 
-| Parameter       | Type   | Required | Description              |
-| --------------- | ------ | -------- | ------------------------ |
+| Parameter       | Type   | Required | Description                |
+| --------------- | ------ | -------- | -------------------------- |
 | `transactionId` | string | Yes      | The transaction identifier |
-| `tagId`         | string | Yes      | The tag identifier        |
+| `tagId`         | string | Yes      | The tag identifier         |
 
 **Response:** `200 OK`
 
@@ -677,12 +685,13 @@ Returns the updated transaction:
 ```
 
 **Error Responses:**
+
 - `404 Not Found` - Transaction not found or tag not found
 
 **Example Request:**
 
 ```bash
-curl -X DELETE http://localhost:3000/api/transactions/clx1234567890/tags/clx9876543210
+curl -X DELETE http://localhost:3000/api/v1/transactions/clx1234567890/tags/clx9876543210
 ```
 
 ---
@@ -702,11 +711,12 @@ Tag names must be unique per user. Attempting to create a tag with a name that a
 - Transactions can have multiple tags
 - Tags can be associated with multiple transactions
 - When updating a transaction's `tagIds`, the entire tag list is replaced
-- Use the tag management endpoints (`POST`/`DELETE /api/transactions/:id/tags/:tagId`) to add or remove individual tags without replacing the entire list
+- Use the tag management endpoints (`POST`/`DELETE /api/v1/transactions/:id/tags/:tagId`) to add or remove individual tags without replacing the entire list
 
 ### Pagination
 
 The transactions list endpoint supports pagination. Use the `page` and `limit` query parameters. The response includes:
+
 - `page`: Current page number
 - `limit`: Items per page
 - `total`: Total number of items
@@ -720,6 +730,7 @@ The transactions list endpoint supports pagination. Use the `page` and `limit` q
 ### Date Filtering
 
 When filtering transactions by date range:
+
 - `from`: Inclusive start date
 - `to`: Inclusive end date
 - Both dates should be ISO 8601 strings
@@ -728,4 +739,3 @@ When filtering transactions by date range:
 
 - **Tags**: Search by name (case-insensitive partial match)
 - **Transactions**: Search by name or description (case-insensitive partial match)
-

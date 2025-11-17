@@ -7,7 +7,7 @@ import {
 import { TransactionService } from "../../services/transaction.service";
 
 /**
- * PATCH /api/transactions/:id
+ * PATCH /api/v1/transactions/:id
  * Update a transaction
  */
 export async function PATCH({
@@ -46,7 +46,7 @@ export async function PATCH({
 }
 
 /**
- * DELETE /api/transactions/:id
+ * DELETE /api/v1/transactions/:id
  * Delete a transaction
  */
 export async function DELETE({

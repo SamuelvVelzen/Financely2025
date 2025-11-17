@@ -9,7 +9,7 @@ import { TagService } from "@/features/tag/services/tag.service";
 import { json } from "@tanstack/react-start";
 
 /**
- * GET /api/tags
+ * GET /api/v1/tags
  * List tags with optional filtering and sorting
  */
 export async function GET({ request }: { request: Request }) {
@@ -33,7 +33,7 @@ export async function GET({ request }: { request: Request }) {
 }
 
 /**
- * POST /api/tags
+ * POST /api/v1/tags
  * Create a new tag
  */
 export async function POST({ request }: { request: Request }) {

@@ -7,7 +7,7 @@ import {
 import { TagService } from "@/features/tag/services/tag.service";
 
 /**
- * PATCH /api/tags/:id
+ * PATCH /api/v1/tags/:id
  * Update a tag
  */
 export async function PATCH({
@@ -46,7 +46,7 @@ export async function PATCH({
 }
 
 /**
- * DELETE /api/tags/:id
+ * DELETE /api/v1/tags/:id
  * Delete a tag
  */
 export async function DELETE({

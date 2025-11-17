@@ -11,18 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as appIndexRouteImport } from './routes/(app)/index'
-import { Route as ApiTransactionsRouteImport } from './routes/api/transactions'
-import { Route as ApiTagsRouteImport } from './routes/api/tags'
-import { Route as ApiMeRouteImport } from './routes/api/me'
 import { Route as appTagsRouteImport } from './routes/(app)/tags'
 import { Route as appIncomesRouteImport } from './routes/(app)/incomes'
 import { Route as appExpensesRouteImport } from './routes/(app)/expenses'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
-import { Route as ApiTransactionsBulkRouteImport } from './routes/api/transactions.bulk'
-import { Route as ApiTransactionsTransactionIdRouteImport } from './routes/api/transactions.$transactionId'
-import { Route as ApiTagsBulkRouteImport } from './routes/api/tags.bulk'
-import { Route as ApiTagsTagIdRouteImport } from './routes/api/tags.$tagId'
-import { Route as ApiTransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/transactions.$transactionId.tags.$tagId'
+import { Route as ApiV1TransactionsRouteImport } from './routes/api/v1/transactions'
+import { Route as ApiV1TagsRouteImport } from './routes/api/v1/tags'
+import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
+import { Route as ApiV1TransactionsBulkRouteImport } from './routes/api/v1/transactions.bulk'
+import { Route as ApiV1TransactionsTransactionIdRouteImport } from './routes/api/v1/transactions.$transactionId'
+import { Route as ApiV1TagsBulkRouteImport } from './routes/api/v1/tags.bulk'
+import { Route as ApiV1TagsTagIdRouteImport } from './routes/api/v1/tags.$tagId'
+import { Route as ApiV1TransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/transactions.$transactionId.tags.$tagId'
 
 const appRouteRoute = appRouteRouteImport.update({
   id: '/(app)',
@@ -32,21 +32,6 @@ const appIndexRoute = appIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => appRouteRoute,
-} as any)
-const ApiTransactionsRoute = ApiTransactionsRouteImport.update({
-  id: '/api/transactions',
-  path: '/api/transactions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiTagsRoute = ApiTagsRouteImport.update({
-  id: '/api/tags',
-  path: '/api/tags',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiMeRoute = ApiMeRouteImport.update({
-  id: '/api/me',
-  path: '/api/me',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const appTagsRoute = appTagsRouteImport.update({
   id: '/tags',
@@ -68,32 +53,47 @@ const appAccountRoute = appAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => appRouteRoute,
 } as any)
-const ApiTransactionsBulkRoute = ApiTransactionsBulkRouteImport.update({
+const ApiV1TransactionsRoute = ApiV1TransactionsRouteImport.update({
+  id: '/api/v1/transactions',
+  path: '/api/v1/transactions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1TagsRoute = ApiV1TagsRouteImport.update({
+  id: '/api/v1/tags',
+  path: '/api/v1/tags',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1MeRoute = ApiV1MeRouteImport.update({
+  id: '/api/v1/me',
+  path: '/api/v1/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1TransactionsBulkRoute = ApiV1TransactionsBulkRouteImport.update({
   id: '/bulk',
   path: '/bulk',
-  getParentRoute: () => ApiTransactionsRoute,
+  getParentRoute: () => ApiV1TransactionsRoute,
 } as any)
-const ApiTransactionsTransactionIdRoute =
-  ApiTransactionsTransactionIdRouteImport.update({
+const ApiV1TransactionsTransactionIdRoute =
+  ApiV1TransactionsTransactionIdRouteImport.update({
     id: '/$transactionId',
     path: '/$transactionId',
-    getParentRoute: () => ApiTransactionsRoute,
+    getParentRoute: () => ApiV1TransactionsRoute,
   } as any)
-const ApiTagsBulkRoute = ApiTagsBulkRouteImport.update({
+const ApiV1TagsBulkRoute = ApiV1TagsBulkRouteImport.update({
   id: '/bulk',
   path: '/bulk',
-  getParentRoute: () => ApiTagsRoute,
+  getParentRoute: () => ApiV1TagsRoute,
 } as any)
-const ApiTagsTagIdRoute = ApiTagsTagIdRouteImport.update({
+const ApiV1TagsTagIdRoute = ApiV1TagsTagIdRouteImport.update({
   id: '/$tagId',
   path: '/$tagId',
-  getParentRoute: () => ApiTagsRoute,
+  getParentRoute: () => ApiV1TagsRoute,
 } as any)
-const ApiTransactionsTransactionIdTagsTagIdRoute =
-  ApiTransactionsTransactionIdTagsTagIdRouteImport.update({
+const ApiV1TransactionsTransactionIdTagsTagIdRoute =
+  ApiV1TransactionsTransactionIdTagsTagIdRouteImport.update({
     id: '/tags/$tagId',
     path: '/tags/$tagId',
-    getParentRoute: () => ApiTransactionsTransactionIdRoute,
+    getParentRoute: () => ApiV1TransactionsTransactionIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -101,30 +101,30 @@ export interface FileRoutesByFullPath {
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
   '/tags': typeof appTagsRoute
-  '/api/me': typeof ApiMeRoute
-  '/api/tags': typeof ApiTagsRouteWithChildren
-  '/api/transactions': typeof ApiTransactionsRouteWithChildren
   '/': typeof appIndexRoute
-  '/api/tags/$tagId': typeof ApiTagsTagIdRoute
-  '/api/tags/bulk': typeof ApiTagsBulkRoute
-  '/api/transactions/$transactionId': typeof ApiTransactionsTransactionIdRouteWithChildren
-  '/api/transactions/bulk': typeof ApiTransactionsBulkRoute
-  '/api/transactions/$transactionId/tags/$tagId': typeof ApiTransactionsTransactionIdTagsTagIdRoute
+  '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
+  '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
+  '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
+  '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
+  '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
+  '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesByTo {
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
   '/tags': typeof appTagsRoute
-  '/api/me': typeof ApiMeRoute
-  '/api/tags': typeof ApiTagsRouteWithChildren
-  '/api/transactions': typeof ApiTransactionsRouteWithChildren
   '/': typeof appIndexRoute
-  '/api/tags/$tagId': typeof ApiTagsTagIdRoute
-  '/api/tags/bulk': typeof ApiTagsBulkRoute
-  '/api/transactions/$transactionId': typeof ApiTransactionsTransactionIdRouteWithChildren
-  '/api/transactions/bulk': typeof ApiTransactionsBulkRoute
-  '/api/transactions/$transactionId/tags/$tagId': typeof ApiTransactionsTransactionIdTagsTagIdRoute
+  '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
+  '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
+  '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
+  '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
+  '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
+  '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,15 +133,15 @@ export interface FileRoutesById {
   '/(app)/expenses': typeof appExpensesRoute
   '/(app)/incomes': typeof appIncomesRoute
   '/(app)/tags': typeof appTagsRoute
-  '/api/me': typeof ApiMeRoute
-  '/api/tags': typeof ApiTagsRouteWithChildren
-  '/api/transactions': typeof ApiTransactionsRouteWithChildren
   '/(app)/': typeof appIndexRoute
-  '/api/tags/$tagId': typeof ApiTagsTagIdRoute
-  '/api/tags/bulk': typeof ApiTagsBulkRoute
-  '/api/transactions/$transactionId': typeof ApiTransactionsTransactionIdRouteWithChildren
-  '/api/transactions/bulk': typeof ApiTransactionsBulkRoute
-  '/api/transactions/$transactionId/tags/$tagId': typeof ApiTransactionsTransactionIdTagsTagIdRoute
+  '/api/v1/me': typeof ApiV1MeRoute
+  '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
+  '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
+  '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
+  '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
+  '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
+  '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -150,30 +150,30 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/incomes'
     | '/tags'
-    | '/api/me'
-    | '/api/tags'
-    | '/api/transactions'
     | '/'
-    | '/api/tags/$tagId'
-    | '/api/tags/bulk'
-    | '/api/transactions/$transactionId'
-    | '/api/transactions/bulk'
-    | '/api/transactions/$transactionId/tags/$tagId'
+    | '/api/v1/me'
+    | '/api/v1/tags'
+    | '/api/v1/transactions'
+    | '/api/v1/tags/$tagId'
+    | '/api/v1/tags/bulk'
+    | '/api/v1/transactions/$transactionId'
+    | '/api/v1/transactions/bulk'
+    | '/api/v1/transactions/$transactionId/tags/$tagId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/account'
     | '/expenses'
     | '/incomes'
     | '/tags'
-    | '/api/me'
-    | '/api/tags'
-    | '/api/transactions'
     | '/'
-    | '/api/tags/$tagId'
-    | '/api/tags/bulk'
-    | '/api/transactions/$transactionId'
-    | '/api/transactions/bulk'
-    | '/api/transactions/$transactionId/tags/$tagId'
+    | '/api/v1/me'
+    | '/api/v1/tags'
+    | '/api/v1/transactions'
+    | '/api/v1/tags/$tagId'
+    | '/api/v1/tags/bulk'
+    | '/api/v1/transactions/$transactionId'
+    | '/api/v1/transactions/bulk'
+    | '/api/v1/transactions/$transactionId/tags/$tagId'
   id:
     | '__root__'
     | '/(app)'
@@ -181,22 +181,22 @@ export interface FileRouteTypes {
     | '/(app)/expenses'
     | '/(app)/incomes'
     | '/(app)/tags'
-    | '/api/me'
-    | '/api/tags'
-    | '/api/transactions'
     | '/(app)/'
-    | '/api/tags/$tagId'
-    | '/api/tags/bulk'
-    | '/api/transactions/$transactionId'
-    | '/api/transactions/bulk'
-    | '/api/transactions/$transactionId/tags/$tagId'
+    | '/api/v1/me'
+    | '/api/v1/tags'
+    | '/api/v1/transactions'
+    | '/api/v1/tags/$tagId'
+    | '/api/v1/tags/bulk'
+    | '/api/v1/transactions/$transactionId'
+    | '/api/v1/transactions/bulk'
+    | '/api/v1/transactions/$transactionId/tags/$tagId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   appRouteRoute: typeof appRouteRouteWithChildren
-  ApiMeRoute: typeof ApiMeRoute
-  ApiTagsRoute: typeof ApiTagsRouteWithChildren
-  ApiTransactionsRoute: typeof ApiTransactionsRouteWithChildren
+  ApiV1MeRoute: typeof ApiV1MeRoute
+  ApiV1TagsRoute: typeof ApiV1TagsRouteWithChildren
+  ApiV1TransactionsRoute: typeof ApiV1TransactionsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -214,27 +214,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof appIndexRouteImport
       parentRoute: typeof appRouteRoute
-    }
-    '/api/transactions': {
-      id: '/api/transactions'
-      path: '/api/transactions'
-      fullPath: '/api/transactions'
-      preLoaderRoute: typeof ApiTransactionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/tags': {
-      id: '/api/tags'
-      path: '/api/tags'
-      fullPath: '/api/tags'
-      preLoaderRoute: typeof ApiTagsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/me': {
-      id: '/api/me'
-      path: '/api/me'
-      fullPath: '/api/me'
-      preLoaderRoute: typeof ApiMeRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/(app)/tags': {
       id: '/(app)/tags'
@@ -264,40 +243,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAccountRouteImport
       parentRoute: typeof appRouteRoute
     }
-    '/api/transactions/bulk': {
-      id: '/api/transactions/bulk'
-      path: '/bulk'
-      fullPath: '/api/transactions/bulk'
-      preLoaderRoute: typeof ApiTransactionsBulkRouteImport
-      parentRoute: typeof ApiTransactionsRoute
+    '/api/v1/transactions': {
+      id: '/api/v1/transactions'
+      path: '/api/v1/transactions'
+      fullPath: '/api/v1/transactions'
+      preLoaderRoute: typeof ApiV1TransactionsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/transactions/$transactionId': {
-      id: '/api/transactions/$transactionId'
+    '/api/v1/tags': {
+      id: '/api/v1/tags'
+      path: '/api/v1/tags'
+      fullPath: '/api/v1/tags'
+      preLoaderRoute: typeof ApiV1TagsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/me': {
+      id: '/api/v1/me'
+      path: '/api/v1/me'
+      fullPath: '/api/v1/me'
+      preLoaderRoute: typeof ApiV1MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/transactions/bulk': {
+      id: '/api/v1/transactions/bulk'
+      path: '/bulk'
+      fullPath: '/api/v1/transactions/bulk'
+      preLoaderRoute: typeof ApiV1TransactionsBulkRouteImport
+      parentRoute: typeof ApiV1TransactionsRoute
+    }
+    '/api/v1/transactions/$transactionId': {
+      id: '/api/v1/transactions/$transactionId'
       path: '/$transactionId'
-      fullPath: '/api/transactions/$transactionId'
-      preLoaderRoute: typeof ApiTransactionsTransactionIdRouteImport
-      parentRoute: typeof ApiTransactionsRoute
+      fullPath: '/api/v1/transactions/$transactionId'
+      preLoaderRoute: typeof ApiV1TransactionsTransactionIdRouteImport
+      parentRoute: typeof ApiV1TransactionsRoute
     }
-    '/api/tags/bulk': {
-      id: '/api/tags/bulk'
+    '/api/v1/tags/bulk': {
+      id: '/api/v1/tags/bulk'
       path: '/bulk'
-      fullPath: '/api/tags/bulk'
-      preLoaderRoute: typeof ApiTagsBulkRouteImport
-      parentRoute: typeof ApiTagsRoute
+      fullPath: '/api/v1/tags/bulk'
+      preLoaderRoute: typeof ApiV1TagsBulkRouteImport
+      parentRoute: typeof ApiV1TagsRoute
     }
-    '/api/tags/$tagId': {
-      id: '/api/tags/$tagId'
+    '/api/v1/tags/$tagId': {
+      id: '/api/v1/tags/$tagId'
       path: '/$tagId'
-      fullPath: '/api/tags/$tagId'
-      preLoaderRoute: typeof ApiTagsTagIdRouteImport
-      parentRoute: typeof ApiTagsRoute
+      fullPath: '/api/v1/tags/$tagId'
+      preLoaderRoute: typeof ApiV1TagsTagIdRouteImport
+      parentRoute: typeof ApiV1TagsRoute
     }
-    '/api/transactions/$transactionId/tags/$tagId': {
-      id: '/api/transactions/$transactionId/tags/$tagId'
+    '/api/v1/transactions/$transactionId/tags/$tagId': {
+      id: '/api/v1/transactions/$transactionId/tags/$tagId'
       path: '/tags/$tagId'
-      fullPath: '/api/transactions/$transactionId/tags/$tagId'
-      preLoaderRoute: typeof ApiTransactionsTransactionIdTagsTagIdRouteImport
-      parentRoute: typeof ApiTransactionsTransactionIdRoute
+      fullPath: '/api/v1/transactions/$transactionId/tags/$tagId'
+      preLoaderRoute: typeof ApiV1TransactionsTransactionIdTagsTagIdRouteImport
+      parentRoute: typeof ApiV1TransactionsTransactionIdRoute
     }
   }
 }
@@ -322,54 +322,54 @@ const appRouteRouteWithChildren = appRouteRoute._addFileChildren(
   appRouteRouteChildren,
 )
 
-interface ApiTagsRouteChildren {
-  ApiTagsTagIdRoute: typeof ApiTagsTagIdRoute
-  ApiTagsBulkRoute: typeof ApiTagsBulkRoute
+interface ApiV1TagsRouteChildren {
+  ApiV1TagsTagIdRoute: typeof ApiV1TagsTagIdRoute
+  ApiV1TagsBulkRoute: typeof ApiV1TagsBulkRoute
 }
 
-const ApiTagsRouteChildren: ApiTagsRouteChildren = {
-  ApiTagsTagIdRoute: ApiTagsTagIdRoute,
-  ApiTagsBulkRoute: ApiTagsBulkRoute,
+const ApiV1TagsRouteChildren: ApiV1TagsRouteChildren = {
+  ApiV1TagsTagIdRoute: ApiV1TagsTagIdRoute,
+  ApiV1TagsBulkRoute: ApiV1TagsBulkRoute,
 }
 
-const ApiTagsRouteWithChildren =
-  ApiTagsRoute._addFileChildren(ApiTagsRouteChildren)
+const ApiV1TagsRouteWithChildren = ApiV1TagsRoute._addFileChildren(
+  ApiV1TagsRouteChildren,
+)
 
-interface ApiTransactionsTransactionIdRouteChildren {
-  ApiTransactionsTransactionIdTagsTagIdRoute: typeof ApiTransactionsTransactionIdTagsTagIdRoute
+interface ApiV1TransactionsTransactionIdRouteChildren {
+  ApiV1TransactionsTransactionIdTagsTagIdRoute: typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 
-const ApiTransactionsTransactionIdRouteChildren: ApiTransactionsTransactionIdRouteChildren =
+const ApiV1TransactionsTransactionIdRouteChildren: ApiV1TransactionsTransactionIdRouteChildren =
   {
-    ApiTransactionsTransactionIdTagsTagIdRoute:
-      ApiTransactionsTransactionIdTagsTagIdRoute,
+    ApiV1TransactionsTransactionIdTagsTagIdRoute:
+      ApiV1TransactionsTransactionIdTagsTagIdRoute,
   }
 
-const ApiTransactionsTransactionIdRouteWithChildren =
-  ApiTransactionsTransactionIdRoute._addFileChildren(
-    ApiTransactionsTransactionIdRouteChildren,
+const ApiV1TransactionsTransactionIdRouteWithChildren =
+  ApiV1TransactionsTransactionIdRoute._addFileChildren(
+    ApiV1TransactionsTransactionIdRouteChildren,
   )
 
-interface ApiTransactionsRouteChildren {
-  ApiTransactionsTransactionIdRoute: typeof ApiTransactionsTransactionIdRouteWithChildren
-  ApiTransactionsBulkRoute: typeof ApiTransactionsBulkRoute
+interface ApiV1TransactionsRouteChildren {
+  ApiV1TransactionsTransactionIdRoute: typeof ApiV1TransactionsTransactionIdRouteWithChildren
+  ApiV1TransactionsBulkRoute: typeof ApiV1TransactionsBulkRoute
 }
 
-const ApiTransactionsRouteChildren: ApiTransactionsRouteChildren = {
-  ApiTransactionsTransactionIdRoute:
-    ApiTransactionsTransactionIdRouteWithChildren,
-  ApiTransactionsBulkRoute: ApiTransactionsBulkRoute,
+const ApiV1TransactionsRouteChildren: ApiV1TransactionsRouteChildren = {
+  ApiV1TransactionsTransactionIdRoute:
+    ApiV1TransactionsTransactionIdRouteWithChildren,
+  ApiV1TransactionsBulkRoute: ApiV1TransactionsBulkRoute,
 }
 
-const ApiTransactionsRouteWithChildren = ApiTransactionsRoute._addFileChildren(
-  ApiTransactionsRouteChildren,
-)
+const ApiV1TransactionsRouteWithChildren =
+  ApiV1TransactionsRoute._addFileChildren(ApiV1TransactionsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   appRouteRoute: appRouteRouteWithChildren,
-  ApiMeRoute: ApiMeRoute,
-  ApiTagsRoute: ApiTagsRouteWithChildren,
-  ApiTransactionsRoute: ApiTransactionsRouteWithChildren,
+  ApiV1MeRoute: ApiV1MeRoute,
+  ApiV1TagsRoute: ApiV1TagsRouteWithChildren,
+  ApiV1TransactionsRoute: ApiV1TransactionsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

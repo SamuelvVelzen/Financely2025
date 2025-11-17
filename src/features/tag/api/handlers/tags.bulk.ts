@@ -9,7 +9,7 @@ import { TagService } from "@/features/tag/services/tag.service";
 import { json } from "@tanstack/react-start";
 
 /**
- * POST /api/tags/bulk
+ * POST /api/v1/tags/bulk
  * Bulk create tags with partial success support
  */
 export async function POST({ request }: { request: Request }) {

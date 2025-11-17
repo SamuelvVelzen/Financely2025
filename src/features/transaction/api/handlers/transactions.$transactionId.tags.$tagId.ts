@@ -7,7 +7,7 @@ import {
 import { TransactionService } from "../../services/transaction.service";
 
 /**
- * POST /api/transactions/:id/tags/:tagId
+ * POST /api/v1/transactions/:id/tags/:tagId
  * Add a tag to a transaction
  */
 export async function POST({
@@ -41,7 +41,7 @@ export async function POST({
 }
 
 /**
- * DELETE /api/transactions/:id/tags/:tagId
+ * DELETE /api/v1/transactions/:id/tags/:tagId
  * Remove a tag from a transaction
  */
 export async function DELETE({

@@ -9,7 +9,7 @@ import { json } from "@tanstack/react-start";
 import { TransactionService } from "../../services/transaction.service";
 
 /**
- * POST /api/transactions/bulk
+ * POST /api/v1/transactions/bulk
  * Bulk create transactions with partial success support
  */
 export async function POST({ request }: { request: Request }) {

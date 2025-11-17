@@ -4,7 +4,7 @@ import {
 } from "@/features/transaction/api/handlers/transactions.$transactionId";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/api/transactions/$transactionId")({
+export const Route = createFileRoute("/api/v1/transactions/$transactionId")({
   component: () => null,
   server: {
     handlers: {

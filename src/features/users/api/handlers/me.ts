@@ -4,7 +4,7 @@ import { UserService } from "@/features/users/services/user.service";
 import { json } from "@tanstack/react-start";
 
 /**
- * GET /api/me
+ * GET /api/v1/me
  * Returns the current authenticated user
  */
 export async function GET() {

@@ -4,7 +4,7 @@ import type { ErrorResponse } from "@/features/shared/validation/schemas";
  * API Client Configuration
  */
 const API_BASE_URL =
-  typeof window !== "undefined" ? "/api" : "http://localhost:3000/api";
+  typeof window !== "undefined" ? "/api/v1" : "http://localhost:3000/api/v1";
 
 /**
  * API Error class for client-side

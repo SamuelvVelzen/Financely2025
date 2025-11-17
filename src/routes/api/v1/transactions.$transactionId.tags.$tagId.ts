@@ -5,7 +5,7 @@ import {
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute(
-  "/api/transactions/$transactionId/tags/$tagId"
+  "/api/v1/transactions/$transactionId/tags/$tagId"
 )({
   component: () => null,
   server: {
@@ -15,3 +15,4 @@ export const Route = createFileRoute(
     },
   },
 });
+

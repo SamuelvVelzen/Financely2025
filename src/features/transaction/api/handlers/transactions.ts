@@ -9,7 +9,7 @@ import { json } from "@tanstack/react-start";
 import { TransactionService } from "../../services/transaction.service";
 
 /**
- * GET /api/transactions
+ * GET /api/v1/transactions
  * List transactions with pagination, filtering, and sorting
  */
 export async function GET({ request }: { request: Request }) {
@@ -42,7 +42,7 @@ export async function GET({ request }: { request: Request }) {
 }
 
 /**
- * POST /api/transactions
+ * POST /api/v1/transactions
  * Create a new transaction
  */
 export async function POST({ request }: { request: Request }) {
