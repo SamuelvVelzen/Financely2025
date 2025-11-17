@@ -18,6 +18,7 @@ import {
   HiArrowDownTray,
   HiArrowTrendingDown,
   HiPencil,
+  HiPlus,
   HiTrash,
 } from "react-icons/hi2";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
@@ -32,6 +33,8 @@ export function ExpenseOverview() {
   const [selectedExpense, setSelectedExpense] = useState<
     ITransaction | undefined
   >(undefined);
+
+  const [enabledMultiSelect, setEnabledMultiSelect] = useState(false);
 
   const handleCreateExpense = () => {
     setSelectedExpense(undefined);
@@ -98,7 +101,7 @@ export function ExpenseOverview() {
 
           <Dropdown>
             <DropdownItem
-              icon={<HiArrowTrendingDown />}
+              icon={<HiPlus />}
               clicked={() => handleCreateExpense()}>
               Add expense
             </DropdownItem>

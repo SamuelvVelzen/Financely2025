@@ -14,6 +14,7 @@ import {
   HiArrowDownTray,
   HiOutlineTag,
   HiPencil,
+  HiPlus,
   HiTrash,
 } from "react-icons/hi2";
 import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
@@ -73,7 +74,7 @@ export function TagOverview() {
 
           <Dropdown>
             <DropdownItem
-              icon={<HiOutlineTag />}
+              icon={<HiPlus />}
               clicked={() => handleCreateTag()}>
               Add tag
             </DropdownItem>

@@ -18,6 +18,7 @@ import {
   HiArrowDownTray,
   HiArrowTrendingUp,
   HiPencil,
+  HiPlus,
   HiTrash,
 } from "react-icons/hi2";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
@@ -127,7 +128,7 @@ export function IncomeOverview() {
 
       {!isLoading && !error && incomes.length === 0 && (
         <EmptyContainer
-          icon={<HiArrowTrendingUp />}
+          icon={<HiPlus />}
           emptyText={
             "No income entries yet. Start by adding your first income source."
           }
