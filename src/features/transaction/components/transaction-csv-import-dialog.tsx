@@ -637,7 +637,7 @@ export function TransactionCsvImportDialog({
   };
 
   const getFooterButtons = () => {
-    const buttons = [];
+    const buttons: IDialogProps["footerButtons"] = [];
 
     if (step !== "upload") {
       buttons.push({
@@ -656,6 +656,20 @@ export function TransactionCsvImportDialog({
       });
     }
 
+    if (step === "upload") {
+      buttons.push({
+        clicked: () => {
+          if (file) {
+            setStep("mapping");
+          }
+        },
+        disabled: !file,
+        className:
+          "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors",
+        buttonContent: "Next",
+      });
+    }
+
     if (step === "mapping") {
       buttons.push({
         clicked: () => {
@@ -671,7 +685,9 @@ export function TransactionCsvImportDialog({
           ? "Validating..."
           : "Continue",
       });
-    } else if (step === "review") {
+    }
+
+    if (step === "review") {
       buttons.push({
         clicked: () => {
           if (selectedRows.size > 0) {
@@ -684,7 +700,9 @@ export function TransactionCsvImportDialog({
         ),
         buttonContent: "Continue to Import",
       });
-    } else if (step === "confirm") {
+    }
+
+    if (step === "confirm") {
       buttons.push({
         clicked: () => {
           console.log(importMutation.isPending, selectedRows.size);
@@ -700,13 +718,6 @@ export function TransactionCsvImportDialog({
         buttonContent: importMutation.isPending
           ? "Importing..."
           : "Confirm Import",
-      });
-    } else {
-      buttons.push({
-        clicked: () => onOpenChange(false),
-        className:
-          "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors",
-        buttonContent: "Close",
       });
     }
 
