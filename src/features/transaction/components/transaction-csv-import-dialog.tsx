@@ -8,6 +8,7 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
+import { IconButton } from "@/features/ui/button/icon-button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { IDialogProps } from "@/features/ui/dialog/dialog/types";
 import { TableInput } from "@/features/ui/input/table-input";
@@ -19,6 +20,7 @@ import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/util/cn";
 import { useEffect, useState } from "react";
+import { HiX } from "react-icons/hi";
 import {
   TRANSACTION_FIELDS,
   isRequiredField,
@@ -262,14 +264,22 @@ export function TransactionCsvImportDialog({
         />
       </div>
       {file && (
-        <div className="p-4 bg-surface-hover rounded-lg">
-          <p className="text-sm">
+        <div className="p-4 bg-surface-hover rounded-lg grid grid-cols-2 grid-rows-2">
+          <p className="text-sm col-start-1">
             <span className="font-medium">File:</span> {file.name}
           </p>
-          <p className="text-sm">
+          <p className="text-sm col-start-1">
             <span className="font-medium">Size:</span>{" "}
             {(file.size / 1024).toFixed(2)} KB
           </p>
+
+          <IconButton
+            className="col-start-2 row-span-full self-center justify-self-end"
+            clicked={() => {
+              setFile(null);
+            }}>
+            <HiX className="h5 w-5 " />
+          </IconButton>
         </div>
       )}
       {uploadMutation.isError && (
