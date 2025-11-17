@@ -11,6 +11,7 @@ import {
 import { createPortal } from "react-dom";
 import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
+import { IconButton } from "../../button/icon-button";
 import { DialogOverlay } from "./dialog-overlay";
 import type { IDialogProps, IDialogStatus } from "./types";
 
@@ -331,13 +332,9 @@ export function Dialog({
             </h2>
           </div>
 
-          <button
-            type="button"
-            className="flex-shrink-0 hover:bg-surface-hover p-2 border border-border rounded-full motion-safe:transition-colors"
-            onClick={handleClose}
-            aria-label="Close dialog">
+          <IconButton clicked={handleClose}>
             <HiX className="w-5 h-5" />
-          </button>
+          </IconButton>
         </header>
 
         <div className={"px-6 py-4 overflow-y-auto max-h-[60vh]"}>
