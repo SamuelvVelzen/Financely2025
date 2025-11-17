@@ -1,8 +1,8 @@
 import type { Transaction } from "@/features/shared/validation/schemas";
-import { TransactionCsvImportDialog } from "@/features/transaction/component/transaction-csv-import-dialog";
+import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
-  useDeleteIncome,
-  useIncomes,
+  useDeleteExpense,
+  useExpenses,
 } from "@/features/transaction/hooks/useTransactions";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
@@ -16,44 +16,44 @@ import { Title } from "@/features/ui/typography/title";
 import { useState } from "react";
 import {
   HiArrowDownTray,
-  HiArrowTrendingUp,
+  HiArrowTrendingDown,
   HiPencil,
   HiTrash,
 } from "react-icons/hi2";
-import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
+import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
 
-export function IncomeOverview() {
-  const { data, isLoading, error } = useIncomes();
-  const incomes = data?.data ?? [];
-  const { mutate: deleteIncome } = useDeleteIncome();
+export function ExpenseOverview() {
+  const { data, isLoading, error } = useExpenses();
+  const expenses = data?.data ?? [];
+  const { mutate: deleteExpense } = useDeleteExpense();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isIncomeDialogOpen, setIsIncomeDialogOpen] = useState(false);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
-  const [selectedIncome, setSelectedIncome] = useState<Transaction | undefined>(
-    undefined
-  );
+  const [selectedExpense, setSelectedExpense] = useState<
+    Transaction | undefined
+  >(undefined);
 
-  const handleCreateIncome = () => {
-    setSelectedIncome(undefined);
-    setIsIncomeDialogOpen(true);
+  const handleCreateExpense = () => {
+    setSelectedExpense(undefined);
+    setIsExpenseDialogOpen(true);
   };
 
-  const handleEditIncome = (income: Transaction) => {
-    setSelectedIncome(income);
-    setIsIncomeDialogOpen(true);
+  const handleEditExpense = (expense: Transaction) => {
+    setSelectedExpense(expense);
+    setIsExpenseDialogOpen(true);
   };
 
-  const handleDeleteClick = (incomeId: string) => {
-    setSelectedIncome(incomes.find((income) => income.id === incomeId));
+  const handleDeleteClick = (expenseId: string) => {
+    setSelectedExpense(expenses.find((expense) => expense.id === expenseId));
     setIsDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = () => {
-    if (selectedIncome) {
-      deleteIncome(selectedIncome.id, {
+    if (selectedExpense) {
+      deleteExpense(selectedExpense.id, {
         onSuccess: () => {
           setIsDeleteDialogOpen(false);
-          setSelectedIncome(undefined);
+          setSelectedExpense(undefined);
         },
       });
     }
@@ -61,7 +61,7 @@ export function IncomeOverview() {
 
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
-    setSelectedIncome(undefined);
+    setSelectedExpense(undefined);
   };
 
   // Format amount with currency
@@ -91,16 +91,16 @@ export function IncomeOverview() {
       <Container className="mb-4">
         <Title className="flex items-center justify-between">
           <div className="flex gap-2">
-            <HiArrowTrendingUp />
+            <HiArrowTrendingDown />
 
-            <span>Incomes</span>
+            <span>Expenses</span>
           </div>
 
           <Dropdown>
             <DropdownItem
-              icon={<HiArrowTrendingUp />}
-              clicked={() => handleCreateIncome()}>
-              Add income
+              icon={<HiArrowTrendingDown />}
+              clicked={() => handleCreateExpense()}>
+              Add expense
             </DropdownItem>
             <DropdownItem
               icon={<HiArrowDownTray />}
@@ -113,52 +113,52 @@ export function IncomeOverview() {
 
       {isLoading && (
         <Container>
-          <p className="text-text-muted text-center">Loading incomes...</p>
+          <p className="text-text-muted text-center">Loading expenses...</p>
         </Container>
       )}
 
       {error && (
         <Container>
           <p className="text-red-500 text-center">
-            Error loading incomes: {error.message}
+            Error loading expenses: {error.message}
           </p>
         </Container>
       )}
 
-      {!isLoading && !error && incomes.length === 0 && (
+      {!isLoading && !error && expenses.length === 0 && (
         <EmptyContainer
-          icon={<HiArrowTrendingUp />}
-          emptyText={
-            "No income entries yet. Start by adding your first income source."
-          }
+          icon={<HiArrowTrendingDown />}
+          emptyText={"No expenses yet. Start by adding your first expense."}
           button={{
-            buttonText: "Add income",
-            buttonAction: () => handleCreateIncome(),
+            buttonText: "Add expense",
+            buttonAction: () => handleCreateExpense(),
           }}></EmptyContainer>
       )}
 
-      {!isLoading && !error && incomes.length > 0 && (
+      {!isLoading && !error && expenses.length > 0 && (
         <Container>
-          <List data={incomes}>
-            {(income) => (
+          <List data={expenses}>
+            {(expense) => (
               <ListItem className="group">
                 <div className="flex flex-col gap-1 flex-1">
                   <div className="flex items-center gap-3">
-                    <span className="text-text font-medium">{income.name}</span>
+                    <span className="text-text font-medium">
+                      {expense.name}
+                    </span>
                     <span className="text-text font-semibold">
-                      {formatAmount(income.amount, income.currency)}
+                      {formatAmount(expense.amount, expense.currency)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-text-muted">
-                    <span>{formatDate(income.occurredAt)}</span>
-                    {income.description && (
+                    <span>{formatDate(expense.occurredAt)}</span>
+                    {expense.description && (
                       <span className="text-text-muted">
-                        {income.description}
+                        {expense.description}
                       </span>
                     )}
-                    {income.tags.length > 0 && (
+                    {expense.tags.length > 0 && (
                       <div className="flex gap-1">
-                        {income.tags.map((tag) => (
+                        {expense.tags.map((tag) => (
                           <span
                             key={tag.id}
                             className="px-2 py-0.5 bg-surface-hover rounded text-xs">
@@ -171,12 +171,12 @@ export function IncomeOverview() {
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
                   <IconButton
-                    clicked={() => handleEditIncome(income)}
+                    clicked={() => handleEditExpense(expense)}
                     className="text-text-muted hover:text-text p-1">
                     <HiPencil className="w-5 h-5" />
                   </IconButton>
                   <IconButton
-                    clicked={() => handleDeleteClick(income.id)}
+                    clicked={() => handleDeleteClick(expense.id)}
                     className="text-danger hover:text-danger-hover p-1">
                     <HiTrash className="w-5 h-5" />
                   </IconButton>
@@ -187,15 +187,15 @@ export function IncomeOverview() {
         </Container>
       )}
 
-      <AddOrCreateIncomeDialog
-        open={isIncomeDialogOpen}
-        onOpenChange={setIsIncomeDialogOpen}
-        transaction={selectedIncome}
+      <AddOrCreateExpenseDialog
+        open={isExpenseDialogOpen}
+        onOpenChange={setIsExpenseDialogOpen}
+        transaction={selectedExpense}
       />
 
       <DeleteDialog
-        title="Delete Income"
-        content={`Are you sure you want to delete the income "${selectedIncome?.name}"? This action cannot be undone.`}
+        title="Delete Expense"
+        content={`Are you sure you want to delete the expense "${selectedExpense?.name}"? This action cannot be undone.`}
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         footerButtons={[
@@ -218,7 +218,7 @@ export function IncomeOverview() {
         onSuccess={() => {
           // Transactions will be refetched automatically via query invalidation
         }}
-        defaultType="INCOME"
+        defaultType="EXPENSE"
       />
     </>
   );
