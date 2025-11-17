@@ -1,14 +1,20 @@
 "use client";
 
-import { Button } from "@/features/ui/button/button";
-import { Checkbox } from "@/features/ui/checkbox/checkbox";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
-import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import type {
+  CreateTagInput,
   TagCsvCandidate,
   TagCsvFieldMapping,
-  CreateTagInput,
 } from "@/features/shared/validation/schemas";
+import { Button } from "@/features/ui/button/button";
+import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { TableInput } from "@/features/ui/input/table-input";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { BodyCell } from "@/features/ui/table/body-cell";
+import { HeaderCell } from "@/features/ui/table/header-cell";
+import { SelectableTable } from "@/features/ui/table/selectable-table";
+import { TableRow } from "@/features/ui/table/table-row";
+import { cn } from "@/util/cn";
+import { useEffect, useState } from "react";
 import {
   useGetTagCsvMapping,
   useImportTagCsv,
@@ -16,8 +22,6 @@ import {
   useUploadTagCsvFile,
   useValidateTagCsvMapping,
 } from "../hooks/useTagCsvImport";
-import { useState, useEffect } from "react";
-import { cn } from "@/util/cn";
 
 interface TagCsvImportDialogProps {
   open: boolean;
@@ -123,18 +127,6 @@ export function TagCsvImportDialog({
     } catch (error) {
       console.error("Validation failed:", error);
     }
-  };
-
-  const handleRowToggle = (rowIndex: number) => {
-    setSelectedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(rowIndex)) {
-        next.delete(rowIndex);
-      } else {
-        next.add(rowIndex);
-      }
-      return next;
-    });
   };
 
   const handleSelectAllValid = () => {
@@ -263,12 +255,12 @@ export function TagCsvImportDialog({
           const currentValue = mapping[field.name] || "";
 
           return (
-            <div key={field.name} className="space-y-1">
+            <div
+              key={field.name}
+              className="space-y-1">
               <label className="block text-sm font-medium">
                 {field.label}
-                {field.required && (
-                  <span className="text-danger ml-1">*</span>
-                )}
+                {field.required && <span className="text-danger ml-1">*</span>}
               </label>
               <SelectDropdown
                 options={columnOptions}
@@ -337,107 +329,100 @@ export function TagCsvImportDialog({
           </div>
         </div>
 
-        <div className="border border-border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-surface-hover">
-                <tr>
-                  <th className="px-4 py-2 text-left">Include</th>
-                  <th className="px-4 py-2 text-left">Status</th>
-                  <th className="px-4 py-2 text-left">Name</th>
-                  <th className="px-4 py-2 text-left">Color</th>
-                  <th className="px-4 py-2 text-left">Description</th>
-                  <th className="px-4 py-2 text-left">Errors</th>
-                </tr>
-              </thead>
-              <tbody>
-                {candidates.map((candidate) => {
-                  const isSelected = selectedRows.has(candidate.rowIndex);
-                  const edited = editedRows[candidate.rowIndex] || {};
-                  const tag = { ...candidate.data, ...edited };
+        <SelectableTable
+          selectedRows={selectedRows}
+          onSelectionChange={setSelectedRows}
+          rowCount={candidates.length}
+          getRowIndex={(row) => {
+            const props = row.props as { rowIndex?: number };
+            return props.rowIndex ?? -1;
+          }}
+          headerCells={[
+            <HeaderCell align="left">Status</HeaderCell>,
+            <HeaderCell align="left">Name</HeaderCell>,
+            <HeaderCell align="left">Color</HeaderCell>,
+            <HeaderCell align="left">Description</HeaderCell>,
+            <HeaderCell align="left">Errors</HeaderCell>,
+          ]}>
+          {candidates.map((candidate) => {
+            const edited = editedRows[candidate.rowIndex] || {};
+            const tag = { ...candidate.data, ...edited };
 
-                  return (
-                    <tr
-                      key={candidate.rowIndex}
-                      className={cn(
-                        "border-t border-border",
-                        candidate.status === "invalid" && "bg-danger/5"
-                      )}>
-                      <td className="px-4 py-2">
-                        <Checkbox
-                          checked={isSelected}
-                          onChange={() => handleRowToggle(candidate.rowIndex)}
-                        />
-                      </td>
-                      <td className="px-4 py-2">
-                        <span
-                          className={cn(
-                            "px-2 py-1 rounded text-xs",
-                            candidate.status === "valid" &&
-                              "bg-success/20 text-success",
-                            candidate.status === "invalid" &&
-                              "bg-danger/20 text-danger"
-                          )}>
-                          {candidate.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-2">
-                        <input
-                          type="text"
-                          value={tag.name || ""}
-                          onChange={(e) =>
-                            handleEditField(candidate.rowIndex, "name", e.target.value)
-                          }
-                          className="w-full px-2 py-1 border border-border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-2">
-                        <input
-                          type="text"
-                          value={tag.color || ""}
-                          onChange={(e) =>
-                            handleEditField(
-                              candidate.rowIndex,
-                              "color",
-                              e.target.value
-                            )
-                          }
-                          placeholder="#FF6600"
-                          className="w-full px-2 py-1 border border-border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-2">
-                        <input
-                          type="text"
-                          value={tag.description || ""}
-                          onChange={(e) =>
-                            handleEditField(
-                              candidate.rowIndex,
-                              "description",
-                              e.target.value
-                            )
-                          }
-                          className="w-full px-2 py-1 border border-border rounded text-sm"
-                        />
-                      </td>
-                      <td className="px-4 py-2">
-                        {candidate.errors.length > 0 && (
-                          <div className="text-xs text-danger">
-                            {candidate.errors.map((err, i) => (
-                              <div key={i}>
-                                {err.field}: {err.message}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+            return (
+              <TableRow
+                key={candidate.rowIndex}
+                rowIndex={candidate.rowIndex}
+                className={cn(
+                  "border-t border-border",
+                  candidate.status === "invalid" && "bg-danger/5"
+                )}>
+                <BodyCell>
+                  <span
+                    className={cn(
+                      "px-2 py-1 rounded text-xs",
+                      candidate.status === "valid" &&
+                        "bg-success/20 text-success",
+                      candidate.status === "invalid" &&
+                        "bg-danger/20 text-danger"
+                    )}>
+                    {candidate.status}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  <TableInput
+                    type="text"
+                    value={tag.name || ""}
+                    onChange={(e) =>
+                      handleEditField(
+                        candidate.rowIndex,
+                        "name",
+                        e.target.value
+                      )
+                    }
+                  />
+                </BodyCell>
+                <BodyCell>
+                  <TableInput
+                    type="text"
+                    value={tag.color || ""}
+                    onChange={(e) =>
+                      handleEditField(
+                        candidate.rowIndex,
+                        "color",
+                        e.target.value
+                      )
+                    }
+                    placeholder="#FF6600"
+                  />
+                </BodyCell>
+                <BodyCell>
+                  <TableInput
+                    type="text"
+                    value={tag.description || ""}
+                    onChange={(e) =>
+                      handleEditField(
+                        candidate.rowIndex,
+                        "description",
+                        e.target.value
+                      )
+                    }
+                  />
+                </BodyCell>
+                <BodyCell>
+                  {candidate.errors.length > 0 && (
+                    <div className="text-xs text-danger">
+                      {candidate.errors.map((err, i) => (
+                        <div key={i}>
+                          {err.field}: {err.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </BodyCell>
+              </TableRow>
+            );
+          })}
+        </SelectableTable>
 
         {parseResponse?.hasNext && (
           <div className="flex justify-center gap-2">
@@ -448,7 +433,8 @@ export function TagCsvImportDialog({
               className="px-4 py-2"
             />
             <span className="px-4 py-2 text-sm">
-              Page {currentPage} of {Math.ceil((parseResponse?.total || 0) / 50)}
+              Page {currentPage} of{" "}
+              {Math.ceil((parseResponse?.total || 0) / 50)}
             </span>
             <Button
               clicked={() => setCurrentPage((p) => p + 1)}
@@ -561,21 +547,32 @@ export function TagCsvImportDialog({
     return buttons;
   };
 
+  const getSize = () => {
+    if (step === "upload") {
+      return "lg";
+    } else if (step === "mapping") {
+      return "full";
+    } else if (step === "review") {
+      return "full";
+    } else if (step === "confirm") {
+      return "lg";
+    }
+  };
+
   return (
     <Dialog
       title={getStepTitle()}
       content={
-        <div className="max-h-[60vh] overflow-y-auto">{renderStepContent()}</div>
+        <div className="max-h-[60vh] overflow-y-auto">
+          {renderStepContent()}
+        </div>
       }
       footerButtons={getFooterButtons()}
       open={open}
       onOpenChange={onOpenChange}
       variant="modal"
-      size="lg"
-      dismissible={
-        !uploadMutation.isPending && !importMutation.isPending
-      }
+      size={getSize()}
+      dismissible={!uploadMutation.isPending && !importMutation.isPending}
     />
   );
 }
-
