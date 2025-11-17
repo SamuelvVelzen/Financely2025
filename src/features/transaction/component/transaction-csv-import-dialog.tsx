@@ -39,7 +39,7 @@ interface CsvImportDialogProps {
 
 type Step = "upload" | "mapping" | "review" | "confirm";
 
-export function CsvImportDialog({
+export function TransactionCsvImportDialog({
   open,
   onOpenChange,
   onSuccess,

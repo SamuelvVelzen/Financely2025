@@ -1,5 +1,5 @@
 import type { Transaction } from "@/features/shared/validation/schemas";
-import { CsvImportDialog } from "@/features/transaction/components/csv-import-dialog";
+import { TransactionCsvImportDialog } from "@/features/transaction/component/transaction-csv-import-dialog";
 import {
   useDeleteExpense,
   useExpenses,
@@ -212,7 +212,7 @@ export function ExpenseOverview() {
         ]}
       />
 
-      <CsvImportDialog
+      <TransactionCsvImportDialog
         open={isCsvImportDialogOpen}
         onOpenChange={setIsCsvImportDialogOpen}
         onSuccess={() => {
