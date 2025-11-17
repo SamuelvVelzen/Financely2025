@@ -2,7 +2,7 @@
 
 import { cn } from "@/util/cn";
 import { PropsWithClassName } from "@/util/type-helpers/props";
-import React, { useId } from "react";
+import React, { useEffect, useId, useRef } from "react";
 
 export type CheckboxProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -11,6 +11,7 @@ export type CheckboxProps = Omit<
   PropsWithClassName & {
     id?: string;
     label?: string;
+    indeterminate?: boolean;
   };
 
 export function Checkbox({
@@ -20,30 +21,54 @@ export function Checkbox({
   checked,
   onChange,
   disabled,
+  indeterminate,
   ...props
 }: CheckboxProps) {
   const generatedId = useId();
   const checkboxId = id || generatedId;
+  const checkboxRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (checkboxRef.current) {
+      checkboxRef.current.indeterminate = indeterminate ?? false;
+    }
+  }, [indeterminate]);
 
   const baseClasses =
-    "w-4 h-4 border rounded cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed appearance-none relative";
-  const borderClass = checked
-    ? "bg-primary border-primary text-white"
-    : "bg-surface border-border";
+    "w-4 h-4 border rounded cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed appearance-none relative";
+  const borderClass =
+    indeterminate || checked
+      ? "bg-primary border-primary text-white"
+      : "bg-surface border-border";
 
   return (
     <div className="flex items-center gap-2">
-      <div className="relative">
+      <div className="relative h-[16px] w-[16px]">
         <input
           type="checkbox"
           id={checkboxId}
+          ref={checkboxRef}
           className={cn(baseClasses, borderClass, className)}
           checked={checked}
           onChange={onChange}
           disabled={disabled}
           {...props}
         />
-        {checked && (
+        {indeterminate && (
+          <svg
+            className="absolute top-0 left-0 w-4 h-4 pointer-events-none text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="3">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 12h14"
+            />
+          </svg>
+        )}
+        {checked && !indeterminate && (
           <svg
             className="absolute top-0 left-0 w-4 h-4 pointer-events-none text-white"
             fill="none"
