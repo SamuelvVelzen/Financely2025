@@ -145,6 +145,69 @@ export const BulkCreateTagResponseSchema = z.object({
 });
 
 // ============================================================================
+// Tag CSV Import schemas
+// ============================================================================
+
+export const TagCsvUploadResponseSchema = z.object({
+  columns: z.array(z.string()),
+  sampleRows: z.array(z.record(z.string(), z.string())).optional(),
+  fileInfo: z.object({
+    fileName: z.string(),
+    fileSize: z.number(),
+    estimatedRowCount: z.number().optional(),
+  }),
+});
+
+export const TagCsvFieldMappingSchema = z.record(
+  z.string(),
+  z.string().nullable()
+);
+
+export const TagCsvMappingValidationSchema = z.object({
+  valid: z.boolean(),
+  missingFields: z.array(z.string()),
+});
+
+export const TagCsvParseRequestSchema = z.object({
+  mapping: TagCsvFieldMappingSchema,
+  page: z.number().int().min(1).default(1),
+  limit: z.number().int().min(1).max(100).default(50),
+});
+
+export const TagCsvCandidateErrorSchema = z.object({
+  field: z.string(),
+  message: z.string(),
+});
+
+export const TagCsvCandidateSchema = z.object({
+  rowIndex: z.number().int().min(0),
+  status: z.enum(["valid", "invalid", "warning"]),
+  data: CreateTagInputSchema,
+  rawValues: z.record(z.string(), z.string()),
+  errors: z.array(TagCsvCandidateErrorSchema),
+});
+
+export const TagCsvParseResponseSchema = z.object({
+  candidates: z.array(TagCsvCandidateSchema),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  total: z.number().int().min(0),
+  totalValid: z.number().int().min(0),
+  totalInvalid: z.number().int().min(0),
+  hasNext: z.boolean(),
+});
+
+export const TagCsvImportRequestSchema = z.object({
+  tags: z.array(CreateTagInputSchema).min(1),
+});
+
+export const TagCsvImportResponseSchema = z.object({
+  successCount: z.number().int().min(0),
+  failureCount: z.number().int().min(0),
+  errors: z.array(BulkCreateTagErrorSchema),
+});
+
+// ============================================================================
 // Transaction schemas
 // ============================================================================
 
@@ -174,6 +237,7 @@ export const CreateTransactionInputSchema = z.object({
   occurredAt: ISODateStringSchema,
   name: z.string().min(1).max(200),
   description: z.string().max(1000).nullable().optional(),
+  notes: z.string().max(2000).nullable().optional(),
   externalId: z.string().max(200).nullable().optional(),
   tagIds: z.array(z.string()).optional().default([]),
 });
@@ -217,6 +281,70 @@ export const BulkCreateTransactionErrorSchema = z.object({
 
 export const BulkCreateTransactionResponseSchema = z.object({
   created: z.array(TransactionSchema),
+  errors: z.array(BulkCreateTransactionErrorSchema),
+});
+
+// ============================================================================
+// CSV Import schemas
+// ============================================================================
+
+export const CsvUploadResponseSchema = z.object({
+  columns: z.array(z.string()),
+  sampleRows: z.array(z.record(z.string(), z.string())).optional(),
+  fileInfo: z.object({
+    fileName: z.string(),
+    fileSize: z.number(),
+    estimatedRowCount: z.number().optional(),
+  }),
+});
+
+export const CsvFieldMappingSchema = z.record(
+  z.string(),
+  z.string().nullable()
+);
+
+export const CsvMappingValidationSchema = z.object({
+  valid: z.boolean(),
+  missingFields: z.array(z.string()),
+});
+
+export const CsvParseRequestSchema = z.object({
+  mapping: CsvFieldMappingSchema,
+  page: z.number().int().min(1).default(1),
+  limit: z.number().int().min(1).max(100).default(50),
+  typeDetectionStrategy: z.string().optional(),
+});
+
+export const CsvCandidateTransactionErrorSchema = z.object({
+  field: z.string(),
+  message: z.string(),
+});
+
+export const CsvCandidateTransactionSchema = z.object({
+  rowIndex: z.number().int().min(0),
+  status: z.enum(["valid", "invalid", "warning"]),
+  data: CreateTransactionInputSchema,
+  rawValues: z.record(z.string(), z.string()),
+  errors: z.array(CsvCandidateTransactionErrorSchema),
+});
+
+export const CsvParseResponseSchema = z.object({
+  candidates: z.array(CsvCandidateTransactionSchema),
+  page: z.number().int().min(1),
+  limit: z.number().int().min(1),
+  total: z.number().int().min(0),
+  totalValid: z.number().int().min(0),
+  totalInvalid: z.number().int().min(0),
+  hasNext: z.boolean(),
+});
+
+export const CsvImportRequestSchema = z.object({
+  transactions: z.array(CreateTransactionInputSchema).min(1),
+});
+
+export const CsvImportResponseSchema = z.object({
+  successCount: z.number().int().min(0),
+  failureCount: z.number().int().min(0),
   errors: z.array(BulkCreateTransactionErrorSchema),
 });
 
@@ -278,3 +406,21 @@ export type BulkCreateTransactionResponse = z.infer<
 >;
 export type UserResponse = z.infer<typeof UserResponseSchema>;
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
+export type CsvUploadResponse = z.infer<typeof CsvUploadResponseSchema>;
+export type CsvFieldMapping = z.infer<typeof CsvFieldMappingSchema>;
+export type CsvMappingValidation = z.infer<typeof CsvMappingValidationSchema>;
+export type CsvParseRequest = z.infer<typeof CsvParseRequestSchema>;
+export type CsvCandidateTransaction = z.infer<
+  typeof CsvCandidateTransactionSchema
+>;
+export type CsvParseResponse = z.infer<typeof CsvParseResponseSchema>;
+export type CsvImportRequest = z.infer<typeof CsvImportRequestSchema>;
+export type CsvImportResponse = z.infer<typeof CsvImportResponseSchema>;
+export type TagCsvUploadResponse = z.infer<typeof TagCsvUploadResponseSchema>;
+export type TagCsvFieldMapping = z.infer<typeof TagCsvFieldMappingSchema>;
+export type TagCsvMappingValidation = z.infer<typeof TagCsvMappingValidationSchema>;
+export type TagCsvParseRequest = z.infer<typeof TagCsvParseRequestSchema>;
+export type TagCsvCandidate = z.infer<typeof TagCsvCandidateSchema>;
+export type TagCsvParseResponse = z.infer<typeof TagCsvParseResponseSchema>;
+export type TagCsvImportRequest = z.infer<typeof TagCsvImportRequestSchema>;
+export type TagCsvImportResponse = z.infer<typeof TagCsvImportResponseSchema>;

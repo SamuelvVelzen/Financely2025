@@ -1,0 +1,615 @@
+import {
+  CreateTransactionInput,
+  CreateTransactionInputSchema,
+  type CsvCandidateTransaction,
+  type CsvFieldMapping,
+} from "@/features/shared/validation/schemas";
+import {
+  SYSTEM_REQUIRED_FIELDS,
+  type TransactionFieldName,
+} from "../config/transaction-fields";
+import { TagService } from "@/features/tag/services/tag.service";
+import { prisma } from "@/util/prisma";
+import {
+  TypeDetectionFactory,
+  DEFAULT_TYPE_DETECTION_STRATEGY,
+  type TypeDetectionContext,
+} from "./csv-type-detection";
+
+/**
+ * CSV Import Service
+ * Handles CSV parsing, field mapping, and validation
+ */
+
+// Constants
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+export const MAX_ROWS = 10000;
+export const BATCH_SIZE = 100;
+
+// Field name heuristics for auto-detection
+const FIELD_NAME_PATTERNS: Record<string, string[]> = {
+  type: ["type", "transaction_type", "kind", "category"],
+  amount: ["amount", "value", "betrag", "sum", "total", "price", "cost"],
+  currency: ["currency", "curr", "ccy", "währung"],
+  occurredAt: [
+    "date",
+    "transaction_date",
+    "booking date",
+    "datum",
+    "occurred_at",
+    "timestamp",
+    "time",
+  ],
+  name: [
+    "name",
+    "title",
+    "description",
+    "memo",
+    "payee",
+    "merchant",
+    "vendor",
+  ],
+  description: ["description", "desc", "details", "note", "memo"],
+  notes: ["notes", "note", "remarks", "comments"],
+  externalId: ["external_id", "externalid", "id", "reference", "ref"],
+  tags: ["tags", "tag", "categories", "category"],
+};
+
+/**
+ * Detect CSV delimiter by analyzing the first line
+ * Common delimiters: comma, semicolon, tab, pipe
+ */
+function detectDelimiter(firstLine: string): string {
+  const delimiters = [",", ";", "\t", "|"];
+  let maxCount = 0;
+  let detectedDelimiter = ","; // Default to comma
+
+  for (const delimiter of delimiters) {
+    // Count occurrences, but ignore those inside quotes
+    let count = 0;
+    let inQuotes = false;
+    for (let i = 0; i < firstLine.length; i++) {
+      const char = firstLine[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === delimiter && !inQuotes) {
+        count++;
+      }
+    }
+    if (count > maxCount) {
+      maxCount = count;
+      detectedDelimiter = delimiter;
+    }
+  }
+
+  return detectedDelimiter;
+}
+
+/**
+ * Parse CSV headers from file
+ */
+export async function parseCsvHeaders(
+  file: File | { text(): Promise<string> }
+): Promise<string[]> {
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+  if (lines.length === 0) {
+    throw new Error("CSV file is empty");
+  }
+
+  // Detect delimiter from first line
+  const delimiter = detectDelimiter(lines[0]);
+
+  // Parse first line as headers
+  const headers = parseCsvLine(lines[0], delimiter);
+  return headers.map((h) => h.trim());
+}
+
+/**
+ * Parse CSV rows with pagination
+ */
+export async function parseCsvRows(
+  file: File | { text(): Promise<string> },
+  mapping: CsvFieldMapping,
+  page: number,
+  limit: number
+): Promise<{
+  rows: Record<string, string>[];
+  total: number;
+}> {
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+
+  if (lines.length < 2) {
+    return { rows: [], total: 0 };
+  }
+
+  // Detect delimiter from first line
+  const delimiter = detectDelimiter(lines[0]);
+
+  // Parse headers
+  const headers = parseCsvLine(lines[0], delimiter).map((h) => h.trim());
+
+  // Parse data rows
+  const dataLines = lines.slice(1);
+  const total = dataLines.length;
+
+  // Calculate pagination
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedLines = dataLines.slice(startIndex, endIndex);
+
+  const rows = paginatedLines.map((line) => {
+    const values = parseCsvLine(line, delimiter);
+    const row: Record<string, string> = {};
+    headers.forEach((header, index) => {
+      row[header] = values[index]?.trim() || "";
+    });
+    return row;
+  });
+
+  return { rows, total };
+}
+
+/**
+ * Simple CSV line parser (handles quoted fields and custom delimiters)
+ */
+function parseCsvLine(line: string, delimiter: string = ","): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        // Escaped quote
+        current += '"';
+        i++; // Skip next quote
+      } else {
+        // Toggle quote state
+        inQuotes = !inQuotes;
+      }
+    } else if (char === delimiter && !inQuotes) {
+      // Field separator
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  // Add last field
+  result.push(current);
+  return result;
+}
+
+/**
+ * Auto-detect field mapping from column names
+ */
+export function autoDetectMapping(
+  columns: string[]
+): Partial<CsvFieldMapping> {
+  const mapping: Partial<CsvFieldMapping> = {};
+
+  // Normalize column names for matching
+  const normalizedColumns = columns.map((col) =>
+    col.toLowerCase().trim().replace(/[_\s-]/g, "_")
+  );
+
+  // For each transaction field, find best matching column
+  Object.entries(FIELD_NAME_PATTERNS).forEach(([field, patterns]) => {
+    const normalizedPatterns = patterns.map((p) =>
+      p.toLowerCase().replace(/[_\s-]/g, "_")
+    );
+
+    for (let i = 0; i < normalizedColumns.length; i++) {
+      const normalizedCol = normalizedColumns[i];
+      if (normalizedPatterns.some((pattern) => normalizedCol.includes(pattern))) {
+        mapping[field] = columns[i];
+        break;
+      }
+    }
+  });
+
+  return mapping;
+}
+
+/**
+ * Validate mapping against required fields
+ */
+export function validateMapping(
+  mapping: CsvFieldMapping,
+  requiredFields: readonly string[],
+  defaultType?: "EXPENSE" | "INCOME",
+  hasTypeDetection?: boolean,
+  hasDefaultCurrency?: boolean
+): { valid: boolean; missingFields: string[] } {
+  const missingFields: string[] = [];
+
+  for (const field of requiredFields) {
+    // Skip type field if defaultType is provided or type detection is enabled
+    if (field === "type" && (defaultType || hasTypeDetection)) {
+      continue;
+    }
+    // Skip currency field if defaultCurrency is provided
+    if (field === "currency" && hasDefaultCurrency) {
+      continue;
+    }
+    const mappedColumn = mapping[field];
+    if (!mappedColumn || mappedColumn.trim() === "") {
+      missingFields.push(field);
+    }
+  }
+
+  return {
+    valid: missingFields.length === 0,
+    missingFields,
+  };
+}
+
+/**
+ * Convert CSV row to candidate transaction
+ */
+export async function convertRowToTransaction(
+  row: Record<string, string>,
+  mapping: CsvFieldMapping,
+  userId: string,
+  defaultType?: "EXPENSE" | "INCOME",
+  typeDetectionStrategy?: string,
+  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
+): Promise<Partial<CreateTransactionInput>> {
+  const transaction: Partial<CreateTransactionInput> = {};
+
+  // Set default currency if provided
+  if (defaultCurrency) {
+    transaction.currency = defaultCurrency;
+  }
+
+  // Map each field first to get amount
+  let parsedAmount: string | undefined;
+  for (const [field, column] of Object.entries(mapping)) {
+    if (!column) continue;
+    const rawValue = row[column]?.trim() || "";
+
+    if (field === "amount" && rawValue) {
+      parsedAmount = parseAmount(rawValue);
+    }
+  }
+
+  // Determine type
+  if (defaultType) {
+    // Use provided default type (from expense/income overview context)
+    transaction.type = defaultType;
+  } else if (mapping.type && row[mapping.type]) {
+    // Type is explicitly mapped in CSV
+    transaction.type = parseType(row[mapping.type].trim());
+  } else if (parsedAmount && typeDetectionStrategy) {
+    // Use type detection strategy
+    const strategy = TypeDetectionFactory.getStrategy(typeDetectionStrategy);
+    const context: TypeDetectionContext = {
+      amount: parsedAmount,
+      rawAmount: row[mapping.amount || ""] || "",
+      row,
+    };
+    transaction.type = strategy.detectType(context);
+  } else if (parsedAmount) {
+    // Fallback to default sign-based strategy
+    const strategy = TypeDetectionFactory.getStrategy(
+      DEFAULT_TYPE_DETECTION_STRATEGY
+    );
+    const context: TypeDetectionContext = {
+      amount: parsedAmount,
+      rawAmount: row[mapping.amount || ""] || "",
+      row,
+    };
+    transaction.type = strategy.detectType(context);
+  }
+
+  // Map each field
+  for (const [field, column] of Object.entries(mapping)) {
+    if (!column) continue;
+
+    const rawValue = row[column]?.trim() || "";
+
+    switch (field as TransactionFieldName) {
+      case "type":
+        // Skip - already handled above
+        break;
+      case "amount":
+        transaction.amount = parseAmount(rawValue);
+        break;
+      case "currency":
+        // Only parse currency from CSV if defaultCurrency is not provided
+        if (!defaultCurrency) {
+          transaction.currency = parseCurrency(rawValue);
+        }
+        break;
+      case "occurredAt":
+        transaction.occurredAt = parseDate(rawValue);
+        break;
+      case "name":
+        transaction.name = rawValue;
+        break;
+      case "description":
+        transaction.description = rawValue || null;
+        break;
+      case "notes":
+        transaction.notes = rawValue || null;
+        break;
+      case "externalId":
+        transaction.externalId = rawValue || null;
+        break;
+      case "tags":
+        if (rawValue) {
+          transaction.tagIds = await parseTags(rawValue, userId);
+        }
+        break;
+    }
+  }
+
+  return transaction;
+}
+
+/**
+ * Parse transaction type
+ */
+function parseType(value: string): "EXPENSE" | "INCOME" {
+  const normalized = value.toUpperCase().trim();
+  if (normalized === "INCOME" || normalized === "IN" || normalized === "I") {
+    return "INCOME";
+  }
+  return "EXPENSE"; // Default
+}
+
+/**
+ * Parse amount (handles decimal separators)
+ */
+function parseAmount(value: string): string {
+  // Remove currency symbols and whitespace
+  let cleaned = value.replace(/[^\d.,-]/g, "").trim();
+
+  // Handle negative amounts
+  const isNegative = cleaned.startsWith("-");
+  cleaned = cleaned.replace(/^-/, "");
+
+  // Determine decimal separator
+  const lastComma = cleaned.lastIndexOf(",");
+  const lastDot = cleaned.lastIndexOf(".");
+
+  let decimalSeparator = ".";
+  if (lastComma > lastDot) {
+    decimalSeparator = ",";
+  }
+
+  // Normalize to dot as decimal separator
+  if (decimalSeparator === ",") {
+    cleaned = cleaned.replace(/\./g, "").replace(",", ".");
+  } else {
+    cleaned = cleaned.replace(/,/g, "");
+  }
+
+  const result = isNegative ? `-${cleaned}` : cleaned;
+  return result;
+}
+
+/**
+ * Parse currency
+ */
+function parseCurrency(value: string): "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY" {
+  const normalized = value.toUpperCase().trim();
+  const validCurrencies = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"];
+  if (validCurrencies.includes(normalized)) {
+    return normalized as any;
+  }
+  return "USD"; // Default
+}
+
+/**
+ * Parse date (supports multiple formats)
+ */
+function parseDate(value: string): string {
+  if (!value) {
+    throw new Error("Date is required");
+  }
+
+  // Try ISO format first
+  const isoDate = new Date(value);
+  if (!isNaN(isoDate.getTime())) {
+    return isoDate.toISOString();
+  }
+
+  // Try common formats: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, DD.MM.YYYY
+  const formats = [
+    /^(\d{4})-(\d{2})-(\d{2})/, // YYYY-MM-DD
+    /^(\d{2})\/(\d{2})\/(\d{4})/, // MM/DD/YYYY or DD/MM/YYYY
+    /^(\d{2})\.(\d{2})\.(\d{4})/, // DD.MM.YYYY
+  ];
+
+  for (const format of formats) {
+    const match = value.match(format);
+    if (match) {
+      let year: string, month: string, day: string;
+
+      if (format === formats[0]) {
+        // YYYY-MM-DD
+        [, year, month, day] = match;
+      } else {
+        // Assume DD/MM/YYYY or DD.MM.YYYY (most common in Europe)
+        [, day, month, year] = match;
+      }
+
+      const date = new Date(`${year}-${month}-${day}`);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+    }
+  }
+
+  throw new Error(`Invalid date format: ${value}`);
+}
+
+/**
+ * Parse tags (comma-separated names) and resolve to tagIds
+ * Creates tags if they don't exist
+ */
+async function parseTags(
+  value: string,
+  userId: string
+): Promise<string[]> {
+  if (!value) return [];
+
+  const tagNames = value
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
+
+  const tagIds: string[] = [];
+
+  for (const tagName of tagNames) {
+    // Try to find existing tag
+    const existingTags = await prisma.tag.findMany({
+      where: {
+        userId,
+        name: tagName,
+      },
+      take: 1,
+    });
+
+    if (existingTags.length > 0) {
+      tagIds.push(existingTags[0].id);
+    } else {
+      // Create new tag
+      try {
+        const newTag = await TagService.createTag(userId, {
+          name: tagName,
+        });
+        tagIds.push(newTag.id);
+      } catch (error) {
+        // If tag creation fails (e.g., duplicate), try to find it again
+        const retryTags = await prisma.tag.findMany({
+          where: {
+            userId,
+            name: tagName,
+          },
+          take: 1,
+        });
+        if (retryTags.length > 0) {
+          tagIds.push(retryTags[0].id);
+        }
+        // Otherwise, skip this tag
+      }
+    }
+  }
+
+  return tagIds;
+}
+
+/**
+ * Validate candidate transaction
+ */
+export function validateCandidateTransaction(
+  candidate: Partial<CreateTransactionInput>,
+  rawValues: Record<string, string>,
+  hasTypeDetection: boolean = false
+): Array<{ field: string; message: string }> {
+  const errors: Array<{ field: string; message: string }> = [];
+
+  // Validate required fields
+  for (const field of SYSTEM_REQUIRED_FIELDS) {
+    // Skip type validation if type detection is enabled and type is not set
+    // (it will be set during conversion)
+    if (field === "type" && hasTypeDetection && !candidate.type) {
+      continue;
+    }
+    if (!candidate[field as keyof CreateTransactionInput]) {
+      errors.push({
+        field,
+        message: `Required field ${field} is missing`,
+      });
+    }
+  }
+
+  // Try to validate with schema
+  try {
+    CreateTransactionInputSchema.parse(candidate);
+  } catch (error: any) {
+    if (error.errors) {
+      for (const err of error.errors) {
+        const field = err.path.join(".");
+        errors.push({
+          field,
+          message: err.message || "Validation error",
+        });
+      }
+    }
+  }
+
+  return errors;
+}
+
+/**
+ * Convert rows to candidate transactions with validation
+ */
+export async function convertRowsToCandidates(
+  rows: Record<string, string>[],
+  mapping: CsvFieldMapping,
+  userId: string,
+  defaultType?: "EXPENSE" | "INCOME",
+  typeDetectionStrategy?: string,
+  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
+): Promise<CsvCandidateTransaction[]> {
+  const candidates: CsvCandidateTransaction[] = [];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    try {
+      const transaction = await convertRowToTransaction(
+        row,
+        mapping,
+        userId,
+        defaultType,
+        typeDetectionStrategy,
+        defaultCurrency
+      );
+      const errors = validateCandidateTransaction(
+        transaction,
+        row,
+        !!typeDetectionStrategy && !defaultType
+      );
+
+      // Determine status
+      let status: "valid" | "invalid" | "warning" = "valid";
+      if (errors.length > 0) {
+        status = "invalid";
+      }
+
+      candidates.push({
+        rowIndex: i,
+        status,
+        data: transaction as CreateTransactionInput,
+        rawValues: row,
+        errors,
+      });
+    } catch (error) {
+      candidates.push({
+        rowIndex: i,
+        status: "invalid",
+        data: {} as CreateTransactionInput,
+        rawValues: row,
+        errors: [
+          {
+            field: "general",
+            message:
+              error instanceof Error ? error.message : "Unknown error occurred",
+          },
+        ],
+      });
+    }
+  }
+
+  return candidates;
+}
+

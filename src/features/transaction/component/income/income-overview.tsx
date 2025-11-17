@@ -1,4 +1,5 @@
 import type { Transaction } from "@/features/shared/validation/schemas";
+import { CsvImportDialog } from "@/features/transaction/components/csv-import-dialog";
 import {
   useDeleteIncome,
   useIncomes,
@@ -13,7 +14,12 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
 import { useState } from "react";
-import { HiArrowTrendingUp, HiPencil, HiTrash } from "react-icons/hi2";
+import {
+  HiArrowDownTray,
+  HiArrowTrendingUp,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi2";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
 
 export function IncomeOverview() {
@@ -22,6 +28,7 @@ export function IncomeOverview() {
   const { mutate: deleteIncome } = useDeleteIncome();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isIncomeDialogOpen, setIsIncomeDialogOpen] = useState(false);
+  const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState<Transaction | undefined>(
     undefined
   );
@@ -94,6 +101,11 @@ export function IncomeOverview() {
               icon={<HiArrowTrendingUp />}
               clicked={() => handleCreateIncome()}>
               Add income
+            </DropdownItem>
+            <DropdownItem
+              icon={<HiArrowDownTray />}
+              clicked={() => setIsCsvImportDialogOpen(true)}>
+              Import from CSV
             </DropdownItem>
           </Dropdown>
         </Title>
@@ -198,6 +210,15 @@ export function IncomeOverview() {
             variant: "danger",
           },
         ]}
+      />
+
+      <CsvImportDialog
+        open={isCsvImportDialogOpen}
+        onOpenChange={setIsCsvImportDialogOpen}
+        onSuccess={() => {
+          // Transactions will be refetched automatically via query invalidation
+        }}
+        defaultType="INCOME"
       />
     </>
   );

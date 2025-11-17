@@ -1,4 +1,5 @@
 import type { Transaction } from "@/features/shared/validation/schemas";
+import { CsvImportDialog } from "@/features/transaction/components/csv-import-dialog";
 import {
   useDeleteExpense,
   useExpenses,
@@ -13,7 +14,12 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
 import { useState } from "react";
-import { HiArrowTrendingDown, HiPencil, HiTrash } from "react-icons/hi2";
+import {
+  HiArrowDownTray,
+  HiArrowTrendingDown,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi2";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
 
 export function ExpenseOverview() {
@@ -22,6 +28,7 @@ export function ExpenseOverview() {
   const { mutate: deleteExpense } = useDeleteExpense();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<
     Transaction | undefined
   >(undefined);
@@ -95,6 +102,11 @@ export function ExpenseOverview() {
               clicked={() => handleCreateExpense()}>
               Add expense
             </DropdownItem>
+            <DropdownItem
+              icon={<HiArrowDownTray />}
+              clicked={() => setIsCsvImportDialogOpen(true)}>
+              Import from CSV
+            </DropdownItem>
           </Dropdown>
         </Title>
       </Container>
@@ -130,7 +142,9 @@ export function ExpenseOverview() {
               <ListItem className="group">
                 <div className="flex flex-col gap-1 flex-1">
                   <div className="flex items-center gap-3">
-                    <span className="text-text font-medium">{expense.name}</span>
+                    <span className="text-text font-medium">
+                      {expense.name}
+                    </span>
                     <span className="text-text font-semibold">
                       {formatAmount(expense.amount, expense.currency)}
                     </span>
@@ -196,6 +210,15 @@ export function ExpenseOverview() {
             variant: "danger",
           },
         ]}
+      />
+
+      <CsvImportDialog
+        open={isCsvImportDialogOpen}
+        onOpenChange={setIsCsvImportDialogOpen}
+        onSuccess={() => {
+          // Transactions will be refetched automatically via query invalidation
+        }}
+        defaultType="EXPENSE"
       />
     </>
   );

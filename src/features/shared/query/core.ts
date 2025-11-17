@@ -90,8 +90,12 @@ export function useFinMutation<
 
       // Invalidate queries
       for (const queryKeyBuilder of invalidateQueries) {
+        const queryKey = queryKeyBuilder();
+        // Use only the first element to match all queries with that prefix
+        // e.g., ["transactions"] will match ["transactions", {...}] for any params
+        const baseKey = queryKey.slice(0, 1);
         queryClient.invalidateQueries({
-          queryKey: queryKeyBuilder(),
+          queryKey: baseKey,
         });
       }
     },

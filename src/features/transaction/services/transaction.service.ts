@@ -199,6 +199,7 @@ export class TransactionService {
         occurredAt: new Date(validated.occurredAt),
         name: validated.name,
         description: validated.description ?? null,
+        notes: validated.notes ?? null,
         externalId: validated.externalId ?? null,
         tags: validated.tagIds
           ? {
@@ -283,6 +284,7 @@ export class TransactionService {
             occurredAt: new Date(validatedItem.occurredAt),
             name: validatedItem.name,
             description: validatedItem.description ?? null,
+            notes: validatedItem.notes ?? null,
             externalId: validatedItem.externalId ?? null,
             tags: validatedItem.tagIds
               ? {
@@ -377,6 +379,9 @@ export class TransactionService {
         ...(validated.name && { name: validated.name }),
         ...(validated.description !== undefined && {
           description: validated.description,
+        }),
+        ...(validated.notes !== undefined && {
+          notes: validated.notes,
         }),
         ...(validated.externalId !== undefined && {
           externalId: validated.externalId,

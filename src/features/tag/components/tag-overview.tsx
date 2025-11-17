@@ -10,8 +10,9 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
 import { useState } from "react";
-import { HiOutlineTag, HiPencil, HiTrash } from "react-icons/hi2";
+import { HiOutlineTag, HiPencil, HiTrash, HiArrowDownTray } from "react-icons/hi2";
 import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
+import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 
 export function TagOverview() {
   const { data, isLoading, error } = useTags();
@@ -19,6 +20,7 @@ export function TagOverview() {
   const { mutate: deleteTag } = useDeleteTag();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<Tag | undefined>(undefined);
 
   const handleCreateTag = () => {
@@ -69,6 +71,11 @@ export function TagOverview() {
               icon={<HiOutlineTag />}
               clicked={() => handleCreateTag()}>
               Add tag
+            </DropdownItem>
+            <DropdownItem
+              icon={<HiArrowDownTray />}
+              clicked={() => setIsCsvImportDialogOpen(true)}>
+              Import from CSV
             </DropdownItem>
           </Dropdown>
         </Title>
@@ -160,6 +167,14 @@ export function TagOverview() {
             variant: "danger",
           },
         ]}
+      />
+
+      <TagCsvImportDialog
+        open={isCsvImportDialogOpen}
+        onOpenChange={setIsCsvImportDialogOpen}
+        onSuccess={() => {
+          // Tags will be refetched automatically via query invalidation
+        }}
       />
     </>
   );
