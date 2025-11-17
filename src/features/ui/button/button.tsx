@@ -15,6 +15,7 @@ export type IButtonProps = {
   clicked: () => void;
   buttonContent?: string | React.ReactNode;
   variant?: IButtonVariant;
+  disabled?: boolean;
 } & PropsWithChildren &
   IPropsWithClassName;
 
@@ -23,6 +24,7 @@ export function Button({
   className,
   clicked,
   children,
+  disabled = false,
   variant = "default",
 }: IButtonProps) {
   const variantClasses = {
@@ -35,10 +37,19 @@ export function Button({
 
   const baseClasses = "p-2 border rounded-full cursor-pointer";
 
+  const disabledClasses =
+    disabled && "opacity-50 cursor-not-allowed pointer-events-none";
+
   return (
     <button
-      className={cn(baseClasses, variantClasses[variant], className)}
-      onClick={() => clicked()}>
+      className={cn(
+        baseClasses,
+        variantClasses[variant],
+        className,
+        disabledClasses
+      )}
+      onClick={() => clicked()}
+      disabled={disabled}>
       {buttonContent ?? children}
     </button>
   );
