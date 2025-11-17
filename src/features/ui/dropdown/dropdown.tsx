@@ -80,7 +80,7 @@ export function Dropdown({
       {DropdownSelector}
 
       {dropdownIsOpen && (
-        <div className="absolute w-full min-w-min top-full right-0 bg-surface border border-border overflow-scroll rounded-2xl divide-y divide-border text-base font-normal z-10">
+        <div className="absolute w-full min-w-min top-full right-0 bg-surface border border-border overflow-scroll rounded-2xl text-base font-normal z-10">
           {children}
         </div>
       )}
