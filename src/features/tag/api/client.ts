@@ -6,6 +6,8 @@ import {
   buildQueryString,
 } from "@/features/shared/api/client";
 import type {
+  BulkCreateTagInput,
+  BulkCreateTagResponse,
   CreateTagInput,
   Tag,
   TagsQuery,
@@ -36,4 +38,10 @@ export async function updateTag(
 
 export async function deleteTag(tagId: string): Promise<{ success: boolean }> {
   return apiDelete<{ success: boolean }>(`/tags/${tagId}`);
+}
+
+export async function bulkCreateTags(
+  input: BulkCreateTagInput
+): Promise<BulkCreateTagResponse> {
+  return apiPost<BulkCreateTagResponse>("/tags/bulk", input);
 }

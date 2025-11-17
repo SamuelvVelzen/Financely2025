@@ -18,7 +18,9 @@ import { Route as appTagsRouteImport } from './routes/(app)/tags'
 import { Route as appIncomesRouteImport } from './routes/(app)/incomes'
 import { Route as appExpensesRouteImport } from './routes/(app)/expenses'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
+import { Route as ApiTransactionsBulkRouteImport } from './routes/api/transactions.bulk'
 import { Route as ApiTransactionsTransactionIdRouteImport } from './routes/api/transactions.$transactionId'
+import { Route as ApiTagsBulkRouteImport } from './routes/api/tags.bulk'
 import { Route as ApiTagsTagIdRouteImport } from './routes/api/tags.$tagId'
 import { Route as ApiTransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/transactions.$transactionId.tags.$tagId'
 
@@ -66,12 +68,22 @@ const appAccountRoute = appAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => appRouteRoute,
 } as any)
+const ApiTransactionsBulkRoute = ApiTransactionsBulkRouteImport.update({
+  id: '/bulk',
+  path: '/bulk',
+  getParentRoute: () => ApiTransactionsRoute,
+} as any)
 const ApiTransactionsTransactionIdRoute =
   ApiTransactionsTransactionIdRouteImport.update({
     id: '/$transactionId',
     path: '/$transactionId',
     getParentRoute: () => ApiTransactionsRoute,
   } as any)
+const ApiTagsBulkRoute = ApiTagsBulkRouteImport.update({
+  id: '/bulk',
+  path: '/bulk',
+  getParentRoute: () => ApiTagsRoute,
+} as any)
 const ApiTagsTagIdRoute = ApiTagsTagIdRouteImport.update({
   id: '/$tagId',
   path: '/$tagId',
@@ -94,7 +106,9 @@ export interface FileRoutesByFullPath {
   '/api/transactions': typeof ApiTransactionsRouteWithChildren
   '/': typeof appIndexRoute
   '/api/tags/$tagId': typeof ApiTagsTagIdRoute
+  '/api/tags/bulk': typeof ApiTagsBulkRoute
   '/api/transactions/$transactionId': typeof ApiTransactionsTransactionIdRouteWithChildren
+  '/api/transactions/bulk': typeof ApiTransactionsBulkRoute
   '/api/transactions/$transactionId/tags/$tagId': typeof ApiTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesByTo {
@@ -107,7 +121,9 @@ export interface FileRoutesByTo {
   '/api/transactions': typeof ApiTransactionsRouteWithChildren
   '/': typeof appIndexRoute
   '/api/tags/$tagId': typeof ApiTagsTagIdRoute
+  '/api/tags/bulk': typeof ApiTagsBulkRoute
   '/api/transactions/$transactionId': typeof ApiTransactionsTransactionIdRouteWithChildren
+  '/api/transactions/bulk': typeof ApiTransactionsBulkRoute
   '/api/transactions/$transactionId/tags/$tagId': typeof ApiTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesById {
@@ -122,7 +138,9 @@ export interface FileRoutesById {
   '/api/transactions': typeof ApiTransactionsRouteWithChildren
   '/(app)/': typeof appIndexRoute
   '/api/tags/$tagId': typeof ApiTagsTagIdRoute
+  '/api/tags/bulk': typeof ApiTagsBulkRoute
   '/api/transactions/$transactionId': typeof ApiTransactionsTransactionIdRouteWithChildren
+  '/api/transactions/bulk': typeof ApiTransactionsBulkRoute
   '/api/transactions/$transactionId/tags/$tagId': typeof ApiTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRouteTypes {
@@ -137,7 +155,9 @@ export interface FileRouteTypes {
     | '/api/transactions'
     | '/'
     | '/api/tags/$tagId'
+    | '/api/tags/bulk'
     | '/api/transactions/$transactionId'
+    | '/api/transactions/bulk'
     | '/api/transactions/$transactionId/tags/$tagId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -150,7 +170,9 @@ export interface FileRouteTypes {
     | '/api/transactions'
     | '/'
     | '/api/tags/$tagId'
+    | '/api/tags/bulk'
     | '/api/transactions/$transactionId'
+    | '/api/transactions/bulk'
     | '/api/transactions/$transactionId/tags/$tagId'
   id:
     | '__root__'
@@ -164,7 +186,9 @@ export interface FileRouteTypes {
     | '/api/transactions'
     | '/(app)/'
     | '/api/tags/$tagId'
+    | '/api/tags/bulk'
     | '/api/transactions/$transactionId'
+    | '/api/transactions/bulk'
     | '/api/transactions/$transactionId/tags/$tagId'
   fileRoutesById: FileRoutesById
 }
@@ -240,12 +264,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAccountRouteImport
       parentRoute: typeof appRouteRoute
     }
+    '/api/transactions/bulk': {
+      id: '/api/transactions/bulk'
+      path: '/bulk'
+      fullPath: '/api/transactions/bulk'
+      preLoaderRoute: typeof ApiTransactionsBulkRouteImport
+      parentRoute: typeof ApiTransactionsRoute
+    }
     '/api/transactions/$transactionId': {
       id: '/api/transactions/$transactionId'
       path: '/$transactionId'
       fullPath: '/api/transactions/$transactionId'
       preLoaderRoute: typeof ApiTransactionsTransactionIdRouteImport
       parentRoute: typeof ApiTransactionsRoute
+    }
+    '/api/tags/bulk': {
+      id: '/api/tags/bulk'
+      path: '/bulk'
+      fullPath: '/api/tags/bulk'
+      preLoaderRoute: typeof ApiTagsBulkRouteImport
+      parentRoute: typeof ApiTagsRoute
     }
     '/api/tags/$tagId': {
       id: '/api/tags/$tagId'
@@ -286,10 +324,12 @@ const appRouteRouteWithChildren = appRouteRoute._addFileChildren(
 
 interface ApiTagsRouteChildren {
   ApiTagsTagIdRoute: typeof ApiTagsTagIdRoute
+  ApiTagsBulkRoute: typeof ApiTagsBulkRoute
 }
 
 const ApiTagsRouteChildren: ApiTagsRouteChildren = {
   ApiTagsTagIdRoute: ApiTagsTagIdRoute,
+  ApiTagsBulkRoute: ApiTagsBulkRoute,
 }
 
 const ApiTagsRouteWithChildren =
@@ -312,11 +352,13 @@ const ApiTransactionsTransactionIdRouteWithChildren =
 
 interface ApiTransactionsRouteChildren {
   ApiTransactionsTransactionIdRoute: typeof ApiTransactionsTransactionIdRouteWithChildren
+  ApiTransactionsBulkRoute: typeof ApiTransactionsBulkRoute
 }
 
 const ApiTransactionsRouteChildren: ApiTransactionsRouteChildren = {
   ApiTransactionsTransactionIdRoute:
     ApiTransactionsTransactionIdRouteWithChildren,
+  ApiTransactionsBulkRoute: ApiTransactionsBulkRoute,
 }
 
 const ApiTransactionsRouteWithChildren = ApiTransactionsRoute._addFileChildren(

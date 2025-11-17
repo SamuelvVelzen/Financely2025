@@ -1,9 +1,12 @@
 import {
+  BulkCreateTransactionInputSchema,
   CreateTransactionInputSchema,
   PaginatedTransactionsResponseSchema,
   TransactionSchema,
   TransactionsQuerySchema,
   UpdateTransactionInputSchema,
+  type BulkCreateTransactionInput,
+  type BulkCreateTransactionResponse,
   type CreateTransactionInput,
   type PaginatedTransactionsResponse,
   type Transaction,
@@ -229,6 +232,107 @@ export class TransactionService {
       createdAt: transaction.createdAt.toISOString(),
       updatedAt: transaction.updatedAt.toISOString(),
     });
+  }
+
+  /**
+   * Bulk create transactions
+   * Processes each transaction individually to allow partial success
+   * Returns created transactions and errors with indices
+   */
+  static async bulkCreateTransactions(
+    userId: string,
+    input: BulkCreateTransactionInput
+  ): Promise<BulkCreateTransactionResponse> {
+    const validated = BulkCreateTransactionInputSchema.parse(input);
+
+    const created: Transaction[] = [];
+    const errors: Array<{ index: number; message: string }> = [];
+
+    for (let index = 0; index < validated.length; index++) {
+      const item = validated[index];
+
+      try {
+        // Validate individual item
+        const validatedItem = CreateTransactionInputSchema.parse(item);
+
+        // Verify tags belong to user
+        if (validatedItem.tagIds && validatedItem.tagIds.length > 0) {
+          const tagCount = await prisma.tag.count({
+            where: {
+              id: { in: validatedItem.tagIds },
+              userId,
+            },
+          });
+
+          if (tagCount !== validatedItem.tagIds.length) {
+            errors.push({
+              index,
+              message: "One or more tags not found",
+            });
+            continue;
+          }
+        }
+
+        // Create the transaction
+        const transaction = await prisma.transaction.create({
+          data: {
+            userId,
+            type: validatedItem.type,
+            amount: validatedItem.amount,
+            currency: validatedItem.currency,
+            occurredAt: new Date(validatedItem.occurredAt),
+            name: validatedItem.name,
+            description: validatedItem.description ?? null,
+            externalId: validatedItem.externalId ?? null,
+            tags: validatedItem.tagIds
+              ? {
+                  connect: validatedItem.tagIds.map((id) => ({ id })),
+                }
+              : undefined,
+          },
+          include: {
+            tags: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        });
+
+        const createdTransaction = TransactionSchema.parse({
+          id: transaction.id,
+          type: transaction.type,
+          amount: transaction.amount.toString(),
+          currency: transaction.currency,
+          occurredAt: transaction.occurredAt.toISOString(),
+          name: transaction.name,
+          description: transaction.description,
+          externalId: transaction.externalId,
+          tags: transaction.tags.map((tag) => ({
+            id: tag.id,
+            name: tag.name,
+          })),
+          createdAt: transaction.createdAt.toISOString(),
+          updatedAt: transaction.updatedAt.toISOString(),
+        });
+
+        created.push(createdTransaction);
+      } catch (error) {
+        // Handle validation errors or other errors
+        const message =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        errors.push({
+          index,
+          message,
+        });
+      }
+    }
+
+    return {
+      created,
+      errors,
+    };
   }
 
   /**

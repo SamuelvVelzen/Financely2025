@@ -1,8 +1,11 @@
 import {
+  BulkCreateTagInputSchema,
   CreateTagInputSchema,
   TagSchema,
   TagsQuerySchema,
   UpdateTagInputSchema,
+  type BulkCreateTagInput,
+  type BulkCreateTagResponse,
   type CreateTagInput,
   type Tag,
   type TagsQuery,
@@ -183,5 +186,93 @@ export class TagService {
     await prisma.tag.delete({
       where: { id: tagId },
     });
+  }
+
+  /**
+   * Bulk create tags
+   * Processes each tag individually to allow partial success
+   * Returns created tags and errors with indices
+   */
+  static async bulkCreateTags(
+    userId: string,
+    input: BulkCreateTagInput
+  ): Promise<BulkCreateTagResponse> {
+    const validated = BulkCreateTagInputSchema.parse(input);
+
+    const created: Tag[] = [];
+    const errors: Array<{ index: number; message: string }> = [];
+
+    // Track names seen in this batch to detect duplicates within the batch
+    const seenNames = new Set<string>();
+
+    // Get all existing tag names for this user to check against
+    const existingTags = await prisma.tag.findMany({
+      where: { userId },
+      select: { name: true },
+    });
+    const existingNames = new Set(existingTags.map((tag) => tag.name));
+
+    for (let index = 0; index < validated.length; index++) {
+      const item = validated[index];
+
+      try {
+        // Validate individual item
+        const validatedItem = CreateTagInputSchema.parse(item);
+
+        // Check for duplicate within batch
+        if (seenNames.has(validatedItem.name)) {
+          errors.push({
+            index,
+            message: "Duplicate tag name within batch",
+          });
+          continue;
+        }
+
+        // Check for duplicate against existing tags
+        if (existingNames.has(validatedItem.name)) {
+          errors.push({
+            index,
+            message: "Tag with this name already exists",
+          });
+          continue;
+        }
+
+        // Create the tag
+        const tag = await prisma.tag.create({
+          data: {
+            userId,
+            name: validatedItem.name,
+            color: validatedItem.color ?? null,
+            description: validatedItem.description ?? null,
+          },
+        });
+
+        const createdTag = TagSchema.parse({
+          id: tag.id,
+          name: tag.name,
+          color: tag.color,
+          description: tag.description,
+          createdAt: tag.createdAt.toISOString(),
+          updatedAt: tag.updatedAt.toISOString(),
+        });
+
+        created.push(createdTag);
+        seenNames.add(validatedItem.name);
+        existingNames.add(validatedItem.name); // Update to prevent duplicates in same batch
+      } catch (error) {
+        // Handle validation errors or other errors
+        const message =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        errors.push({
+          index,
+          message,
+        });
+      }
+    }
+
+    return {
+      created,
+      errors,
+    };
   }
 }

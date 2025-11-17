@@ -6,6 +6,8 @@ import {
   buildQueryString,
 } from "@/features/shared/api/client";
 import type {
+  BulkCreateTransactionInput,
+  BulkCreateTransactionResponse,
   CreateTransactionInput,
   PaginatedTransactionsResponse,
   Transaction,
@@ -59,4 +61,10 @@ export async function removeTagFromTransaction(
   tagId: string
 ): Promise<Transaction> {
   return apiDelete<Transaction>(`/transactions/${transactionId}/tags/${tagId}`);
+}
+
+export async function bulkCreateTransactions(
+  input: BulkCreateTransactionInput
+): Promise<BulkCreateTransactionResponse> {
+  return apiPost<BulkCreateTransactionResponse>("/transactions/bulk", input);
 }

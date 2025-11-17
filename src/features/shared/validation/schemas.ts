@@ -129,6 +129,21 @@ export const TagsResponseSchema = z.object({
   data: z.array(TagSchema),
 });
 
+export const BulkCreateTagInputSchema = z
+  .array(CreateTagInputSchema)
+  .min(1)
+  .max(100);
+
+export const BulkCreateTagErrorSchema = z.object({
+  index: z.number().int().min(0),
+  message: z.string(),
+});
+
+export const BulkCreateTagResponseSchema = z.object({
+  created: z.array(TagSchema),
+  errors: z.array(BulkCreateTagErrorSchema),
+});
+
 // ============================================================================
 // Transaction schemas
 // ============================================================================
@@ -190,6 +205,21 @@ export const PaginatedTransactionsResponseSchema = z.object({
   hasNext: z.boolean(),
 });
 
+export const BulkCreateTransactionInputSchema = z
+  .array(CreateTransactionInputSchema)
+  .min(1)
+  .max(100);
+
+export const BulkCreateTransactionErrorSchema = z.object({
+  index: z.number().int().min(0),
+  message: z.string(),
+});
+
+export const BulkCreateTransactionResponseSchema = z.object({
+  created: z.array(TransactionSchema),
+  errors: z.array(BulkCreateTransactionErrorSchema),
+});
+
 // ============================================================================
 // User schemas
 // ============================================================================
@@ -238,5 +268,13 @@ export type PaginatedTransactionsResponse = z.infer<
   typeof PaginatedTransactionsResponseSchema
 >;
 export type TagsResponse = z.infer<typeof TagsResponseSchema>;
+export type BulkCreateTagInput = z.infer<typeof BulkCreateTagInputSchema>;
+export type BulkCreateTagResponse = z.infer<typeof BulkCreateTagResponseSchema>;
+export type BulkCreateTransactionInput = z.infer<
+  typeof BulkCreateTransactionInputSchema
+>;
+export type BulkCreateTransactionResponse = z.infer<
+  typeof BulkCreateTransactionResponseSchema
+>;
 export type UserResponse = z.infer<typeof UserResponseSchema>;
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
