@@ -54,34 +54,27 @@ export function Checkbox({
           disabled={disabled}
           {...props}
         />
-        {indeterminate && (
-          <svg
-            className="absolute top-0 left-0 w-4 h-4 pointer-events-none text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="3">
+        <svg
+          className="absolute top-0 left-0 w-4 h-4 pointer-events-none text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="3">
+          {indeterminate && (
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               d="M5 12h14"
             />
-          </svg>
-        )}
-        {checked && !indeterminate && (
-          <svg
-            className="absolute top-0 left-0 w-4 h-4 pointer-events-none text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="3">
+          )}
+          {checked && !indeterminate && (
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
               d="M5 16l4 4L18 10"
             />
-          </svg>
-        )}
+          )}
+        </svg>
       </div>
       {label && (
         <label
