@@ -4,10 +4,13 @@ import { Container } from "@/features/ui/container/container";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { DialogTrigger } from "@/features/ui/dialog/dialog/dialog-trigger";
 import { useDialog } from "@/features/ui/dialog/dialog/use-dialog";
+import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Form } from "@/features/ui/form/form";
 import { ColorInput } from "@/features/ui/input/color-input";
 import { NumberInput } from "@/features/ui/input/number-input";
 import { TextInput } from "@/features/ui/input/text-input";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Title } from "@/features/ui/typography/title";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
@@ -36,6 +39,19 @@ function Home() {
           <CustomDialogExample />
           <FormDialogExample />
         </div>
+      </Container>
+
+      <Container className="mb-4">
+        <h2 className="text-lg font-semibold mb-4">Select Dropdown Examples</h2>
+        <div className="space-y-4">
+          <SelectDropdownExample />
+        </div>
+
+        <Dropdown>
+          <DropdownItem text="Option 1" />
+          <DropdownItem text="Option 2" />
+          <DropdownItem text="Option 3" />
+        </Dropdown>
       </Container>
     </>
   );
@@ -313,6 +329,71 @@ function FormDialogExample() {
         variant="modal"
         size="lg"
       />
+    </div>
+  );
+}
+
+/**
+ * Select Dropdown Example
+ *
+ * Demonstrates:
+ * - Single and multiple select modes
+ * - Placeholder text when nothing is selected
+ * - Display of selected items
+ * - Checkbox-based selection UI
+ */
+function SelectDropdownExample() {
+  const [singleValue, setSingleValue] = useState<string | undefined>(undefined);
+  const [multipleValue, setMultipleValue] = useState<string[]>([]);
+
+  const options = [
+    { value: "current-month", label: "Current month" },
+    { value: "next-month", label: "Next month" },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h3 className="font-medium text-sm">Single Select Dropdown</h3>
+        <p className="text-sm text-text-muted">
+          Select a single option. The dropdown closes after selection.
+        </p>
+        <SelectDropdown
+          options={options}
+          value={singleValue}
+          onChange={(value) => setSingleValue(value as string)}
+          placeholder="Select date..."
+          multiple={false}
+        />
+        {singleValue && (
+          <p className="text-sm text-text-muted">
+            Selected: {options.find((opt) => opt.value === singleValue)?.label}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="font-medium text-sm">Multiple Select Dropdown</h3>
+        <p className="text-sm text-text-muted">
+          Select multiple options. The dropdown stays open for multiple
+          selections.
+        </p>
+        <SelectDropdown
+          options={options}
+          value={multipleValue}
+          onChange={(value) => setMultipleValue(value as string[])}
+          placeholder="Select date..."
+          multiple={true}
+        />
+        {multipleValue.length > 0 && (
+          <p className="text-sm text-text-muted">
+            Selected:{" "}
+            {multipleValue
+              .map((val) => options.find((opt) => opt.value === val)?.label)
+              .join(", ")}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

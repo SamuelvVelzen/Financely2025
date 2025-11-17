@@ -10,13 +10,46 @@ import {
 import { HiDotsVertical } from "react-icons/hi";
 import { Button } from "../button/button";
 
-type IDropdownProps = { dropdownSelector?: ReactNode } & PropsWithChildren;
+type IDropdownProps = {
+  dropdownSelector?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+} & PropsWithChildren;
 
-export function Dropdown({ children, dropdownSelector }: IDropdownProps) {
-  const [dropdownIsOpen, setDropdownState] = useState(false);
+export function Dropdown({
+  children,
+  dropdownSelector,
+  open: controlledOpen,
+  onOpenChange,
+}: IDropdownProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selector = dropdownSelector ? dropdownSelector : <HiDotsVertical />;
+  // Use controlled state if provided, otherwise use internal state
+  const dropdownIsOpen =
+    controlledOpen !== undefined ? controlledOpen : internalOpen;
+
+  const setDropdownState = (newState: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(newState);
+    } else {
+      setInternalOpen(newState);
+    }
+  };
+
+  const toggleDropdown = () => {
+    setDropdownState(!dropdownIsOpen);
+  };
+
+  const DropdownSelector = dropdownSelector ? (
+    <div onClick={toggleDropdown}>{dropdownSelector}</div>
+  ) : (
+    <Button
+      className="text-xl"
+      clicked={toggleDropdown}>
+      <HiDotsVertical />
+    </Button>
+  );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,14 +77,10 @@ export function Dropdown({ children, dropdownSelector }: IDropdownProps) {
     <div
       className="relative"
       ref={dropdownRef}>
-      <Button
-        className="text-xl"
-        clicked={() => setDropdownState((oldState) => !oldState)}>
-        {selector}
-      </Button>
+      {DropdownSelector}
 
       {dropdownIsOpen && (
-        <div className="absolute top-full right-0 bg-surface border border-border overflow-scroll rounded-2xl divide-y divide-border text-base font-normal">
+        <div className="absolute w-full top-full right-0 bg-surface border border-border overflow-scroll rounded-2xl divide-y divide-border text-base font-normal z-50">
           {children}
         </div>
       )}
