@@ -68,10 +68,7 @@ export function Dialog({
   "aria-labelledby": ariaLabelledBy,
   className = "",
   style,
-  onOpen,
   onClose,
-  onAfterOpen,
-  onAfterClose,
   title,
   content,
   footerButtons,
@@ -116,21 +113,10 @@ export function Dialog({
           triggerRef.current = element as HTMLElement;
         }
       }
-
-      onOpen?.();
-
-      // Call onAfterOpen after a brief delay (for animations)
-      const timer = setTimeout(() => {
-        onAfterOpen?.();
-      }, 150);
-
-      return () => clearTimeout(timer);
     } else if (!open && previousActiveElement.current) {
       onClose?.();
 
-      // Call onAfterClose after a brief delay
       const timer = setTimeout(() => {
-        onAfterClose?.();
         // Restore focus
         if (triggerRef.current) {
           triggerRef.current.focus();
@@ -143,7 +129,7 @@ export function Dialog({
 
       return () => clearTimeout(timer);
     }
-  }, [open, onOpen, onClose, onAfterOpen, onAfterClose]);
+  }, [open, onClose]);
 
   // Get all focusable elements within dialog
   const getFocusableElements = useCallback(() => {

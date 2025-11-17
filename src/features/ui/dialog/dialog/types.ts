@@ -21,14 +21,8 @@ export type IDialogStatus = "danger" | "info" | "warning" | "success";
  * Event handlers for dialog lifecycle
  */
 export interface IDialogEvents {
-  /** Called when dialog opens */
-  onOpen?: () => void;
   /** Called when dialog closes */
   onClose?: () => void;
-  /** Called after dialog opens (after animation) */
-  onAfterOpen?: () => void;
-  /** Called after dialog closes (after animation) */
-  onAfterClose?: () => void;
 }
 
 /**
