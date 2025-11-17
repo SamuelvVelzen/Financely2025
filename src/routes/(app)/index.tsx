@@ -1,5 +1,6 @@
 "use client";
 
+import { Checkbox } from "@/features/ui/checkbox/checkbox";
 import { Container } from "@/features/ui/container/container";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { DialogTrigger } from "@/features/ui/dialog/dialog/dialog-trigger";
@@ -345,6 +346,7 @@ function FormDialogExample() {
 function SelectDropdownExample() {
   const [singleValue, setSingleValue] = useState<string | undefined>(undefined);
   const [multipleValue, setMultipleValue] = useState<string[]>([]);
+  const [isSelected, setIsSelected] = useState(false);
 
   const options = [
     { value: "current-month", label: "Current month" },
@@ -358,6 +360,12 @@ function SelectDropdownExample() {
         <p className="text-sm text-text-muted">
           Select a single option. The dropdown closes after selection.
         </p>
+
+        <Checkbox
+          checked={isSelected}
+          onChange={() => setIsSelected((prev) => !prev)}
+        />
+
         <SelectDropdown
           options={options}
           value={singleValue}
