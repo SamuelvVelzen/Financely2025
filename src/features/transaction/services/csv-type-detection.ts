@@ -3,9 +3,9 @@
  * Factory pattern for determining transaction type from CSV data
  */
 
-export type TransactionType = "EXPENSE" | "INCOME";
+export type ITransactionType = "EXPENSE" | "INCOME";
 
-export interface TypeDetectionContext {
+export interface ITypeDetectionContext {
   amount: string; // Parsed amount as string
   rawAmount: string; // Original raw amount value from CSV
   row: Record<string, string>; // Full CSV row data
@@ -14,11 +14,11 @@ export interface TypeDetectionContext {
 /**
  * Interface for type detection strategies
  */
-export interface TypeDetectionStrategy {
+export interface ITypeDetectionStrategy {
   /**
    * Detect transaction type from context
    */
-  detectType(context: TypeDetectionContext): TransactionType;
+  detectType(context: ITypeDetectionContext): ITransactionType;
 
   /**
    * Human-readable name for the strategy
@@ -35,8 +35,8 @@ export interface TypeDetectionStrategy {
  * Default strategy: Sign-based detection
  * Negative amount = EXPENSE, Positive amount = INCOME
  */
-export class SignBasedTypeDetection implements TypeDetectionStrategy {
-  detectType(context: TypeDetectionContext): TransactionType {
+export class SignBasedTypeDetection implements ITypeDetectionStrategy {
+  detectType(context: ITypeDetectionContext): ITransactionType {
     const amount = parseFloat(context.amount);
     return amount < 0 ? "EXPENSE" : "INCOME";
   }
@@ -55,8 +55,8 @@ export class SignBasedTypeDetection implements TypeDetectionStrategy {
  * Negative amount = INCOME, Positive amount = EXPENSE
  * (Placeholder - not yet implemented)
  */
-export class AmexTypeDetection implements TypeDetectionStrategy {
-  detectType(context: TypeDetectionContext): TransactionType {
+export class AmexTypeDetection implements ITypeDetectionStrategy {
+  detectType(context: ITypeDetectionContext): ITransactionType {
     const amount = parseFloat(context.amount);
     // Amex: negative = income (credits), positive = expense (charges)
     return amount < 0 ? "INCOME" : "EXPENSE";
@@ -75,7 +75,7 @@ export class AmexTypeDetection implements TypeDetectionStrategy {
  * Type detection strategy factory
  */
 export class TypeDetectionFactory {
-  private static strategies: Map<string, TypeDetectionStrategy> = new Map([
+  private static strategies: Map<string, ITypeDetectionStrategy> = new Map([
     ["sign-based", new SignBasedTypeDetection()],
     ["amex", new AmexTypeDetection()],
   ]);
@@ -83,7 +83,7 @@ export class TypeDetectionFactory {
   /**
    * Get a type detection strategy by name
    */
-  static getStrategy(name: string): TypeDetectionStrategy {
+  static getStrategy(name: string): ITypeDetectionStrategy {
     const strategy = this.strategies.get(name);
     if (!strategy) {
       // Default to sign-based if strategy not found
@@ -95,7 +95,7 @@ export class TypeDetectionFactory {
   /**
    * Get all available strategies
    */
-  static getAllStrategies(): Array<{ name: string; strategy: TypeDetectionStrategy }> {
+  static getAllStrategies(): Array<{ name: string; strategy: ITypeDetectionStrategy }> {
     return Array.from(this.strategies.entries()).map(([name, strategy]) => ({
       name,
       strategy,
@@ -105,7 +105,7 @@ export class TypeDetectionFactory {
   /**
    * Register a new strategy
    */
-  static registerStrategy(name: string, strategy: TypeDetectionStrategy): void {
+  static registerStrategy(name: string, strategy: ITypeDetectionStrategy): void {
     this.strategies.set(name, strategy);
   }
 }

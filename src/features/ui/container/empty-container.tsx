@@ -1,6 +1,6 @@
 "use client";
 
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { ReactNode } from "react";
 import { Button } from "../button/button";
 import { Container } from "./container";
@@ -9,7 +9,7 @@ type IEmptyPageProps = {
   emptyText: string;
   icon?: ReactNode;
   button?: { buttonText: string; buttonAction: () => void };
-} & PropsWithClassName;
+} & IPropsWithClassName;
 
 export function EmptyContainer({
   className = "",

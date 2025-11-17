@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import type { DialogOverlayProps } from "./types";
+import type { IDialogOverlayProps } from "./types";
 
 /**
  * DialogOverlay component renders the backdrop behind dialog content
@@ -16,7 +16,7 @@ export function DialogOverlay({
   onClick,
   open = false,
   className = "",
-}: DialogOverlayProps) {
+}: IDialogOverlayProps) {
   // Lock body scroll when overlay is open
   useEffect(() => {
     if (!open || typeof window === "undefined") return;

@@ -1,4 +1,4 @@
-import type { Transaction } from "@/features/shared/validation/schemas";
+import type { ITransaction } from "@/features/shared/validation/schemas";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
   useDeleteExpense,
@@ -30,7 +30,7 @@ export function ExpenseOverview() {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<
-    Transaction | undefined
+    ITransaction | undefined
   >(undefined);
 
   const handleCreateExpense = () => {
@@ -38,7 +38,7 @@ export function ExpenseOverview() {
     setIsExpenseDialogOpen(true);
   };
 
-  const handleEditExpense = (expense: Transaction) => {
+  const handleEditExpense = (expense: ITransaction) => {
     setSelectedExpense(expense);
     setIsExpenseDialogOpen(true);
   };

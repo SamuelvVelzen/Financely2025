@@ -5,11 +5,11 @@ import {
 } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
-  CreateTransactionInput,
-  PaginatedTransactionsResponse,
-  Transaction,
-  TransactionsQuery,
-  UpdateTransactionInput,
+  ICreateTransactionInput,
+  IPaginatedTransactionsResponse,
+  ITransaction,
+  ITransactionsQuery,
+  IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -26,8 +26,8 @@ import {
  * - staleTime: 30 seconds (short, transactions change frequently)
  * - Supports pagination, filtering, sorting
  */
-export function useTransactions(query?: TransactionsQuery) {
-  return useFinQuery<PaginatedTransactionsResponse, Error>({
+export function useTransactions(query?: ITransactionsQuery) {
+  return useFinQuery<IPaginatedTransactionsResponse, Error>({
     queryKey: queryKeys.transactions(query),
     queryFn: () => getTransactions(query),
     staleTime: 30 * 1000, // 30 seconds
@@ -39,10 +39,10 @@ export function useTransactions(query?: TransactionsQuery) {
  * - Automatically handles pagination
  */
 export function useInfiniteTransactions(
-  query?: Omit<TransactionsQuery, "page">
+  query?: Omit<ITransactionsQuery, "page">
 ) {
   return useFinInfiniteQuery<
-    PaginatedTransactionsResponse,
+    IPaginatedTransactionsResponse,
     Error,
     ReturnType<typeof queryKeys.transactions>,
     number
@@ -52,7 +52,7 @@ export function useInfiniteTransactions(
       const transactionsQuery = {
         ...query,
         page: pageParam,
-      } as TransactionsQuery;
+      } as ITransactionsQuery;
       return getTransactions(transactionsQuery);
     },
     getNextPageParam: (lastPage) => {
@@ -71,7 +71,7 @@ export function useInfiniteTransactions(
  * - Invalidates transactions query on success
  */
 export function useCreateTransaction() {
-  return useFinMutation<Transaction, Error, CreateTransactionInput>({
+  return useFinMutation<ITransaction, Error, ICreateTransactionInput>({
     mutationFn: createTransaction,
     invalidateQueries: [queryKeys.transactions],
   });
@@ -83,9 +83,9 @@ export function useCreateTransaction() {
  */
 export function useUpdateTransaction() {
   return useFinMutation<
-    Transaction,
+    ITransaction,
     Error,
-    { transactionId: string; input: UpdateTransactionInput }
+    { transactionId: string; input: IUpdateTransactionInput }
   >({
     mutationFn: ({ transactionId, input }) =>
       updateTransaction(transactionId, input),
@@ -113,12 +113,12 @@ export function useAddTagToTransaction() {
   const queryClient = useQueryClient();
 
   return useFinMutation<
-    Transaction,
+    ITransaction,
     Error,
     { transactionId: string; tagId: string },
     {
       previousTransactions: Array<
-        [unknown, PaginatedTransactionsResponse | undefined]
+        [unknown, IPaginatedTransactionsResponse | undefined]
       >;
     }
   >({
@@ -133,12 +133,12 @@ export function useAddTagToTransaction() {
 
       // Snapshot previous value for rollback
       const previousTransactions =
-        queryClient.getQueriesData<PaginatedTransactionsResponse>({
+        queryClient.getQueriesData<IPaginatedTransactionsResponse>({
           queryKey: queryKeys.transactions(),
         });
 
       // Optimistically update
-      queryClient.setQueriesData<PaginatedTransactionsResponse>(
+      queryClient.setQueriesData<IPaginatedTransactionsResponse>(
         { queryKey: queryKeys.transactions() },
         (old) => {
           if (!old) return old;
@@ -170,7 +170,7 @@ export function useAddTagToTransaction() {
         "previousTransactions" in context
       ) {
         const previousTransactions = context.previousTransactions as Array<
-          [unknown, PaginatedTransactionsResponse | undefined]
+          [unknown, IPaginatedTransactionsResponse | undefined]
         >;
         previousTransactions.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey as readonly unknown[], data);
@@ -195,12 +195,12 @@ export function useRemoveTagFromTransaction() {
   const queryClient = useQueryClient();
 
   return useFinMutation<
-    Transaction,
+    ITransaction,
     Error,
     { transactionId: string; tagId: string },
     {
       previousTransactions: Array<
-        [unknown, PaginatedTransactionsResponse | undefined]
+        [unknown, IPaginatedTransactionsResponse | undefined]
       >;
     }
   >({
@@ -215,12 +215,12 @@ export function useRemoveTagFromTransaction() {
 
       // Snapshot previous value
       const previousTransactions =
-        queryClient.getQueriesData<PaginatedTransactionsResponse>({
+        queryClient.getQueriesData<IPaginatedTransactionsResponse>({
           queryKey: queryKeys.transactions(),
         });
 
       // Optimistically update
-      queryClient.setQueriesData<PaginatedTransactionsResponse>(
+      queryClient.setQueriesData<IPaginatedTransactionsResponse>(
         { queryKey: queryKeys.transactions() },
         (old) => {
           if (!old) return old;
@@ -249,7 +249,7 @@ export function useRemoveTagFromTransaction() {
         "previousTransactions" in context
       ) {
         const previousTransactions = context.previousTransactions as Array<
-          [unknown, PaginatedTransactionsResponse | undefined]
+          [unknown, IPaginatedTransactionsResponse | undefined]
         >;
         previousTransactions.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey as readonly unknown[], data);
@@ -274,11 +274,11 @@ export function useRemoveTagFromTransaction() {
  * - staleTime: 30 seconds (short, transactions change frequently)
  * - Supports pagination, filtering, sorting
  */
-export function useExpenses(query?: Omit<TransactionsQuery, "type">) {
-  return useFinQuery<PaginatedTransactionsResponse, Error>({
+export function useExpenses(query?: Omit<ITransactionsQuery, "type">) {
+  return useFinQuery<IPaginatedTransactionsResponse, Error>({
     queryKey: queryKeys.expenses(query),
     queryFn: () =>
-      getTransactions({ ...query, type: "EXPENSE" } as TransactionsQuery),
+      getTransactions({ ...query, type: "EXPENSE" } as ITransactionsQuery),
     staleTime: 30 * 1000, // 30 seconds
   });
 }
@@ -289,9 +289,9 @@ export function useExpenses(query?: Omit<TransactionsQuery, "type">) {
  */
 export function useCreateExpense() {
   return useFinMutation<
-    Transaction,
+    ITransaction,
     Error,
-    Omit<CreateTransactionInput, "type">
+    Omit<ICreateTransactionInput, "type">
   >({
     mutationFn: (input) => createTransaction({ ...input, type: "EXPENSE" }),
     invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
@@ -304,9 +304,9 @@ export function useCreateExpense() {
  */
 export function useUpdateExpense() {
   return useFinMutation<
-    Transaction,
+    ITransaction,
     Error,
-    { transactionId: string; input: Omit<UpdateTransactionInput, "type"> }
+    { transactionId: string; input: Omit<IUpdateTransactionInput, "type"> }
   >({
     mutationFn: ({ transactionId, input }) =>
       updateTransaction(transactionId, input),
@@ -334,11 +334,11 @@ export function useDeleteExpense() {
  * - staleTime: 30 seconds (short, transactions change frequently)
  * - Supports pagination, filtering, sorting
  */
-export function useIncomes(query?: Omit<TransactionsQuery, "type">) {
-  return useFinQuery<PaginatedTransactionsResponse, Error>({
+export function useIncomes(query?: Omit<ITransactionsQuery, "type">) {
+  return useFinQuery<IPaginatedTransactionsResponse, Error>({
     queryKey: queryKeys.incomes(query),
     queryFn: () =>
-      getTransactions({ ...query, type: "INCOME" } as TransactionsQuery),
+      getTransactions({ ...query, type: "INCOME" } as ITransactionsQuery),
     staleTime: 30 * 1000, // 30 seconds
   });
 }
@@ -349,9 +349,9 @@ export function useIncomes(query?: Omit<TransactionsQuery, "type">) {
  */
 export function useCreateIncome() {
   return useFinMutation<
-    Transaction,
+    ITransaction,
     Error,
-    Omit<CreateTransactionInput, "type">
+    Omit<ICreateTransactionInput, "type">
   >({
     mutationFn: (input) => createTransaction({ ...input, type: "INCOME" }),
     invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
@@ -364,9 +364,9 @@ export function useCreateIncome() {
  */
 export function useUpdateIncome() {
   return useFinMutation<
-    Transaction,
+    ITransaction,
     Error,
-    { transactionId: string; input: Omit<UpdateTransactionInput, "type"> }
+    { transactionId: string; input: Omit<IUpdateTransactionInput, "type"> }
   >({
     mutationFn: ({ transactionId, input }) =>
       updateTransaction(transactionId, input),

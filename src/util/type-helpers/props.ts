@@ -1,1 +1,1 @@
-export type PropsWithClassName = { className?: string };
+export type IPropsWithClassName = { className?: string };

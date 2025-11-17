@@ -1,10 +1,10 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 
-export type ButtonVariant =
+export type IButtonVariant =
   | "default"
   | "danger"
   | "info"
@@ -14,9 +14,9 @@ export type ButtonVariant =
 export type IButtonProps = {
   clicked: () => void;
   buttonContent?: string | React.ReactNode;
-  variant?: ButtonVariant;
+  variant?: IButtonVariant;
 } & PropsWithChildren &
-  PropsWithClassName;
+  IPropsWithClassName;
 
 export function Button({
   buttonContent,

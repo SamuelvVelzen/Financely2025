@@ -1,4 +1,4 @@
-import type { Transaction } from "@/features/shared/validation/schemas";
+import type { ITransaction } from "@/features/shared/validation/schemas";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
   useDeleteIncome,
@@ -29,16 +29,16 @@ export function IncomeOverview() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isIncomeDialogOpen, setIsIncomeDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
-  const [selectedIncome, setSelectedIncome] = useState<Transaction | undefined>(
-    undefined
-  );
+  const [selectedIncome, setSelectedIncome] = useState<
+    ITransaction | undefined
+  >(undefined);
 
   const handleCreateIncome = () => {
     setSelectedIncome(undefined);
     setIsIncomeDialogOpen(true);
   };
 
-  const handleEditIncome = (income: Transaction) => {
+  const handleEditIncome = (income: ITransaction) => {
     setSelectedIncome(income);
     setIsIncomeDialogOpen(true);
   };

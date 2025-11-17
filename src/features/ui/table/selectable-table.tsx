@@ -1,19 +1,19 @@
 "use client";
 
 import { Checkbox } from "@/features/ui/checkbox/checkbox";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useMemo } from "react";
 import { BodyCell } from "./body-cell";
-import { Table, TableProps } from "./table";
+import { ITableProps, Table } from "./table";
 
-export type SelectableTableProps = {
+export type ISelectableTableProps = {
   selectedRows: Set<number>;
   onSelectionChange: (selectedRows: Set<number>) => void;
   rowCount: number;
   getRowIndex: (row: React.ReactElement) => number;
-  headerCells: TableProps["headerCells"];
+  headerCells: ITableProps["headerCells"];
 } & React.PropsWithChildren &
-  PropsWithClassName;
+  IPropsWithClassName;
 
 export function SelectableTable({
   selectedRows,
@@ -23,7 +23,7 @@ export function SelectableTable({
   className,
   children,
   headerCells,
-}: SelectableTableProps) {
+}: ISelectableTableProps) {
   const allSelected = useMemo(() => {
     return rowCount > 0 && selectedRows.size === rowCount;
   }, [selectedRows.size, rowCount]);

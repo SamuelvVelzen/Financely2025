@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren, ReactNode } from "react";
 import { Button, IButtonProps } from "./button";
 
@@ -9,7 +9,7 @@ type IIconButton = {
   icon?: ReactNode;
   clicked: IButtonProps["clicked"];
 } & PropsWithChildren &
-  PropsWithClassName;
+  IPropsWithClassName;
 
 export function IconButton({
   children,

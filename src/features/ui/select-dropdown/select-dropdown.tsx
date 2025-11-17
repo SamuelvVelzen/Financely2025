@@ -1,20 +1,20 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { useState } from "react";
 import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 
-export type SelectOption = {
+export type ISelectOption = {
   value: string;
   label: string;
 };
 
-export type SelectDropdownProps = PropsWithClassName & {
-  options: SelectOption[];
+export type ISelectDropdownProps = IPropsWithClassName & {
+  options: ISelectOption[];
   value?: string | string[];
   onChange?: (value: string | string[] | undefined) => void;
   multiple?: boolean;
@@ -28,7 +28,7 @@ export function SelectDropdown({
   onChange,
   multiple = false,
   placeholder = "Select...",
-}: SelectDropdownProps) {
+}: ISelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   // Get selected labels for display

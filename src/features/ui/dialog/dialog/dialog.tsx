@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { DialogOverlay } from "./dialog-overlay";
-import type { DialogStatus, IDialogProps } from "./types";
+import type { IDialogProps, IDialogStatus } from "./types";
 
 /**
  * Dialog component provides a fully accessible modal dialog system
@@ -286,7 +286,7 @@ export function Dialog({
     : undefined;
   const finalAriaLabelledBy = ariaLabelledBy || titleId;
 
-  const statusClasses: Record<DialogStatus | "none", string> = {
+  const statusClasses: Record<IDialogStatus | "none", string> = {
     none: "",
     danger: "text-danger",
     info: "text-info",

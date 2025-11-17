@@ -1,14 +1,11 @@
-import {
-  useFinMutation,
-  useFinQuery,
-} from "@/features/shared/query/core";
+import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
-  TagCsvFieldMapping,
-  TagCsvImportResponse,
-  TagCsvMappingValidation,
-  TagCsvParseResponse,
-  TagCsvUploadResponse,
+  ITagCsvFieldMapping,
+  ITagCsvImportResponse,
+  ITagCsvMappingValidation,
+  ITagCsvParseResponse,
+  ITagCsvUploadResponse,
 } from "@/features/shared/validation/schemas";
 import {
   getTagCsvMapping,
@@ -22,7 +19,7 @@ import {
  * Upload tag CSV file mutation
  */
 export function useUploadTagCsvFile() {
-  return useFinMutation<TagCsvUploadResponse, Error, File>({
+  return useFinMutation<ITagCsvUploadResponse, Error, File>({
     mutationFn: uploadTagCsvFile,
   });
 }
@@ -31,7 +28,7 @@ export function useUploadTagCsvFile() {
  * Get auto-detected tag CSV mapping query
  */
 export function useGetTagCsvMapping(columns: string[] | undefined) {
-  return useFinQuery<TagCsvFieldMapping, Error>({
+  return useFinQuery<ITagCsvFieldMapping, Error>({
     queryKey: ["tag-csv-mapping", columns],
     queryFn: () => {
       if (!columns || columns.length === 0) {
@@ -48,7 +45,7 @@ export function useGetTagCsvMapping(columns: string[] | undefined) {
  * Validate tag CSV mapping mutation
  */
 export function useValidateTagCsvMapping() {
-  return useFinMutation<TagCsvMappingValidation, Error, TagCsvFieldMapping>({
+  return useFinMutation<ITagCsvMappingValidation, Error, ITagCsvFieldMapping>({
     mutationFn: validateTagCsvMapping,
   });
 }
@@ -58,11 +55,11 @@ export function useValidateTagCsvMapping() {
  */
 export function useParseTagCsvRows(
   file: File | null,
-  mapping: TagCsvFieldMapping | null,
+  mapping: ITagCsvFieldMapping | null,
   page: number = 1,
   limit: number = 50
 ) {
-  return useFinQuery<TagCsvParseResponse, Error>({
+  return useFinQuery<ITagCsvParseResponse, Error>({
     queryKey: ["tag-csv-parse", file?.name, mapping, page, limit],
     queryFn: () => {
       if (!file || !mapping) {
@@ -80,9 +77,8 @@ export function useParseTagCsvRows(
  * Invalidates tags query on success
  */
 export function useImportTagCsv() {
-  return useFinMutation<TagCsvImportResponse, Error, any[]>({
+  return useFinMutation<ITagCsvImportResponse, Error, any[]>({
     mutationFn: importTagCsv,
     invalidateQueries: [queryKeys.tags],
   });
 }
-

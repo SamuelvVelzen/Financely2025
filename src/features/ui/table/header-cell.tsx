@@ -1,19 +1,19 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 
-export type HeaderCellProps = {
+export type IHeaderCellProps = {
   align?: "left" | "right" | "center";
-} & PropsWithClassName &
+} & IPropsWithClassName &
   PropsWithChildren;
 
 export function HeaderCell({
   align = "left",
   className,
   children,
-}: HeaderCellProps) {
+}: IHeaderCellProps) {
   const alignClasses = {
     left: "text-left",
     right: "text-right",

@@ -2,7 +2,7 @@
 
 import {
   CreateTagInputSchema,
-  type Tag,
+  type ITag,
 } from "@/features/shared/validation/schemas";
 import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -17,7 +17,7 @@ import { z } from "zod";
 type IAddOrCreateTagDialog = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  tag?: Tag;
+  tag?: ITag;
   onSuccess?: () => void;
 };
 

@@ -1,14 +1,15 @@
 "use client";
 
 import type {
-  CreateTransactionInput,
-  CsvCandidateTransaction,
-  CsvFieldMapping,
-  Currency,
+  ICreateTransactionInput,
+  ICsvCandidateTransaction,
+  ICsvFieldMapping,
+  ICurrency,
 } from "@/features/shared/validation/schemas";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { IDialogProps } from "@/features/ui/dialog/dialog/types";
 import { TableInput } from "@/features/ui/input/table-input";
 import { TableSelect } from "@/features/ui/input/table-select";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
@@ -30,35 +31,35 @@ import {
   useValidateCsvMapping,
 } from "../hooks/useCsvImport";
 
-interface CsvImportDialogProps {
+interface ICsvImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
   defaultType?: "EXPENSE" | "INCOME";
 }
 
-type Step = "upload" | "mapping" | "review" | "confirm";
+type IStep = "upload" | "mapping" | "review" | "confirm";
 
 export function TransactionCsvImportDialog({
   open,
   onOpenChange,
   onSuccess,
   defaultType,
-}: CsvImportDialogProps) {
-  const [step, setStep] = useState<Step>("upload");
+}: ICsvImportDialogProps) {
+  const [step, setStep] = useState<IStep>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
-  const [mapping, setMapping] = useState<CsvFieldMapping>({});
-  const [candidates, setCandidates] = useState<CsvCandidateTransaction[]>([]);
+  const [mapping, setMapping] = useState<ICsvFieldMapping>({});
+  const [candidates, setCandidates] = useState<ICsvCandidateTransaction[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [editedRows, setEditedRows] = useState<
-    Record<number, Partial<CreateTransactionInput>>
+    Record<number, Partial<ICreateTransactionInput>>
   >({});
   const [currentPage, setCurrentPage] = useState(1);
   const [parseResponse, setParseResponse] = useState<any>(null);
   const [typeDetectionStrategy, setTypeDetectionStrategy] =
     useState<string>("sign-based");
-  const [defaultCurrency, setDefaultCurrency] = useState<Currency>("USD");
+  const [defaultCurrency, setDefaultCurrency] = useState<ICurrency>("USD");
 
   const uploadMutation = useUploadCsvFile();
   const mappingQuery = useGetCsvMapping(
@@ -115,6 +116,7 @@ export function TransactionCsvImportDialog({
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const selectedFile = event.target.files?.[0];
+
     if (!selectedFile) return;
 
     setFile(selectedFile);
@@ -181,7 +183,7 @@ export function TransactionCsvImportDialog({
 
   const handleEditField = (
     rowIndex: number,
-    field: keyof CreateTransactionInput,
+    field: keyof ICreateTransactionInput,
     value: any
   ) => {
     setEditedRows((prev) => ({
@@ -194,14 +196,14 @@ export function TransactionCsvImportDialog({
   };
 
   const handleConfirmImport = async () => {
-    const transactionsToImport: CreateTransactionInput[] = [];
+    const transactionsToImport: ICreateTransactionInput[] = [];
 
     for (const rowIndex of selectedRows) {
       const candidate = candidates.find((c) => c.rowIndex === rowIndex);
       if (!candidate) continue;
 
       const edited = editedRows[rowIndex] || {};
-      const transaction: CreateTransactionInput = {
+      const transaction: ICreateTransactionInput = {
         ...candidate.data,
         ...edited,
         // Set default type if provided and not already set
@@ -330,7 +332,7 @@ export function TransactionCsvImportDialog({
           <SelectDropdown
             options={getCurrencyOptions()}
             value={defaultCurrency}
-            onChange={(value) => setDefaultCurrency(value as Currency)}
+            onChange={(value) => setDefaultCurrency(value as ICurrency)}
             placeholder="Select currency..."
             multiple={false}
           />

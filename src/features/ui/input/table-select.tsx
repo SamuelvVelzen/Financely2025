@@ -1,20 +1,20 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React from "react";
 
-export type TableSelectProps = Omit<
+export type ITableSelectProps = Omit<
   React.SelectHTMLAttributes<HTMLSelectElement>,
   "className"
 > &
-  PropsWithClassName;
+  IPropsWithClassName;
 
 export function TableSelect({
   className,
   children,
   ...props
-}: TableSelectProps) {
+}: ITableSelectProps) {
   return (
     <select
       className={cn(

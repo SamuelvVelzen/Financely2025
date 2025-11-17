@@ -6,18 +6,18 @@ import {
   buildQueryString,
 } from "@/features/shared/api/client";
 import type {
-  BulkCreateTagInput,
-  BulkCreateTagResponse,
-  CreateTagInput,
-  Tag,
-  TagCsvFieldMapping,
-  TagCsvImportResponse,
-  TagCsvMappingValidation,
-  TagCsvParseResponse,
-  TagCsvUploadResponse,
-  TagsQuery,
-  TagsResponse,
-  UpdateTagInput,
+  IBulkCreateTagInput,
+  IBulkCreateTagResponse,
+  ICreateTagInput,
+  ITag,
+  ITagCsvFieldMapping,
+  ITagCsvImportResponse,
+  ITagCsvMappingValidation,
+  ITagCsvParseResponse,
+  ITagCsvUploadResponse,
+  ITagsQuery,
+  ITagsResponse,
+  IUpdateTagInput,
 } from "@/features/shared/validation/schemas";
 
 /**
@@ -25,20 +25,20 @@ import type {
  * Client-side functions for interacting with tag endpoints
  */
 
-export async function getTags(query?: TagsQuery): Promise<TagsResponse> {
+export async function getTags(query?: ITagsQuery): Promise<ITagsResponse> {
   const queryString = query ? buildQueryString(query) : "";
-  return apiGet<TagsResponse>(`/tags${queryString}`);
+  return apiGet<ITagsResponse>(`/tags${queryString}`);
 }
 
-export async function createTag(input: CreateTagInput): Promise<Tag> {
-  return apiPost<Tag>("/tags", input);
+export async function createTag(input: ICreateTagInput): Promise<ITag> {
+  return apiPost<ITag>("/tags", input);
 }
 
 export async function updateTag(
   tagId: string,
-  input: UpdateTagInput
-): Promise<Tag> {
-  return apiPatch<Tag>(`/tags/${tagId}`, input);
+  input: IUpdateTagInput
+): Promise<ITag> {
+  return apiPatch<ITag>(`/tags/${tagId}`, input);
 }
 
 export async function deleteTag(tagId: string): Promise<{ success: boolean }> {
@@ -46,16 +46,18 @@ export async function deleteTag(tagId: string): Promise<{ success: boolean }> {
 }
 
 export async function bulkCreateTags(
-  input: BulkCreateTagInput
-): Promise<BulkCreateTagResponse> {
-  return apiPost<BulkCreateTagResponse>("/tags/bulk", input);
+  input: IBulkCreateTagInput
+): Promise<IBulkCreateTagResponse> {
+  return apiPost<IBulkCreateTagResponse>("/tags/bulk", input);
 }
 
 /**
  * Tag CSV Import API Client Functions
  */
 
-export async function uploadTagCsvFile(file: File): Promise<TagCsvUploadResponse> {
+export async function uploadTagCsvFile(
+  file: File
+): Promise<ITagCsvUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -74,25 +76,24 @@ export async function uploadTagCsvFile(file: File): Promise<TagCsvUploadResponse
 
 export async function getTagCsvMapping(
   columns: string[]
-): Promise<TagCsvFieldMapping> {
-  return apiPost<TagCsvFieldMapping>("/tags/csv-mapping", { columns });
+): Promise<ITagCsvFieldMapping> {
+  return apiPost<ITagCsvFieldMapping>("/tags/csv-mapping", { columns });
 }
 
 export async function validateTagCsvMapping(
-  mapping: TagCsvFieldMapping
-): Promise<TagCsvMappingValidation> {
-  return apiPost<TagCsvMappingValidation>(
-    "/tags/csv-mapping/validate",
-    { mapping }
-  );
+  mapping: ITagCsvFieldMapping
+): Promise<ITagCsvMappingValidation> {
+  return apiPost<ITagCsvMappingValidation>("/tags/csv-mapping/validate", {
+    mapping,
+  });
 }
 
 export async function parseTagCsvRows(
   file: File,
-  mapping: TagCsvFieldMapping,
+  mapping: ITagCsvFieldMapping,
   page: number = 1,
   limit: number = 50
-): Promise<TagCsvParseResponse> {
+): Promise<ITagCsvParseResponse> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("mapping", JSON.stringify(mapping));
@@ -113,9 +114,9 @@ export async function parseTagCsvRows(
 }
 
 export async function importTagCsv(
-  tags: CreateTagInput[]
-): Promise<TagCsvImportResponse> {
-  return apiPost<TagCsvImportResponse>("/tags/csv-import", {
+  tags: ICreateTagInput[]
+): Promise<ITagCsvImportResponse> {
+  return apiPost<ITagCsvImportResponse>("/tags/csv-import", {
     tags,
   });
 }

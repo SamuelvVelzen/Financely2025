@@ -1,16 +1,16 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React from "react";
 
-export type TableInputProps = Omit<
+export type ITableInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "className"
 > &
-  PropsWithClassName;
+  IPropsWithClassName;
 
-export function TableInput({ className, ...props }: TableInputProps) {
+export function TableInput({ className, ...props }: ITableInputProps) {
   return (
     <input
       className={cn(

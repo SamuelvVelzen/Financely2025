@@ -1,4 +1,4 @@
-import type { ErrorResponse } from "@/features/shared/validation/schemas";
+import type { IErrorResponse } from "@/features/shared/validation/schemas";
 
 /**
  * API Client Configuration
@@ -20,7 +20,7 @@ export class ApiClientError extends Error {
     this.name = "ApiClientError";
   }
 
-  static fromResponse(response: ErrorResponse): ApiClientError {
+  static fromResponse(response: IErrorResponse): ApiClientError {
     return new ApiClientError(
       response.error.code,
       response.error.message,
@@ -56,7 +56,7 @@ async function fetchApi<T>(
   if (!response.ok) {
     // Try to parse as error response
     if (data && typeof data === "object" && "error" in data) {
-      throw ApiClientError.fromResponse(data as ErrorResponse);
+      throw ApiClientError.fromResponse(data as IErrorResponse);
     }
     throw new ApiClientError(
       "UNKNOWN_ERROR",

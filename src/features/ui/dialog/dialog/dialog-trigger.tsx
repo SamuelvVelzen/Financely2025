@@ -2,7 +2,7 @@
 
 import { cn } from "@/util/cn";
 import { cloneElement, isValidElement, useEffect, useRef } from "react";
-import type { DialogTriggerProps } from "./types";
+import type { IDialogTriggerProps } from "./types";
 
 /**
  * DialogTrigger component wraps an element to bind dialog open/close behavior
@@ -30,7 +30,7 @@ export function DialogTrigger({
   onOpenChange,
   className = "",
   asChild = false,
-}: DialogTriggerProps) {
+}: IDialogTriggerProps) {
   const triggerRef = useRef<HTMLElement | null>(null);
   const triggerIdRef = useRef<string | null>(null);
 

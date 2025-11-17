@@ -6,18 +6,18 @@ import {
   buildQueryString,
 } from "@/features/shared/api/client";
 import type {
-  BulkCreateTransactionInput,
-  BulkCreateTransactionResponse,
-  CreateTransactionInput,
-  CsvFieldMapping,
-  CsvImportResponse,
-  CsvMappingValidation,
-  CsvParseResponse,
-  CsvUploadResponse,
-  PaginatedTransactionsResponse,
-  Transaction,
-  TransactionsQuery,
-  UpdateTransactionInput,
+  IBulkCreateTransactionInput,
+  IBulkCreateTransactionResponse,
+  ICreateTransactionInput,
+  ICsvFieldMapping,
+  ICsvImportResponse,
+  ICsvMappingValidation,
+  ICsvParseResponse,
+  ICsvUploadResponse,
+  IPaginatedTransactionsResponse,
+  ITransaction,
+  ITransactionsQuery,
+  IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
 
 /**
@@ -26,23 +26,23 @@ import type {
  */
 
 export async function getTransactions(
-  query?: TransactionsQuery
-): Promise<PaginatedTransactionsResponse> {
+  query?: ITransactionsQuery
+): Promise<IPaginatedTransactionsResponse> {
   const queryString = query ? buildQueryString(query) : "";
-  return apiGet<PaginatedTransactionsResponse>(`/transactions${queryString}`);
+  return apiGet<IPaginatedTransactionsResponse>(`/transactions${queryString}`);
 }
 
 export async function createTransaction(
-  input: CreateTransactionInput
-): Promise<Transaction> {
-  return apiPost<Transaction>("/transactions", input);
+  input: ICreateTransactionInput
+): Promise<ITransaction> {
+  return apiPost<ITransaction>("/transactions", input);
 }
 
 export async function updateTransaction(
   transactionId: string,
-  input: UpdateTransactionInput
-): Promise<Transaction> {
-  return apiPatch<Transaction>(`/transactions/${transactionId}`, input);
+  input: IUpdateTransactionInput
+): Promise<ITransaction> {
+  return apiPatch<ITransaction>(`/transactions/${transactionId}`, input);
 }
 
 export async function deleteTransaction(
@@ -54,8 +54,8 @@ export async function deleteTransaction(
 export async function addTagToTransaction(
   transactionId: string,
   tagId: string
-): Promise<Transaction> {
-  return apiPost<Transaction>(
+): Promise<ITransaction> {
+  return apiPost<ITransaction>(
     `/transactions/${transactionId}/tags/${tagId}`,
     {}
   );
@@ -64,21 +64,23 @@ export async function addTagToTransaction(
 export async function removeTagFromTransaction(
   transactionId: string,
   tagId: string
-): Promise<Transaction> {
-  return apiDelete<Transaction>(`/transactions/${transactionId}/tags/${tagId}`);
+): Promise<ITransaction> {
+  return apiDelete<ITransaction>(
+    `/transactions/${transactionId}/tags/${tagId}`
+  );
 }
 
 export async function bulkCreateTransactions(
-  input: BulkCreateTransactionInput
-): Promise<BulkCreateTransactionResponse> {
-  return apiPost<BulkCreateTransactionResponse>("/transactions/bulk", input);
+  input: IBulkCreateTransactionInput
+): Promise<IBulkCreateTransactionResponse> {
+  return apiPost<IBulkCreateTransactionResponse>("/transactions/bulk", input);
 }
 
 /**
  * CSV Import API Client Functions
  */
 
-export async function uploadCsvFile(file: File): Promise<CsvUploadResponse> {
+export async function uploadCsvFile(file: File): Promise<ICsvUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -97,17 +99,17 @@ export async function uploadCsvFile(file: File): Promise<CsvUploadResponse> {
 
 export async function getCsvMapping(
   columns: string[]
-): Promise<CsvFieldMapping> {
-  return apiPost<CsvFieldMapping>("/transactions/csv-mapping", { columns });
+): Promise<ICsvFieldMapping> {
+  return apiPost<ICsvFieldMapping>("/transactions/csv-mapping", { columns });
 }
 
 export async function validateCsvMapping(
-  mapping: CsvFieldMapping,
+  mapping: ICsvFieldMapping,
   defaultType?: "EXPENSE" | "INCOME",
   typeDetectionStrategy?: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
-): Promise<CsvMappingValidation> {
-  return apiPost<CsvMappingValidation>("/transactions/csv-mapping/validate", {
+): Promise<ICsvMappingValidation> {
+  return apiPost<ICsvMappingValidation>("/transactions/csv-mapping/validate", {
     mapping,
     defaultType,
     typeDetectionStrategy,
@@ -117,13 +119,13 @@ export async function validateCsvMapping(
 
 export async function parseCsvRows(
   file: File,
-  mapping: CsvFieldMapping,
+  mapping: ICsvFieldMapping,
   page: number = 1,
   limit: number = 50,
   defaultType?: "EXPENSE" | "INCOME",
   typeDetectionStrategy?: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
-): Promise<CsvParseResponse> {
+): Promise<ICsvParseResponse> {
   const formData = new FormData();
   formData.append("file", file);
   formData.append("mapping", JSON.stringify(mapping));
@@ -153,9 +155,9 @@ export async function parseCsvRows(
 }
 
 export async function importCsvTransactions(
-  transactions: CreateTransactionInput[]
-): Promise<CsvImportResponse> {
-  return apiPost<CsvImportResponse>("/transactions/csv-import", {
+  transactions: ICreateTransactionInput[]
+): Promise<ICsvImportResponse> {
+  return apiPost<ICsvImportResponse>("/transactions/csv-import", {
     transactions,
   });
 }

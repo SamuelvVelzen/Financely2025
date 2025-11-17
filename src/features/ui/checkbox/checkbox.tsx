@@ -1,14 +1,14 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useEffect, useId, useRef } from "react";
 
-export type CheckboxProps = Omit<
+export type ICheckboxProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "type" | "id"
 > &
-  PropsWithClassName & {
+  IPropsWithClassName & {
     id?: string;
     label?: string;
     indeterminate?: boolean;
@@ -23,7 +23,7 @@ export function Checkbox({
   disabled,
   indeterminate,
   ...props
-}: CheckboxProps) {
+}: ICheckboxProps) {
   const generatedId = useId();
   const checkboxId = id || generatedId;
   const checkboxRef = useRef<HTMLInputElement>(null);

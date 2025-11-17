@@ -1,15 +1,15 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useId } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-export type InputProps = Omit<
+export type IInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "id" | "name"
 > &
-  PropsWithClassName & {
+  IPropsWithClassName & {
     name: string;
     label: string;
     id?: string;
@@ -22,7 +22,7 @@ export function Input({
   name,
   id,
   ...props
-}: InputProps) {
+}: IInputProps) {
   const generatedId = useId();
   const inputId = id || generatedId;
   const form = useFormContext();

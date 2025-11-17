@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useState } from "react";
 import {
   FieldValues,
@@ -10,7 +10,7 @@ import {
   UseFormReturn,
 } from "react-hook-form";
 
-export type FormProps<T extends FieldValues> = PropsWithClassName & {
+export type IFormProps<T extends FieldValues> = IPropsWithClassName & {
   form: UseFormReturn<T>;
   onSubmit: SubmitHandler<T>;
   children: React.ReactNode;
@@ -21,7 +21,7 @@ export function Form<T extends FieldValues>({
   onSubmit,
   children,
   className,
-}: FormProps<T>) {
+}: IFormProps<T>) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (data: T) => {

@@ -1,19 +1,19 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 import { HeaderCell } from "./header-cell";
 import { TableBody } from "./table-body";
 import { TableHeader } from "./table-header";
 import { TableRow } from "./table-row";
 
-export type TableProps = {
+export type ITableProps = {
   headerCells: React.ReactNode[];
-} & PropsWithClassName &
+} & IPropsWithClassName &
   PropsWithChildren;
 
-export function Table({ className, children, headerCells }: TableProps) {
+export function Table({ className, children, headerCells }: ITableProps) {
   return (
     <div className="border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">

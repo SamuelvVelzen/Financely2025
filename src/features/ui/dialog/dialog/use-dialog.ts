@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { UseDialogReturn } from "./types";
+import type { IUseDialogReturn } from "./types";
 
 /**
  * Hook for imperative dialog control
@@ -38,7 +38,7 @@ import type { UseDialogReturn } from "./types";
 export function useDialog(props?: {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-}): UseDialogReturn {
+}): IUseDialogReturn {
   const [internalOpen, setInternalOpen] = useState(false);
 
   // Use controlled state if provided, otherwise use internal state

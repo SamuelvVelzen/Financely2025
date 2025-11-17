@@ -1,26 +1,26 @@
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 import type { IButtonProps } from "../../button/button";
 
 /**
  * Dialog variant determines the layout and behavior
  */
-export type DialogVariant = "modal" | "fullscreen";
+export type IDialogVariant = "modal" | "fullscreen";
 
 /**
  * Dialog size for modal variant
  */
-export type DialogSize = "sm" | "md" | "lg" | "xl" | "full";
+export type IDialogSize = "sm" | "md" | "lg" | "xl" | "full";
 
 /**
  * Dialog status determines the color theme
  */
-export type DialogStatus = "danger" | "info" | "warning" | "success";
+export type IDialogStatus = "danger" | "info" | "warning" | "success";
 
 /**
  * Event handlers for dialog lifecycle
  */
-export interface DialogEvents {
+export interface IDialogEvents {
   /** Called when dialog opens */
   onOpen?: () => void;
   /** Called when dialog closes */
@@ -36,8 +36,8 @@ export interface DialogEvents {
  */
 export interface IDialogProps
   extends PropsWithChildren,
-    PropsWithClassName,
-    DialogEvents {
+    IPropsWithClassName,
+    IDialogEvents {
   /** Controlled open state */
   open?: boolean;
   /** Callback when open state changes */
@@ -46,11 +46,11 @@ export interface IDialogProps
   dismissible?: boolean;
 
   /** Dialog variant */
-  variant?: DialogVariant;
+  variant?: IDialogVariant;
   /** Dialog size (for modal variant) */
-  size?: DialogSize;
+  size?: IDialogSize;
   /** Dialog status determines the color theme */
-  status?: DialogStatus;
+  status?: IDialogStatus;
 
   "aria-label"?: string;
   /** ARIA labelled by element id */
@@ -68,7 +68,7 @@ export interface IDialogProps
 /**
  * Props for DialogOverlay component
  */
-export interface DialogOverlayProps extends PropsWithClassName {
+export interface IDialogOverlayProps extends IPropsWithClassName {
   /** Whether overlay is dismissible */
   dismissible?: boolean;
   /** Click handler for overlay */
@@ -80,9 +80,9 @@ export interface DialogOverlayProps extends PropsWithClassName {
 /**
  * Props for DialogHeader component
  */
-export interface DialogHeaderProps
+export interface IDialogHeaderProps
   extends PropsWithChildren,
-    PropsWithClassName {
+    IPropsWithClassName {
   /** Title element (for aria-labelledby) */
   titleId?: string;
   /** Show close button */
@@ -94,7 +94,9 @@ export interface DialogHeaderProps
 /**
  * Props for DialogBody component
  */
-export interface DialogBodyProps extends PropsWithChildren, PropsWithClassName {
+export interface IDialogBodyProps
+  extends PropsWithChildren,
+    IPropsWithClassName {
   /** Whether body is scrollable */
   scrollable?: boolean;
 }
@@ -102,9 +104,9 @@ export interface DialogBodyProps extends PropsWithChildren, PropsWithClassName {
 /**
  * Props for DialogFooter component
  */
-export interface DialogFooterProps
+export interface IDialogFooterProps
   extends PropsWithChildren,
-    PropsWithClassName {
+    IPropsWithClassName {
   /** Alignment of footer content */
   align?: "left" | "right" | "between";
   /** Dense spacing mode */
@@ -114,9 +116,9 @@ export interface DialogFooterProps
 /**
  * Props for DialogActions component
  */
-export interface DialogActionsProps
+export interface IDialogActionsProps
   extends PropsWithChildren,
-    PropsWithClassName {
+    IPropsWithClassName {
   /** Alignment of actions */
   align?: "left" | "right" | "between";
 }
@@ -124,9 +126,9 @@ export interface DialogActionsProps
 /**
  * Props for DialogTrigger component
  */
-export interface DialogTriggerProps
+export interface IDialogTriggerProps
   extends PropsWithChildren,
-    PropsWithClassName {
+    IPropsWithClassName {
   /** Dialog open state */
   open?: boolean;
   /** Open change handler */
@@ -138,7 +140,7 @@ export interface DialogTriggerProps
 /**
  * Return type for useDialog hook
  */
-export interface UseDialogReturn {
+export interface IUseDialogReturn {
   /** Current open state */
   isOpen: boolean;
   /** Open the dialog */

@@ -1,11 +1,11 @@
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
-  CreateTagInput,
-  Tag,
-  TagsQuery,
-  TagsResponse,
-  UpdateTagInput,
+  ICreateTagInput,
+  ITag,
+  ITagsQuery,
+  ITagsResponse,
+  IUpdateTagInput,
 } from "@/features/shared/validation/schemas";
 import {
   createTag,
@@ -19,8 +19,8 @@ import {
  * - staleTime: 1-2 minutes (medium, keeps UI snappy)
  * - Supports filtering (q) and sorting
  */
-export function useTags(query?: TagsQuery) {
-  return useFinQuery<TagsResponse, Error>({
+export function useTags(query?: ITagsQuery) {
+  return useFinQuery<ITagsResponse, Error>({
     queryKey: queryKeys.tags(query),
     queryFn: () => getTags(query),
     staleTime: 1 * 60 * 1000, // 1 minute
@@ -32,7 +32,7 @@ export function useTags(query?: TagsQuery) {
  * - Invalidates tags query on success
  */
 export function useCreateTag() {
-  return useFinMutation<Tag, Error, CreateTagInput>({
+  return useFinMutation<ITag, Error, ICreateTagInput>({
     mutationFn: createTag,
     invalidateQueries: [queryKeys.tags],
   });
@@ -43,10 +43,12 @@ export function useCreateTag() {
  * - Invalidates tags query on success
  */
 export function useUpdateTag() {
-  return useFinMutation<Tag, Error, { tagId: string; input: UpdateTagInput }>({
-    mutationFn: ({ tagId, input }) => updateTag(tagId, input),
-    invalidateQueries: [queryKeys.tags],
-  });
+  return useFinMutation<ITag, Error, { tagId: string; input: IUpdateTagInput }>(
+    {
+      mutationFn: ({ tagId, input }) => updateTag(tagId, input),
+      invalidateQueries: [queryKeys.tags],
+    }
+  );
 }
 
 /**

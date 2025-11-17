@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useId, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -39,11 +39,11 @@ function cssColorToHex(color: string): string {
   return color;
 }
 
-export type ColorInputProps = Omit<
+export type IColorInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "id" | "name" | "type"
 > &
-  PropsWithClassName & {
+  IPropsWithClassName & {
     name: string;
     label: string;
     id?: string;
@@ -56,7 +56,7 @@ export function ColorInput({
   className,
   disabled,
   ...props
-}: ColorInputProps) {
+}: IColorInputProps) {
   const generatedId = useId();
   const colorPickerId = id || `${generatedId}-color-picker`;
   const textInputId = `${generatedId}-text-input`;

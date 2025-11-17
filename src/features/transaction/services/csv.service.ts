@@ -1,19 +1,19 @@
 import {
-  CreateTransactionInput,
   CreateTransactionInputSchema,
-  type CsvCandidateTransaction,
-  type CsvFieldMapping,
+  ICreateTransactionInput,
+  type ICsvCandidateTransaction,
+  type ICsvFieldMapping,
 } from "@/features/shared/validation/schemas";
-import {
-  SYSTEM_REQUIRED_FIELDS,
-  type TransactionFieldName,
-} from "../config/transaction-fields";
 import { TagService } from "@/features/tag/services/tag.service";
 import { prisma } from "@/util/prisma";
 import {
-  TypeDetectionFactory,
+  SYSTEM_REQUIRED_FIELDS,
+  type ITransactionFieldName,
+} from "../config/transaction-fields";
+import {
   DEFAULT_TYPE_DETECTION_STRATEGY,
-  type TypeDetectionContext,
+  TypeDetectionFactory,
+  type ITypeDetectionContext,
 } from "./csv-type-detection";
 
 /**
@@ -40,15 +40,7 @@ const FIELD_NAME_PATTERNS: Record<string, string[]> = {
     "timestamp",
     "time",
   ],
-  name: [
-    "name",
-    "title",
-    "description",
-    "memo",
-    "payee",
-    "merchant",
-    "vendor",
-  ],
+  name: ["name", "title", "description", "memo", "payee", "merchant", "vendor"],
   description: ["description", "desc", "details", "note", "memo"],
   notes: ["notes", "note", "remarks", "comments"],
   externalId: ["external_id", "externalid", "id", "reference", "ref"],
@@ -110,7 +102,7 @@ export async function parseCsvHeaders(
  */
 export async function parseCsvRows(
   file: File | { text(): Promise<string> },
-  mapping: CsvFieldMapping,
+  mapping: ICsvFieldMapping,
   page: number,
   limit: number
 ): Promise<{
@@ -191,12 +183,15 @@ function parseCsvLine(line: string, delimiter: string = ","): string[] {
  */
 export function autoDetectMapping(
   columns: string[]
-): Partial<CsvFieldMapping> {
-  const mapping: Partial<CsvFieldMapping> = {};
+): Partial<ICsvFieldMapping> {
+  const mapping: Partial<ICsvFieldMapping> = {};
 
   // Normalize column names for matching
   const normalizedColumns = columns.map((col) =>
-    col.toLowerCase().trim().replace(/[_\s-]/g, "_")
+    col
+      .toLowerCase()
+      .trim()
+      .replace(/[_\s-]/g, "_")
   );
 
   // For each transaction field, find best matching column
@@ -207,7 +202,9 @@ export function autoDetectMapping(
 
     for (let i = 0; i < normalizedColumns.length; i++) {
       const normalizedCol = normalizedColumns[i];
-      if (normalizedPatterns.some((pattern) => normalizedCol.includes(pattern))) {
+      if (
+        normalizedPatterns.some((pattern) => normalizedCol.includes(pattern))
+      ) {
         mapping[field] = columns[i];
         break;
       }
@@ -221,7 +218,7 @@ export function autoDetectMapping(
  * Validate mapping against required fields
  */
 export function validateMapping(
-  mapping: CsvFieldMapping,
+  mapping: ICsvFieldMapping,
   requiredFields: readonly string[],
   defaultType?: "EXPENSE" | "INCOME",
   hasTypeDetection?: boolean,
@@ -255,13 +252,13 @@ export function validateMapping(
  */
 export async function convertRowToTransaction(
   row: Record<string, string>,
-  mapping: CsvFieldMapping,
+  mapping: ICsvFieldMapping,
   userId: string,
   defaultType?: "EXPENSE" | "INCOME",
   typeDetectionStrategy?: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
-): Promise<Partial<CreateTransactionInput>> {
-  const transaction: Partial<CreateTransactionInput> = {};
+): Promise<Partial<ICreateTransactionInput>> {
+  const transaction: Partial<ICreateTransactionInput> = {};
 
   // Set default currency if provided
   if (defaultCurrency) {
@@ -289,7 +286,7 @@ export async function convertRowToTransaction(
   } else if (parsedAmount && typeDetectionStrategy) {
     // Use type detection strategy
     const strategy = TypeDetectionFactory.getStrategy(typeDetectionStrategy);
-    const context: TypeDetectionContext = {
+    const context: ITypeDetectionContext = {
       amount: parsedAmount,
       rawAmount: row[mapping.amount || ""] || "",
       row,
@@ -300,7 +297,7 @@ export async function convertRowToTransaction(
     const strategy = TypeDetectionFactory.getStrategy(
       DEFAULT_TYPE_DETECTION_STRATEGY
     );
-    const context: TypeDetectionContext = {
+    const context: ITypeDetectionContext = {
       amount: parsedAmount,
       rawAmount: row[mapping.amount || ""] || "",
       row,
@@ -314,7 +311,7 @@ export async function convertRowToTransaction(
 
     const rawValue = row[column]?.trim() || "";
 
-    switch (field as TransactionFieldName) {
+    switch (field as ITransactionFieldName) {
       case "type":
         // Skip - already handled above
         break;
@@ -398,7 +395,9 @@ function parseAmount(value: string): string {
 /**
  * Parse currency
  */
-function parseCurrency(value: string): "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY" {
+function parseCurrency(
+  value: string
+): "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY" {
   const normalized = value.toUpperCase().trim();
   const validCurrencies = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"];
   if (validCurrencies.includes(normalized)) {
@@ -455,10 +454,7 @@ function parseDate(value: string): string {
  * Parse tags (comma-separated names) and resolve to tagIds
  * Creates tags if they don't exist
  */
-async function parseTags(
-  value: string,
-  userId: string
-): Promise<string[]> {
+async function parseTags(value: string, userId: string): Promise<string[]> {
   if (!value) return [];
 
   const tagNames = value
@@ -511,7 +507,7 @@ async function parseTags(
  * Validate candidate transaction
  */
 export function validateCandidateTransaction(
-  candidate: Partial<CreateTransactionInput>,
+  candidate: Partial<ICreateTransactionInput>,
   rawValues: Record<string, string>,
   hasTypeDetection: boolean = false
 ): Array<{ field: string; message: string }> {
@@ -524,7 +520,7 @@ export function validateCandidateTransaction(
     if (field === "type" && hasTypeDetection && !candidate.type) {
       continue;
     }
-    if (!candidate[field as keyof CreateTransactionInput]) {
+    if (!candidate[field as keyof ICreateTransactionInput]) {
       errors.push({
         field,
         message: `Required field ${field} is missing`,
@@ -555,13 +551,13 @@ export function validateCandidateTransaction(
  */
 export async function convertRowsToCandidates(
   rows: Record<string, string>[],
-  mapping: CsvFieldMapping,
+  mapping: ICsvFieldMapping,
   userId: string,
   defaultType?: "EXPENSE" | "INCOME",
   typeDetectionStrategy?: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
-): Promise<CsvCandidateTransaction[]> {
-  const candidates: CsvCandidateTransaction[] = [];
+): Promise<ICsvCandidateTransaction[]> {
+  const candidates: ICsvCandidateTransaction[] = [];
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -589,7 +585,7 @@ export async function convertRowsToCandidates(
       candidates.push({
         rowIndex: i,
         status,
-        data: transaction as CreateTransactionInput,
+        data: transaction as ICreateTransactionInput,
         rawValues: row,
         errors,
       });
@@ -597,7 +593,7 @@ export async function convertRowsToCandidates(
       candidates.push({
         rowIndex: i,
         status: "invalid",
-        data: {} as CreateTransactionInput,
+        data: {} as ICreateTransactionInput,
         rawValues: row,
         errors: [
           {
@@ -612,4 +608,3 @@ export async function convertRowsToCandidates(
 
   return candidates;
 }
-

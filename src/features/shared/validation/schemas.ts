@@ -24,14 +24,14 @@ export const CurrencySchema = GeneratedCurrencySchema;
 export const TransactionTypeSchema = GeneratedTransactionTypeSchema;
 
 // Re-export enum types for convenience
-export type Currency = z.infer<typeof CurrencySchema>;
-export type TransactionType = z.infer<typeof TransactionTypeSchema>;
+export type ICurrency = z.infer<typeof CurrencySchema>;
+export type ITransactionType = z.infer<typeof TransactionTypeSchema>;
 
 /**
  * Currency options for select inputs
  * Type-safe array that matches CurrencySchema enum values
  */
-const CURRENCY_VALUES: readonly Currency[] = [
+const CURRENCY_VALUES: readonly ICurrency[] = [
   "USD",
   "EUR",
   "GBP",
@@ -45,7 +45,7 @@ const CURRENCY_VALUES: readonly Currency[] = [
  * Returns formatted options array for UI components
  */
 export function getCurrencyOptions(): Array<{
-  value: Currency;
+  value: ICurrency;
   label: string;
 }> {
   return CURRENCY_VALUES.map((value) => ({
@@ -379,48 +379,48 @@ export const ErrorResponseSchema = z.object({
 // Type exports
 // ============================================================================
 
-export type Tag = z.infer<typeof TagSchema>;
-export type Transaction = z.infer<typeof TransactionSchema>;
-export type User = z.infer<typeof UserSchema>;
-export type CreateTagInput = z.infer<typeof CreateTagInputSchema>;
-export type UpdateTagInput = z.infer<typeof UpdateTagInputSchema>;
-export type TagsQuery = z.infer<typeof TagsQuerySchema>;
-export type CreateTransactionInput = z.infer<
+export type ITag = z.infer<typeof TagSchema>;
+export type ITransaction = z.infer<typeof TransactionSchema>;
+export type IUser = z.infer<typeof UserSchema>;
+export type ICreateTagInput = z.infer<typeof CreateTagInputSchema>;
+export type IUpdateTagInput = z.infer<typeof UpdateTagInputSchema>;
+export type ITagsQuery = z.infer<typeof TagsQuerySchema>;
+export type ICreateTransactionInput = z.infer<
   typeof CreateTransactionInputSchema
 >;
-export type UpdateTransactionInput = z.infer<
+export type IUpdateTransactionInput = z.infer<
   typeof UpdateTransactionInputSchema
 >;
-export type TransactionsQuery = z.infer<typeof TransactionsQuerySchema>;
-export type PaginatedTransactionsResponse = z.infer<
+export type ITransactionsQuery = z.infer<typeof TransactionsQuerySchema>;
+export type IPaginatedTransactionsResponse = z.infer<
   typeof PaginatedTransactionsResponseSchema
 >;
-export type TagsResponse = z.infer<typeof TagsResponseSchema>;
-export type BulkCreateTagInput = z.infer<typeof BulkCreateTagInputSchema>;
-export type BulkCreateTagResponse = z.infer<typeof BulkCreateTagResponseSchema>;
-export type BulkCreateTransactionInput = z.infer<
+export type ITagsResponse = z.infer<typeof TagsResponseSchema>;
+export type IBulkCreateTagInput = z.infer<typeof BulkCreateTagInputSchema>;
+export type IBulkCreateTagResponse = z.infer<typeof BulkCreateTagResponseSchema>;
+export type IBulkCreateTransactionInput = z.infer<
   typeof BulkCreateTransactionInputSchema
 >;
-export type BulkCreateTransactionResponse = z.infer<
+export type IBulkCreateTransactionResponse = z.infer<
   typeof BulkCreateTransactionResponseSchema
 >;
-export type UserResponse = z.infer<typeof UserResponseSchema>;
-export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
-export type CsvUploadResponse = z.infer<typeof CsvUploadResponseSchema>;
-export type CsvFieldMapping = z.infer<typeof CsvFieldMappingSchema>;
-export type CsvMappingValidation = z.infer<typeof CsvMappingValidationSchema>;
-export type CsvParseRequest = z.infer<typeof CsvParseRequestSchema>;
-export type CsvCandidateTransaction = z.infer<
+export type IUserResponse = z.infer<typeof UserResponseSchema>;
+export type IErrorResponse = z.infer<typeof ErrorResponseSchema>;
+export type ICsvUploadResponse = z.infer<typeof CsvUploadResponseSchema>;
+export type ICsvFieldMapping = z.infer<typeof CsvFieldMappingSchema>;
+export type ICsvMappingValidation = z.infer<typeof CsvMappingValidationSchema>;
+export type ICsvParseRequest = z.infer<typeof CsvParseRequestSchema>;
+export type ICsvCandidateTransaction = z.infer<
   typeof CsvCandidateTransactionSchema
 >;
-export type CsvParseResponse = z.infer<typeof CsvParseResponseSchema>;
-export type CsvImportRequest = z.infer<typeof CsvImportRequestSchema>;
-export type CsvImportResponse = z.infer<typeof CsvImportResponseSchema>;
-export type TagCsvUploadResponse = z.infer<typeof TagCsvUploadResponseSchema>;
-export type TagCsvFieldMapping = z.infer<typeof TagCsvFieldMappingSchema>;
-export type TagCsvMappingValidation = z.infer<typeof TagCsvMappingValidationSchema>;
-export type TagCsvParseRequest = z.infer<typeof TagCsvParseRequestSchema>;
-export type TagCsvCandidate = z.infer<typeof TagCsvCandidateSchema>;
-export type TagCsvParseResponse = z.infer<typeof TagCsvParseResponseSchema>;
-export type TagCsvImportRequest = z.infer<typeof TagCsvImportRequestSchema>;
-export type TagCsvImportResponse = z.infer<typeof TagCsvImportResponseSchema>;
+export type ICsvParseResponse = z.infer<typeof CsvParseResponseSchema>;
+export type ICsvImportRequest = z.infer<typeof CsvImportRequestSchema>;
+export type ICsvImportResponse = z.infer<typeof CsvImportResponseSchema>;
+export type ITagCsvUploadResponse = z.infer<typeof TagCsvUploadResponseSchema>;
+export type ITagCsvFieldMapping = z.infer<typeof TagCsvFieldMappingSchema>;
+export type ITagCsvMappingValidation = z.infer<typeof TagCsvMappingValidationSchema>;
+export type ITagCsvParseRequest = z.infer<typeof TagCsvParseRequestSchema>;
+export type ITagCsvCandidate = z.infer<typeof TagCsvCandidateSchema>;
+export type ITagCsvParseResponse = z.infer<typeof TagCsvParseResponseSchema>;
+export type ITagCsvImportRequest = z.infer<typeof TagCsvImportRequestSchema>;
+export type ITagCsvImportResponse = z.infer<typeof TagCsvImportResponseSchema>;

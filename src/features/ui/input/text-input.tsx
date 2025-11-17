@@ -1,11 +1,11 @@
 "use client";
 
-import { Input, InputProps } from "./input";
+import { Input, IInputProps } from "./input";
 import React from "react";
 
-export type TextInputProps = Omit<InputProps, "type">;
+export type ITextInputProps = Omit<IInputProps, "type">;
 
-export function TextInput(props: TextInputProps) {
+export function TextInput(props: ITextInputProps) {
   return <Input type="text" {...props} />;
 }
 

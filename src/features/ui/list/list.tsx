@@ -1,14 +1,14 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { ReactNode } from "react";
 
 type IListProps<T> = {
   data: T[];
   children: (item: T, index: number) => ReactNode;
   getItemKey?: (item: T, index: number) => string | number;
-} & PropsWithClassName;
+} & IPropsWithClassName;
 
 export function List<T>({
   data,

@@ -1,12 +1,12 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 
-export type TableBodyProps = PropsWithClassName & PropsWithChildren;
+export type ITableBodyProps = IPropsWithClassName & PropsWithChildren;
 
-export function TableBody({ className, children }: TableBodyProps) {
+export function TableBody({ className, children }: ITableBodyProps) {
   return <tbody className={cn(className)}>{children}</tbody>;
 }
 

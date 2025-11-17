@@ -1,13 +1,13 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren, createElement, type ElementType } from "react";
 
 type IContainerProps = {
   as?: ElementType;
 } & PropsWithChildren &
-  PropsWithClassName;
+  IPropsWithClassName;
 
 export function Container({
   children,

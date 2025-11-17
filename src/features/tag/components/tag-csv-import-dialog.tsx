@@ -1,9 +1,9 @@
 "use client";
 
 import type {
-  CreateTagInput,
-  TagCsvCandidate,
-  TagCsvFieldMapping,
+  ICreateTagInput,
+  ITagCsvCandidate,
+  ITagCsvFieldMapping,
 } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -55,11 +55,11 @@ export function TagCsvImportDialog({
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
-  const [mapping, setMapping] = useState<TagCsvFieldMapping>({});
-  const [candidates, setCandidates] = useState<TagCsvCandidate[]>([]);
+  const [mapping, setMapping] = useState<ITagCsvFieldMapping>({});
+  const [candidates, setCandidates] = useState<ITagCsvCandidate[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [editedRows, setEditedRows] = useState<
-    Record<number, Partial<CreateTagInput>>
+    Record<number, Partial<ICreateTagInput>>
   >({});
   const [currentPage, setCurrentPage] = useState(1);
   const [parseResponse, setParseResponse] = useState<any>(null);
@@ -145,7 +145,7 @@ export function TagCsvImportDialog({
 
   const handleEditField = (
     rowIndex: number,
-    field: keyof CreateTagInput,
+    field: keyof ICreateTagInput,
     value: any
   ) => {
     setEditedRows((prev) => ({
@@ -158,14 +158,14 @@ export function TagCsvImportDialog({
   };
 
   const handleConfirmImport = async () => {
-    const tagsToImport: CreateTagInput[] = [];
+    const tagsToImport: ICreateTagInput[] = [];
 
     for (const rowIndex of selectedRows) {
       const candidate = candidates.find((c) => c.rowIndex === rowIndex);
       if (!candidate) continue;
 
       const edited = editedRows[rowIndex];
-      const tag: CreateTagInput = {
+      const tag: ICreateTagInput = {
         ...candidate.data,
         ...edited,
       };

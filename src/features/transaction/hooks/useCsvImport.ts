@@ -1,11 +1,11 @@
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
-  CsvFieldMapping,
-  CsvImportResponse,
-  CsvMappingValidation,
-  CsvParseResponse,
-  CsvUploadResponse,
+  ICsvFieldMapping,
+  ICsvImportResponse,
+  ICsvMappingValidation,
+  ICsvParseResponse,
+  ICsvUploadResponse,
 } from "@/features/shared/validation/schemas";
 import {
   getCsvMapping,
@@ -19,7 +19,7 @@ import {
  * Upload CSV file mutation
  */
 export function useUploadCsvFile() {
-  return useFinMutation<CsvUploadResponse, Error, File>({
+  return useFinMutation<ICsvUploadResponse, Error, File>({
     mutationFn: uploadCsvFile,
   });
 }
@@ -28,7 +28,7 @@ export function useUploadCsvFile() {
  * Get auto-detected CSV mapping query
  */
 export function useGetCsvMapping(columns: string[] | undefined) {
-  return useFinQuery<CsvFieldMapping, Error>({
+  return useFinQuery<ICsvFieldMapping, Error>({
     queryKey: ["csv-mapping", columns],
     queryFn: () => {
       if (!columns || columns.length === 0) {
@@ -46,10 +46,10 @@ export function useGetCsvMapping(columns: string[] | undefined) {
  */
 export function useValidateCsvMapping(defaultType?: "EXPENSE" | "INCOME") {
   return useFinMutation<
-    CsvMappingValidation,
+    ICsvMappingValidation,
     Error,
     {
-      mapping: CsvFieldMapping;
+      mapping: ICsvFieldMapping;
       defaultType?: "EXPENSE" | "INCOME";
       typeDetectionStrategy?: string;
       defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY";
@@ -75,14 +75,14 @@ export function useValidateCsvMapping(defaultType?: "EXPENSE" | "INCOME") {
  */
 export function useParseCsvRows(
   file: File | null,
-  mapping: CsvFieldMapping | null,
+  mapping: ICsvFieldMapping | null,
   page: number = 1,
   limit: number = 50,
   defaultType?: "EXPENSE" | "INCOME",
   typeDetectionStrategy?: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
 ) {
-  return useFinQuery<CsvParseResponse, Error>({
+  return useFinQuery<ICsvParseResponse, Error>({
     queryKey: [
       "csv-parse",
       file?.name,
@@ -117,7 +117,7 @@ export function useParseCsvRows(
  * Invalidates transactions, expenses, and incomes queries on success
  */
 export function useImportCsvTransactions() {
-  return useFinMutation<CsvImportResponse, Error, any[]>({
+  return useFinMutation<ICsvImportResponse, Error, any[]>({
     mutationFn: importCsvTransactions,
     invalidateQueries: [
       queryKeys.transactions,

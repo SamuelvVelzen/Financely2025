@@ -1,17 +1,17 @@
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { Link } from "@tanstack/react-router";
 import React from "react";
 import { useIsActiveLink } from "./useIsActiveLink";
 import { useSidebar } from "./useSidebar";
 
-type NavItemProps = {
+type INavItemProps = {
   href: string;
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
   isAction?: boolean;
   customIcon?: React.ReactNode;
-} & PropsWithClassName;
+} & IPropsWithClassName;
 
 export function NavItem({
   className = "",
@@ -20,7 +20,7 @@ export function NavItem({
   icon: Icon,
   isAction = false,
   customIcon,
-}: NavItemProps) {
+}: INavItemProps) {
   const { isActive } = useIsActiveLink(href);
   const { isExpanded } = useSidebar();
 

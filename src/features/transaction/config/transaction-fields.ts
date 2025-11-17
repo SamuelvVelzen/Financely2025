@@ -11,7 +11,7 @@ export const SYSTEM_REQUIRED_FIELDS = [
   "name",
 ] as const;
 
-export type TransactionFieldName =
+export type ITransactionFieldName =
   | "type"
   | "amount"
   | "currency"
@@ -22,15 +22,15 @@ export type TransactionFieldName =
   | "externalId"
   | "tags";
 
-export interface TransactionFieldMetadata {
-  name: TransactionFieldName;
+export interface ITransactionFieldMetadata {
+  name: ITransactionFieldName;
   label: string;
   required: boolean;
   type: "string" | "number" | "date" | "enum" | "array";
   description?: string;
 }
 
-export const TRANSACTION_FIELDS: TransactionFieldMetadata[] = [
+export const TRANSACTION_FIELDS: ITransactionFieldMetadata[] = [
   {
     name: "type",
     label: "Type",
@@ -97,12 +97,12 @@ export const TRANSACTION_FIELDS: TransactionFieldMetadata[] = [
 ];
 
 export function getFieldMetadata(
-  fieldName: TransactionFieldName
-): TransactionFieldMetadata | undefined {
+  fieldName: ITransactionFieldName
+): ITransactionFieldMetadata | undefined {
   return TRANSACTION_FIELDS.find((field) => field.name === fieldName);
 }
 
-export function isRequiredField(fieldName: TransactionFieldName): boolean {
+export function isRequiredField(fieldName: ITransactionFieldName): boolean {
   return SYSTEM_REQUIRED_FIELDS.includes(fieldName as any);
 }
 

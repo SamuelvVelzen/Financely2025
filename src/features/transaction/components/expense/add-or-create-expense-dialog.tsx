@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  useCreateExpense,
-  useUpdateExpense,
-} from "@/features/transaction/hooks/useTransactions";
-import {
   CreateTransactionInputSchema,
   CurrencySchema,
   getCurrencyOptions,
-  type Transaction,
+  type ITransaction,
 } from "@/features/shared/validation/schemas";
+import {
+  useCreateExpense,
+  useUpdateExpense,
+} from "@/features/transaction/hooks/useTransactions";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { Form } from "@/features/ui/form/form";
 import { DateInput } from "@/features/ui/input/date-input";
@@ -28,7 +28,7 @@ import { z } from "zod";
 type IAddOrCreateExpenseDialog = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction?: Transaction;
+  transaction?: ITransaction;
   onSuccess?: () => void;
 };
 
@@ -254,4 +254,3 @@ export function AddOrCreateExpenseDialog({
     />
   );
 }
-

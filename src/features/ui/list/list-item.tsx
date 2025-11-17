@@ -1,13 +1,13 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { PropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 
 type IListItemProps = {
   clicked?: () => void;
 } & PropsWithChildren &
-  PropsWithClassName;
+  IPropsWithClassName;
 
 export function ListItem({
   children,

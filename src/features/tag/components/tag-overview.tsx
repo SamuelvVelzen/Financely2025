@@ -1,4 +1,4 @@
-import type { Tag } from "@/features/shared/validation/schemas";
+import type { ITag } from "@/features/shared/validation/schemas";
 import { useDeleteTag, useTags } from "@/features/tag/hooks/useTags";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
@@ -10,7 +10,12 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
 import { useState } from "react";
-import { HiOutlineTag, HiPencil, HiTrash, HiArrowDownTray } from "react-icons/hi2";
+import {
+  HiArrowDownTray,
+  HiOutlineTag,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi2";
 import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
 import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 
@@ -21,14 +26,14 @@ export function TagOverview() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
-  const [selectedTag, setSelectedTag] = useState<Tag | undefined>(undefined);
+  const [selectedTag, setSelectedTag] = useState<ITag | undefined>(undefined);
 
   const handleCreateTag = () => {
     setSelectedTag(undefined);
     setIsTagDialogOpen(true);
   };
 
-  const handleEditTag = (tag: Tag) => {
+  const handleEditTag = (tag: ITag) => {
     setSelectedTag(tag);
     setIsTagDialogOpen(true);
   };

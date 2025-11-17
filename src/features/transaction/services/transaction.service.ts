@@ -1,17 +1,17 @@
 import {
   BulkCreateTransactionInputSchema,
   CreateTransactionInputSchema,
+  ITransaction,
   PaginatedTransactionsResponseSchema,
   TransactionSchema,
   TransactionsQuerySchema,
   UpdateTransactionInputSchema,
-  type BulkCreateTransactionInput,
-  type BulkCreateTransactionResponse,
-  type CreateTransactionInput,
-  type PaginatedTransactionsResponse,
-  type Transaction,
-  type TransactionsQuery,
-  type UpdateTransactionInput,
+  type IBulkCreateTransactionInput,
+  type IBulkCreateTransactionResponse,
+  type ICreateTransactionInput,
+  type IPaginatedTransactionsResponse,
+  type ITransactionsQuery,
+  type IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/util/prisma";
 import { Prisma } from "@prisma/client";
@@ -26,8 +26,8 @@ export class TransactionService {
    */
   static async listTransactions(
     userId: string,
-    query: TransactionsQuery
-  ): Promise<PaginatedTransactionsResponse> {
+    query: ITransactionsQuery
+  ): Promise<IPaginatedTransactionsResponse> {
     const validated = TransactionsQuerySchema.parse(query);
     const { page, limit, from, to, type, tagIds, q, sort } = validated;
 
@@ -95,7 +95,7 @@ export class TransactionService {
     });
 
     // Map to DTOs
-    const data: Transaction[] = transactions.map((tx) =>
+    const data: ITransaction[] = transactions.map((tx) =>
       TransactionSchema.parse({
         id: tx.id,
         type: tx.type,
@@ -129,7 +129,7 @@ export class TransactionService {
   static async getTransactionById(
     userId: string,
     transactionId: string
-  ): Promise<Transaction | null> {
+  ): Promise<ITransaction | null> {
     const transaction = await prisma.transaction.findFirst({
       where: {
         id: transactionId,
@@ -172,8 +172,8 @@ export class TransactionService {
    */
   static async createTransaction(
     userId: string,
-    input: CreateTransactionInput
-  ): Promise<Transaction> {
+    input: ICreateTransactionInput
+  ): Promise<ITransaction> {
     const validated = CreateTransactionInputSchema.parse(input);
 
     // Verify tags belong to user
@@ -242,11 +242,11 @@ export class TransactionService {
    */
   static async bulkCreateTransactions(
     userId: string,
-    input: BulkCreateTransactionInput
-  ): Promise<BulkCreateTransactionResponse> {
+    input: IBulkCreateTransactionInput
+  ): Promise<IBulkCreateTransactionResponse> {
     const validated = BulkCreateTransactionInputSchema.parse(input);
 
-    const created: Transaction[] = [];
+    const created: ITransaction[] = [];
     const errors: Array<{ index: number; message: string }> = [];
 
     for (let index = 0; index < validated.length; index++) {
@@ -343,8 +343,8 @@ export class TransactionService {
   static async updateTransaction(
     userId: string,
     transactionId: string,
-    input: UpdateTransactionInput
-  ): Promise<Transaction> {
+    input: IUpdateTransactionInput
+  ): Promise<ITransaction> {
     // Verify transaction belongs to user
     const existing = await this.getTransactionById(userId, transactionId);
     if (!existing) {
@@ -445,7 +445,7 @@ export class TransactionService {
     userId: string,
     transactionId: string,
     tagId: string
-  ): Promise<Transaction> {
+  ): Promise<ITransaction> {
     // Verify transaction belongs to user
     const transaction = await prisma.transaction.findFirst({
       where: {
@@ -512,7 +512,7 @@ export class TransactionService {
     userId: string,
     transactionId: string,
     tagId: string
-  ): Promise<Transaction> {
+  ): Promise<ITransaction> {
     // Verify transaction belongs to user
     const transaction = await prisma.transaction.findFirst({
       where: {

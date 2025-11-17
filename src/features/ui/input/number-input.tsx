@@ -1,14 +1,14 @@
 "use client";
 
-import { Input, InputProps } from "./input";
+import { Input, IInputProps } from "./input";
 
-export type NumberInputProps = Omit<InputProps, "type"> & {
+export type INumberInputProps = Omit<IInputProps, "type"> & {
   min?: number;
   max?: number;
   step?: number | "any";
 };
 
-export function NumberInput({ min, max, step, ...props }: NumberInputProps) {
+export function NumberInput({ min, max, step, ...props }: INumberInputProps) {
   return (
     <Input
       type="number"

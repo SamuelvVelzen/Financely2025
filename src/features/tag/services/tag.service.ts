@@ -4,12 +4,12 @@ import {
   TagSchema,
   TagsQuerySchema,
   UpdateTagInputSchema,
-  type BulkCreateTagInput,
-  type BulkCreateTagResponse,
-  type CreateTagInput,
-  type Tag,
-  type TagsQuery,
-  type UpdateTagInput,
+  type IBulkCreateTagInput,
+  type IBulkCreateTagResponse,
+  type ICreateTagInput,
+  type ITag,
+  type ITagsQuery,
+  type IUpdateTagInput,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/util/prisma";
 
@@ -23,8 +23,8 @@ export class TagService {
    */
   static async listTags(
     userId: string,
-    query: TagsQuery
-  ): Promise<{ data: Tag[] }> {
+    query: ITagsQuery
+  ): Promise<{ data: ITag[] }> {
     const validated = TagsQuerySchema.parse(query);
 
     const tags = await prisma.tag.findMany({
@@ -58,7 +58,7 @@ export class TagService {
   /**
    * Get tag by ID (user-scoped)
    */
-  static async getTagById(userId: string, tagId: string): Promise<Tag | null> {
+  static async getTagById(userId: string, tagId: string): Promise<ITag | null> {
     const tag = await prisma.tag.findFirst({
       where: {
         id: tagId,
@@ -84,7 +84,10 @@ export class TagService {
    * Create a new tag
    * Enforces unique name per user
    */
-  static async createTag(userId: string, input: CreateTagInput): Promise<Tag> {
+  static async createTag(
+    userId: string,
+    input: ICreateTagInput
+  ): Promise<ITag> {
     const validated = CreateTagInputSchema.parse(input);
 
     // Check for duplicate name
@@ -126,8 +129,8 @@ export class TagService {
   static async updateTag(
     userId: string,
     tagId: string,
-    input: UpdateTagInput
-  ): Promise<Tag> {
+    input: IUpdateTagInput
+  ): Promise<ITag> {
     // Verify tag belongs to user
     const existing = await this.getTagById(userId, tagId);
     if (!existing) {
@@ -195,11 +198,11 @@ export class TagService {
    */
   static async bulkCreateTags(
     userId: string,
-    input: BulkCreateTagInput
-  ): Promise<BulkCreateTagResponse> {
+    input: IBulkCreateTagInput
+  ): Promise<IBulkCreateTagResponse> {
     const validated = BulkCreateTagInputSchema.parse(input);
 
-    const created: Tag[] = [];
+    const created: ITag[] = [];
     const errors: Array<{ index: number; message: string }> = [];
 
     // Track names seen in this batch to detect duplicates within the batch
