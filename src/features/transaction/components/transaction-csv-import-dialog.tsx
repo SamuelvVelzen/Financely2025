@@ -61,7 +61,7 @@ export function TransactionCsvImportDialog({
   const [parseResponse, setParseResponse] = useState<any>(null);
   const [typeDetectionStrategy, setTypeDetectionStrategy] =
     useState<string>("sign-based");
-  const [defaultCurrency, setDefaultCurrency] = useState<ICurrency>("USD");
+  const [defaultCurrency, setDefaultCurrency] = useState<ICurrency>("EUR");
 
   const uploadMutation = useUploadCsvFile();
   const mappingQuery = useGetCsvMapping(
@@ -746,6 +746,11 @@ export function TransactionCsvImportDialog({
     }
   };
 
+  const resetDialog = () => {
+    setStep("upload");
+    setFile(null);
+  };
+
   return (
     <Dialog
       title={getStepTitle()}
@@ -756,6 +761,7 @@ export function TransactionCsvImportDialog({
       variant="modal"
       size={getSize()}
       dismissible={false}
+      onClose={resetDialog}
     />
   );
 }
