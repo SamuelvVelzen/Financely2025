@@ -4,17 +4,27 @@ import {
   useDeleteIncome,
   useIncomes,
 } from "@/features/transaction/hooks/useTransactions";
+import { useTags } from "@/features/tag/hooks/useTags";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
+import { Datepicker, type DateFilter } from "@/features/ui/datepicker/datepicker";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { RangeInput, type PriceRange } from "@/features/ui/input/range-input";
+import { SearchInput } from "@/features/ui/input/search-input";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Title } from "@/features/ui/typography/title";
+import {
+  getCurrentMonthStart,
+  getCurrentMonthEnd,
+  formatMonthYear,
+} from "@/util/date/date-helpers";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   HiArrowDownTray,
   HiArrowTrendingUp,
@@ -25,8 +35,35 @@ import {
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
 
 export function IncomeOverview() {
-  const { data, isLoading, error } = useIncomes();
-  const incomes = data?.data ?? [];
+  // Filter state
+  const [dateFilter, setDateFilter] = useState<DateFilter>({
+    type: "allTime",
+    from: undefined,
+    to: undefined,
+  });
+  const [priceFilter, setPriceFilter] = useState<PriceRange>({
+    min: undefined,
+    max: undefined,
+  });
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch incomes with date filter (backend filtering)
+  // Only pass date filters if not "allTime"
+  const { data, isLoading, error } = useIncomes(
+    dateFilter.type !== "allTime" && (dateFilter.from || dateFilter.to)
+      ? ({
+          from: dateFilter.from,
+          to: dateFilter.to,
+        } as Parameters<typeof useIncomes>[0])
+      : undefined
+  );
+  const allIncomes = data?.data ?? [];
+
+  // Fetch tags for tag filter
+  const { data: tagsData } = useTags();
+  const tags = tagsData?.data ?? [];
+
   const { mutate: deleteIncome } = useDeleteIncome();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isIncomeDialogOpen, setIsIncomeDialogOpen] = useState(false);
@@ -34,6 +71,74 @@ export function IncomeOverview() {
   const [selectedIncome, setSelectedIncome] = useState<
     ITransaction | undefined
   >(undefined);
+
+  // Client-side filtering for price, tags, and search
+  const incomes = useMemo(() => {
+    return allIncomes.filter((income) => {
+      // Price filter
+      if (priceFilter.min !== undefined || priceFilter.max !== undefined) {
+        const amount = parseFloat(income.amount);
+        if (priceFilter.min !== undefined && amount < priceFilter.min) {
+          return false;
+        }
+        if (priceFilter.max !== undefined && amount > priceFilter.max) {
+          return false;
+        }
+      }
+
+      // Tag filter
+      if (tagFilter.length > 0) {
+        const incomeTagIds = income.tags.map((tag) => tag.id);
+        const hasMatchingTag = tagFilter.some((tagId) =>
+          incomeTagIds.includes(tagId)
+        );
+        if (!hasMatchingTag) {
+          return false;
+        }
+      }
+
+      // Search filter
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const nameMatch = income.name.toLowerCase().includes(query);
+        const descriptionMatch = income.description
+          ?.toLowerCase()
+          .includes(query);
+        const tagMatch = income.tags.some((tag) =>
+          tag.name.toLowerCase().includes(query)
+        );
+        const amountMatch = income.amount.includes(query);
+
+        if (!nameMatch && !descriptionMatch && !tagMatch && !amountMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allIncomes, priceFilter, tagFilter, searchQuery]);
+
+  // Search highlight function
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
+
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    const parts = text.split(regex);
+
+    return (
+      <>
+        {parts.map((part, index) =>
+          regex.test(part) ? (
+            <mark key={index} className="bg-primary/20 text-primary">
+              {part}
+            </mark>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
+  };
 
   const handleCreateIncome = () => {
     setSelectedIncome(undefined);
@@ -46,7 +151,7 @@ export function IncomeOverview() {
   };
 
   const handleDeleteClick = (incomeId: string) => {
-    setSelectedIncome(incomes.find((income) => income.id === incomeId));
+    setSelectedIncome(allIncomes.find((income) => income.id === incomeId));
     setIsDeleteDialogOpen(true);
   };
 
@@ -77,14 +182,43 @@ export function IncomeOverview() {
     });
   };
 
+  // Tag options for SelectDropdown
+  const tagOptions = tags.map((tag) => ({
+    value: tag.id,
+    label: tag.name,
+  }));
+
+  // Get month display text from date filter
+  const getMonthDisplay = (): string => {
+    if (dateFilter.type === "allTime") {
+      return "All Time";
+    }
+    if (dateFilter.type === "thisMonth") {
+      return formatMonthYear(new Date());
+    }
+    if (dateFilter.type === "lastMonth") {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      return formatMonthYear(lastMonth);
+    }
+    if (dateFilter.type === "custom" && dateFilter.from) {
+      return formatMonthYear(dateFilter.from);
+    }
+    return formatMonthYear(new Date());
+  };
+
   return (
     <>
-      <Container className="mb-4">
-        <Title className="flex items-center justify-between">
-          <div className="flex gap-2">
+      <Container className="sticky top-0 z-10 bg-surface mb-4">
+        <Title className="flex items-center justify-between mb-4">
+          <div className="flex gap-2 items-center">
             <HiArrowTrendingUp />
-
-            <span>Incomes</span>
+            <div className="flex items-center gap-2">
+              <span>Incomes</span>
+              <span className="text-sm text-text-muted font-normal">
+                ({getMonthDisplay()})
+              </span>
+            </div>
           </div>
 
           <Dropdown>
@@ -100,6 +234,33 @@ export function IncomeOverview() {
             </DropdownItem>
           </Dropdown>
         </Title>
+
+        <div className="flex gap-3 items-end pb-4 overflow-x-auto">
+          <div className="min-w-[200px] shrink-0">
+            <SearchInput value={searchQuery} onChange={setSearchQuery} />
+          </div>
+          <div className="w-[200px] shrink-0">
+            <Datepicker value={dateFilter} onChange={setDateFilter} />
+          </div>
+          <div className="w-[400px] shrink-0">
+            <RangeInput
+              value={priceFilter}
+              onChange={setPriceFilter}
+              minLabel="Min"
+              maxLabel="Max"
+              placeholder={{ min: "Min", max: "Max" }}
+            />
+          </div>
+          <div className="w-[200px] shrink-0">
+            <SelectDropdown
+              options={tagOptions}
+              value={tagFilter}
+              onChange={(value) => setTagFilter(value as string[])}
+              multiple={true}
+              placeholder="Filter by tags"
+            />
+          </div>
+        </div>
       </Container>
 
       {isLoading && (
@@ -116,7 +277,7 @@ export function IncomeOverview() {
         </Container>
       )}
 
-      {!isLoading && !error && incomes.length === 0 && (
+      {!isLoading && !error && incomes.length === 0 && allIncomes.length === 0 && (
         <EmptyContainer
           icon={<HiPlus />}
           emptyText={
@@ -128,6 +289,13 @@ export function IncomeOverview() {
           }}></EmptyContainer>
       )}
 
+      {!isLoading && !error && incomes.length === 0 && allIncomes.length > 0 && (
+        <EmptyContainer
+          icon={<HiPlus />}
+          emptyText={"No incomes match your filters. Try adjusting your search criteria."}
+        />
+      )}
+
       {!isLoading && !error && incomes.length > 0 && (
         <Container>
           <List data={incomes}>
@@ -135,16 +303,27 @@ export function IncomeOverview() {
               <ListItem className="group">
                 <div className="flex flex-col gap-1 flex-1">
                   <div className="flex items-center gap-3">
-                    <span className="text-text font-medium">{income.name}</span>
+                    <span className="text-text font-medium">
+                      {searchQuery
+                        ? highlightText(income.name, searchQuery)
+                        : income.name}
+                    </span>
                     <span className="text-text font-semibold">
-                      {formatCurrency(income.amount, income.currency)}
+                      {searchQuery
+                        ? highlightText(
+                            formatCurrency(income.amount, income.currency),
+                            searchQuery
+                          )
+                        : formatCurrency(income.amount, income.currency)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-text-muted">
                     <span>{formatDate(income.occurredAt)}</span>
                     {income.description && (
                       <span className="text-text-muted">
-                        {income.description}
+                        {searchQuery
+                          ? highlightText(income.description, searchQuery)
+                          : income.description}
                       </span>
                     )}
                     {income.tags.length > 0 && (
@@ -153,7 +332,9 @@ export function IncomeOverview() {
                           <span
                             key={tag.id}
                             className="px-2 py-0.5 bg-surface-hover rounded text-xs">
-                            {tag.name}
+                            {searchQuery
+                              ? highlightText(tag.name, searchQuery)
+                              : tag.name}
                           </span>
                         ))}
                       </div>
