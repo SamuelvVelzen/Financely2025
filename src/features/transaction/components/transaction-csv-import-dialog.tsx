@@ -235,21 +235,6 @@ export function TransactionCsvImportDialog({
     }
   };
 
-  const getStepTitle = () => {
-    switch (step) {
-      case "upload":
-        return "Upload CSV File";
-      case "mapping":
-        return "Map Fields";
-      case "review":
-        return "Review Transactions";
-      case "confirm":
-        return "Confirm Import";
-      default:
-        return "Import CSV";
-    }
-  };
-
   const renderUploadStep = () => (
     <div className="space-y-4">
       <div>
@@ -631,135 +616,111 @@ export function TransactionCsvImportDialog({
     );
   };
 
-  const renderStepContent = () => {
-    switch (step) {
-      case "upload":
-        return renderUploadStep();
-      case "mapping":
-        return renderMappingStep();
-      case "review":
-        return renderReviewStep();
-      case "confirm":
-        return renderConfirmStep();
-      default:
-        return null;
-    }
-  };
-
-  const getFooterButtons = () => {
-    const buttons: IDialogProps["footerButtons"] = [];
-
-    if (step !== "upload") {
-      buttons.push({
-        clicked: () => {
-          if (step === "mapping") {
-            setStep("upload");
-          } else if (step === "review") {
-            setStep("mapping");
-          } else if (step === "confirm") {
-            setStep("review");
-          }
-        },
-        className:
-          "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors",
-        buttonContent: "Back",
-      });
-    }
-
-    if (step === "upload") {
-      buttons.push({
-        clicked: () => {
-          if (file) {
-            setStep("mapping");
-          }
-        },
-        disabled: !file,
-        className:
-          "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors",
-        buttonContent: "Next",
-      });
-    }
-
-    if (step === "mapping") {
-      buttons.push({
-        clicked: () => {
-          if (!validateMutation.isPending) {
-            handleValidateMapping();
-          }
-        },
-        className: cn(
-          "px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors",
-          validateMutation.isPending && "opacity-50 cursor-not-allowed"
-        ),
-        buttonContent: validateMutation.isPending
-          ? "Validating..."
-          : "Continue",
-      });
-    }
-
-    if (step === "review") {
-      buttons.push({
-        clicked: () => {
-          if (selectedRows.size > 0) {
-            setStep("confirm");
-          }
-        },
-        className: cn(
-          "px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors",
-          selectedRows.size === 0 && "opacity-50 cursor-not-allowed"
-        ),
-        buttonContent: "Continue to Import",
-      });
-    }
-
-    if (step === "confirm") {
-      buttons.push({
-        clicked: () => {
-          console.log(importMutation.isPending, selectedRows.size);
-          if (!importMutation.isPending && selectedRows.size > 0) {
-            handleConfirmImport();
-          }
-        },
-        className: cn(
-          "px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors",
-          (importMutation.isPending || selectedRows.size === 0) &&
-            "opacity-50 cursor-not-allowed"
-        ),
-        buttonContent: importMutation.isPending
-          ? "Importing..."
-          : "Confirm Import",
-      });
-    }
-
-    return buttons;
-  };
-
-  const getSize = () => {
-    if (step === "upload") {
-      return "lg";
-    } else if (step === "mapping") {
-      return "full";
-    } else if (step === "review") {
-      return "full";
-    } else if (step === "confirm") {
-      return "lg";
-    }
-  };
-
   const resetDialog = () => {
     setStep("upload");
     setFile(null);
   };
 
+  const StepOptions: {
+    [key in IStep]: {
+      content: React.ReactNode;
+      title: string;
+      size: IDialogProps["size"];
+      footerButtons: IDialogProps["footerButtons"];
+    };
+  } = {
+    upload: {
+      title: "Upload CSV File",
+      size: "lg",
+      content: renderUploadStep(),
+      footerButtons: [
+        {
+          clicked: () => setStep("mapping"),
+          disabled: !file,
+          buttonContent: "Next",
+        },
+      ],
+    },
+    mapping: {
+      title: "Map Fields",
+      size: "full",
+      content: renderMappingStep(),
+      footerButtons: [
+        {
+          clicked: () => setStep("upload"),
+          buttonContent: "Back",
+        },
+        {
+          clicked: () => {
+            if (!validateMutation.isPending) {
+              handleValidateMapping();
+            }
+          },
+          variant: "primary",
+          disabled: validateMutation.isPending,
+          buttonContent: validateMutation.isPending
+            ? "Validating..."
+            : "Continue",
+        },
+      ],
+    },
+    review: {
+      title: "Review Transactions",
+      size: "full",
+      content: renderReviewStep(),
+      footerButtons: [
+        {
+          clicked: () => setStep("mapping"),
+          buttonContent: "Back",
+        },
+        {
+          clicked: () => {
+            if (selectedRows.size > 0) {
+              setStep("confirm");
+            }
+          },
+          variant: "primary",
+          disabled: selectedRows.size === 0,
+          buttonContent: "Continue to Import",
+        },
+      ],
+    },
+    confirm: {
+      title: "Confirm Import",
+      size: "lg",
+      content: renderConfirmStep(),
+      footerButtons: [
+        {
+          clicked: () => setStep("review"),
+          buttonContent: "Back",
+        },
+        {
+          clicked: () => {
+            if (!importMutation.isPending && selectedRows.size > 0) {
+              handleConfirmImport();
+            }
+          },
+          variant: "primary",
+          disabled: importMutation.isPending || selectedRows.size === 0,
+          buttonContent: importMutation.isPending
+            ? "Importing..."
+            : "Confirm Import",
+        },
+      ],
+    },
+  };
+
+  const options = StepOptions[step];
+
   return (
     <Dialog
-      title={getStepTitle()}
-      content={renderStepContent()}
-      footerButtons={getFooterButtons()}
+      title={options.title}
+      content={options.content}
+      footerButtons={options.footerButtons}
       open={open}
       onOpenChange={onOpenChange}
       variant="modal"
-      size={getSize()}
+      size={options.size}
       dismissible={false}
       onClose={resetDialog}
     />

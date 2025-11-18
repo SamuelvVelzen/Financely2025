@@ -21,7 +21,7 @@ export function IconButton({
 
   return (
     <Button
-      className={cn(className)}
+      className={cn("rounded-full", className)}
       clicked={clicked}
       buttonContent={iconButtonContent}
     />

@@ -9,7 +9,8 @@ export type IButtonVariant =
   | "danger"
   | "info"
   | "warning"
-  | "success";
+  | "success"
+  | "primary";
 
 export type IButtonProps = {
   clicked: () => void;
@@ -27,16 +28,16 @@ export function Button({
   disabled = false,
   variant = "default",
 }: IButtonProps) {
-  const variantClasses = {
+  const variantClasses: { [key in IButtonVariant]: string } = {
     default: "hover:bg-surface-hover border-border",
     danger: "bg-danger hover:bg-danger-hover text-white border-danger",
     info: "bg-info hover:bg-info-hover text-white border-info",
     warning: "bg-warning hover:bg-warning-hover text-white border-warning",
     success: "bg-success hover:bg-success-hover text-white border-success",
+    primary: "bg-primary hover:bg-primary-hover text-white border-primary",
   };
 
-  const baseClasses = "p-2 border rounded-full cursor-pointer";
-
+  const baseClasses = "p-2 border rounded-2xl cursor-pointer";
   const disabledClasses =
     disabled && "opacity-50 cursor-not-allowed pointer-events-none";
 
