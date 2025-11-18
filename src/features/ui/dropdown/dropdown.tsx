@@ -9,6 +9,7 @@ import {
 } from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import { Button } from "../button/button";
+import { useDropdownPlacement } from "./hooks/use-dropdown-placement";
 
 type IDropdownProps = {
   dropdownSelector?: ReactNode;
@@ -23,13 +24,6 @@ export function Dropdown({
   onOpenChange,
 }: IDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState<{
-    top: number;
-    left: number;
-    width: number;
-    maxHeight: number;
-    placement: "bottom" | "top" | "bottom-right" | "top-right";
-  } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownContentRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -50,145 +44,12 @@ export function Dropdown({
     setDropdownState(!dropdownIsOpen);
   };
 
-  // Calculate dropdown position when opening with smart placement
-  useEffect(() => {
-    if (dropdownIsOpen && triggerRef.current) {
-      const updatePosition = () => {
-        if (!triggerRef.current) return;
-
-        const rect = triggerRef.current.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        const spacing = 4; // 4px spacing from trigger
-
-        // Estimate dropdown size (will be measured after render)
-        const estimatedDropdownHeight = 200; // Conservative estimate
-        const estimatedDropdownWidth = Math.max(rect.width, 200);
-
-        // Calculate preferred position (below, aligned left)
-        let top = rect.bottom + spacing;
-        let left = rect.left;
-        let placement: "bottom" | "top" | "bottom-right" | "top-right" =
-          "bottom";
-
-        // Check if dropdown would go off bottom of screen
-        if (top + estimatedDropdownHeight > viewportHeight) {
-          // Try placing above
-          const spaceAbove = rect.top;
-          if (spaceAbove > estimatedDropdownHeight) {
-            top = rect.top - estimatedDropdownHeight - spacing;
-            placement = "top";
-          } else {
-            // Not enough space above, keep below but adjust
-            top = Math.max(
-              spacing,
-              viewportHeight - estimatedDropdownHeight - spacing
-            );
-          }
-        }
-
-        // Check if dropdown would go off right edge
-        if (left + estimatedDropdownWidth > viewportWidth) {
-          // Align to right edge of trigger
-          left = rect.right - estimatedDropdownWidth;
-          placement = placement === "top" ? "top-right" : "bottom-right";
-
-          // If still off screen, align to viewport right
-          if (left < spacing) {
-            left = viewportWidth - estimatedDropdownWidth - spacing;
-          }
-        }
-
-        // Ensure dropdown doesn't go off left edge
-        if (left < spacing) {
-          left = spacing;
-        }
-
-        const maxHeight =
-          placement === "top" ? top - 8 : window.innerHeight - top - 8;
-
-        setDropdownPosition({
-          top,
-          left,
-          width: rect.width,
-          maxHeight,
-          placement,
-        });
-      };
-
-      // Initial position calculation
-      updatePosition();
-
-      // Fine-tune position after dropdown is rendered and measured
-      const fineTunePosition = () => {
-        if (!dropdownContentRef.current || !triggerRef.current) return;
-
-        const rect = triggerRef.current.getBoundingClientRect();
-        const dropdownRect = dropdownContentRef.current.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        const spacing = 4;
-
-        let top = rect.bottom + spacing;
-        let left = rect.left;
-        let placement: "bottom" | "top" | "bottom-right" | "top-right" =
-          "bottom";
-
-        // Check if dropdown would go off bottom of screen
-        if (top + dropdownRect.height > viewportHeight) {
-          const spaceAbove = rect.top;
-          if (spaceAbove > dropdownRect.height) {
-            top = rect.top - dropdownRect.height - spacing;
-            placement = "top";
-          } else {
-            top = Math.max(
-              spacing,
-              viewportHeight - dropdownRect.height - spacing
-            );
-          }
-        }
-
-        // Check if dropdown would go off right edge
-        if (left + dropdownRect.width > viewportWidth) {
-          left = rect.right - dropdownRect.width;
-          placement = placement === "top" ? "top-right" : "bottom-right";
-          if (left < spacing) {
-            left = viewportWidth - dropdownRect.width - spacing;
-          }
-        }
-
-        if (left < spacing) {
-          left = spacing;
-        }
-
-        const maxHeight =
-          placement === "top" ? top - 8 : window.innerHeight - top - 8;
-
-        setDropdownPosition({
-          top,
-          left,
-          width: rect.width,
-          maxHeight,
-          placement,
-        });
-      };
-
-      // Fine-tune after a short delay to allow rendering
-      const timeoutId = setTimeout(fineTunePosition, 10);
-
-      // Update position on scroll and resize
-      window.addEventListener("scroll", updatePosition, true);
-      window.addEventListener("resize", updatePosition);
-
-      return () => {
-        clearTimeout(timeoutId);
-        window.removeEventListener("scroll", updatePosition, true);
-        window.removeEventListener("resize", updatePosition);
-      };
-    } else {
-      setDropdownPosition(null);
-    }
-  }, [dropdownIsOpen]);
+  // Calculate dropdown position using the placement hook
+  const dropdownPosition = useDropdownPlacement({
+    isOpen: dropdownIsOpen,
+    triggerRef: triggerRef as React.RefObject<HTMLElement>,
+    contentRef: dropdownContentRef as React.RefObject<HTMLElement>,
+  });
 
   const DropdownSelector = dropdownSelector ? (
     <div
