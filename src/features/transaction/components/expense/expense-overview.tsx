@@ -13,6 +13,7 @@ import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
+import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { useState } from "react";
 import {
   HiArrowDownTray,
@@ -65,17 +66,6 @@ export function ExpenseOverview() {
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
     setSelectedExpense(undefined);
-  };
-
-  // Format amount with currency
-  const formatAmount = (amount: string, currency: string) => {
-    const numAmount = parseFloat(amount);
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(numAmount);
   };
 
   // Format date
@@ -149,7 +139,7 @@ export function ExpenseOverview() {
                       {expense.name}
                     </span>
                     <span className="text-text font-semibold">
-                      {formatAmount(expense.amount, expense.currency)}
+                      {formatCurrency(expense.amount, expense.currency)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-text-muted">

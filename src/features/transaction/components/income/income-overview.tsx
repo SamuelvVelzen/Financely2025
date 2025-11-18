@@ -13,6 +13,7 @@ import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
+import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { useState } from "react";
 import {
   HiArrowDownTray,
@@ -63,17 +64,6 @@ export function IncomeOverview() {
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
     setSelectedIncome(undefined);
-  };
-
-  // Format amount with currency
-  const formatAmount = (amount: string, currency: string) => {
-    const numAmount = parseFloat(amount);
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(numAmount);
   };
 
   // Format date
@@ -147,7 +137,7 @@ export function IncomeOverview() {
                   <div className="flex items-center gap-3">
                     <span className="text-text font-medium">{income.name}</span>
                     <span className="text-text font-semibold">
-                      {formatAmount(income.amount, income.currency)}
+                      {formatCurrency(income.amount, income.currency)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-text-muted">
