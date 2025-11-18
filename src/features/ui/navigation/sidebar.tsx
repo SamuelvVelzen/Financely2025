@@ -112,7 +112,7 @@ export function Sidebar() {
             label="Logout"
             icon={HiArrowRightOnRectangle}
             isAction={true}
-            className="text-danger"
+            className="text-danger hover:text-danger-hover"
           />
         </div>
       </div>
