@@ -8,11 +8,11 @@ import { useTags } from "@/features/tag/hooks/useTags";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
-import { Datepicker, type DateFilter } from "@/features/ui/datepicker/datepicker";
+import { Datepicker, type IDateFilter } from "@/features/ui/datepicker/datepicker";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { RangeInput, type PriceRange } from "@/features/ui/input/range-input";
+import { RangeInput, type IPriceRange } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
@@ -36,12 +36,12 @@ import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
 
 export function IncomeOverview() {
   // Filter state
-  const [dateFilter, setDateFilter] = useState<DateFilter>({
+  const [dateFilter, setDateFilter] = useState<IDateFilter>({
     type: "allTime",
     from: undefined,
     to: undefined,
   });
-  const [priceFilter, setPriceFilter] = useState<PriceRange>({
+  const [priceFilter, setPriceFilter] = useState<IPriceRange>({
     min: undefined,
     max: undefined,
   });

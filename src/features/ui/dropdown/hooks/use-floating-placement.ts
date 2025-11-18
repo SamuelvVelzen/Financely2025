@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 
-export type PlacementSide = "top" | "bottom" | "left" | "right";
-export type PlacementAlignment = "start" | "center" | "end";
+export type IPlacementSide = "top" | "bottom" | "left" | "right";
+export type IPlacementAlignment = "start" | "center" | "end";
 
-export type FloatingPlacement = {
+export type IFloatingPlacement = {
   top: number;
   left: number;
-  side: PlacementSide;
-  alignment: PlacementAlignment;
+  side: IPlacementSide;
+  alignment: IPlacementAlignment;
   maxWidth?: number;
   maxHeight?: number;
 } | null;
 
-export type PlacementStrategy =
+export type IPlacementStrategy =
   | "auto" // Automatically choose best side
   | "prefer-top"
   | "prefer-bottom"
@@ -20,14 +20,14 @@ export type PlacementStrategy =
   | "prefer-left"
   | "prefer-right";
 
-type UseFloatingPlacementOptions = {
+type IUseFloatingPlacementOptions = {
   isOpen: boolean;
   triggerRef: React.RefObject<HTMLElement>;
   contentRef: React.RefObject<HTMLElement>;
   spacing?: number;
-  preferredSide?: PlacementSide;
-  strategy?: PlacementStrategy;
-  align?: PlacementAlignment;
+  preferredSide?: IPlacementSide;
+  strategy?: IPlacementStrategy;
+  align?: IPlacementAlignment;
   matchWidth?: boolean; // Match content width to trigger width (for dropdowns)
   estimatedWidth?: number;
   estimatedHeight?: number;
@@ -36,19 +36,19 @@ type UseFloatingPlacementOptions = {
 
 /**
  * Generic hook for calculating smart floating element placement
- * 
+ *
  * Works for dropdowns, tooltips, popovers, and other floating UI elements.
- * 
+ *
  * Features:
  * - Automatically positions element to stay within viewport
  * - Flips to opposite side based on available space
  * - Aligns content relative to trigger (start/center/end)
  * - Updates position on scroll and resize
  * - Configurable placement strategy and preferences
- * 
+ *
  * @param options - Configuration options
  * @returns Calculated floating position or null
- * 
+ *
  * @example
  * ```tsx
  * // For a dropdown (prefers bottom, matches width)
@@ -59,7 +59,7 @@ type UseFloatingPlacementOptions = {
  *   preferredSide: "bottom",
  *   matchWidth: true,
  * });
- * 
+ *
  * // For a tooltip (prefers top, centers on trigger)
  * const position = useFloatingPlacement({
  *   isOpen,
@@ -83,8 +83,8 @@ export function useFloatingPlacement({
   estimatedWidth,
   estimatedHeight = 200,
   offset = { x: 0, y: 0 },
-}: UseFloatingPlacementOptions): FloatingPlacement {
-  const [position, setPosition] = useState<FloatingPlacement>(null);
+}: IUseFloatingPlacementOptions): IFloatingPlacement {
+  const [position, setPosition] = useState<IFloatingPlacement>(null);
 
   useEffect(() => {
     if (!isOpen || !triggerRef.current) {
@@ -95,16 +95,17 @@ export function useFloatingPlacement({
     const calculatePosition = (
       triggerRect: DOMRect,
       contentRect?: DOMRect
-    ): FloatingPlacement => {
+    ): IFloatingPlacement => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
       // Use actual content size if available, otherwise use estimates
       const contentHeight = contentRect?.height ?? estimatedHeight;
-      const contentWidth = contentRect?.width ?? estimatedWidth ?? triggerRect.width;
+      const contentWidth =
+        contentRect?.width ?? estimatedWidth ?? triggerRect.width;
 
       // Determine which side to use based on strategy
-      const determineSide = (): PlacementSide => {
+      const determineSide = (): IPlacementSide => {
         const spaceMap = {
           top: triggerRect.top,
           bottom: viewportHeight - triggerRect.bottom,
@@ -112,27 +113,26 @@ export function useFloatingPlacement({
           right: viewportWidth - triggerRect.right,
         };
 
-        const checkSide = (side: PlacementSide): boolean => {
-          const requiredSpace = side === "top" || side === "bottom" 
-            ? contentHeight 
-            : contentWidth;
+        const checkSide = (side: IPlacementSide): boolean => {
+          const requiredSpace =
+            side === "top" || side === "bottom" ? contentHeight : contentWidth;
           return spaceMap[side] >= requiredSpace + spacing;
         };
 
         if (strategy === "auto") {
           // Calculate space on each side
           const spaces = [
-            { side: "top" as PlacementSide, space: spaceMap.top },
-            { side: "bottom" as PlacementSide, space: spaceMap.bottom },
-            { side: "left" as PlacementSide, space: spaceMap.left },
-            { side: "right" as PlacementSide, space: spaceMap.right },
+            { side: "top" as IPlacementSide, space: spaceMap.top },
+            { side: "bottom" as IPlacementSide, space: spaceMap.bottom },
+            { side: "left" as IPlacementSide, space: spaceMap.left },
+            { side: "right" as IPlacementSide, space: spaceMap.right },
           ];
 
           // Sort by space and prefer vertical (top/bottom) for most use cases
           spaces.sort((a, b) => {
             const aIsVertical = a.side === "top" || a.side === "bottom";
             const bIsVertical = b.side === "top" || b.side === "bottom";
-            
+
             // Prefer vertical if space is similar
             if (Math.abs(a.space - b.space) < 50) {
               return aIsVertical ? -1 : 1;
@@ -162,16 +162,17 @@ export function useFloatingPlacement({
 
         // Use preferred side, but flip if not enough space
         const preferred = preferredSide;
-        const requiredSpace = preferred === "top" || preferred === "bottom" 
-          ? contentHeight 
-          : contentWidth;
+        const requiredSpace =
+          preferred === "top" || preferred === "bottom"
+            ? contentHeight
+            : contentWidth;
 
         if (spaceMap[preferred] >= requiredSpace + spacing) {
           return preferred;
         }
 
         // Flip to opposite side if preferred doesn't fit
-        const opposites: Record<PlacementSide, PlacementSide> = {
+        const opposites: Record<IPlacementSide, IPlacementSide> = {
           top: "bottom",
           bottom: "top",
           left: "right",
@@ -184,8 +185,9 @@ export function useFloatingPlacement({
         }
 
         // If neither fits, use the side with most space
-        const bestSide = Object.entries(spaceMap).reduce((best, [side, space]) => 
-          space > best.space ? { side: side as PlacementSide, space } : best,
+        const bestSide = Object.entries(spaceMap).reduce(
+          (best, [side, space]) =>
+            space > best.space ? { side: side as IPlacementSide, space } : best,
           { side: preferred, space: spaceMap[preferred] }
         );
 
@@ -195,14 +197,14 @@ export function useFloatingPlacement({
       const side = determineSide();
       let top = 0;
       let left = 0;
-      let alignment: PlacementAlignment = align;
+      let alignment: IPlacementAlignment = align;
 
       // Calculate position based on side
       switch (side) {
         case "top": {
           top = triggerRect.top - contentHeight - spacing;
           const triggerCenterX = triggerRect.left + triggerRect.width / 2;
-          
+
           if (align === "center") {
             left = triggerCenterX - contentWidth / 2;
             alignment = "center";
@@ -218,7 +220,7 @@ export function useFloatingPlacement({
         case "bottom": {
           top = triggerRect.bottom + spacing;
           const triggerCenterX = triggerRect.left + triggerRect.width / 2;
-          
+
           if (align === "center") {
             left = triggerCenterX - contentWidth / 2;
             alignment = "center";
@@ -234,7 +236,7 @@ export function useFloatingPlacement({
         case "left": {
           left = triggerRect.left - contentWidth - spacing;
           const triggerCenterY = triggerRect.top + triggerRect.height / 2;
-          
+
           if (align === "center") {
             top = triggerCenterY - contentHeight / 2;
             alignment = "center";
@@ -250,7 +252,7 @@ export function useFloatingPlacement({
         case "right": {
           left = triggerRect.right + spacing;
           const triggerCenterY = triggerRect.top + triggerRect.height / 2;
-          
+
           if (align === "center") {
             top = triggerCenterY - contentHeight / 2;
             alignment = "center";
@@ -295,15 +297,15 @@ export function useFloatingPlacement({
         side === "top"
           ? triggerRect.top - spacing - 8
           : side === "bottom"
-          ? viewportHeight - top - 8
-          : viewportHeight - 16;
+            ? viewportHeight - top - 8
+            : viewportHeight - 16;
 
       const maxWidth =
         side === "left"
           ? triggerRect.left - spacing - 8
           : side === "right"
-          ? viewportWidth - left - 8
-          : viewportWidth - 16;
+            ? viewportWidth - left - 8
+            : viewportWidth - 16;
 
       return {
         top,
@@ -365,4 +367,3 @@ export function useFloatingPlacement({
 
   return position;
 }
-

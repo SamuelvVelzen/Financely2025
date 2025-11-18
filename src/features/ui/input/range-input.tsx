@@ -6,14 +6,14 @@ import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
 import { HiX } from "react-icons/hi";
 
-export type PriceRange = {
+export type IPriceRange = {
   min?: number;
   max?: number;
 };
 
 export type IRangeInputProps = IPropsWithClassName & {
-  value: PriceRange;
-  onChange: (range: PriceRange) => void;
+  value: IPriceRange;
+  onChange: (range: IPriceRange) => void;
   minLabel?: string;
   maxLabel?: string;
   placeholder?: {

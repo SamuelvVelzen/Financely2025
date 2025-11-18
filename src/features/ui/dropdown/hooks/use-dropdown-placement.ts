@@ -1,16 +1,20 @@
 import { useFloatingPlacement } from "./use-floating-placement";
 
-export type DropdownPlacement = "bottom" | "top" | "bottom-right" | "top-right";
+export type IDropdownPlacement =
+  | "bottom"
+  | "top"
+  | "bottom-right"
+  | "top-right";
 
-export type DropdownPosition = {
+export type IDropdownPosition = {
   top: number;
   left: number;
   width: number;
   maxHeight: number;
-  placement: DropdownPlacement;
+  placement: IDropdownPlacement;
 } | null;
 
-type UseDropdownPlacementOptions = {
+type IUseDropdownPlacementOptions = {
   isOpen: boolean;
   triggerRef: React.RefObject<HTMLElement>;
   contentRef: React.RefObject<HTMLElement>;
@@ -40,7 +44,7 @@ export function useDropdownPlacement({
   spacing = 4,
   estimatedHeight = 200,
   estimatedWidth,
-}: UseDropdownPlacementOptions): DropdownPosition {
+}: IUseDropdownPlacementOptions): IDropdownPosition {
   const floatingPosition = useFloatingPlacement({
     isOpen,
     triggerRef,
@@ -60,7 +64,7 @@ export function useDropdownPlacement({
 
   // Convert floating placement to dropdown position format
   const triggerRect = triggerRef.current.getBoundingClientRect();
-  const placement: DropdownPlacement =
+  const placement: IDropdownPlacement =
     floatingPosition.side === "top"
       ? floatingPosition.alignment === "end"
         ? "top-right"

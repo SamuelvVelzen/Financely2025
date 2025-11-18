@@ -14,17 +14,17 @@ import { HiCalendar, HiChevronDown } from "react-icons/hi";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 
-export type DateFilterType = "allTime" | "thisMonth" | "lastMonth" | "custom";
+export type IDateFilterType = "allTime" | "thisMonth" | "lastMonth" | "custom";
 
-export type DateFilter = {
-  type: DateFilterType;
+export type IDateFilter = {
+  type: IDateFilterType;
   from?: string;
   to?: string;
 };
 
 export type IDatepickerProps = IPropsWithClassName & {
-  value: DateFilter;
-  onChange: (filter: DateFilter) => void;
+  value: IDateFilter;
+  onChange: (filter: IDateFilter) => void;
 };
 
 export function Datepicker({
