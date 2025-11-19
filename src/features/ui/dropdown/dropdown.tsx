@@ -114,11 +114,11 @@ export function Dropdown({
       </div>
 
       {dropdownIsOpen && dropdownPosition && (
-        <div className="fixed z-20 flex">
+        <div className="fixed z-20 flex shadow-lg rounded-2xl">
           <div
             ref={dropdownContentRef}
             className={cn(
-              "bg-surface border border-border overflow-scroll text-base font-normal min-w-min shadow-lg",
+              "bg-surface border border-border overflow-scroll text-base font-normal min-w-min",
               showExpanded ? "rounded-l-2xl" : "rounded-2xl"
             )}
             style={{
@@ -132,7 +132,7 @@ export function Dropdown({
           {showExpanded && expandedContent && (
             <div
               ref={expandedContentRef}
-              className="bg-surface border-t border-r border-b border-l-0 border-border overflow-hidden rounded-r-2xl shadow-lg">
+              className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
               {expandedContent}
             </div>
           )}

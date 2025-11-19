@@ -127,6 +127,12 @@ export function Datepicker({
   };
 
   const handleCustomClick = () => {
+    // Set type to custom immediately when clicked, preserving existing dates if any
+    onChange({
+      type: "custom",
+      from: value.type === "custom" ? value.from : undefined,
+      to: value.type === "custom" ? value.to : undefined,
+    });
     setShowCalendar(true);
   };
 
