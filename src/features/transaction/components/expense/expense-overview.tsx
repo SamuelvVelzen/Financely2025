@@ -263,12 +263,12 @@ export function ExpenseOverview() {
               <div className="min-w-[200px] shrink-0">
                 <SearchInput name="searchQuery" />
               </div>
-              <div className="w-[200px] shrink-0">
-                <Datepicker
-                  value={dateFilter}
-                  onChange={setDateFilter}
-                />
-              </div>
+
+              <Datepicker
+                value={dateFilter}
+                onChange={setDateFilter}
+              />
+
               <div className="w-[400px] shrink-0">
                 <RangeInput
                   value={priceFilter}

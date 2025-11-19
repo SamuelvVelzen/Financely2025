@@ -2,17 +2,20 @@
 
 import { cn } from "@/util/cn";
 import {
-  formatMonthYear,
+  formatDateRange,
   getCurrentMonthEnd,
   getCurrentMonthStart,
   getLastMonthEnd,
   getLastMonthStart,
 } from "@/util/date/date-helpers";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
-import { useEffect, useState } from "react";
+import { parseISO } from "date-fns";
+import { useEffect, useMemo, useState } from "react";
 import { HiCalendar, HiChevronDown } from "react-icons/hi";
 import { Dropdown } from "../dropdown/dropdown";
+import { DropdownDivider } from "../dropdown/dropdown-divider";
 import { DropdownItem } from "../dropdown/dropdown-item";
+import { CalendarView } from "./calendar-view";
 
 export type IDateFilterType = "allTime" | "thisMonth" | "lastMonth" | "custom";
 
@@ -22,37 +25,80 @@ export type IDateFilter = {
   to?: string;
 };
 
+export type IDefaultOption = {
+  label: string;
+  type: IDateFilterType;
+  handler: () => IDateFilter;
+};
+
 export type IDatepickerProps = IPropsWithClassName & {
   value: IDateFilter;
   onChange: (filter: IDateFilter) => void;
+  defaultOptions?: IDefaultOption[];
 };
+
+// Default options factory
+const getDefaultOptions = (): IDefaultOption[] => [
+  {
+    label: "All Time",
+    type: "allTime",
+    handler: () => ({
+      type: "allTime",
+      from: undefined,
+      to: undefined,
+    }),
+  },
+  {
+    label: "This Month",
+    type: "thisMonth",
+    handler: () => ({
+      type: "thisMonth",
+      from: getCurrentMonthStart(),
+      to: getCurrentMonthEnd(),
+    }),
+  },
+  {
+    label: "Last Month",
+    type: "lastMonth",
+    handler: () => ({
+      type: "lastMonth",
+      from: getLastMonthStart(),
+      to: getLastMonthEnd(),
+    }),
+  },
+];
 
 export function Datepicker({
   className = "",
   value,
   onChange,
+  defaultOptions = getDefaultOptions(),
 }: IDatepickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [customFrom, setCustomFrom] = useState<string>("");
-  const [customTo, setCustomTo] = useState<string>("");
+  const [showCalendar, setShowCalendar] = useState(false);
 
-  // Format ISO date to YYYY-MM-DD for input
-  const formatDateForInput = (isoString?: string): string => {
-    if (!isoString) return "";
-    const date = new Date(isoString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  // Sync local state with value prop when in custom mode
-  useEffect(() => {
-    if (value.type === "custom") {
-      setCustomFrom(formatDateForInput(value.from));
-      setCustomTo(formatDateForInput(value.to));
+  // Parse ISO strings to Date objects for calendar
+  const startDate = useMemo(() => {
+    if (value.type === "custom" && value.from) {
+      try {
+        return parseISO(value.from);
+      } catch {
+        return null;
+      }
     }
-  }, [value.type, value.from, value.to]);
+    return null;
+  }, [value.type, value.from]);
+
+  const endDate = useMemo(() => {
+    if (value.type === "custom" && value.to) {
+      try {
+        return parseISO(value.to);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }, [value.type, value.to]);
 
   const getDisplayText = (): string => {
     if (value.type === "allTime") {
@@ -62,101 +108,72 @@ export function Datepicker({
       return `This Month`;
     }
     if (value.type === "lastMonth") {
-      const lastMonth = new Date();
-      lastMonth.setMonth(lastMonth.getMonth() - 1);
       return `Last Month`;
     }
     if (value.type === "custom") {
       if (value.from && value.to) {
-        return `${formatMonthYear(value.from)} - ${formatMonthYear(value.to)}`;
+        return formatDateRange(value.from, value.to);
       }
       return "Custom Date Range";
     }
     return "Select date range";
   };
 
-  const handleAllTime = () => {
-    onChange({
-      type: "allTime",
-      from: undefined,
-      to: undefined,
-    });
+  const handleDefaultOption = (option: IDefaultOption) => {
+    const filter = option.handler();
+    onChange(filter);
     setIsOpen(false);
+    setShowCalendar(false);
   };
 
-  const handleThisMonth = () => {
-    onChange({
-      type: "thisMonth",
-      from: getCurrentMonthStart(),
-      to: getCurrentMonthEnd(),
-    });
-    setIsOpen(false);
-  };
-
-  const handleLastMonth = () => {
-    onChange({
-      type: "lastMonth",
-      from: getLastMonthStart(),
-      to: getLastMonthEnd(),
-    });
-    setIsOpen(false);
-  };
-
-  const handleCustomDateChange = () => {
-    if (customFrom && customTo) {
-      // Convert date strings to ISO format
-      const fromDate = new Date(customFrom);
-      const toDate = new Date(customTo);
-      // Set to end of day for 'to' date
-      toDate.setHours(23, 59, 59, 999);
-
-      onChange({
-        type: "custom",
-        from: fromDate.toISOString(),
-        to: toDate.toISOString(),
-      });
-    }
-  };
-
-  const handleCustomFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFrom = e.target.value;
-    setCustomFrom(newFrom);
-    // Update filter if both dates are set
-    if (newFrom && customTo) {
-      const fromDate = new Date(newFrom);
-      const toDate = new Date(customTo);
-      toDate.setHours(23, 59, 59, 999);
-      onChange({
-        type: "custom",
-        from: fromDate.toISOString(),
-        to: toDate.toISOString(),
-      });
-    }
-  };
-
-  const handleCustomToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTo = e.target.value;
-    setCustomTo(newTo);
-    // Update filter if both dates are set
-    if (customFrom && newTo) {
-      const fromDate = new Date(customFrom);
-      const toDate = new Date(newTo);
-      toDate.setHours(23, 59, 59, 999);
-      onChange({
-        type: "custom",
-        from: fromDate.toISOString(),
-        to: toDate.toISOString(),
-      });
-    }
-  };
-
-  // Initialize custom dates when switching to custom mode
   const handleCustomClick = () => {
-    if (value.type !== "custom") {
-      setCustomFrom("");
-      setCustomTo("");
+    setShowCalendar(true);
+  };
+
+  const handleCalendarDateSelect = (start: Date | null, end: Date | null) => {
+    if (start && end) {
+      // Both dates selected - set the filter
+      const fromDate = new Date(start);
+      fromDate.setHours(0, 0, 0, 0);
+      const toDate = new Date(end);
+      toDate.setHours(23, 59, 59, 999);
+
+      onChange({
+        type: "custom",
+        from: fromDate.toISOString(),
+        to: toDate.toISOString(),
+      });
+    } else if (start) {
+      // Only start date selected - update filter with start only, clear end
+      const fromDate = new Date(start);
+      fromDate.setHours(0, 0, 0, 0);
+
+      onChange({
+        type: "custom",
+        from: fromDate.toISOString(),
+        to: undefined, // Clear end date when only start is set
+      });
+    } else {
+      // No dates selected - clear custom filter
+      onChange({
+        type: "custom",
+        from: undefined,
+        to: undefined,
+      });
     }
   };
+
+  // Open calendar when dropdown opens if custom is selected, close when dropdown closes
+  useEffect(() => {
+    if (isOpen) {
+      // If custom date range is selected, automatically show calendar
+      if (value.type === "custom") {
+        setShowCalendar(true);
+      }
+    } else {
+      setShowCalendar(false);
+    }
+  }, [isOpen, value.type]);
 
   // Use same base classes as Input component for consistency
   const selectorButton = (
@@ -168,9 +185,11 @@ export function Datepicker({
         "disabled:opacity-50 disabled:cursor-not-allowed",
         "text-text focus:outline-none focus:ring-2 focus:ring-primary"
       )}>
-      <div className="flex items-center gap-2">
-        <HiCalendar className="w-4 h-4 text-text-muted" />
-        <span className="flex-1 text-left">{getDisplayText()}</span>
+      <div className="flex items-center gap-2 min-w-0">
+        <HiCalendar className="w-4 h-4 text-text-muted shrink-0" />
+        <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
+          {getDisplayText()}
+        </span>
       </div>
       <HiChevronDown
         className={cn(
@@ -181,43 +200,37 @@ export function Datepicker({
     </button>
   );
 
+  const calendarContent = showCalendar ? (
+    <CalendarView
+      startDate={startDate}
+      endDate={endDate}
+      onDateSelect={handleCalendarDateSelect}
+    />
+  ) : null;
+
   return (
     <div className={cn("relative", className)}>
       <Dropdown
         dropdownSelector={selectorButton}
         open={isOpen}
-        onOpenChange={setIsOpen}>
-        <DropdownItem clicked={handleAllTime}>All Time</DropdownItem>
-        <DropdownItem clicked={handleThisMonth}>This Month</DropdownItem>
-        <DropdownItem clicked={handleLastMonth}>Last Month</DropdownItem>
+        onOpenChange={setIsOpen}
+        expandedContent={calendarContent}
+        showExpanded={showCalendar}>
+        {defaultOptions.map((option) => (
+          <DropdownItem
+            key={option.type}
+            clicked={() => handleDefaultOption(option)}
+            selected={value.type === option.type}>
+            {option.label}
+          </DropdownItem>
+        ))}
+
+        {defaultOptions.length > 0 && <DropdownDivider />}
+
         <DropdownItem
           clicked={handleCustomClick}
-          className="flex-col items-start p-0">
-          <div className="w-full p-2 hover:bg-surface-hover">
-            Custom Date Range
-          </div>
-          <div className="w-full p-3 space-y-3 border-t border-border">
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-text">
-                From
-              </label>
-              <input
-                type="date"
-                value={customFrom}
-                onChange={handleCustomFromChange}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-text">To</label>
-              <input
-                type="date"
-                value={customTo}
-                onChange={handleCustomToChange}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-            </div>
-          </div>
+          selected={value.type === "custom"}>
+          Custom Date Range
         </DropdownItem>
       </Dropdown>
     </div>

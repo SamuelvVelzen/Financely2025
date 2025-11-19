@@ -8,6 +8,7 @@ type IDropdownItemProps = {
   text?: string;
   icon?: ReactNode;
   clicked?: () => void;
+  selected?: boolean;
 } & PropsWithChildren &
   IPropsWithClassName;
 
@@ -17,17 +18,19 @@ export function DropdownItem({
   text,
   icon,
   clicked,
+  selected = false,
 }: IDropdownItemProps) {
   const content = children ? children : text;
 
   return (
     <div
       className={cn(
-        "flex items-center gap-2 hover:bg-surface-hover p-2 text-nowrap",
+        "flex items-center gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap",
+        selected && "bg-primary/10 text-primary font-medium",
         className
       )}
       onClick={clicked}>
-      <span>{icon}</span> {content}
+      {icon && <span>{icon}</span>} {content}
     </div>
   );
 }

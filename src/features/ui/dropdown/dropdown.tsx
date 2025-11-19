@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/util/cn";
 import {
   PropsWithChildren,
   ReactNode,
@@ -15,6 +16,8 @@ type IDropdownProps = {
   dropdownSelector?: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  expandedContent?: ReactNode;
+  showExpanded?: boolean;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -22,6 +25,8 @@ export function Dropdown({
   dropdownSelector,
   open: controlledOpen,
   onOpenChange,
+  expandedContent,
+  showExpanded = false,
 }: IDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -67,18 +72,22 @@ export function Dropdown({
     </div>
   );
 
+  const expandedContentRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (!triggerRef.current) return;
 
       const target = event.target as Node;
 
-      // Close dropdown only if click is outside the dropdown content and trigger
+      // Close dropdown only if click is outside the dropdown content, expanded content, and trigger
       const isClickInTrigger = triggerRef.current.contains(target);
       const isClickInDropdown =
         dropdownContentRef.current?.contains(target) ?? false;
+      const isClickInExpanded =
+        expandedContentRef.current?.contains(target) ?? false;
 
-      if (!isClickInTrigger && !isClickInDropdown) {
+      if (!isClickInTrigger && !isClickInDropdown && !isClickInExpanded) {
         setDropdownState(false);
       }
     };
@@ -105,16 +114,28 @@ export function Dropdown({
       </div>
 
       {dropdownIsOpen && dropdownPosition && (
-        <div
-          ref={dropdownContentRef}
-          className="fixed bg-surface border border-border overflow-scroll rounded-2xl text-base font-normal z-20 min-w-min shadow-lg"
-          style={{
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-            width: `${dropdownPosition.width}px`,
-            maxHeight: `${dropdownPosition.maxHeight}px`,
-          }}>
-          {children}
+        <div className="fixed z-20 flex">
+          <div
+            ref={dropdownContentRef}
+            className={cn(
+              "bg-surface border border-border overflow-scroll text-base font-normal min-w-min shadow-lg",
+              showExpanded ? "rounded-l-2xl" : "rounded-2xl"
+            )}
+            style={{
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+              maxHeight: `${dropdownPosition.maxHeight}px`,
+            }}>
+            {children}
+          </div>
+          {showExpanded && expandedContent && (
+            <div
+              ref={expandedContentRef}
+              className="bg-surface border-t border-r border-b border-l-0 border-border overflow-hidden rounded-r-2xl shadow-lg">
+              {expandedContent}
+            </div>
+          )}
         </div>
       )}
     </>
