@@ -5,19 +5,19 @@ import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useId } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
-export type IInputProps = Omit<
+export type IBaseInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "id" | "name"
 > &
   IPropsWithClassName & {
     name: string;
-    label: string;
+    label?: string;
     id?: string;
     prefixIcon?: React.ReactNode;
     suffixIcon?: React.ReactNode;
   };
 
-export function Input({
+export function BaseInput({
   className,
   type,
   label,

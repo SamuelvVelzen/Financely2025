@@ -11,15 +11,16 @@ import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { IDialogProps } from "@/features/ui/dialog/dialog/types";
-import { TableInput } from "@/features/ui/input/table-input";
-import { TableSelect } from "@/features/ui/input/table-select";
+import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { Form } from "@/features/ui/form/form";
 import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/util/cn";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 import {
   TRANSACTION_FIELDS,
@@ -54,14 +55,42 @@ export function TransactionCsvImportDialog({
   const [mapping, setMapping] = useState<ICsvFieldMapping>({});
   const [candidates, setCandidates] = useState<ICsvCandidateTransaction[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
-  const [editedRows, setEditedRows] = useState<
-    Record<number, Partial<ICreateTransactionInput>>
-  >({});
   const [currentPage, setCurrentPage] = useState(1);
   const [parseResponse, setParseResponse] = useState<any>(null);
-  const [typeDetectionStrategy, setTypeDetectionStrategy] =
-    useState<string>("sign-based");
-  const [defaultCurrency, setDefaultCurrency] = useState<ICurrency>("EUR");
+  
+  // Form for mapping step controls
+  type MappingFormData = {
+    typeDetectionStrategy: string;
+    defaultCurrency: ICurrency;
+    mappings: Record<string, string>;
+  };
+  const mappingForm = useForm<MappingFormData>({
+    defaultValues: {
+      typeDetectionStrategy: "sign-based",
+      defaultCurrency: "EUR",
+      mappings: {},
+    },
+  });
+  const typeDetectionStrategy = mappingForm.watch("typeDetectionStrategy");
+  const defaultCurrency = mappingForm.watch("defaultCurrency");
+
+  // Form for managing all row edits
+  type RowFormData = {
+    rows: Record<
+      number,
+      {
+        occurredAt?: string;
+        name?: string;
+        amount?: string;
+        type?: string;
+      }
+    >;
+  };
+  const rowForm = useForm<RowFormData>({
+    defaultValues: {
+      rows: {},
+    },
+  });
 
   const uploadMutation = useUploadCsvFile();
   const mappingQuery = useGetCsvMapping(
@@ -84,6 +113,12 @@ export function TransactionCsvImportDialog({
   useEffect(() => {
     if (columns.length > 0 && mappingQuery.data) {
       setMapping(mappingQuery.data);
+      // Also update form
+      const formMappings: Record<string, string> = {};
+      Object.entries(mappingQuery.data).forEach(([field, column]) => {
+        if (column) formMappings[field] = column;
+      });
+      mappingForm.setValue("mappings", formMappings);
     }
   }, [columns, mappingQuery.data]);
 
@@ -111,6 +146,20 @@ export function TransactionCsvImportDialog({
         .filter((c) => c.status === "valid")
         .map((c) => c.rowIndex);
       setSelectedRows(new Set(validIndices));
+      
+      // Initialize form with candidate data
+      const initialRows: RowFormData["rows"] = {};
+      candidatesWithDefaults.forEach((c) => {
+        initialRows[c.rowIndex] = {
+          occurredAt: c.data.occurredAt
+            ? new Date(c.data.occurredAt).toISOString().split("T")[0]
+            : "",
+          name: c.data.name || "",
+          amount: c.data.amount || "",
+          type: c.data.type || "",
+        };
+      });
+      rowForm.reset({ rows: initialRows });
     }
   }, [parseQuery.data, defaultType, defaultCurrency]);
 
@@ -136,7 +185,26 @@ export function TransactionCsvImportDialog({
       ...prev,
       [field]: column,
     }));
+    // Also update form for SelectDropdown
+    mappingForm.setValue(`mappings.${field}`, column || "");
   };
+
+  // Sync form mapping values back to mapping state
+  useEffect(() => {
+    const subscription = mappingForm.watch((value, { name }) => {
+      if (name?.startsWith("mappings.")) {
+        const field = name.replace("mappings.", "");
+        const column = value.mappings?.[field] || null;
+        if (mapping[field] !== column) {
+          setMapping((prev) => ({
+            ...prev,
+            [field]: column,
+          }));
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [mappingForm, mapping]);
 
   const handleValidateMapping = async () => {
     try {
@@ -183,35 +251,30 @@ export function TransactionCsvImportDialog({
     setSelectedRows(new Set(validIndices));
   };
 
-  const handleEditField = (
-    rowIndex: number,
-    field: keyof ICreateTransactionInput,
-    value: any
-  ) => {
-    setEditedRows((prev) => ({
-      ...prev,
-      [rowIndex]: {
-        ...prev[rowIndex],
-        [field]: value,
-      },
-    }));
-  };
+  // handleEditField is no longer needed - form handles it
 
   const handleConfirmImport = async () => {
     const transactionsToImport: ICreateTransactionInput[] = [];
+    const formData = rowForm.getValues();
 
     for (const rowIndex of selectedRows) {
       const candidate = candidates.find((c) => c.rowIndex === rowIndex);
       if (!candidate) continue;
 
-      const edited = editedRows[rowIndex] || {};
+      const edited = formData.rows[rowIndex] || {};
       const transaction: ICreateTransactionInput = {
         ...candidate.data,
-        ...edited,
-        // Set default type if provided and not already set
-        type: defaultType || candidate.data.type || edited.type || "EXPENSE",
-        // Ensure currency is set
-        currency: edited.currency || candidate.data.currency || defaultCurrency,
+        occurredAt: edited.occurredAt
+          ? new Date(edited.occurredAt).toISOString()
+          : candidate.data.occurredAt,
+        name: edited.name || candidate.data.name,
+        amount: edited.amount || candidate.data.amount,
+        type:
+          defaultType ||
+          edited.type ||
+          candidate.data.type ||
+          "EXPENSE",
+        currency: candidate.data.currency || defaultCurrency,
       };
 
       transactionsToImport.push(transaction);
@@ -228,8 +291,8 @@ export function TransactionCsvImportDialog({
       setMapping({});
       setCandidates([]);
       setSelectedRows(new Set());
-      setEditedRows({});
       setCurrentPage(1);
+      rowForm.reset({ rows: {} });
     } catch (error) {
       console.error("Import failed:", error);
     }
@@ -294,47 +357,49 @@ export function TransactionCsvImportDialog({
           </div>
         )}
         {!defaultType && (
+          <Form form={mappingForm} onSubmit={() => {}}>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
+                Type Detection Strategy
+              </label>
+              <SelectDropdown
+                name="typeDetectionStrategy"
+                options={[
+                  {
+                    value: "sign-based",
+                    label:
+                      "Sign-based (Default) - Negative = Expense, Positive = Income",
+                  },
+                  {
+                    value: "amex",
+                    label: "Amex Format - Negative = Income, Positive = Expense",
+                  },
+                ]}
+                placeholder="Select strategy..."
+                multiple={false}
+              />
+              <p className="text-xs text-text-muted">
+                How to determine transaction type when not specified in CSV
+              </p>
+            </div>
+          </Form>
+        )}
+        <Form form={mappingForm} onSubmit={() => {}}>
           <div className="space-y-2">
             <label className="block text-sm font-medium">
-              Type Detection Strategy
+              Currency <span className="text-danger ml-1">*</span>
             </label>
             <SelectDropdown
-              options={[
-                {
-                  value: "sign-based",
-                  label:
-                    "Sign-based (Default) - Negative = Expense, Positive = Income",
-                },
-                {
-                  value: "amex",
-                  label: "Amex Format - Negative = Income, Positive = Expense",
-                },
-              ]}
-              value={typeDetectionStrategy}
-              onChange={(value) => setTypeDetectionStrategy(value as string)}
-              placeholder="Select strategy..."
+              name="defaultCurrency"
+              options={getCurrencyOptions()}
+              placeholder="Select currency..."
               multiple={false}
             />
             <p className="text-xs text-text-muted">
-              How to determine transaction type when not specified in CSV
+              Currency for all transactions in this CSV file
             </p>
           </div>
-        )}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium">
-            Currency <span className="text-danger ml-1">*</span>
-          </label>
-          <SelectDropdown
-            options={getCurrencyOptions()}
-            value={defaultCurrency}
-            onChange={(value) => setDefaultCurrency(value as ICurrency)}
-            placeholder="Select currency..."
-            multiple={false}
-          />
-          <p className="text-xs text-text-muted">
-            Currency for all transactions in this CSV file
-          </p>
-        </div>
+        </Form>
         <p className="text-sm text-text-muted">
           Map CSV columns to transaction fields. Required fields are marked with
           an asterisk (*).
@@ -361,15 +426,14 @@ export function TransactionCsvImportDialog({
                       typeDetectionStrategy
                     ) && <span className="text-danger ml-1">*</span>}
                 </label>
-                <SelectDropdown
-                  options={columnOptions}
-                  value={currentValue}
-                  onChange={(value) =>
-                    handleMappingChange(field.name, value as string)
-                  }
-                  placeholder="Select column..."
-                  multiple={false}
-                />
+                <Form form={mappingForm} onSubmit={() => {}}>
+                  <SelectDropdown
+                    name={`mappings.${field.name}`}
+                    options={columnOptions}
+                    placeholder="Select column..."
+                    multiple={false}
+                  />
+                </Form>
                 {field.description && (
                   <p className="text-xs text-text-muted">{field.description}</p>
                 )}
@@ -446,114 +510,96 @@ export function TransactionCsvImportDialog({
             <HeaderCell align="left">Type</HeaderCell>,
             <HeaderCell align="left">Errors</HeaderCell>,
           ]}>
-          {candidates.map((candidate) => {
-            const edited = editedRows[candidate.rowIndex] || {};
-            const transaction = { ...candidate.data, ...edited };
+          <Form form={rowForm} onSubmit={() => {}}>
+            {candidates.map((candidate) => {
+              const rowIndex = candidate.rowIndex;
+              const rowData = rowForm.watch(`rows.${rowIndex}`) || {};
+              const transaction = {
+                ...candidate.data,
+                occurredAt: rowData.occurredAt
+                  ? new Date(rowData.occurredAt).toISOString()
+                  : candidate.data.occurredAt,
+                name: rowData.name || candidate.data.name,
+                amount: rowData.amount || candidate.data.amount,
+                type: rowData.type || candidate.data.type,
+              };
 
-            return (
-              <TableRow
-                key={candidate.rowIndex}
-                rowIndex={candidate.rowIndex}
-                className={cn(
-                  "border-t border-border",
-                  candidate.status === "invalid" && "bg-danger/5"
-                )}>
-                <BodyCell>
-                  <span
-                    className={cn(
-                      "px-2 py-1 rounded text-xs",
-                      candidate.status === "valid" &&
-                        "bg-success/20 text-success",
-                      candidate.status === "invalid" &&
-                        "bg-danger/20 text-danger"
-                    )}>
-                    {candidate.status}
-                  </span>
-                </BodyCell>
-                <BodyCell>
-                  <TableInput
-                    type="date"
-                    value={
-                      transaction.occurredAt
-                        ? new Date(transaction.occurredAt)
-                            .toISOString()
-                            .split("T")[0]
-                        : ""
-                    }
-                    onChange={(e) =>
-                      handleEditField(
-                        candidate.rowIndex,
-                        "occurredAt",
-                        e.target.value
-                          ? new Date(e.target.value).toISOString()
-                          : ""
-                      )
-                    }
-                  />
-                </BodyCell>
-                <BodyCell>
-                  <TableInput
-                    type="text"
-                    value={transaction.name || ""}
-                    onChange={(e) =>
-                      handleEditField(
-                        candidate.rowIndex,
-                        "name",
-                        e.target.value
-                      )
-                    }
-                  />
-                </BodyCell>
-                <BodyCell>
-                  <TableInput
-                    type="text"
-                    value={transaction.amount || ""}
-                    onChange={(e) =>
-                      handleEditField(
-                        candidate.rowIndex,
-                        "amount",
-                        e.target.value
-                      )
-                    }
-                  />
-                </BodyCell>
-                <BodyCell>
-                  <span className="text-sm font-medium">
-                    {transaction.currency || defaultCurrency}
-                  </span>
-                </BodyCell>
-                <BodyCell>
-                  {defaultType ? (
-                    <span className="text-sm font-medium">{defaultType}</span>
-                  ) : (
-                    <TableSelect
-                      value={transaction.type || ""}
-                      onChange={(e) =>
-                        handleEditField(
-                          candidate.rowIndex,
-                          "type",
-                          e.target.value
-                        )
-                      }>
-                      <option value="EXPENSE">Expense</option>
-                      <option value="INCOME">Income</option>
-                    </TableSelect>
-                  )}
-                </BodyCell>
-                <BodyCell>
-                  {candidate.errors.length > 0 && (
-                    <div className="text-xs text-danger">
-                      {candidate.errors.map((err, i) => (
-                        <div key={i}>
-                          {err.field}: {err.message}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </BodyCell>
-              </TableRow>
-            );
-          })}
+              return (
+                <TableRow
+                  key={candidate.rowIndex}
+                  rowIndex={candidate.rowIndex}
+                  className={cn(
+                    "border-t border-border",
+                    candidate.status === "invalid" && "bg-danger/5"
+                  )}>
+                  <BodyCell>
+                    <span
+                      className={cn(
+                        "px-2 py-1 rounded text-xs",
+                        candidate.status === "valid" &&
+                          "bg-success/20 text-success",
+                        candidate.status === "invalid" &&
+                          "bg-danger/20 text-danger"
+                      )}>
+                      {candidate.status}
+                    </span>
+                  </BodyCell>
+                  <BodyCell>
+                    <TextInput
+                      name={`rows.${rowIndex}.occurredAt`}
+                      label=""
+                      type="date"
+                      className="!px-2 !py-1 !text-sm"
+                    />
+                  </BodyCell>
+                  <BodyCell>
+                    <TextInput
+                      name={`rows.${rowIndex}.name`}
+                      label=""
+                      className="!px-2 !py-1 !text-sm"
+                    />
+                  </BodyCell>
+                  <BodyCell>
+                    <TextInput
+                      name={`rows.${rowIndex}.amount`}
+                      label=""
+                      className="!px-2 !py-1 !text-sm"
+                    />
+                  </BodyCell>
+                  <BodyCell>
+                    <span className="text-sm font-medium">
+                      {transaction.currency || defaultCurrency}
+                    </span>
+                  </BodyCell>
+                  <BodyCell>
+                    {defaultType ? (
+                      <span className="text-sm font-medium">{defaultType}</span>
+                    ) : (
+                      <SelectDropdown
+                        name={`rows.${rowIndex}.type`}
+                        options={[
+                          { value: "EXPENSE", label: "Expense" },
+                          { value: "INCOME", label: "Income" },
+                        ]}
+                        placeholder="Select type"
+                      />
+                    )}
+                  </BodyCell>
+                  <BodyCell>
+                    {candidate.errors.length > 0 && (
+                      <div className="text-xs text-danger">
+                        {candidate.errors.map((err, i) => (
+                          <div key={i}>
+                            {err.field}: {err.message}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </BodyCell>
+                </TableRow>
+              );
+            })}
+          </Form>
         </SelectableTable>
 
         {parseResponse?.hasNext && (

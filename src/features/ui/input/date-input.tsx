@@ -1,14 +1,14 @@
 "use client";
 
-import { Input, IInputProps } from "./input";
+import { BaseInput, IBaseInputProps } from "./input";
 
-export type IDateInputProps = Omit<IInputProps, "type"> & {
+export type IDateInputProps = Omit<IBaseInputProps, "type"> & {
   type?: "date" | "datetime-local";
 };
 
 export function DateInput({ type = "date", ...props }: IDateInputProps) {
   return (
-    <Input
+    <BaseInput
       type={type}
       {...props}
     />

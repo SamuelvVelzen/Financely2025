@@ -32,7 +32,14 @@ import {
   HiPlus,
   HiTrash,
 } from "react-icons/hi2";
+import { useForm } from "react-hook-form";
+import { Form } from "@/features/ui/form/form";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
+
+type FilterFormData = {
+  searchQuery: string;
+  tagFilter: string[];
+};
 
 export function IncomeOverview() {
   // Filter state
@@ -45,8 +52,16 @@ export function IncomeOverview() {
     min: undefined,
     max: undefined,
   });
-  const [tagFilter, setTagFilter] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Form for search and tag filter
+  const filterForm = useForm<FilterFormData>({
+    defaultValues: {
+      searchQuery: "",
+      tagFilter: [],
+    },
+  });
+  const searchQuery = filterForm.watch("searchQuery") || "";
+  const tagFilter = filterForm.watch("tagFilter") || [];
 
   // Fetch incomes with date filter (backend filtering)
   // Only pass date filters if not "allTime"
@@ -236,30 +251,33 @@ export function IncomeOverview() {
         </Title>
 
         <div className="flex gap-3 items-end pb-4 overflow-x-auto">
-          <div className="min-w-[200px] shrink-0">
-            <SearchInput value={searchQuery} onChange={setSearchQuery} />
-          </div>
-          <div className="w-[200px] shrink-0">
-            <Datepicker value={dateFilter} onChange={setDateFilter} />
-          </div>
-          <div className="w-[400px] shrink-0">
-            <RangeInput
-              value={priceFilter}
-              onChange={setPriceFilter}
-              minLabel="Min"
-              maxLabel="Max"
-              placeholder={{ min: "Min", max: "Max" }}
-            />
-          </div>
-          <div className="w-[200px] shrink-0">
-            <SelectDropdown
-              options={tagOptions}
-              value={tagFilter}
-              onChange={(value) => setTagFilter(value as string[])}
-              multiple={true}
-              placeholder="Filter by tags"
-            />
-          </div>
+          <Form form={filterForm} onSubmit={() => {}}>
+            <div className="flex gap-3 items-end">
+              <div className="min-w-[200px] shrink-0">
+                <SearchInput name="searchQuery" />
+              </div>
+              <div className="w-[200px] shrink-0">
+                <Datepicker value={dateFilter} onChange={setDateFilter} />
+              </div>
+              <div className="w-[400px] shrink-0">
+                <RangeInput
+                  value={priceFilter}
+                  onChange={setPriceFilter}
+                  minLabel="Min"
+                  maxLabel="Max"
+                  placeholder={{ min: "Min", max: "Max" }}
+                />
+              </div>
+              <div className="w-[200px] shrink-0">
+                <SelectDropdown
+                  name="tagFilter"
+                  options={tagOptions}
+                  multiple={true}
+                  placeholder="Filter by tags"
+                />
+              </div>
+            </div>
+          </Form>
         </div>
       </Container>
 

@@ -343,10 +343,19 @@ function FormDialogExample() {
  * - Display of selected items
  * - Checkbox-based selection UI
  */
+type ISelectDropdownFormData = {
+  singleValue: string | undefined;
+  multipleValue: string[];
+};
+
 function SelectDropdownExample() {
-  const [singleValue, setSingleValue] = useState<string | undefined>(undefined);
-  const [multipleValue, setMultipleValue] = useState<string[]>([]);
   const [isSelected, setIsSelected] = useState(false);
+  const form = useForm<ISelectDropdownFormData>({
+    defaultValues: {
+      singleValue: undefined,
+      multipleValue: [],
+    },
+  });
 
   const options = [
     { value: "current-month", label: "Current month" },
@@ -366,16 +375,23 @@ function SelectDropdownExample() {
           onChange={() => setIsSelected((prev) => !prev)}
         />
 
-        <SelectDropdown
-          options={options}
-          value={singleValue}
-          onChange={(value) => setSingleValue(value as string)}
-          placeholder="Select date..."
-          multiple={false}
-        />
-        {singleValue && (
+        <Form
+          form={form}
+          onSubmit={() => {}}>
+          <SelectDropdown
+            name="singleValue"
+            options={options}
+            placeholder="Select date..."
+            multiple={false}
+          />
+        </Form>
+        {form.watch("singleValue") && (
           <p className="text-sm text-text-muted">
-            Selected: {options.find((opt) => opt.value === singleValue)?.label}
+            Selected:{" "}
+            {
+              options.find((opt) => opt.value === form.watch("singleValue"))
+                ?.label
+            }
           </p>
         )}
       </div>
@@ -386,17 +402,20 @@ function SelectDropdownExample() {
           Select multiple options. The dropdown stays open for multiple
           selections.
         </p>
-        <SelectDropdown
-          options={options}
-          value={multipleValue}
-          onChange={(value) => setMultipleValue(value as string[])}
-          placeholder="Select date..."
-          multiple={true}
-        />
-        {multipleValue.length > 0 && (
+        <Form
+          form={form}
+          onSubmit={() => {}}>
+          <SelectDropdown
+            name="multipleValue"
+            options={options}
+            placeholder="Select date..."
+            multiple={true}
+          />
+        </Form>
+        {(form.watch("multipleValue") || []).length > 0 && (
           <p className="text-sm text-text-muted">
             Selected:{" "}
-            {multipleValue
+            {(form.watch("multipleValue") || [])
               .map((val) => options.find((opt) => opt.value === val)?.label)
               .join(", ")}
           </p>

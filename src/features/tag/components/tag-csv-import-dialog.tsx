@@ -7,14 +7,16 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
-import { TableInput } from "@/features/ui/input/table-input";
+import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { Form } from "@/features/ui/form/form";
 import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/util/cn";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   useGetTagCsvMapping,
   useImportTagCsv,
@@ -58,11 +60,35 @@ export function TagCsvImportDialog({
   const [mapping, setMapping] = useState<ITagCsvFieldMapping>({});
   const [candidates, setCandidates] = useState<ITagCsvCandidate[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
-  const [editedRows, setEditedRows] = useState<
-    Record<number, Partial<ICreateTagInput>>
-  >({});
   const [currentPage, setCurrentPage] = useState(1);
   const [parseResponse, setParseResponse] = useState<any>(null);
+
+  // Form for mapping step controls
+  type MappingFormData = {
+    mappings: Record<string, string>;
+  };
+  const mappingForm = useForm<MappingFormData>({
+    defaultValues: {
+      mappings: {},
+    },
+  });
+
+  // Form for managing all row edits
+  type RowFormData = {
+    rows: Record<
+      number,
+      {
+        name?: string;
+        color?: string;
+        description?: string;
+      }
+    >;
+  };
+  const rowForm = useForm<RowFormData>({
+    defaultValues: {
+      rows: {},
+    },
+  });
 
   const uploadMutation = useUploadTagCsvFile();
   const mappingQuery = useGetTagCsvMapping(
@@ -76,6 +102,12 @@ export function TagCsvImportDialog({
   useEffect(() => {
     if (columns.length > 0 && mappingQuery.data) {
       setMapping(mappingQuery.data);
+      // Also update form
+      const formMappings: Record<string, string> = {};
+      Object.entries(mappingQuery.data).forEach(([field, column]) => {
+        if (column) formMappings[field] = column;
+      });
+      mappingForm.setValue("mappings", formMappings);
     }
   }, [columns, mappingQuery.data]);
 
@@ -89,6 +121,17 @@ export function TagCsvImportDialog({
         .filter((c) => c.status === "valid")
         .map((c) => c.rowIndex);
       setSelectedRows(new Set(validIndices));
+      
+      // Initialize form with candidate data
+      const initialRows: RowFormData["rows"] = {};
+      parseQuery.data.candidates.forEach((c) => {
+        initialRows[c.rowIndex] = {
+          name: c.data.name || "",
+          color: c.data.color || "",
+          description: c.data.description || "",
+        };
+      });
+      rowForm.reset({ rows: initialRows });
     }
   }, [parseQuery.data]);
 
@@ -113,7 +156,26 @@ export function TagCsvImportDialog({
       ...prev,
       [field]: column,
     }));
+    // Also update form for SelectDropdown
+    mappingForm.setValue(`mappings.${field}`, column || "");
   };
+
+  // Sync form mapping values back to mapping state
+  useEffect(() => {
+    const subscription = mappingForm.watch((value, { name }) => {
+      if (name?.startsWith("mappings.")) {
+        const field = name.replace("mappings.", "");
+        const column = value.mappings?.[field] || null;
+        if (mapping[field] !== column) {
+          setMapping((prev) => ({
+            ...prev,
+            [field]: column,
+          }));
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [mappingForm, mapping]);
 
   const handleValidateMapping = async () => {
     try {
@@ -143,31 +205,22 @@ export function TagCsvImportDialog({
     setSelectedRows(new Set(validIndices));
   };
 
-  const handleEditField = (
-    rowIndex: number,
-    field: keyof ICreateTagInput,
-    value: any
-  ) => {
-    setEditedRows((prev) => ({
-      ...prev,
-      [rowIndex]: {
-        ...prev[rowIndex],
-        [field]: value,
-      },
-    }));
-  };
+  // handleEditField is no longer needed - form handles it
 
   const handleConfirmImport = async () => {
     const tagsToImport: ICreateTagInput[] = [];
+    const formData = rowForm.getValues();
 
     for (const rowIndex of selectedRows) {
       const candidate = candidates.find((c) => c.rowIndex === rowIndex);
       if (!candidate) continue;
 
-      const edited = editedRows[rowIndex];
+      const edited = formData.rows[rowIndex] || {};
       const tag: ICreateTagInput = {
         ...candidate.data,
-        ...edited,
+        name: edited.name || candidate.data.name,
+        color: edited.color || candidate.data.color,
+        description: edited.description || candidate.data.description,
       };
 
       tagsToImport.push(tag);
@@ -184,8 +237,8 @@ export function TagCsvImportDialog({
       setMapping({});
       setCandidates([]);
       setSelectedRows(new Set());
-      setEditedRows({});
       setCurrentPage(1);
+      rowForm.reset({ rows: {} });
     } catch (error) {
       console.error("Import failed:", error);
     }
@@ -262,15 +315,14 @@ export function TagCsvImportDialog({
                 {field.label}
                 {field.required && <span className="text-danger ml-1">*</span>}
               </label>
-              <SelectDropdown
-                options={columnOptions}
-                value={currentValue}
-                onChange={(value) =>
-                  handleMappingChange(field.name, value as string)
-                }
-                placeholder="Select column..."
-                multiple={false}
-              />
+              <Form form={mappingForm} onSubmit={() => {}}>
+                <SelectDropdown
+                  name={`mappings.${field.name}`}
+                  options={columnOptions}
+                  placeholder="Select column..."
+                  multiple={false}
+                />
+              </Form>
               {field.description && (
                 <p className="text-xs text-text-muted">{field.description}</p>
               )}
@@ -344,84 +396,71 @@ export function TagCsvImportDialog({
             <HeaderCell align="left">Description</HeaderCell>,
             <HeaderCell align="left">Errors</HeaderCell>,
           ]}>
-          {candidates.map((candidate) => {
-            const edited = editedRows[candidate.rowIndex] || {};
-            const tag = { ...candidate.data, ...edited };
+          <Form form={rowForm} onSubmit={() => {}}>
+            {candidates.map((candidate) => {
+              const rowIndex = candidate.rowIndex;
+              const rowData = rowForm.watch(`rows.${rowIndex}`) || {};
+              const tag = {
+                ...candidate.data,
+                name: rowData.name || candidate.data.name,
+                color: rowData.color || candidate.data.color,
+                description: rowData.description || candidate.data.description,
+              };
 
-            return (
-              <TableRow
-                key={candidate.rowIndex}
-                rowIndex={candidate.rowIndex}
-                className={cn(
-                  "border-t border-border",
-                  candidate.status === "invalid" && "bg-danger/5"
-                )}>
-                <BodyCell>
-                  <span
-                    className={cn(
-                      "px-2 py-1 rounded text-xs",
-                      candidate.status === "valid" &&
-                        "bg-success/20 text-success",
-                      candidate.status === "invalid" &&
-                        "bg-danger/20 text-danger"
-                    )}>
-                    {candidate.status}
-                  </span>
-                </BodyCell>
-                <BodyCell>
-                  <TableInput
-                    type="text"
-                    value={tag.name || ""}
-                    onChange={(e) =>
-                      handleEditField(
-                        candidate.rowIndex,
-                        "name",
-                        e.target.value
-                      )
-                    }
-                  />
-                </BodyCell>
-                <BodyCell>
-                  <TableInput
-                    type="text"
-                    value={tag.color || ""}
-                    onChange={(e) =>
-                      handleEditField(
-                        candidate.rowIndex,
-                        "color",
-                        e.target.value
-                      )
-                    }
-                    placeholder="#FF6600"
-                  />
-                </BodyCell>
-                <BodyCell>
-                  <TableInput
-                    type="text"
-                    value={tag.description || ""}
-                    onChange={(e) =>
-                      handleEditField(
-                        candidate.rowIndex,
-                        "description",
-                        e.target.value
-                      )
-                    }
-                  />
-                </BodyCell>
-                <BodyCell>
-                  {candidate.errors.length > 0 && (
-                    <div className="text-xs text-danger">
-                      {candidate.errors.map((err, i) => (
-                        <div key={i}>
-                          {err.field}: {err.message}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </BodyCell>
-              </TableRow>
-            );
-          })}
+              return (
+                <TableRow
+                  key={candidate.rowIndex}
+                  rowIndex={candidate.rowIndex}
+                  className={cn(
+                    "border-t border-border",
+                    candidate.status === "invalid" && "bg-danger/5"
+                  )}>
+                  <BodyCell>
+                    <span
+                      className={cn(
+                        "px-2 py-1 rounded text-xs",
+                        candidate.status === "valid" &&
+                          "bg-success/20 text-success",
+                        candidate.status === "invalid" &&
+                          "bg-danger/20 text-danger"
+                      )}>
+                      {candidate.status}
+                    </span>
+                  </BodyCell>
+                  <BodyCell>
+                    <TextInput
+                      name={`rows.${rowIndex}.name`}
+                      className="!px-2 !py-1 !text-sm"
+                    />
+                  </BodyCell>
+                  <BodyCell>
+                    <TextInput
+                      name={`rows.${rowIndex}.color`}
+                      placeholder="#FF6600"
+                      className="!px-2 !py-1 !text-sm"
+                    />
+                  </BodyCell>
+                  <BodyCell>
+                    <TextInput
+                      name={`rows.${rowIndex}.description`}
+                      className="!px-2 !py-1 !text-sm"
+                    />
+                  </BodyCell>
+                  <BodyCell>
+                    {candidate.errors.length > 0 && (
+                      <div className="text-xs text-danger">
+                        {candidate.errors.map((err, i) => (
+                          <div key={i}>
+                            {err.field}: {err.message}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </BodyCell>
+                </TableRow>
+              );
+            })}
+          </Form>
         </SelectableTable>
 
         {parseResponse?.hasNext && (
