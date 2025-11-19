@@ -2,28 +2,53 @@
 
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { ReactNode, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { useState } from "react";
 import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 
-export type ISelectOption = {
+export type ISelectOption<TData = unknown> = {
   value: string;
   label: string;
+  data?: TData;
 };
 
-export type ISelectDropdownProps = IPropsWithClassName & {
+// Helper type to extract data type from options array
+type ExtractDataFromOptions<
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[],
+> = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
+
+export type ISelectDropdownProps<
+  TOptions extends
+    | ISelectOption<any>[]
+    | readonly ISelectOption<any>[] = ISelectOption[],
+  TData = ExtractDataFromOptions<TOptions>,
+> = IPropsWithClassName & {
   name: string;
-  options: ISelectOption[];
+  options: TOptions;
   multiple?: boolean;
   placeholder?: string;
   label?: string;
   maxDisplayItems?: number;
+  children?: (
+    option: ISelectOption<TData>,
+    index: number,
+    context: {
+      isSelected: boolean;
+      handleClick: () => void;
+      multiple: boolean;
+    }
+  ) => ReactNode;
 };
 
-export function SelectDropdown({
+export function SelectDropdown<
+  TOptions extends
+    | ISelectOption<any>[]
+    | readonly ISelectOption<any>[] = ISelectOption[],
+  TData = ExtractDataFromOptions<TOptions>,
+>({
   className = "",
   name,
   options,
@@ -31,7 +56,8 @@ export function SelectDropdown({
   placeholder = "Select...",
   label,
   maxDisplayItems = 2,
-}: ISelectDropdownProps) {
+  children,
+}: ISelectDropdownProps<TOptions, TData>) {
   const form = useFormContext();
   const [isOpen, setIsOpen] = useState(false);
   const error = form.formState.errors[name];
@@ -140,7 +166,9 @@ export function SelectDropdown({
               !hasSelection && "text-text-muted",
               hasSelection && "text-text"
             )}>
-            <span className="flex-1 text-left whitespace-nowrap truncate">{displayText}</span>
+            <span className="flex-1 text-left whitespace-nowrap truncate">
+              {displayText}
+            </span>
             <div className="flex items-center gap-1 ml-2">
               {hasSelection && (
                 <button
@@ -174,26 +202,41 @@ export function SelectDropdown({
               dropdownSelector={selectorButton}
               open={isOpen}
               onOpenChange={setIsOpen}>
-              {options.map((option) => (
-                <DropdownItem
-                  key={option.value}
-                  clicked={() => handleOptionClick(option.value)}>
-                  <div className="flex items-center gap-2 w-full">
-                    {multiple && (
-                      <Checkbox
-                        checked={isSelected(option.value, value)}
-                        onChange={() => handleOptionClick(option.value)}
-                        className="pointer-events-none"
-                      />
-                    )}
-                    <span className="flex-1">{option.label}</span>
-                  </div>
-                </DropdownItem>
-              ))}
+              {options.map((option, index) => {
+                const optionIsSelected = isSelected(option.value, value);
+                const handleClick = () => handleOptionClick(option.value);
+                return (
+                  <DropdownItem
+                    key={option.value}
+                    clicked={handleClick}>
+                    {
+                      <div className="flex items-center gap-2 w-full">
+                        {multiple && (
+                          <Checkbox
+                            checked={optionIsSelected}
+                            onChange={handleClick}
+                            className="pointer-events-none"
+                          />
+                        )}
+
+                        {children ? (
+                          children(option, index, {
+                            isSelected: optionIsSelected,
+                            handleClick,
+                            multiple,
+                          })
+                        ) : (
+                          <span className="flex-1">{option.label}</span>
+                        )}
+                      </div>
+                    }
+                  </DropdownItem>
+                );
+              })}
             </Dropdown>
             {error && (
               <p className="text-sm text-danger mt-1">
-                {(error as { message?: string })?.message || (error as string)}
+                {(error as { message?: string })?.message || String(error)}
               </p>
             )}
           </div>

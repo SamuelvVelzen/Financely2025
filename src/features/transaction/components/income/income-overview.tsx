@@ -205,6 +205,7 @@ export function IncomeOverview() {
   const tagOptions = tags.map((tag) => ({
     value: tag.id,
     label: tag.name,
+    data: tag,
   }));
 
   // Get month display text from date filter
@@ -283,6 +284,17 @@ export function IncomeOverview() {
                 options={tagOptions}
                 multiple={true}
                 placeholder="Filter by tags"
+                children={(option) => (
+                  <>
+                    {option.data?.color && (
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: option.data.color }}
+                      />
+                    )}
+                    <span className="flex-1">{option.label}</span>
+                  </>
+                )}
               />
             </div>
           </Form>
