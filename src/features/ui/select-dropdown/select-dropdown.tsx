@@ -20,6 +20,7 @@ export type ISelectDropdownProps = IPropsWithClassName & {
   multiple?: boolean;
   placeholder?: string;
   label?: string;
+  maxDisplayItems?: number;
 };
 
 export function SelectDropdown({
@@ -29,6 +30,7 @@ export function SelectDropdown({
   multiple = false,
   placeholder = "Select...",
   label,
+  maxDisplayItems = 2,
 }: ISelectDropdownProps) {
   const form = useFormContext();
   const [isOpen, setIsOpen] = useState(false);
@@ -44,7 +46,16 @@ export function SelectDropdown({
       const selectedOptions = options.filter((opt) =>
         value.includes(opt.value)
       );
-      return selectedOptions.map((opt) => opt.label).join(", ");
+      if (selectedOptions.length <= maxDisplayItems) {
+        return selectedOptions.map((opt) => opt.label).join(", ");
+      } else {
+        const displayedOptions = selectedOptions
+          .slice(0, maxDisplayItems)
+          .map((opt) => opt.label)
+          .join(", ");
+        const remainingCount = selectedOptions.length - maxDisplayItems;
+        return `${displayedOptions} + ${remainingCount} more`;
+      }
     }
 
     if (!multiple && typeof value === "string") {
@@ -129,7 +140,7 @@ export function SelectDropdown({
               !hasSelection && "text-text-muted",
               hasSelection && "text-text"
             )}>
-            <span className="flex-1 text-left">{displayText}</span>
+            <span className="flex-1 text-left whitespace-nowrap truncate">{displayText}</span>
             <div className="flex items-center gap-1 ml-2">
               {hasSelection && (
                 <button
@@ -168,11 +179,13 @@ export function SelectDropdown({
                   key={option.value}
                   clicked={() => handleOptionClick(option.value)}>
                   <div className="flex items-center gap-2 w-full">
-                    <Checkbox
-                      checked={isSelected(option.value, value)}
-                      onChange={() => handleOptionClick(option.value)}
-                      className="pointer-events-none"
-                    />
+                    {multiple && (
+                      <Checkbox
+                        checked={isSelected(option.value, value)}
+                        onChange={() => handleOptionClick(option.value)}
+                        className="pointer-events-none"
+                      />
+                    )}
                     <span className="flex-1">{option.label}</span>
                   </div>
                 </DropdownItem>

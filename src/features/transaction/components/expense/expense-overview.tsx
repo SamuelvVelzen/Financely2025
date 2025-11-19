@@ -15,6 +15,7 @@ import {
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { Form } from "@/features/ui/form/form";
 import { RangeInput, type IPriceRange } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
 import { List } from "@/features/ui/list/list";
@@ -24,6 +25,7 @@ import { Title } from "@/features/ui/typography/title";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   HiArrowDownTray,
   HiArrowTrendingDown,
@@ -31,8 +33,6 @@ import {
   HiPlus,
   HiTrash,
 } from "react-icons/hi2";
-import { useForm } from "react-hook-form";
-import { Form } from "@/features/ui/form/form";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
 
 type FilterFormData = {
@@ -51,7 +51,7 @@ export function ExpenseOverview() {
     min: undefined,
     max: undefined,
   });
-  
+
   // Form for search and tag filter
   const filterForm = useForm<FilterFormData>({
     defaultValues: {
@@ -255,7 +255,9 @@ export function ExpenseOverview() {
         </Title>
 
         <div className="flex gap-3 items-end pb-4 overflow-x-auto">
-          <Form form={filterForm} onSubmit={() => {}}>
+          <Form
+            form={filterForm}
+            onSubmit={() => {}}>
             <div className="flex gap-3 items-end">
               <div className="min-w-[200px] shrink-0">
                 <SearchInput name="searchQuery" />
@@ -275,14 +277,13 @@ export function ExpenseOverview() {
                   placeholder={{ min: "Min", max: "Max" }}
                 />
               </div>
-              <div className="w-[200px] shrink-0">
-                <SelectDropdown
-                  name="tagFilter"
-                  options={tagOptions}
-                  multiple={true}
-                  placeholder="Filter by tags"
-                />
-              </div>
+
+              <SelectDropdown
+                name="tagFilter"
+                options={tagOptions}
+                multiple={true}
+                placeholder="Filter by tags"
+              />
             </div>
           </Form>
         </div>

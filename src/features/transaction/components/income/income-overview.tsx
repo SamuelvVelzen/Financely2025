@@ -1,30 +1,31 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
+import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
   useDeleteIncome,
   useIncomes,
 } from "@/features/transaction/hooks/useTransactions";
-import { useTags } from "@/features/tag/hooks/useTags";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
-import { Datepicker, type IDateFilter } from "@/features/ui/datepicker/datepicker";
+import {
+  Datepicker,
+  type IDateFilter,
+} from "@/features/ui/datepicker/datepicker";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { Form } from "@/features/ui/form/form";
 import { RangeInput, type IPriceRange } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Title } from "@/features/ui/typography/title";
-import {
-  getCurrentMonthStart,
-  getCurrentMonthEnd,
-  formatMonthYear,
-} from "@/util/date/date-helpers";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
+import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   HiArrowDownTray,
   HiArrowTrendingUp,
@@ -32,8 +33,6 @@ import {
   HiPlus,
   HiTrash,
 } from "react-icons/hi2";
-import { useForm } from "react-hook-form";
-import { Form } from "@/features/ui/form/form";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
 
 type FilterFormData = {
@@ -52,7 +51,7 @@ export function IncomeOverview() {
     min: undefined,
     max: undefined,
   });
-  
+
   // Form for search and tag filter
   const filterForm = useForm<FilterFormData>({
     defaultValues: {
@@ -137,14 +136,19 @@ export function IncomeOverview() {
   const highlightText = (text: string, query: string) => {
     if (!query.trim()) return text;
 
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    const regex = new RegExp(
+      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+      "gi"
+    );
     const parts = text.split(regex);
 
     return (
       <>
         {parts.map((part, index) =>
           regex.test(part) ? (
-            <mark key={index} className="bg-primary/20 text-primary">
+            <mark
+              key={index}
+              className="bg-primary/20 text-primary">
               {part}
             </mark>
           ) : (
@@ -251,13 +255,18 @@ export function IncomeOverview() {
         </Title>
 
         <div className="flex gap-3 items-end pb-4 overflow-x-auto">
-          <Form form={filterForm} onSubmit={() => {}}>
+          <Form
+            form={filterForm}
+            onSubmit={() => {}}>
             <div className="flex gap-3 items-end">
               <div className="min-w-[200px] shrink-0">
                 <SearchInput name="searchQuery" />
               </div>
               <div className="w-[200px] shrink-0">
-                <Datepicker value={dateFilter} onChange={setDateFilter} />
+                <Datepicker
+                  value={dateFilter}
+                  onChange={setDateFilter}
+                />
               </div>
               <div className="w-[400px] shrink-0">
                 <RangeInput
@@ -268,14 +277,13 @@ export function IncomeOverview() {
                   placeholder={{ min: "Min", max: "Max" }}
                 />
               </div>
-              <div className="w-[200px] shrink-0">
-                <SelectDropdown
-                  name="tagFilter"
-                  options={tagOptions}
-                  multiple={true}
-                  placeholder="Filter by tags"
-                />
-              </div>
+
+              <SelectDropdown
+                name="tagFilter"
+                options={tagOptions}
+                multiple={true}
+                placeholder="Filter by tags"
+              />
             </div>
           </Form>
         </div>
@@ -295,24 +303,32 @@ export function IncomeOverview() {
         </Container>
       )}
 
-      {!isLoading && !error && incomes.length === 0 && allIncomes.length === 0 && (
-        <EmptyContainer
-          icon={<HiPlus />}
-          emptyText={
-            "No income entries yet. Start by adding your first income source."
-          }
-          button={{
-            buttonText: "Add income",
-            buttonAction: () => handleCreateIncome(),
-          }}></EmptyContainer>
-      )}
+      {!isLoading &&
+        !error &&
+        incomes.length === 0 &&
+        allIncomes.length === 0 && (
+          <EmptyContainer
+            icon={<HiPlus />}
+            emptyText={
+              "No income entries yet. Start by adding your first income source."
+            }
+            button={{
+              buttonText: "Add income",
+              buttonAction: () => handleCreateIncome(),
+            }}></EmptyContainer>
+        )}
 
-      {!isLoading && !error && incomes.length === 0 && allIncomes.length > 0 && (
-        <EmptyContainer
-          icon={<HiPlus />}
-          emptyText={"No incomes match your filters. Try adjusting your search criteria."}
-        />
-      )}
+      {!isLoading &&
+        !error &&
+        incomes.length === 0 &&
+        allIncomes.length > 0 && (
+          <EmptyContainer
+            icon={<HiPlus />}
+            emptyText={
+              "No incomes match your filters. Try adjusting your search criteria."
+            }
+          />
+        )}
 
       {!isLoading && !error && incomes.length > 0 && (
         <Container>
