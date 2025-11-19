@@ -13,6 +13,7 @@ import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
 import { DialogOverlay } from "./dialog-overlay";
+import { useDialogStack } from "./use-dialog-stack";
 import type { IDialogProps, IDialogStatus } from "./types";
 
 /**
@@ -78,10 +79,16 @@ export function Dialog({
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const dialogIdRef = useRef<string>(
+    `dialog-${Math.random().toString(36).substr(2, 9)}`
+  );
 
   // Determine if controlled or uncontrolled
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
+  
+  // Get z-index for dialog stacking (must be after open is defined)
+  const dialogZIndex = useDialogStack(open ? dialogIdRef.current : undefined);
 
   // Set mounted state for SSR safety
   useEffect(() => {
@@ -257,7 +264,7 @@ export function Dialog({
   };
 
   const baseClasses = cn(
-    "z-50 bg-surface border border-border rounded-2xl",
+    "bg-surface border border-border rounded-2xl",
     "shadow-lg outline-none",
     "flex flex-col overflow-hidden",
     variantClasses[variant],
@@ -287,6 +294,7 @@ export function Dialog({
         open={open}
         dismissible={dismissible}
         onClick={handleClose}
+        dialogId={dialogIdRef.current}
       />
       <div
         ref={dialogRef}
@@ -299,7 +307,7 @@ export function Dialog({
         data-size={size}
         data-status={status}
         className={baseClasses}
-        style={style}
+        style={{ ...style, zIndex: dialogZIndex }}
         onKeyDown={handleKeyDown}
         tabIndex={-1}>
         {/* Header - Always rendered */}

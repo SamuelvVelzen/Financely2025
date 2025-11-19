@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useDialogStack } from "./use-dialog-stack";
 import type { IDialogOverlayProps } from "./types";
 
 /**
@@ -16,7 +17,9 @@ export function DialogOverlay({
   onClick,
   open = false,
   className = "",
+  dialogId,
 }: IDialogOverlayProps) {
+  const overlayZIndex = useDialogStack(open ? dialogId : undefined);
   // Lock body scroll when overlay is open
   useEffect(() => {
     if (!open || typeof window === "undefined") return;
@@ -49,11 +52,12 @@ export function DialogOverlay({
   return (
     <div
       className={
-        "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm " +
+        "fixed inset-0 bg-black/50 backdrop-blur-sm " +
         "motion-safe:transition-opacity motion-safe:duration-300 " +
         "data-[state=open]:motion-safe:opacity-100 data-[state=closed]:motion-safe:opacity-0 " +
         className
       }
+      style={{ zIndex: overlayZIndex - 1 }}
       data-state={open ? "open" : "closed"}
       data-dismissible={dismissible ? "true" : "false"}
       onClick={handleClick}

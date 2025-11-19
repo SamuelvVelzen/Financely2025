@@ -69,6 +69,8 @@ export interface IDialogOverlayProps extends IPropsWithClassName {
   onClick?: () => void;
   /** Open state */
   open?: boolean;
+  /** Dialog ID for stacking */
+  dialogId?: string;
 }
 
 /**
