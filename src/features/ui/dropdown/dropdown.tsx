@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { HiDotsVertical } from "react-icons/hi";
 import { Button } from "../button/button";
 import {
@@ -21,7 +22,8 @@ type IDropdownProps = {
   onOpenChange?: (open: boolean) => void;
   expandedContent?: ReactNode;
   showExpanded?: boolean;
-  placement?: IPlacementOption;
+  placement?: IPlacementOption | IPlacementOption[];
+  usePortal?: boolean;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -32,8 +34,10 @@ export function Dropdown({
   expandedContent,
   showExpanded = false,
   placement,
+  usePortal = false,
 }: IDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownContentRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +57,11 @@ export function Dropdown({
   const toggleDropdown = () => {
     setDropdownState(!dropdownIsOpen);
   };
+
+  // Set mounted state for SSR safety (needed for portal)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Calculate dropdown position using the placement hook
   const dropdownPosition = useDropdownPlacement({
@@ -93,7 +102,11 @@ export function Dropdown({
       const isClickInExpanded =
         expandedContentRef.current?.contains(target) ?? false;
 
-      if (!isClickInTrigger && !isClickInDropdown && !isClickInExpanded) {
+      // Check if the click is on an input that's part of the trigger (for searchable selects)
+      const isClickOnInput = (target as HTMLElement)?.tagName === "INPUT" &&
+        triggerRef.current?.querySelector("input") === target;
+
+      if (!isClickInTrigger && !isClickInDropdown && !isClickInExpanded && !isClickOnInput) {
         setDropdownState(false);
       }
     };
@@ -119,37 +132,46 @@ export function Dropdown({
         {DropdownSelector}
       </div>
 
-      {dropdownIsOpen && (
-        <div
-          className="fixed z-20 flex shadow-lg rounded-2xl"
-          style={{
-            visibility: dropdownPosition ? "visible" : "hidden",
-            top: dropdownPosition ? `${dropdownPosition.top}px` : "-9999px",
-            left: dropdownPosition ? `${dropdownPosition.left}px` : "-9999px",
-          }}>
+      {dropdownIsOpen && (() => {
+        const dropdownContent = (
           <div
-            ref={dropdownContentRef}
-            className={cn(
-              "bg-surface border border-border overflow-scroll text-base font-normal min-w-min",
-              showExpanded ? "rounded-l-2xl" : "rounded-2xl"
-            )}
+            className="fixed z-[60] flex shadow-lg rounded-2xl"
             style={{
-              width: dropdownPosition ? `${dropdownPosition.width}px` : "auto",
-              maxHeight: dropdownPosition
-                ? `${dropdownPosition.maxHeight}px`
-                : "none",
+              visibility: dropdownPosition ? "visible" : "hidden",
+              top: dropdownPosition ? `${dropdownPosition.top}px` : "-9999px",
+              left: dropdownPosition ? `${dropdownPosition.left}px` : "-9999px",
             }}>
-            {children}
-          </div>
-          {showExpanded && expandedContent && (
             <div
-              ref={expandedContentRef}
-              className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
-              {expandedContent}
+              ref={dropdownContentRef}
+              className={cn(
+                "bg-surface border border-border overflow-y-auto text-base font-normal min-w-min",
+                showExpanded ? "rounded-l-2xl" : "rounded-2xl"
+              )}
+              style={{
+                width: dropdownPosition ? `${dropdownPosition.width}px` : "auto",
+                maxHeight: dropdownPosition
+                  ? `${dropdownPosition.maxHeight}px`
+                  : "none",
+              }}>
+              {children}
             </div>
-          )}
-        </div>
-      )}
+            {showExpanded && expandedContent && (
+              <div
+                ref={expandedContentRef}
+                className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
+                {expandedContent}
+              </div>
+            )}
+          </div>
+        );
+
+        // Use portal if requested (for dialogs) or if mounted
+        if (usePortal && isMounted && typeof window !== "undefined") {
+          return createPortal(dropdownContent, document.body);
+        }
+
+        return dropdownContent;
+      })()}
     </>
   );
 }

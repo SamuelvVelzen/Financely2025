@@ -17,7 +17,7 @@ export function ListItem({
   return (
     <div
       className={cn(
-        "flex items-center justify-between p-3 bg-surface rounded-lg hover:bg-surface-hover",
+        "flex items-center justify-between p-3 bg-surface hover:bg-surface-hover",
         className
       )}
       onClick={clicked}>

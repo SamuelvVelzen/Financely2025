@@ -16,6 +16,7 @@ import { DateInput } from "@/features/ui/input/date-input";
 import { NumberInput } from "@/features/ui/input/number-input";
 import { SelectInput } from "@/features/ui/input/select-input";
 import { TextInput } from "@/features/ui/input/text-input";
+import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import {
   datetimeLocalToIso,
   isoToDatetimeLocal,
@@ -40,6 +41,7 @@ const IncomeFormSchema = CreateTransactionInputSchema.omit({
 }).extend({
   amount: z.coerce.number().positive("Amount must be positive"),
   occurredAt: z.string().min(1, "Date is required"),
+  tagIds: z.array(z.string()).optional().default([]),
 });
 
 type FormData = z.infer<typeof IncomeFormSchema>;
@@ -66,6 +68,7 @@ export function AddOrCreateIncomeDialog({
       currency: "EUR",
       occurredAt: "",
       description: "",
+      tagIds: [],
     },
   });
 
@@ -80,6 +83,7 @@ export function AddOrCreateIncomeDialog({
           currency: transaction.currency,
           occurredAt: isoToDatetimeLocal(transaction.occurredAt),
           description: transaction.description ?? "",
+          tagIds: transaction.tags.map((tag) => tag.id),
         });
       } else {
         // Create mode: reset to defaults with current date/time
@@ -90,6 +94,7 @@ export function AddOrCreateIncomeDialog({
           currency: "EUR",
           occurredAt: isoToDatetimeLocal(now.toISOString()),
           description: "",
+          tagIds: [],
         });
       }
     } else {
@@ -100,6 +105,7 @@ export function AddOrCreateIncomeDialog({
         currency: "EUR",
         occurredAt: "",
         description: "",
+        tagIds: [],
       });
     }
   }, [open, transaction?.id, form]);
@@ -117,7 +123,7 @@ export function AddOrCreateIncomeDialog({
         data.description && data.description.trim() !== ""
           ? data.description.trim()
           : null,
-      tagIds: [],
+      tagIds: data.tagIds || [],
     };
 
     try {
@@ -133,6 +139,7 @@ export function AddOrCreateIncomeDialog({
                 currency: "EUR",
                 occurredAt: "",
                 description: "",
+                tagIds: [],
               });
               setPending(false);
               onOpenChange(false);
@@ -154,6 +161,7 @@ export function AddOrCreateIncomeDialog({
               currency: "EUR",
               occurredAt: "",
               description: "",
+              tagIds: [],
             });
             setPending(false);
             onOpenChange(false);
@@ -214,6 +222,13 @@ export function AddOrCreateIncomeDialog({
               label="Description"
               disabled={pending}
             />
+            <TagSelect
+              name="tagIds"
+              label="Tags"
+              multiple={true}
+              placeholder="Select tags..."
+              disabled={pending}
+            />
           </div>
         </Form>
       }
@@ -226,6 +241,7 @@ export function AddOrCreateIncomeDialog({
               currency: "EUR",
               occurredAt: "",
               description: "",
+              tagIds: [],
             });
             onOpenChange(false);
           },

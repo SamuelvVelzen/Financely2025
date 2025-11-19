@@ -39,7 +39,11 @@ export function List<T>({
   };
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div
+      className={cn(
+        "divide-y divide-border rounded-2xl overflow-hidden",
+        className
+      )}>
       {data.map((item, index) => (
         <div key={getKey(item, index)}>{children(item, index)}</div>
       ))}

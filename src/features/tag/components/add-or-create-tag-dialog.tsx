@@ -18,7 +18,8 @@ type IAddOrCreateTagDialog = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tag?: ITag;
-  onSuccess?: () => void;
+  initialName?: string;
+  onSuccess?: (createdTag?: ITag) => void;
 };
 
 type FormData = z.infer<typeof CreateTagInputSchema>;
@@ -27,6 +28,7 @@ export function AddOrCreateTagDialog({
   open,
   onOpenChange,
   tag,
+  initialName,
   onSuccess,
 }: IAddOrCreateTagDialog) {
   const [pending, setPending] = useState(false);
@@ -54,9 +56,9 @@ export function AddOrCreateTagDialog({
           description: tag.description ?? "",
         });
       } else {
-        // Create mode: reset to defaults
+        // Create mode: reset to defaults or use initial name
         form.reset({
-          name: "",
+          name: initialName || "",
           color: "",
           description: "",
         });
@@ -69,7 +71,7 @@ export function AddOrCreateTagDialog({
         description: "",
       });
     }
-  }, [open, tag?.id, form]);
+  }, [open, tag?.id, initialName, form]);
 
   const handleSubmit = async (data: FormData) => {
     setPending(true);
@@ -114,7 +116,7 @@ export function AddOrCreateTagDialog({
       } else {
         // Create new tag
         createTag(submitData, {
-          onSuccess: () => {
+          onSuccess: (createdTag) => {
             form.reset({
               name: "",
               color: "",
@@ -122,7 +124,7 @@ export function AddOrCreateTagDialog({
             });
             setPending(false);
             onOpenChange(false);
-            onSuccess?.();
+            onSuccess?.(createdTag);
           },
           onError: (error) => {
             setPending(false);
