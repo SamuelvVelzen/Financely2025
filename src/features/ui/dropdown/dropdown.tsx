@@ -10,7 +10,10 @@ import {
 } from "react";
 import { HiDotsVertical } from "react-icons/hi";
 import { Button } from "../button/button";
-import { useDropdownPlacement } from "./hooks/use-dropdown-placement";
+import {
+  useDropdownPlacement,
+  type IPlacementOption,
+} from "./hooks/use-dropdown-placement";
 
 type IDropdownProps = {
   dropdownSelector?: ReactNode;
@@ -18,6 +21,7 @@ type IDropdownProps = {
   onOpenChange?: (open: boolean) => void;
   expandedContent?: ReactNode;
   showExpanded?: boolean;
+  placement?: IPlacementOption;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -27,6 +31,7 @@ export function Dropdown({
   onOpenChange,
   expandedContent,
   showExpanded = false,
+  placement,
 }: IDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -54,6 +59,7 @@ export function Dropdown({
     isOpen: dropdownIsOpen,
     triggerRef: triggerRef as React.RefObject<HTMLElement>,
     contentRef: dropdownContentRef as React.RefObject<HTMLElement>,
+    placement,
   });
 
   const DropdownSelector = dropdownSelector ? (
@@ -113,8 +119,14 @@ export function Dropdown({
         {DropdownSelector}
       </div>
 
-      {dropdownIsOpen && dropdownPosition && (
-        <div className="fixed z-20 flex shadow-lg rounded-2xl">
+      {dropdownIsOpen && (
+        <div
+          className="fixed z-20 flex shadow-lg rounded-2xl"
+          style={{
+            visibility: dropdownPosition ? "visible" : "hidden",
+            top: dropdownPosition ? `${dropdownPosition.top}px` : "-9999px",
+            left: dropdownPosition ? `${dropdownPosition.left}px` : "-9999px",
+          }}>
           <div
             ref={dropdownContentRef}
             className={cn(
@@ -122,10 +134,10 @@ export function Dropdown({
               showExpanded ? "rounded-l-2xl" : "rounded-2xl"
             )}
             style={{
-              top: `${dropdownPosition.top}px`,
-              left: `${dropdownPosition.left}px`,
-              width: `${dropdownPosition.width}px`,
-              maxHeight: `${dropdownPosition.maxHeight}px`,
+              width: dropdownPosition ? `${dropdownPosition.width}px` : "auto",
+              maxHeight: dropdownPosition
+                ? `${dropdownPosition.maxHeight}px`
+                : "none",
             }}>
             {children}
           </div>

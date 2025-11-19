@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 export type IPlacementSide = "top" | "bottom" | "left" | "right";
 export type IPlacementAlignment = "start" | "center" | "end";
 
+export type IPlacementOption = "top" | "bottom" | "left" | "right" | "auto";
+
 export type IFloatingPlacement = {
   top: number;
   left: number;
@@ -12,25 +14,44 @@ export type IFloatingPlacement = {
   maxHeight?: number;
 } | null;
 
-export type IPlacementStrategy =
-  | "auto" // Automatically choose best side
-  | "prefer-top"
-  | "prefer-bottom"
-  | "prefer-bottom-then-top" // Try bottom, then top, then left/right
-  | "prefer-left"
-  | "prefer-right";
+/**
+ * Normalizes placement option to an array of placement sides
+ */
+function normalizePlacement(
+  placement?: IPlacementOption[] | IPlacementOption,
+  defaultPlacement: IPlacementSide[] = ["top", "bottom", "left", "right"]
+): IPlacementSide[] {
+  if (!placement) {
+    return defaultPlacement;
+  }
+
+  if (placement === "auto") {
+    return ["bottom", "top", "left", "right"];
+  }
+
+  if (Array.isArray(placement)) {
+    // Expand "auto" if present in array, otherwise filter to valid sides
+    const result: IPlacementSide[] = [];
+    for (const option of placement) {
+      if (option === "auto") {
+        result.push("bottom", "top", "left", "right");
+      } else {
+        result.push(option);
+      }
+    }
+    return result;
+  }
+
+  return [placement];
+}
 
 type IUseFloatingPlacementOptions = {
   isOpen: boolean;
   triggerRef: React.RefObject<HTMLElement>;
   contentRef: React.RefObject<HTMLElement>;
+  placement?: IPlacementOption[] | IPlacementOption; // Placement options to try in order
   spacing?: number;
-  preferredSide?: IPlacementSide;
-  strategy?: IPlacementStrategy;
-  align?: IPlacementAlignment;
   matchWidth?: boolean; // Match content width to trigger width (for dropdowns)
-  estimatedWidth?: number;
-  estimatedHeight?: number;
   offset?: { x?: number; y?: number }; // Additional offset
 };
 
@@ -40,48 +61,21 @@ type IUseFloatingPlacementOptions = {
  * Works for dropdowns, tooltips, popovers, and other floating UI elements.
  *
  * Features:
- * - Automatically positions element to stay within viewport
- * - Flips to opposite side based on available space
- * - Aligns content relative to trigger (start/center/end)
+ * - Tries placement options in order until one fits on screen
+ * - Uses actual element dimensions for accurate calculations
  * - Updates position on scroll and resize
- * - Configurable placement strategy and preferences
+ * - Allows overflow if none of the options fit
  *
  * @param options - Configuration options
  * @returns Calculated floating position or null
- *
- * @example
- * ```tsx
- * // For a dropdown (prefers bottom, matches width)
- * const position = useFloatingPlacement({
- *   isOpen,
- *   triggerRef,
- *   contentRef,
- *   preferredSide: "bottom",
- *   matchWidth: true,
- * });
- *
- * // For a tooltip (prefers top, centers on trigger)
- * const position = useFloatingPlacement({
- *   isOpen,
- *   triggerRef,
- *   contentRef,
- *   preferredSide: "top",
- *   align: "center",
- *   spacing: 8,
- * });
- * ```
  */
 export function useFloatingPlacement({
   isOpen,
   triggerRef,
   contentRef,
+  placement,
   spacing = 4,
-  preferredSide = "bottom",
-  strategy = "auto",
-  align = "start",
   matchWidth = false,
-  estimatedWidth,
-  estimatedHeight = 200,
   offset = { x: 0, y: 0 },
 }: IUseFloatingPlacementOptions): IFloatingPlacement {
   const [position, setPosition] = useState<IFloatingPlacement>(null);
@@ -92,6 +86,13 @@ export function useFloatingPlacement({
       return;
     }
 
+    const normalizedPlacement = normalizePlacement(placement, [
+      "top",
+      "bottom",
+      "left",
+      "right",
+    ]);
+
     const calculatePosition = (
       triggerRect: DOMRect,
       contentRect?: DOMRect
@@ -99,234 +100,106 @@ export function useFloatingPlacement({
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
-      // Use actual content size if available, otherwise use estimates
-      const contentHeight = contentRect?.height ?? estimatedHeight;
-      const contentWidth =
-        contentRect?.width ?? estimatedWidth ?? triggerRect.width;
+      // Must have actual content size - wait for it to be measured
+      if (!contentRect) {
+        return null;
+      }
 
-      // Determine which side to use based on strategy
-      const determineSide = (): IPlacementSide => {
-        const spaceMap = {
-          top: triggerRect.top,
-          bottom: viewportHeight - triggerRect.bottom,
-          left: triggerRect.left,
-          right: viewportWidth - triggerRect.right,
-        };
+      const contentHeight = contentRect.height;
+      const contentWidth = contentRect.width;
 
-        const checkSide = (side: IPlacementSide): boolean => {
-          const requiredSpace =
-            side === "top" || side === "bottom" ? contentHeight : contentWidth;
-          return spaceMap[side] >= requiredSpace + spacing;
-        };
+      // Try each placement option in order until one fits
+      let finalPosition: IFloatingPlacement | null = null;
 
-        if (strategy === "auto") {
-          // Calculate space on each side
-          const spaces = [
-            { side: "top" as IPlacementSide, space: spaceMap.top },
-            { side: "bottom" as IPlacementSide, space: spaceMap.bottom },
-            { side: "left" as IPlacementSide, space: spaceMap.left },
-            { side: "right" as IPlacementSide, space: spaceMap.right },
-          ];
+      for (const side of normalizedPlacement) {
+        let top = 0;
+        let left = 0;
+        let alignment: IPlacementAlignment = "start";
 
-          // Sort by space and prefer vertical (top/bottom) for most use cases
-          spaces.sort((a, b) => {
-            const aIsVertical = a.side === "top" || a.side === "bottom";
-            const bIsVertical = b.side === "top" || b.side === "bottom";
-
-            // Prefer vertical if space is similar
-            if (Math.abs(a.space - b.space) < 50) {
-              return aIsVertical ? -1 : 1;
-            }
-            return b.space - a.space;
-          });
-
-          return spaces[0].side;
-        }
-
-        if (strategy === "prefer-bottom-then-top") {
-          // Try bottom first
-          if (checkSide("bottom")) {
-            return "bottom";
-          }
-          // Try top second
-          if (checkSide("top")) {
-            return "top";
-          }
-          // Try left or right (whichever has more space)
-          if (spaceMap.left >= spaceMap.right) {
-            return checkSide("left") ? "left" : "right";
-          } else {
-            return checkSide("right") ? "right" : "left";
-          }
-        }
-
-        // Use preferred side, but flip if not enough space
-        const preferred = preferredSide;
-        const requiredSpace =
-          preferred === "top" || preferred === "bottom"
-            ? contentHeight
-            : contentWidth;
-
-        if (spaceMap[preferred] >= requiredSpace + spacing) {
-          return preferred;
-        }
-
-        // Flip to opposite side if preferred doesn't fit
-        const opposites: Record<IPlacementSide, IPlacementSide> = {
-          top: "bottom",
-          bottom: "top",
-          left: "right",
-          right: "left",
-        };
-
-        const opposite = opposites[preferred];
-        if (spaceMap[opposite] >= requiredSpace + spacing) {
-          return opposite;
-        }
-
-        // If neither fits, use the side with most space
-        const bestSide = Object.entries(spaceMap).reduce(
-          (best, [side, space]) =>
-            space > best.space ? { side: side as IPlacementSide, space } : best,
-          { side: preferred, space: spaceMap[preferred] }
-        );
-
-        return bestSide.side;
-      };
-
-      const side = determineSide();
-      let top = 0;
-      let left = 0;
-      let alignment: IPlacementAlignment = align;
-
-      // Calculate position based on side
-      switch (side) {
-        case "top": {
-          top = triggerRect.top - contentHeight - spacing;
-          const triggerCenterX = triggerRect.left + triggerRect.width / 2;
-
-          if (align === "center") {
-            left = triggerCenterX - contentWidth / 2;
-            alignment = "center";
-          } else if (align === "end") {
-            left = triggerRect.right - contentWidth;
-            alignment = "end";
-          } else {
+        // Calculate position based on side
+        switch (side) {
+          case "top": {
+            top = triggerRect.top - contentHeight - spacing;
             left = triggerRect.left;
             alignment = "start";
+            break;
           }
-          break;
-        }
-        case "bottom": {
-          top = triggerRect.bottom + spacing;
-          const triggerCenterX = triggerRect.left + triggerRect.width / 2;
-
-          if (align === "center") {
-            left = triggerCenterX - contentWidth / 2;
-            alignment = "center";
-          } else if (align === "end") {
-            left = triggerRect.right - contentWidth;
-            alignment = "end";
-          } else {
+          case "bottom": {
+            top = triggerRect.bottom + spacing;
             left = triggerRect.left;
             alignment = "start";
+            break;
           }
-          break;
-        }
-        case "left": {
-          left = triggerRect.left - contentWidth - spacing;
-          const triggerCenterY = triggerRect.top + triggerRect.height / 2;
-
-          if (align === "center") {
-            top = triggerCenterY - contentHeight / 2;
-            alignment = "center";
-          } else if (align === "end") {
-            top = triggerRect.bottom - contentHeight;
-            alignment = "end";
-          } else {
+          case "left": {
+            left = triggerRect.left - contentWidth - spacing;
             top = triggerRect.top;
             alignment = "start";
+            break;
           }
-          break;
-        }
-        case "right": {
-          left = triggerRect.right + spacing;
-          const triggerCenterY = triggerRect.top + triggerRect.height / 2;
-
-          if (align === "center") {
-            top = triggerCenterY - contentHeight / 2;
-            alignment = "center";
-          } else if (align === "end") {
-            top = triggerRect.bottom - contentHeight;
-            alignment = "end";
-          } else {
+          case "right": {
+            left = triggerRect.right + spacing;
             top = triggerRect.top;
             alignment = "start";
+            break;
           }
-          break;
         }
+
+        // Apply width matching for dropdowns
+        if (matchWidth && (side === "top" || side === "bottom")) {
+          left = triggerRect.left;
+          alignment = "start";
+        }
+
+        // Apply offset
+        top += offset.y ?? 0;
+        left += offset.x ?? 0;
+
+        // Check if this placement fits within viewport (with spacing)
+        const fitsInViewport =
+          left >= spacing &&
+          left + contentWidth <= viewportWidth - spacing &&
+          top >= spacing &&
+          top + contentHeight <= viewportHeight - spacing;
+
+        // Calculate max dimensions
+        const maxHeight =
+          side === "top"
+            ? triggerRect.top - spacing - 8
+            : side === "bottom"
+              ? viewportHeight - top - 8
+              : viewportHeight - 16;
+
+        const maxWidth =
+          side === "left"
+            ? triggerRect.left - spacing - 8
+            : side === "right"
+              ? viewportWidth - left - 8
+              : viewportWidth - 16;
+
+        const position: IFloatingPlacement = {
+          top,
+          left,
+          side,
+          alignment,
+          maxHeight: maxHeight > 0 ? maxHeight : undefined,
+          maxWidth: maxWidth > 0 ? maxWidth : undefined,
+        };
+
+        // If it fits, use this placement
+        if (fitsInViewport) {
+          return position;
+        }
+
+        // Otherwise, save it as fallback (will use last attempted if none fit)
+        finalPosition = position;
       }
 
-      // Apply width matching for dropdowns
-      if (matchWidth && (side === "top" || side === "bottom")) {
-        left = triggerRect.left;
-        alignment = "start";
-      }
-
-      // Keep within viewport bounds
-      if (left < spacing) {
-        left = spacing;
-        alignment = "start";
-      }
-      if (left + contentWidth > viewportWidth - spacing) {
-        left = viewportWidth - contentWidth - spacing;
-        alignment = "end";
-      }
-      if (top < spacing) {
-        top = spacing;
-      }
-      if (top + contentHeight > viewportHeight - spacing) {
-        top = viewportHeight - contentHeight - spacing;
-      }
-
-      // Apply offset
-      top += offset.y ?? 0;
-      left += offset.x ?? 0;
-
-      const maxHeight =
-        side === "top"
-          ? triggerRect.top - spacing - 8
-          : side === "bottom"
-            ? viewportHeight - top - 8
-            : viewportHeight - 16;
-
-      const maxWidth =
-        side === "left"
-          ? triggerRect.left - spacing - 8
-          : side === "right"
-            ? viewportWidth - left - 8
-            : viewportWidth - 16;
-
-      return {
-        top,
-        left,
-        side,
-        alignment,
-        maxHeight: maxHeight > 0 ? maxHeight : undefined,
-        maxWidth: maxWidth > 0 ? maxWidth : undefined,
-      };
+      // If none fit, return the last attempted placement (allows overflow)
+      return finalPosition;
     };
 
-    // Initial position calculation with estimates
+    // Wait for content to be rendered and measured before calculating position
     const updatePosition = () => {
-      if (!triggerRef.current) return;
-      const rect = triggerRef.current.getBoundingClientRect();
-      const position = calculatePosition(rect);
-      setPosition(position);
-    };
-
-    // Fine-tune position after content is rendered and measured
-    const fineTunePosition = () => {
       if (!contentRef.current || !triggerRef.current) return;
 
       const triggerRect = triggerRef.current.getBoundingClientRect();
@@ -335,11 +208,8 @@ export function useFloatingPlacement({
       setPosition(position);
     };
 
-    // Initial position calculation
-    updatePosition();
-
-    // Fine-tune after a short delay to allow rendering
-    const timeoutId = setTimeout(fineTunePosition, 10);
+    // Initial position calculation after a short delay to allow rendering
+    const timeoutId = setTimeout(updatePosition, 10);
 
     // Update position on scroll and resize
     window.addEventListener("scroll", updatePosition, true);
@@ -354,15 +224,11 @@ export function useFloatingPlacement({
     isOpen,
     triggerRef,
     contentRef,
+    placement,
     spacing,
-    preferredSide,
-    strategy,
-    align,
     matchWidth,
-    estimatedHeight,
-    estimatedWidth,
-    offset.x,
-    offset.y,
+    offset?.x,
+    offset?.y,
   ]);
 
   return position;
