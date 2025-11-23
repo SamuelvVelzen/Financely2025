@@ -10,46 +10,55 @@ const defaultTags = [
     name: "Food & Dining",
     color: "#FF6B6B",
     description: "Restaurants, groceries, and food-related expenses",
+    order: 0,
   },
   {
     name: "Transportation",
     color: "#4ECDC4",
     description: "Gas, public transit, car maintenance, and travel",
+    order: 1,
   },
   {
     name: "Shopping",
     color: "#9B59B6",
     description: "General shopping and retail purchases",
+    order: 2,
   },
   {
     name: "Entertainment",
     color: "#E91E63",
     description: "Movies, concerts, hobbies, and leisure activities",
+    order: 3,
   },
   {
     name: "Bills & Utilities",
     color: "#F39C12",
     description: "Electricity, water, internet, phone, and other bills",
+    order: 4,
   },
   {
     name: "Healthcare",
     color: "#2ECC71",
     description: "Medical expenses, prescriptions, and health services",
+    order: 5,
   },
   {
     name: "Income",
     color: "#27AE60",
     description: "Salary, freelance income, and other earnings",
+    order: 6,
   },
   {
     name: "Savings",
     color: "#3498DB",
     description: "Savings transfers and investment contributions",
+    order: 7,
   },
   {
     name: "Other",
     color: "#95A5A6",
     description: "Miscellaneous expenses that don't fit other categories",
+    order: 8,
   },
 ];
 
@@ -92,6 +101,7 @@ async function main() {
           name: tag.name,
           color: tag.color,
           description: tag.description,
+          order: tag.order,
         },
       });
       console.log(`  ✅ Created tag: ${tag.name}`);

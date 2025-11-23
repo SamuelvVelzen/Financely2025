@@ -24,6 +24,7 @@ import { Route as ApiV1TransactionsCsvMappingRouteImport } from './routes/api/v1
 import { Route as ApiV1TransactionsCsvImportRouteImport } from './routes/api/v1/transactions.csv-import'
 import { Route as ApiV1TransactionsBulkRouteImport } from './routes/api/v1/transactions.bulk'
 import { Route as ApiV1TransactionsTransactionIdRouteImport } from './routes/api/v1/transactions.$transactionId'
+import { Route as ApiV1TagsReorderRouteImport } from './routes/api/v1/tags.reorder'
 import { Route as ApiV1TagsCsvUploadRouteImport } from './routes/api/v1/tags.csv-upload'
 import { Route as ApiV1TagsCsvParseRouteImport } from './routes/api/v1/tags.csv-parse'
 import { Route as ApiV1TagsCsvMappingRouteImport } from './routes/api/v1/tags.csv-mapping'
@@ -113,6 +114,11 @@ const ApiV1TransactionsTransactionIdRoute =
     path: '/$transactionId',
     getParentRoute: () => ApiV1TransactionsRoute,
   } as any)
+const ApiV1TagsReorderRoute = ApiV1TagsReorderRouteImport.update({
+  id: '/reorder',
+  path: '/reorder',
+  getParentRoute: () => ApiV1TagsRoute,
+} as any)
 const ApiV1TagsCsvUploadRoute = ApiV1TagsCsvUploadRouteImport.update({
   id: '/csv-upload',
   path: '/csv-upload',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/tags/csv-mapping': typeof ApiV1TagsCsvMappingRouteWithChildren
   '/api/v1/tags/csv-parse': typeof ApiV1TagsCsvParseRoute
   '/api/v1/tags/csv-upload': typeof ApiV1TagsCsvUploadRoute
+  '/api/v1/tags/reorder': typeof ApiV1TagsReorderRoute
   '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/api/v1/tags/csv-mapping': typeof ApiV1TagsCsvMappingRouteWithChildren
   '/api/v1/tags/csv-parse': typeof ApiV1TagsCsvParseRoute
   '/api/v1/tags/csv-upload': typeof ApiV1TagsCsvUploadRoute
+  '/api/v1/tags/reorder': typeof ApiV1TagsReorderRoute
   '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/api/v1/tags/csv-mapping': typeof ApiV1TagsCsvMappingRouteWithChildren
   '/api/v1/tags/csv-parse': typeof ApiV1TagsCsvParseRoute
   '/api/v1/tags/csv-upload': typeof ApiV1TagsCsvUploadRoute
+  '/api/v1/tags/reorder': typeof ApiV1TagsReorderRoute
   '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/api/v1/tags/csv-mapping'
     | '/api/v1/tags/csv-parse'
     | '/api/v1/tags/csv-upload'
+    | '/api/v1/tags/reorder'
     | '/api/v1/transactions/$transactionId'
     | '/api/v1/transactions/bulk'
     | '/api/v1/transactions/csv-import'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/api/v1/tags/csv-mapping'
     | '/api/v1/tags/csv-parse'
     | '/api/v1/tags/csv-upload'
+    | '/api/v1/tags/reorder'
     | '/api/v1/transactions/$transactionId'
     | '/api/v1/transactions/bulk'
     | '/api/v1/transactions/csv-import'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/api/v1/tags/csv-mapping'
     | '/api/v1/tags/csv-parse'
     | '/api/v1/tags/csv-upload'
+    | '/api/v1/tags/reorder'
     | '/api/v1/transactions/$transactionId'
     | '/api/v1/transactions/bulk'
     | '/api/v1/transactions/csv-import'
@@ -432,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1TransactionsTransactionIdRouteImport
       parentRoute: typeof ApiV1TransactionsRoute
     }
+    '/api/v1/tags/reorder': {
+      id: '/api/v1/tags/reorder'
+      path: '/reorder'
+      fullPath: '/api/v1/tags/reorder'
+      preLoaderRoute: typeof ApiV1TagsReorderRouteImport
+      parentRoute: typeof ApiV1TagsRoute
+    }
     '/api/v1/tags/csv-upload': {
       id: '/api/v1/tags/csv-upload'
       path: '/csv-upload'
@@ -536,6 +555,7 @@ interface ApiV1TagsRouteChildren {
   ApiV1TagsCsvMappingRoute: typeof ApiV1TagsCsvMappingRouteWithChildren
   ApiV1TagsCsvParseRoute: typeof ApiV1TagsCsvParseRoute
   ApiV1TagsCsvUploadRoute: typeof ApiV1TagsCsvUploadRoute
+  ApiV1TagsReorderRoute: typeof ApiV1TagsReorderRoute
 }
 
 const ApiV1TagsRouteChildren: ApiV1TagsRouteChildren = {
@@ -545,6 +565,7 @@ const ApiV1TagsRouteChildren: ApiV1TagsRouteChildren = {
   ApiV1TagsCsvMappingRoute: ApiV1TagsCsvMappingRouteWithChildren,
   ApiV1TagsCsvParseRoute: ApiV1TagsCsvParseRoute,
   ApiV1TagsCsvUploadRoute: ApiV1TagsCsvUploadRoute,
+  ApiV1TagsReorderRoute: ApiV1TagsReorderRoute,
 }
 
 const ApiV1TagsRouteWithChildren = ApiV1TagsRoute._addFileChildren(

@@ -104,6 +104,7 @@ export const TagSchema = z.object({
   name: z.string(),
   color: z.string().nullable(),
   description: z.string().nullable(),
+  order: z.number().int(),
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
 });
@@ -116,9 +117,14 @@ export const CreateTagInputSchema = z.object({
     .nullable()
     .optional(),
   description: z.string().max(500).nullable().optional(),
+  order: z.number().int().optional(),
 });
 
 export const UpdateTagInputSchema = CreateTagInputSchema.partial();
+
+export const ReorderTagsInputSchema = z.object({
+  tagIds: z.array(z.string()),
+});
 
 export const TagsQuerySchema = z.object({
   q: z.string().optional(),
@@ -384,6 +390,7 @@ export type ITransaction = z.infer<typeof TransactionSchema>;
 export type IUser = z.infer<typeof UserSchema>;
 export type ICreateTagInput = z.infer<typeof CreateTagInputSchema>;
 export type IUpdateTagInput = z.infer<typeof UpdateTagInputSchema>;
+export type IReorderTagsInput = z.infer<typeof ReorderTagsInputSchema>;
 export type ITagsQuery = z.infer<typeof TagsQuerySchema>;
 export type ICreateTransactionInput = z.infer<
   typeof CreateTransactionInputSchema

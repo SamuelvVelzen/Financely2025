@@ -2,12 +2,12 @@
 
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
-import { Children, PropsWithChildren, ReactNode } from "react";
+import { Children, PropsWithChildren } from "react";
 import { DragHandle } from "./drag-handle";
+import { ListItem } from "./list-item";
 
 type ISortableListItemProps = {
   draggable: boolean;
-  dragHandle?: ReactNode;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDragEnd?: (e: React.DragEvent) => void;
@@ -21,7 +21,6 @@ export function SortableListItem({
   className = "",
   clicked,
   draggable,
-  dragHandle,
   onDragStart,
   onDragOver,
   onDragEnd,
@@ -54,40 +53,38 @@ export function SortableListItem({
     onDrop?.(e);
   };
 
-  const defaultDragHandle = dragHandle ?? <DragHandle />;
-
   const childrenArray = Children.toArray(children);
   const hasMultipleChildren = childrenArray.length > 1;
 
   return (
-    <div
-      className={cn(
-        "flex items-center justify-between p-3 bg-surface hover:bg-surface-hover",
-        draggable && "cursor-move",
-        className
-      )}
-      onClick={clicked}
-      draggable={draggable}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      onDrop={handleDrop}>
-      {draggable ? (
-        <>
-          <div className="flex items-center gap-3">
-            <div className="flex-shrink-0" draggable={false}>
-              {defaultDragHandle}
+    <ListItem
+      className={cn(draggable && "cursor-move", className)}
+      clicked={clicked}
+    >
+      <div
+        className="flex items-center justify-between w-full"
+        draggable={draggable}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        onDrop={handleDrop}
+      >
+        {draggable ? (
+          <>
+            <div className="flex items-center gap-3">
+              <div className="shrink-0" draggable={false}>
+                <DragHandle />
+              </div>
+              {hasMultipleChildren ? childrenArray[0] : children}
             </div>
-            {hasMultipleChildren ? childrenArray[0] : children}
-          </div>
-          {hasMultipleChildren && childrenArray.length > 1 && (
-            <div>{childrenArray.slice(1)}</div>
-          )}
-        </>
-      ) : (
-        children
-      )}
-    </div>
+            {hasMultipleChildren && childrenArray.length > 1 && (
+              <div>{childrenArray.slice(1)}</div>
+            )}
+          </>
+        ) : (
+          children
+        )}
+      </div>
+    </ListItem>
   );
 }
-

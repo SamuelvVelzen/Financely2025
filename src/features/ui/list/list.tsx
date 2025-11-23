@@ -4,7 +4,7 @@ import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { ReactNode } from "react";
 
-type IListProps<T> = {
+export type IListProps<T> = {
   data: T[];
   children: (item: T, index: number) => ReactNode;
   getItemKey?: (item: T, index: number) => string | number;
@@ -43,7 +43,8 @@ export function List<T>({
       className={cn(
         "divide-y divide-border rounded-2xl overflow-hidden",
         className
-      )}>
+      )}
+    >
       {data.map((item, index) => (
         <div key={getKey(item, index)}>{children(item, index)}</div>
       ))}

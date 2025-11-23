@@ -2,6 +2,7 @@ import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
   ICreateTagInput,
+  IReorderTagsInput,
   ITag,
   ITagsQuery,
   ITagsResponse,
@@ -11,6 +12,7 @@ import {
   createTag,
   deleteTag,
   getTags,
+  reorderTags,
   updateTag,
 } from "@/features/tag/api/client";
 
@@ -59,5 +61,16 @@ export function useDeleteTag() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: deleteTag,
     invalidateQueries: [queryKeys.tags, queryKeys.transactions],
+  });
+}
+
+/**
+ * Reorder tags mutation
+ * - Invalidates tags query on success
+ */
+export function useReorderTags() {
+  return useFinMutation<{ success: boolean }, Error, IReorderTagsInput>({
+    mutationFn: reorderTags,
+    invalidateQueries: [queryKeys.tags],
   });
 }

@@ -86,6 +86,7 @@ model Tag {
   name          String
   color         String?         // optional color like #FF6600
   description   String?
+  order         Int
 
   transactions  Transaction[]
   budgetLines  BudgetLine[]

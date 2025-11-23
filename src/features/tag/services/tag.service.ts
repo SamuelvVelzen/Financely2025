@@ -1,12 +1,14 @@
 import {
   BulkCreateTagInputSchema,
   CreateTagInputSchema,
+  ReorderTagsInputSchema,
   TagSchema,
   TagsQuerySchema,
   UpdateTagInputSchema,
   type IBulkCreateTagInput,
   type IBulkCreateTagResponse,
   type ICreateTagInput,
+  type IReorderTagsInput,
   type ITag,
   type ITagsQuery,
   type IUpdateTagInput,
@@ -36,9 +38,14 @@ export class TagService {
           },
         }),
       },
-      orderBy: {
-        name: validated.sort === "name:desc" ? "desc" : "asc",
-      },
+      orderBy: [
+        {
+          order: "asc",
+        },
+        {
+          name: validated.sort === "name:desc" ? "desc" : "asc",
+        },
+      ],
     });
 
     return {
@@ -48,6 +55,7 @@ export class TagService {
           name: tag.name,
           color: tag.color,
           description: tag.description,
+          order: tag.order,
           createdAt: tag.createdAt.toISOString(),
           updatedAt: tag.updatedAt.toISOString(),
         })
@@ -75,6 +83,7 @@ export class TagService {
       name: tag.name,
       color: tag.color,
       description: tag.description,
+      order: tag.order,
       createdAt: tag.createdAt.toISOString(),
       updatedAt: tag.updatedAt.toISOString(),
     });
@@ -104,12 +113,26 @@ export class TagService {
       throw new Error("Tag with this name already exists");
     }
 
+    // Determine order: use provided order, or set to max + 1
+    let order: number;
+    if (validated.order !== undefined) {
+      order = validated.order;
+    } else {
+      const maxOrderTag = await prisma.tag.findFirst({
+        where: { userId },
+        orderBy: { order: "desc" },
+        select: { order: true },
+      });
+      order = maxOrderTag ? maxOrderTag.order + 1 : 0;
+    }
+
     const tag = await prisma.tag.create({
       data: {
         userId,
         name: validated.name,
         color: validated.color ?? null,
         description: validated.description ?? null,
+        order,
       },
     });
 
@@ -118,6 +141,7 @@ export class TagService {
       name: tag.name,
       color: tag.color,
       description: tag.description,
+      order: tag.order,
       createdAt: tag.createdAt.toISOString(),
       updatedAt: tag.updatedAt.toISOString(),
     });
@@ -163,6 +187,7 @@ export class TagService {
         ...(validated.description !== undefined && {
           description: validated.description,
         }),
+        ...(validated.order !== undefined && { order: validated.order }),
       },
     });
 
@@ -171,6 +196,7 @@ export class TagService {
       name: tag.name,
       color: tag.color,
       description: tag.description,
+      order: tag.order,
       createdAt: tag.createdAt.toISOString(),
       updatedAt: tag.updatedAt.toISOString(),
     });
@@ -240,6 +266,19 @@ export class TagService {
           continue;
         }
 
+        // Determine order: use provided order, or set to max + 1
+        let order: number;
+        if (validatedItem.order !== undefined) {
+          order = validatedItem.order;
+        } else {
+          const maxOrderTag = await prisma.tag.findFirst({
+            where: { userId },
+            orderBy: { order: "desc" },
+            select: { order: true },
+          });
+          order = maxOrderTag ? maxOrderTag.order + 1 : 0;
+        }
+
         // Create the tag
         const tag = await prisma.tag.create({
           data: {
@@ -247,6 +286,7 @@ export class TagService {
             name: validatedItem.name,
             color: validatedItem.color ?? null,
             description: validatedItem.description ?? null,
+            order,
           },
         });
 
@@ -255,6 +295,7 @@ export class TagService {
           name: tag.name,
           color: tag.color,
           description: tag.description,
+          order: tag.order,
           createdAt: tag.createdAt.toISOString(),
           updatedAt: tag.updatedAt.toISOString(),
         });
@@ -277,5 +318,40 @@ export class TagService {
       created,
       errors,
     };
+  }
+
+  /**
+   * Reorder tags
+   * Updates order values based on the provided array of tag IDs
+   * Each tag's order is set to its index in the array
+   */
+  static async reorderTags(
+    userId: string,
+    input: IReorderTagsInput
+  ): Promise<void> {
+    const validated = ReorderTagsInputSchema.parse(input);
+
+    // Verify all tags belong to the user
+    const tags = await prisma.tag.findMany({
+      where: {
+        id: { in: validated.tagIds },
+        userId,
+      },
+      select: { id: true },
+    });
+
+    if (tags.length !== validated.tagIds.length) {
+      throw new Error("One or more tags not found or do not belong to user");
+    }
+
+    // Update each tag's order based on its position in the array
+    await prisma.$transaction(
+      validated.tagIds.map((tagId, index) =>
+        prisma.tag.update({
+          where: { id: tagId },
+          data: { order: index },
+        })
+      )
+    );
   }
 }

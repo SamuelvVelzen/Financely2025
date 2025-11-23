@@ -9,6 +9,7 @@ import type {
   IBulkCreateTagInput,
   IBulkCreateTagResponse,
   ICreateTagInput,
+  IReorderTagsInput,
   ITag,
   ITagCsvFieldMapping,
   ITagCsvImportResponse,
@@ -49,6 +50,12 @@ export async function bulkCreateTags(
   input: IBulkCreateTagInput
 ): Promise<IBulkCreateTagResponse> {
   return apiPost<IBulkCreateTagResponse>("/tags/bulk", input);
+}
+
+export async function reorderTags(
+  input: IReorderTagsInput
+): Promise<{ success: boolean }> {
+  return apiPost<{ success: boolean }>("/tags/reorder", input);
 }
 
 /**

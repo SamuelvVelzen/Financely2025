@@ -1,5 +1,5 @@
 import type { ITag } from "@/features/shared/validation/schemas";
-import { useDeleteTag, useTags } from "@/features/tag/hooks/useTags";
+import { useDeleteTag, useReorderTags, useTags } from "@/features/tag/hooks/useTags";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
@@ -24,6 +24,7 @@ export function TagOverview() {
   const { data, isLoading, error } = useTags();
   const tags = data?.data ?? [];
   const { mutate: deleteTag } = useDeleteTag();
+  const { mutate: reorderTags } = useReorderTags();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
@@ -117,8 +118,10 @@ export function TagOverview() {
         <Container>
           <SortableList
             data={tags}
-            storageKey="tag-order"
-            getItemId={(tag) => tag.id}>
+            getItemId={(tag) => tag.id}
+            onOrderChange={(orderedIds) => {
+              reorderTags({ tagIds: orderedIds as string[] });
+            }}>
             {(tag, index, dragProps) => (
               <SortableListItem
                 className="group"

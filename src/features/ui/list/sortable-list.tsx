@@ -1,21 +1,18 @@
 "use client";
 
-import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { ReactNode } from "react";
-import { List, type IListProps } from "./list";
 import { useSortableList } from "./hooks/use-sortable-list";
-import { DragHandle } from "./drag-handle";
+import { IListProps, List } from "./list";
 
 type ISortableListProps<T> = Omit<IListProps<T>, "data"> & {
   data: T[];
-  storageKey: string;
+  storageKey?: string;
   getItemId: (item: T) => string | number;
   onOrderChange?: (orderedIds: (string | number)[]) => void;
   children: (
     item: T,
     index: number,
     dragProps: {
-      dragHandle: ReactNode;
       onDragStart: (e: React.DragEvent) => void;
       onDragOver: (e: React.DragEvent) => void;
       onDragEnd: (e: React.DragEvent) => void;
@@ -50,13 +47,9 @@ export function SortableList<T>({
   });
 
   return (
-    <List
-      data={orderedData}
-      className={className}
-      getItemKey={getItemKey}>
+    <List data={orderedData} className={className} getItemKey={getItemKey}>
       {(item, index) => {
         const dragProps = {
-          dragHandle: <DragHandle />,
           onDragStart: (e: React.DragEvent) => {
             handleDragStart(index);
           },
@@ -77,4 +70,3 @@ export function SortableList<T>({
     </List>
   );
 }
-
