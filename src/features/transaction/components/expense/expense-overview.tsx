@@ -266,8 +266,6 @@ export function ExpenseOverview() {
                 <RangeInput
                   value={priceFilter}
                   onChange={setPriceFilter}
-                  minLabel="Min"
-                  maxLabel="Max"
                   placeholder={{ min: "Min", max: "Max" }}
                 />
               </div>

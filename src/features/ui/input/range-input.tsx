@@ -14,8 +14,6 @@ export type IPriceRange = {
 export type IRangeInputProps = IPropsWithClassName & {
   value: IPriceRange;
   onChange: (range: IPriceRange) => void;
-  minLabel?: string;
-  maxLabel?: string;
   placeholder?: {
     min?: string;
     max?: string;
@@ -28,8 +26,6 @@ export function RangeInput({
   className = "",
   value,
   onChange,
-  minLabel = "Min",
-  maxLabel = "Max",
   placeholder = { min: "Min", max: "Max" },
   minRange = 0,
   maxRange = 10000,
