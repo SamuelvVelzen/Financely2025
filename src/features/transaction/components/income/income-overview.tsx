@@ -146,9 +146,7 @@ export function IncomeOverview() {
       <>
         {parts.map((part, index) =>
           regex.test(part) ? (
-            <mark
-              key={index}
-              className="bg-primary/20 text-primary">
+            <mark key={index} className="bg-primary/20 text-primary">
               {part}
             </mark>
           ) : (
@@ -244,30 +242,27 @@ export function IncomeOverview() {
           <Dropdown>
             <DropdownItem
               icon={<HiArrowTrendingUp />}
-              clicked={() => handleCreateIncome()}>
+              clicked={() => handleCreateIncome()}
+            >
               Add income
             </DropdownItem>
             <DropdownItem
               icon={<HiArrowDownTray />}
-              clicked={() => setIsCsvImportDialogOpen(true)}>
+              clicked={() => setIsCsvImportDialogOpen(true)}
+            >
               Import from CSV
             </DropdownItem>
           </Dropdown>
         </Title>
 
-        <div className="flex gap-3 items-end pb-4 overflow-x-auto">
-          <Form
-            form={filterForm}
-            onSubmit={() => {}}>
+        <div className="flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto">
+          <Form form={filterForm} onSubmit={() => {}}>
             <div className="flex gap-3 items-end">
               <div className="min-w-[200px] shrink-0">
                 <SearchInput name="searchQuery" />
               </div>
 
-              <Datepicker
-                value={dateFilter}
-                onChange={setDateFilter}
-              />
+              <Datepicker value={dateFilter} onChange={setDateFilter} />
 
               <div className="w-[400px] shrink-0">
                 <RangeInput
@@ -327,7 +322,8 @@ export function IncomeOverview() {
             button={{
               buttonText: "Add income",
               buttonAction: () => handleCreateIncome(),
-            }}></EmptyContainer>
+            }}
+          ></EmptyContainer>
         )}
 
       {!isLoading &&
@@ -377,7 +373,8 @@ export function IncomeOverview() {
                         {income.tags.map((tag) => (
                           <span
                             key={tag.id}
-                            className="px-2 py-0.5 bg-surface-hover rounded text-xs">
+                            className="px-2 py-0.5 bg-surface-hover rounded text-xs"
+                          >
                             {searchQuery
                               ? highlightText(tag.name, searchQuery)
                               : tag.name}
@@ -390,12 +387,14 @@ export function IncomeOverview() {
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
                   <IconButton
                     clicked={() => handleEditIncome(income)}
-                    className="text-text-muted hover:text-text p-1">
+                    className="text-text-muted hover:text-text p-1"
+                  >
                     <HiPencil className="w-5 h-5" />
                   </IconButton>
                   <IconButton
                     clicked={() => handleDeleteClick(income.id)}
-                    className="text-danger hover:text-danger-hover p-1">
+                    className="text-danger hover:text-danger-hover p-1"
+                  >
                     <HiTrash className="w-5 h-5" />
                   </IconButton>
                 </div>
