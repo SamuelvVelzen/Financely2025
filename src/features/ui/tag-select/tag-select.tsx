@@ -1,5 +1,6 @@
 "use client";
 
+import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { queryKeys } from "@/features/shared/query/keys";
 import { type ITag } from "@/features/shared/validation/schemas";
 import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-create-tag-dialog";
@@ -24,6 +25,7 @@ export type ITagSelectProps = IPropsWithClassName & {
       isSelected: boolean;
       handleClick: () => void;
       multiple: boolean;
+      searchQuery: string;
     }
   ) => ReactNode;
 };
@@ -42,8 +44,11 @@ export function TagSelect({
   const tags = tagsData?.data ?? [];
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [pendingTagName, setPendingTagName] = useState<string>("");
+
   const queryClient = useQueryClient();
   const form = useFormContext();
+
+  const { highlightText } = useHighlightText();
 
   // Convert tags to SelectOption format
   const tagOptions: ISelectOption<ITag>[] = useMemo(() => {
@@ -91,6 +96,7 @@ export function TagSelect({
       isSelected: boolean;
       handleClick: () => void;
       multiple: boolean;
+      searchQuery: string;
     }
   ) => {
     return (
@@ -101,7 +107,9 @@ export function TagSelect({
             style={{ backgroundColor: option.data.color }}
           />
         )}
-        <span className="flex-1">{option.label}</span>
+        <span className="flex-1">
+          {highlightText(option.label, context.searchQuery)}
+        </span>
       </>
     );
   };

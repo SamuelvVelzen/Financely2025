@@ -1,5 +1,6 @@
 "use client";
 
+import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
@@ -41,6 +42,7 @@ export type ISelectProps<
       isSelected: boolean;
       handleClick: () => void;
       multiple: boolean;
+      searchQuery: string;
     }
   ) => ReactNode;
   onCreateNew?: (searchQuery: string) => void;
@@ -74,6 +76,7 @@ export function Select<
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const error = form.formState.errors[name];
+
   const { highlightText } = useHighlightText();
 
   // Keep dropdown open when input is focused
@@ -295,6 +298,7 @@ export function Select<
                               isSelected: optionIsSelected,
                               handleClick,
                               multiple,
+                              searchQuery,
                             })
                           ) : (
                             <span className="flex-1">
