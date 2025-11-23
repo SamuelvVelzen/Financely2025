@@ -6,8 +6,8 @@ import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { List } from "@/features/ui/list/list";
-import { ListItem } from "@/features/ui/list/list-item";
+import { SortableList } from "@/features/ui/list/sortable-list";
+import { SortableListItem } from "@/features/ui/list/sortable-list-item";
 import { Title } from "@/features/ui/typography/title";
 import { useState } from "react";
 import {
@@ -115,9 +115,19 @@ export function TagOverview() {
 
       {!isLoading && !error && tags.length > 0 && (
         <Container>
-          <List data={tags}>
-            {(tag) => (
-              <ListItem className="group">
+          <SortableList
+            data={tags}
+            storageKey="tag-order"
+            getItemId={(tag) => tag.id}>
+            {(tag, index, dragProps) => (
+              <SortableListItem
+                className="group"
+                draggable={true}
+                dragHandle={dragProps.dragHandle}
+                onDragStart={dragProps.onDragStart}
+                onDragOver={dragProps.onDragOver}
+                onDragEnd={dragProps.onDragEnd}
+                onDrop={dragProps.onDrop}>
                 <div className="flex items-center gap-3">
                   {tag.color && (
                     <div
@@ -144,9 +154,9 @@ export function TagOverview() {
                     <HiTrash className="w-5 h-5" />
                   </IconButton>
                 </div>
-              </ListItem>
+              </SortableListItem>
             )}
-          </List>
+          </SortableList>
         </Container>
       )}
 
