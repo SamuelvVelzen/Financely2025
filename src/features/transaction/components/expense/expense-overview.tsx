@@ -258,9 +258,7 @@ export function ExpenseOverview() {
         <div className="flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto">
           <Form form={filterForm} onSubmit={() => {}}>
             <div className="flex gap-3 items-end">
-              <div className="min-w-[200px] shrink-0">
-                <SearchInput name="searchQuery" />
-              </div>
+              <SearchInput name="searchQuery" />
 
               <Datepicker value={dateFilter} onChange={setDateFilter} />
 
