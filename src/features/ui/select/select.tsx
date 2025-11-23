@@ -100,9 +100,7 @@ export function Select<
       <>
         {parts.map((part, index) =>
           regex.test(part) ? (
-            <mark
-              key={index}
-              className="bg-primary/20 text-primary">
+            <mark key={index} className="bg-primary/20 text-primary">
               {part}
             </mark>
           ) : (
@@ -213,27 +211,21 @@ export function Select<
 
         // Custom selector with input and chips
         const selectorContent = (
-          <div
-            className={cn(
-              "w-full min-h-[42px] px-3 py-2 border rounded-lg bg-surface",
-              "flex flex-wrap items-center gap-2",
-              "focus-within:outline-none focus-within:ring-2 focus-within:ring-primary",
-              error ? "border-danger" : "border-border",
-              disabled && "opacity-50 cursor-not-allowed"
-            )}
-            onClick={() => !disabled && !isOpen && setIsOpen(true)}>
+          <>
             <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
               {hasSelection &&
                 selectedOptions.map((option) => (
                   <span
                     key={option.value}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-hover rounded text-xs text-text shrink-0">
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-hover rounded text-xs text-text shrink-0"
+                  >
                     {option.label}
                     <button
                       type="button"
                       onClick={(e) => handleRemoveChip(e, option.value)}
                       className="hover:text-text-muted focus:outline-none"
-                      aria-label={`Remove ${option.label}`}>
+                      aria-label={`Remove ${option.label}`}
+                    >
                       <HiX className="w-3 h-3" />
                     </button>
                   </span>
@@ -292,7 +284,7 @@ export function Select<
                 isOpen && "rotate-180"
               )}
             />
-          </div>
+          </>
         );
 
         return (
@@ -304,17 +296,15 @@ export function Select<
               dropdownSelector={selectorContent}
               open={disabled ? false : isOpen}
               onOpenChange={(open) => !disabled && setIsOpen(open)}
-              usePortal={true}
-              placement={forcePlacement}>
+              placement={forcePlacement}
+            >
               {filteredOptions.length > 0 && (
                 <>
                   {filteredOptions.map((option, index) => {
                     const optionIsSelected = isSelected(option.value, value);
                     const handleClick = () => handleOptionClick(option.value);
                     return (
-                      <DropdownItem
-                        key={option.value}
-                        clicked={handleClick}>
+                      <DropdownItem key={option.value} clicked={handleClick}>
                         <div className="flex items-center gap-2 w-full">
                           {multiple && (
                             <Checkbox
@@ -363,7 +353,8 @@ export function Select<
                   clicked={() => {
                     handleCreateNew();
                   }}
-                  className="text-primary font-medium hover:bg-primary/10 cursor-pointer border-t border-border mt-1">
+                  className="text-primary font-medium hover:bg-primary/10 cursor-pointer border-t border-border mt-1"
+                >
                   {typeof createNewLabel === "function"
                     ? createNewLabel(searchQuery.trim())
                     : `${createNewLabel} "${searchQuery.trim()}"`}

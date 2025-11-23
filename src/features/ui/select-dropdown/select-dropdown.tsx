@@ -155,17 +155,7 @@ export function SelectDropdown<
 
         // Custom selector button
         const selectorButton = (
-          <button
-            type="button"
-            className={cn(
-              "w-full px-4 py-2 border rounded-lg bg-surface hover:bg-surface-hover",
-              "flex items-center justify-between text-base",
-              "disabled:opacity-50 disabled:cursor-not-allowed",
-              "focus:outline-none focus:ring-2 focus:ring-primary",
-              error ? "border-danger" : "border-border",
-              !hasSelection && "text-text-muted",
-              hasSelection && "text-text"
-            )}>
+          <>
             <span className="flex-1 text-left whitespace-nowrap truncate">
               {displayText}
             </span>
@@ -178,7 +168,8 @@ export function SelectDropdown<
                     "p-1 rounded hover:bg-surface-hover text-text-muted hover:text-text",
                     "flex items-center justify-center"
                   )}
-                  aria-label="Clear selection">
+                  aria-label="Clear selection"
+                >
                   <HiX className="w-4 h-4" />
                 </button>
               )}
@@ -190,7 +181,7 @@ export function SelectDropdown<
                 )}
               />
             </div>
-          </button>
+          </>
         );
 
         return (
@@ -201,14 +192,13 @@ export function SelectDropdown<
             <Dropdown
               dropdownSelector={selectorButton}
               open={isOpen}
-              onOpenChange={setIsOpen}>
+              onOpenChange={setIsOpen}
+            >
               {options.map((option, index) => {
                 const optionIsSelected = isSelected(option.value, value);
                 const handleClick = () => handleOptionClick(option.value);
                 return (
-                  <DropdownItem
-                    key={option.value}
-                    clicked={handleClick}>
+                  <DropdownItem key={option.value} clicked={handleClick}>
                     {
                       <div className="flex items-center gap-2 w-full">
                         {multiple && (

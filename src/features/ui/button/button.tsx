@@ -37,7 +37,7 @@ export function Button({
     primary: "bg-primary hover:bg-primary-hover text-white border-primary",
   };
 
-  const baseClasses = "p-2 border rounded-2xl cursor-pointer";
+  const baseClasses = "p-2 border rounded-2xl cursor-pointer flex items-center";
   const disabledClasses =
     disabled && "opacity-50 cursor-not-allowed pointer-events-none";
 
@@ -50,7 +50,8 @@ export function Button({
         disabledClasses
       )}
       onClick={() => clicked()}
-      disabled={disabled}>
+      disabled={disabled}
+    >
       {buttonContent ?? children}
     </button>
   );

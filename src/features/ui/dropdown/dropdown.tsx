@@ -69,15 +69,15 @@ export function Dropdown({
     placement,
   });
 
-  const DropdownSelector = dropdownSelector ? (
-    <div ref={triggerRef} onClick={toggleDropdown}>
-      {dropdownSelector}
-    </div>
-  ) : (
+  const DropdownSelector = (
     <div ref={triggerRef}>
-      <Button className="text-xl" clicked={toggleDropdown}>
-        <HiDotsVertical />
-      </Button>
+      {dropdownSelector ? (
+        <Button clicked={toggleDropdown}>{dropdownSelector}</Button>
+      ) : (
+        <Button className="text-xl" clicked={toggleDropdown}>
+          <HiDotsVertical />
+        </Button>
+      )}
     </div>
   );
 

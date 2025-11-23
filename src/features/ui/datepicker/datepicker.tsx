@@ -183,14 +183,7 @@ export function Datepicker({
 
   // Use same base classes as Input component for consistency
   const selectorButton = (
-    <button
-      type="button"
-      className={cn(
-        "w-full px-4 py-2 border border-border rounded-lg bg-surface hover:bg-surface-hover",
-        "flex items-center justify-between text-base",
-        "disabled:opacity-50 disabled:cursor-not-allowed",
-        "text-text focus:outline-none focus:ring-2 focus:ring-primary"
-      )}>
+    <>
       <div className="flex items-center gap-2 min-w-0">
         <HiCalendar className="w-4 h-4 text-text-muted shrink-0" />
         <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
@@ -203,7 +196,7 @@ export function Datepicker({
           isOpen && "rotate-180"
         )}
       />
-    </button>
+    </>
   );
 
   const calendarContent = showCalendar ? (
@@ -221,12 +214,14 @@ export function Datepicker({
         open={isOpen}
         onOpenChange={setIsOpen}
         expandedContent={calendarContent}
-        showExpanded={showCalendar}>
+        showExpanded={showCalendar}
+      >
         {defaultOptions.map((option) => (
           <DropdownItem
             key={option.type}
             clicked={() => handleDefaultOption(option)}
-            selected={value.type === option.type}>
+            selected={value.type === option.type}
+          >
             {option.label}
           </DropdownItem>
         ))}
@@ -235,7 +230,8 @@ export function Datepicker({
 
         <DropdownItem
           clicked={handleCustomClick}
-          selected={value.type === "custom"}>
+          selected={value.type === "custom"}
+        >
           Custom Date Range
         </DropdownItem>
       </Dropdown>
