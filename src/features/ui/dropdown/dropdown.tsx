@@ -23,7 +23,6 @@ type IDropdownProps = {
   expandedContent?: ReactNode;
   showExpanded?: boolean;
   placement?: IPlacementOption | IPlacementOption[];
-  usePortal?: boolean;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -34,7 +33,6 @@ export function Dropdown({
   expandedContent,
   showExpanded = false,
   placement,
-  usePortal = false,
 }: IDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -72,16 +70,12 @@ export function Dropdown({
   });
 
   const DropdownSelector = dropdownSelector ? (
-    <div
-      ref={triggerRef}
-      onClick={toggleDropdown}>
+    <div ref={triggerRef} onClick={toggleDropdown}>
       {dropdownSelector}
     </div>
   ) : (
     <div ref={triggerRef}>
-      <Button
-        className="text-xl"
-        clicked={toggleDropdown}>
+      <Button className="text-xl" clicked={toggleDropdown}>
         <HiDotsVertical />
       </Button>
     </div>
@@ -103,10 +97,16 @@ export function Dropdown({
         expandedContentRef.current?.contains(target) ?? false;
 
       // Check if the click is on an input that's part of the trigger (for searchable selects)
-      const isClickOnInput = (target as HTMLElement)?.tagName === "INPUT" &&
+      const isClickOnInput =
+        (target as HTMLElement)?.tagName === "INPUT" &&
         triggerRef.current?.querySelector("input") === target;
 
-      if (!isClickInTrigger && !isClickInDropdown && !isClickInExpanded && !isClickOnInput) {
+      if (
+        !isClickInTrigger &&
+        !isClickInDropdown &&
+        !isClickInExpanded &&
+        !isClickOnInput
+      ) {
         setDropdownState(false);
       }
     };
@@ -126,52 +126,60 @@ export function Dropdown({
 
   return (
     <>
-      <div
-        className="relative"
-        ref={dropdownRef}>
+      <div className="relative" ref={dropdownRef}>
         {DropdownSelector}
       </div>
 
-      {dropdownIsOpen && (() => {
-        const dropdownContent = (
-          <div
-            className="fixed z-[60] flex shadow-lg rounded-2xl"
-            style={{
-              visibility: dropdownPosition ? "visible" : "hidden",
-              top: dropdownPosition ? `${dropdownPosition.top}px` : "-9999px",
-              left: dropdownPosition ? `${dropdownPosition.left}px` : "-9999px",
-            }}>
+      {dropdownIsOpen &&
+        (() => {
+          const dropdownContent = (
             <div
-              ref={dropdownContentRef}
-              className={cn(
-                "bg-surface border border-border overflow-y-auto text-base font-normal min-w-min",
-                showExpanded ? "rounded-l-2xl" : "rounded-2xl"
-              )}
+              className="fixed z-[60] flex shadow-lg rounded-2xl"
               style={{
-                width: dropdownPosition ? `${dropdownPosition.width}px` : "auto",
-                maxHeight: dropdownPosition
-                  ? `${dropdownPosition.maxHeight}px`
-                  : "none",
-              }}>
-              {children}
-            </div>
-            {showExpanded && expandedContent && (
+                visibility: dropdownPosition ? "visible" : "hidden",
+                top: dropdownPosition ? `${dropdownPosition.top}px` : "-9999px",
+                left: dropdownPosition
+                  ? `${dropdownPosition.left}px`
+                  : "-9999px",
+              }}
+            >
               <div
-                ref={expandedContentRef}
-                className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
-                {expandedContent}
+                ref={dropdownContentRef}
+                className={cn(
+                  "bg-surface border border-border overflow-y-auto text-base font-normal",
+                  showExpanded ? "rounded-l-2xl" : "rounded-2xl"
+                )}
+                style={{
+                  // Only set width if specified (when content fits within trigger width)
+                  // Otherwise let content determine width naturally
+                  ...(dropdownPosition?.width
+                    ? { width: `${dropdownPosition.width}px` }
+                    : {}),
+                  maxHeight: dropdownPosition
+                    ? `${dropdownPosition.maxHeight}px`
+                    : "none",
+                }}
+              >
+                {children}
               </div>
-            )}
-          </div>
-        );
+              {showExpanded && expandedContent && (
+                <div
+                  ref={expandedContentRef}
+                  className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl"
+                >
+                  {expandedContent}
+                </div>
+              )}
+            </div>
+          );
 
-        // Use portal if requested (for dialogs) or if mounted
-        if (usePortal && isMounted && typeof window !== "undefined") {
-          return createPortal(dropdownContent, document.body);
-        }
+          // Always render via portal to avoid clipping from parent containers
+          if (isMounted && typeof window !== "undefined") {
+            return createPortal(dropdownContent, document.body);
+          }
 
-        return dropdownContent;
-      })()}
+          return dropdownContent;
+        })()}
     </>
   );
 }

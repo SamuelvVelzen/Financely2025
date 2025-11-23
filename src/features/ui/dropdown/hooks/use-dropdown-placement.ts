@@ -12,7 +12,7 @@ export type IDropdownPlacement =
 export type IDropdownPosition = {
   top: number;
   left: number;
-  width: number;
+  width?: number; // Optional - only set when content fits within trigger width
   maxHeight: number;
   placement: IDropdownPlacement;
 } | null;
@@ -25,7 +25,6 @@ type IUseDropdownPlacementOptions = {
   triggerRef: React.RefObject<HTMLElement>;
   contentRef: React.RefObject<HTMLElement>;
   placement?: IPlacementOption[] | IPlacementOption;
-  spacing?: number;
 };
 
 /**
@@ -37,7 +36,8 @@ type IUseDropdownPlacementOptions = {
  * - Tries placement options in order until one fits on screen
  * - Uses actual element dimensions for accurate calculations
  * - Updates position on scroll and resize
- * - Allows overflow if none of the options fit
+ * - Menu must always stay fully inside viewport with 8px margin
+ * - Zero gap between trigger and menu
  *
  * @param options - Configuration options
  * @returns Calculated dropdown position or null
@@ -47,18 +47,16 @@ export function useDropdownPlacement({
   triggerRef,
   contentRef,
   placement,
-  spacing = 4,
 }: IUseDropdownPlacementOptions): IDropdownPosition {
-  // Default to ["bottom", "top", "left", "right"] for dropdowns
+  // Default to "auto" for dropdowns (tries bottom, top, left, right in order)
   const placementOptions: IPlacementOption[] | IPlacementOption =
-    placement !== undefined ? placement : ["bottom", "top", "left", "right"];
+    placement !== undefined ? placement : "auto";
 
   const floatingPosition = useFloatingPlacement({
     isOpen,
     triggerRef,
     contentRef,
     placement: placementOptions,
-    spacing,
     matchWidth: true,
   });
 
@@ -68,6 +66,7 @@ export function useDropdownPlacement({
 
   // Convert floating placement to dropdown position format
   const triggerRect = triggerRef.current.getBoundingClientRect();
+  const contentRect = contentRef.current?.getBoundingClientRect();
   const dropdownPlacement: IDropdownPlacement =
     floatingPosition.side === "top"
       ? floatingPosition.alignment === "end"
@@ -77,10 +76,14 @@ export function useDropdownPlacement({
         ? "bottom-right"
         : "bottom";
 
+  // Only set width if content fits within trigger width, otherwise let it be natural width
+  const contentWidth = contentRect?.width ?? 0;
+  const shouldMatchWidth = contentWidth <= triggerRect.width;
+
   return {
     top: floatingPosition.top,
     left: floatingPosition.left,
-    width: triggerRect.width,
+    width: shouldMatchWidth ? triggerRect.width : undefined,
     maxHeight:
       floatingPosition.maxHeight ??
       window.innerHeight - floatingPosition.top - 8,

@@ -14,12 +14,14 @@ export type IFloatingPlacement = {
   maxHeight?: number;
 } | null;
 
+const VIEWPORT_MARGIN = 8;
+
 /**
  * Normalizes placement option to an array of placement sides
  */
 function normalizePlacement(
   placement?: IPlacementOption[] | IPlacementOption,
-  defaultPlacement: IPlacementSide[] = ["top", "bottom", "left", "right"]
+  defaultPlacement: IPlacementSide[] = ["bottom", "top", "left", "right"]
 ): IPlacementSide[] {
   if (!placement) {
     return defaultPlacement;
@@ -49,10 +51,8 @@ type IUseFloatingPlacementOptions = {
   isOpen: boolean;
   triggerRef: React.RefObject<HTMLElement>;
   contentRef: React.RefObject<HTMLElement>;
-  placement?: IPlacementOption[] | IPlacementOption; // Placement options to try in order
-  spacing?: number;
+  placement?: IPlacementOption[] | IPlacementOption;
   matchWidth?: boolean; // Match content width to trigger width (for dropdowns)
-  offset?: { x?: number; y?: number }; // Additional offset
 };
 
 /**
@@ -64,7 +64,8 @@ type IUseFloatingPlacementOptions = {
  * - Tries placement options in order until one fits on screen
  * - Uses actual element dimensions for accurate calculations
  * - Updates position on scroll and resize
- * - Allows overflow if none of the options fit
+ * - Menu must always stay fully inside viewport with 8px margin
+ * - Zero gap between trigger and menu (touching edges)
  *
  * @param options - Configuration options
  * @returns Calculated floating position or null
@@ -74,9 +75,7 @@ export function useFloatingPlacement({
   triggerRef,
   contentRef,
   placement,
-  spacing = 4,
   matchWidth = false,
-  offset = { x: 0, y: 0 },
 }: IUseFloatingPlacementOptions): IFloatingPlacement {
   const [position, setPosition] = useState<IFloatingPlacement>(null);
 
@@ -87,8 +86,8 @@ export function useFloatingPlacement({
     }
 
     const normalizedPlacement = normalizePlacement(placement, [
-      "top",
       "bottom",
+      "top",
       "left",
       "right",
     ]);
@@ -106,96 +105,284 @@ export function useFloatingPlacement({
       }
 
       const contentHeight = contentRect.height;
+      // Use actual content width, but when matchWidth is true, we'll try to align with trigger
       const contentWidth = contentRect.width;
 
       // Try each placement option in order until one fits
-      let finalPosition: IFloatingPlacement | null = null;
+      let bestPosition: IFloatingPlacement | null = null;
+      let minOverflow = Infinity;
 
       for (const side of normalizedPlacement) {
-        let top = 0;
-        let left = 0;
-        let alignment: IPlacementAlignment = "start";
+        // Check if main axis fits (vertical for bottom/top, horizontal for left/right)
+        const mainAxisFits =
+          side === "bottom"
+            ? triggerRect.bottom + contentHeight <=
+              viewportHeight - VIEWPORT_MARGIN
+            : side === "top"
+              ? triggerRect.top - contentHeight >= VIEWPORT_MARGIN
+              : side === "right"
+                ? triggerRect.right + contentWidth <=
+                  viewportWidth - VIEWPORT_MARGIN
+                : triggerRect.left - contentWidth >= VIEWPORT_MARGIN;
 
-        // Calculate position based on side
-        switch (side) {
-          case "top": {
-            top = triggerRect.top - contentHeight - spacing;
-            left = triggerRect.left;
-            alignment = "start";
-            break;
+        if (!mainAxisFits) {
+          // This side doesn't fit on main axis, skip it
+          continue;
+        }
+
+        // Try alignment variants for this side
+        let foundValidAlignment = false;
+
+        if (side === "bottom" || side === "top") {
+          // For vertical placements, try left-aligned first, then right-aligned
+          // Left-aligned: menu.left = trigger.left - Must not overflow right edge
+          // Right-aligned: menu.right = trigger.right - Must not overflow left edge
+          let leftAlignedLeft = triggerRect.left;
+          let rightAlignedLeft = triggerRect.right - contentWidth;
+
+          // If matchWidth is true, prefer matching trigger width, but allow content to be wider if needed
+          if (matchWidth && contentWidth > triggerRect.width) {
+            // Content is wider than trigger - try to align left edge, but ensure it fits
+            leftAlignedLeft = triggerRect.left;
+            // For right-aligned, align right edge of dropdown with right edge of trigger
+            rightAlignedLeft = triggerRect.right - contentWidth;
+          } else if (matchWidth) {
+            // Content fits within trigger width - use trigger width for alignment
+            leftAlignedLeft = triggerRect.left;
+            rightAlignedLeft = triggerRect.right - triggerRect.width;
           }
-          case "bottom": {
-            top = triggerRect.bottom + spacing;
-            left = triggerRect.left;
-            alignment = "start";
-            break;
+
+          // Check left-aligned: must not overflow right edge
+          const leftAlignedFits =
+            leftAlignedLeft >= VIEWPORT_MARGIN &&
+            leftAlignedLeft + contentWidth <= viewportWidth - VIEWPORT_MARGIN;
+
+          // Check right-aligned: must not overflow left edge
+          const rightAlignedFits =
+            rightAlignedLeft >= VIEWPORT_MARGIN &&
+            rightAlignedLeft + contentWidth <= viewportWidth - VIEWPORT_MARGIN;
+
+          const alignments: Array<{
+            left: number;
+            alignment: IPlacementAlignment;
+            fits: boolean;
+          }> = [
+            {
+              left: leftAlignedLeft,
+              alignment: "start",
+              fits: leftAlignedFits,
+            },
+            {
+              left: rightAlignedLeft,
+              alignment: "end",
+              fits: rightAlignedFits,
+            },
+          ];
+
+          for (const { left, alignment, fits } of alignments) {
+            // Check if this alignment fits within viewport
+            const fitsHorizontally = fits;
+
+            if (fitsHorizontally) {
+              const top =
+                side === "bottom"
+                  ? triggerRect.bottom // Zero gap - touching bottom edge
+                  : triggerRect.top - contentHeight; // Zero gap - touching top edge
+
+              // Verify top is within bounds (should be if mainAxisFits passed)
+              const topFits =
+                top >= VIEWPORT_MARGIN &&
+                top + contentHeight <= viewportHeight - VIEWPORT_MARGIN;
+
+              if (!topFits) {
+                // Top doesn't fit, skip this alignment
+                continue;
+              }
+
+              // Use exact position - no clamping when it fits
+              // Calculate maxHeight for scrolling
+              const maxHeight =
+                side === "bottom"
+                  ? viewportHeight - top - VIEWPORT_MARGIN
+                  : triggerRect.top - VIEWPORT_MARGIN;
+
+              const position: IFloatingPlacement = {
+                top,
+                left, // Use exact left position - no clamping
+                side,
+                alignment,
+                maxHeight: maxHeight > 0 ? maxHeight : undefined,
+                maxWidth: viewportWidth - VIEWPORT_MARGIN * 2,
+              };
+
+              bestPosition = position;
+              foundValidAlignment = true;
+              break;
+            } else {
+              // Calculate overflow for this alignment
+              const leftOverflow = Math.max(0, VIEWPORT_MARGIN - left);
+              const rightOverflow = Math.max(
+                0,
+                left + contentWidth - (viewportWidth - VIEWPORT_MARGIN)
+              );
+              const overflow = leftOverflow + rightOverflow;
+
+              if (overflow < minOverflow) {
+                minOverflow = overflow;
+                // Clamp position to viewport
+                const clampedLeft = Math.max(
+                  VIEWPORT_MARGIN,
+                  Math.min(viewportWidth - contentWidth - VIEWPORT_MARGIN, left)
+                );
+
+                const top =
+                  side === "bottom"
+                    ? triggerRect.bottom
+                    : triggerRect.top - contentHeight;
+
+                const maxHeight =
+                  side === "bottom"
+                    ? viewportHeight - top - VIEWPORT_MARGIN
+                    : triggerRect.top - VIEWPORT_MARGIN;
+
+                bestPosition = {
+                  top,
+                  left: clampedLeft,
+                  side,
+                  alignment,
+                  maxHeight: maxHeight > 0 ? maxHeight : undefined,
+                  maxWidth: viewportWidth - VIEWPORT_MARGIN * 2,
+                };
+              }
+            }
           }
-          case "left": {
-            left = triggerRect.left - contentWidth - spacing;
-            top = triggerRect.top;
-            alignment = "start";
-            break;
-          }
-          case "right": {
-            left = triggerRect.right + spacing;
-            top = triggerRect.top;
-            alignment = "start";
-            break;
+        } else {
+          // For horizontal placements (left/right), try top-aligned first, then bottom-aligned
+          const alignments: Array<{
+            top: number;
+            alignment: IPlacementAlignment;
+          }> = [
+            { top: triggerRect.top, alignment: "start" },
+            { top: triggerRect.bottom - contentHeight, alignment: "end" },
+          ];
+
+          for (const { top, alignment } of alignments) {
+            // Check if this alignment fits within viewport
+            const fitsVertically =
+              top >= VIEWPORT_MARGIN &&
+              top + contentHeight <= viewportHeight - VIEWPORT_MARGIN;
+
+            if (fitsVertically) {
+              const left =
+                side === "right"
+                  ? triggerRect.right // Zero gap - touching right edge
+                  : triggerRect.left - contentWidth; // Zero gap - touching left edge
+
+              // Ensure left is within viewport bounds
+              const clampedLeft = Math.max(
+                VIEWPORT_MARGIN,
+                Math.min(viewportWidth - contentWidth - VIEWPORT_MARGIN, left)
+              );
+
+              // Ensure top is within viewport bounds (double-check and clamp)
+              const clampedTop = Math.max(
+                VIEWPORT_MARGIN,
+                Math.min(viewportHeight - contentHeight - VIEWPORT_MARGIN, top)
+              );
+
+              // Calculate maxWidth for scrolling
+              const maxWidth =
+                side === "right"
+                  ? viewportWidth - clampedLeft - VIEWPORT_MARGIN
+                  : triggerRect.left - VIEWPORT_MARGIN;
+
+              const position: IFloatingPlacement = {
+                top: clampedTop,
+                left: clampedLeft,
+                side,
+                alignment,
+                maxHeight: viewportHeight - VIEWPORT_MARGIN * 2,
+                maxWidth: maxWidth > 0 ? maxWidth : undefined,
+              };
+
+              bestPosition = position;
+              foundValidAlignment = true;
+              break;
+            } else {
+              // Calculate overflow for this alignment
+              const topOverflow = Math.max(0, VIEWPORT_MARGIN - top);
+              const bottomOverflow = Math.max(
+                0,
+                top + contentHeight - (viewportHeight - VIEWPORT_MARGIN)
+              );
+              const overflow = topOverflow + bottomOverflow;
+
+              if (overflow < minOverflow) {
+                minOverflow = overflow;
+                // Clamp position to viewport
+                const clampedTop = Math.max(
+                  VIEWPORT_MARGIN,
+                  Math.min(
+                    viewportHeight - contentHeight - VIEWPORT_MARGIN,
+                    top
+                  )
+                );
+
+                const left =
+                  side === "right"
+                    ? triggerRect.right
+                    : triggerRect.left - contentWidth;
+
+                const maxWidth =
+                  side === "right"
+                    ? viewportWidth - left - VIEWPORT_MARGIN
+                    : triggerRect.left - VIEWPORT_MARGIN;
+
+                bestPosition = {
+                  top: clampedTop,
+                  left,
+                  side,
+                  alignment,
+                  maxHeight: viewportHeight - VIEWPORT_MARGIN * 2,
+                  maxWidth: maxWidth > 0 ? maxWidth : undefined,
+                };
+              }
+            }
           }
         }
 
-        // Apply width matching for dropdowns
-        if (matchWidth && (side === "top" || side === "bottom")) {
-          left = triggerRect.left;
-          alignment = "start";
+        // If we found a valid alignment that fully fits, use it immediately
+        if (foundValidAlignment && bestPosition) {
+          return bestPosition;
         }
-
-        // Apply offset
-        top += offset.y ?? 0;
-        left += offset.x ?? 0;
-
-        // Check if this placement fits within viewport (with spacing)
-        const fitsInViewport =
-          left >= spacing &&
-          left + contentWidth <= viewportWidth - spacing &&
-          top >= spacing &&
-          top + contentHeight <= viewportHeight - spacing;
-
-        // Calculate max dimensions
-        const maxHeight =
-          side === "top"
-            ? triggerRect.top - spacing - 8
-            : side === "bottom"
-              ? viewportHeight - top - 8
-              : viewportHeight - 16;
-
-        const maxWidth =
-          side === "left"
-            ? triggerRect.left - spacing - 8
-            : side === "right"
-              ? viewportWidth - left - 8
-              : viewportWidth - 16;
-
-        const position: IFloatingPlacement = {
-          top,
-          left,
-          side,
-          alignment,
-          maxHeight: maxHeight > 0 ? maxHeight : undefined,
-          maxWidth: maxWidth > 0 ? maxWidth : undefined,
-        };
-
-        // If it fits, use this placement
-        if (fitsInViewport) {
-          return position;
-        }
-
-        // Otherwise, save it as fallback (will use last attempted if none fit)
-        finalPosition = position;
       }
 
-      // If none fit, return the last attempted placement (allows overflow)
-      return finalPosition;
+      // If no side fully fits, return the best position (with minimal overflow, clamped)
+      // Final safety clamp to ensure position is always within viewport
+      if (bestPosition) {
+        const finalLeft = Math.max(
+          VIEWPORT_MARGIN,
+          Math.min(
+            viewportWidth - contentWidth - VIEWPORT_MARGIN,
+            bestPosition.left
+          )
+        );
+        const finalTop = Math.max(
+          VIEWPORT_MARGIN,
+          Math.min(
+            viewportHeight - contentHeight - VIEWPORT_MARGIN,
+            bestPosition.top
+          )
+        );
+
+        return {
+          ...bestPosition,
+          left: finalLeft,
+          top: finalTop,
+        };
+      }
+
+      return bestPosition;
     };
 
     // Wait for content to be rendered and measured before calculating position
@@ -220,16 +407,7 @@ export function useFloatingPlacement({
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
     };
-  }, [
-    isOpen,
-    triggerRef,
-    contentRef,
-    placement,
-    spacing,
-    matchWidth,
-    offset?.x,
-    offset?.y,
-  ]);
+  }, [isOpen, triggerRef, contentRef, placement, matchWidth]);
 
   return position;
 }
