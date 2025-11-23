@@ -1,3 +1,4 @@
+import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
@@ -86,6 +87,8 @@ export function ExpenseOverview() {
     ITransaction | undefined
   >(undefined);
 
+  const { highlightText } = useHighlightText();
+
   // Client-side filtering for price, tags, and search
   const expenses = useMemo(() => {
     return allExpenses.filter((expense) => {
@@ -131,31 +134,6 @@ export function ExpenseOverview() {
       return true;
     });
   }, [allExpenses, priceFilter, tagFilter, searchQuery]);
-
-  // Search highlight function
-  const highlightText = (text: string, query: string) => {
-    if (!query.trim()) return text;
-
-    const regex = new RegExp(
-      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi"
-    );
-    const parts = text.split(regex);
-
-    return (
-      <>
-        {parts.map((part, index) =>
-          regex.test(part) ? (
-            <mark key={index} className="bg-primary/20 text-primary">
-              {part}
-            </mark>
-          ) : (
-            part
-          )
-        )}
-      </>
-    );
-  };
 
   const handleCreateExpense = () => {
     setSelectedExpense(undefined);

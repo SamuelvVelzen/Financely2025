@@ -22,6 +22,7 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Title } from "@/features/ui/typography/title";
+import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
@@ -86,6 +87,8 @@ export function IncomeOverview() {
     ITransaction | undefined
   >(undefined);
 
+  const { highlightText } = useHighlightText();
+
   // Client-side filtering for price, tags, and search
   const incomes = useMemo(() => {
     return allIncomes.filter((income) => {
@@ -131,31 +134,6 @@ export function IncomeOverview() {
       return true;
     });
   }, [allIncomes, priceFilter, tagFilter, searchQuery]);
-
-  // Search highlight function
-  const highlightText = (text: string, query: string) => {
-    if (!query.trim()) return text;
-
-    const regex = new RegExp(
-      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi"
-    );
-    const parts = text.split(regex);
-
-    return (
-      <>
-        {parts.map((part, index) =>
-          regex.test(part) ? (
-            <mark key={index} className="bg-primary/20 text-primary">
-              {part}
-            </mark>
-          ) : (
-            part
-          )
-        )}
-      </>
-    );
-  };
 
   const handleCreateIncome = () => {
     setSelectedIncome(undefined);

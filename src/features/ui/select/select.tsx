@@ -74,6 +74,7 @@ export function Select<
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const error = form.formState.errors[name];
+  const { highlightText } = useHighlightText();
 
   // Keep dropdown open when input is focused
   useEffect(() => {
@@ -85,31 +86,6 @@ export function Select<
       setIsOpen(true);
     }
   }, [searchQuery, disabled]);
-
-  // Highlight text function (same as in expense-overview)
-  const highlightText = (text: string, query: string) => {
-    if (!query.trim()) return text;
-
-    const regex = new RegExp(
-      `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi"
-    );
-    const parts = text.split(regex);
-
-    return (
-      <>
-        {parts.map((part, index) =>
-          regex.test(part) ? (
-            <mark key={index} className="bg-primary/20 text-primary">
-              {part}
-            </mark>
-          ) : (
-            part
-          )
-        )}
-      </>
-    );
-  };
 
   // Filter options based on search query
   const filteredOptions = useMemo(() => {
