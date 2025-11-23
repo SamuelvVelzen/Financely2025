@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 import { useSortableList } from "./hooks/use-sortable-list";
 import { IListProps, List } from "./list";
 
-type ISortableListProps<T> = Omit<IListProps<T>, "data"> & {
+type ISortableListProps<T> = Omit<IListProps<T>, "data" | "children"> & {
   data: T[];
   storageKey?: string;
   getItemId: (item: T) => string | number;
@@ -18,6 +18,9 @@ type ISortableListProps<T> = Omit<IListProps<T>, "data"> & {
       onDragEnd: (e: React.DragEvent) => void;
       onDrop: (e: React.DragEvent) => void;
       isDragging: boolean;
+      isDragOver: boolean;
+      isOriginalPosition: boolean;
+      draggedItemHeight: number | null;
     }
   ) => ReactNode;
 };
@@ -35,10 +38,12 @@ export function SortableList<T>({
     orderedData,
     draggedIndex,
     dragOverIndex,
+    draggedItemHeight,
     handleDragStart,
     handleDragOver,
     handleDragEnd,
     handleDrop,
+    setDraggedItemHeightFromEvent,
   } = useSortableList({
     data,
     getItemId,
@@ -47,26 +52,46 @@ export function SortableList<T>({
   });
 
   return (
-    <List data={orderedData} className={className} getItemKey={getItemKey}>
-      {(item, index) => {
-        const dragProps = {
-          onDragStart: (e: React.DragEvent) => {
-            handleDragStart(index);
-          },
-          onDragOver: (e: React.DragEvent) => {
-            handleDragOver(e, index);
-          },
-          onDragEnd: (e: React.DragEvent) => {
-            handleDragEnd();
-          },
-          onDrop: (e: React.DragEvent) => {
-            handleDrop(e);
-          },
-          isDragging: draggedIndex === index,
-        };
-
-        return children(item, index, dragProps);
+    <div
+      onDragEnd={(e) => {
+        // Handle drops outside the container
+        if (draggedIndex !== null) {
+          handleDragEnd();
+        }
       }}
-    </List>
+    >
+      <List data={orderedData} className={className} getItemKey={getItemKey}>
+        {(item, index) => {
+          const dragProps = {
+            onDragStart: (e: React.DragEvent) => {
+              handleDragStart(index);
+              // Get height from dataTransfer if available
+              const heightStr = e.dataTransfer.getData("text/height");
+              if (heightStr) {
+                const height = parseInt(heightStr, 10);
+                if (!isNaN(height)) {
+                  setDraggedItemHeightFromEvent(height);
+                }
+              }
+            },
+            onDragOver: (e: React.DragEvent) => {
+              handleDragOver(e, index);
+            },
+            onDragEnd: (e: React.DragEvent) => {
+              handleDragEnd();
+            },
+            onDrop: (e: React.DragEvent) => {
+              handleDrop(e);
+            },
+            isDragging: draggedIndex === index,
+            isDragOver: dragOverIndex === index,
+            isOriginalPosition: draggedIndex === index,
+            draggedItemHeight,
+          };
+
+          return children(item, index, dragProps);
+        }}
+      </List>
+    </div>
   );
 }

@@ -49,16 +49,25 @@ export class TagService {
     });
 
     return {
-      data: tags.map((tag) =>
-        TagSchema.parse({
-          id: tag.id,
-          name: tag.name,
-          color: tag.color,
-          description: tag.description,
-          order: tag.order,
-          createdAt: tag.createdAt.toISOString(),
-          updatedAt: tag.updatedAt.toISOString(),
-        })
+      data: tags.map(
+        (tag: {
+          id: string;
+          name: string;
+          color: string | null;
+          description: string | null;
+          order: number;
+          createdAt: Date;
+          updatedAt: Date;
+        }) =>
+          TagSchema.parse({
+            id: tag.id,
+            name: tag.name,
+            color: tag.color,
+            description: tag.description,
+            order: tag.order,
+            createdAt: tag.createdAt.toISOString(),
+            updatedAt: tag.updatedAt.toISOString(),
+          })
       ),
     };
   }
@@ -239,7 +248,9 @@ export class TagService {
       where: { userId },
       select: { name: true },
     });
-    const existingNames = new Set(existingTags.map((tag) => tag.name));
+    const existingNames = new Set(
+      existingTags.map((tag: { name: string }) => tag.name)
+    );
 
     for (let index = 0; index < validated.length; index++) {
       const item = validated[index];

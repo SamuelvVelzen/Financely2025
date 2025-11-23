@@ -1,5 +1,9 @@
 import type { ITag } from "@/features/shared/validation/schemas";
-import { useDeleteTag, useReorderTags, useTags } from "@/features/tag/hooks/useTags";
+import {
+  useDeleteTag,
+  useReorderTags,
+  useTags,
+} from "@/features/tag/hooks/useTags";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
@@ -74,14 +78,13 @@ export function TagOverview() {
           </div>
 
           <Dropdown>
-            <DropdownItem
-              icon={<HiPlus />}
-              clicked={() => handleCreateTag()}>
+            <DropdownItem icon={<HiPlus />} clicked={() => handleCreateTag()}>
               Add tag
             </DropdownItem>
             <DropdownItem
               icon={<HiArrowDownTray />}
-              clicked={() => setIsCsvImportDialogOpen(true)}>
+              clicked={() => setIsCsvImportDialogOpen(true)}
+            >
               Import from CSV
             </DropdownItem>
           </Dropdown>
@@ -111,7 +114,8 @@ export function TagOverview() {
           button={{
             buttonText: "Add tag",
             buttonAction: () => handleCreateTag(),
-          }}></EmptyContainer>
+          }}
+        ></EmptyContainer>
       )}
 
       {!isLoading && !error && tags.length > 0 && (
@@ -120,17 +124,30 @@ export function TagOverview() {
             data={tags}
             getItemId={(tag) => tag.id}
             onOrderChange={(orderedIds) => {
-              reorderTags({ tagIds: orderedIds as string[] });
-            }}>
+              reorderTags(
+                { tagIds: orderedIds as string[] },
+                {
+                  onError: (error) => {
+                    console.error("Failed to reorder tags:", error);
+                    // Error is already handled by the hook (rollback)
+                  },
+                }
+              );
+            }}
+          >
             {(tag, index, dragProps) => (
               <SortableListItem
                 className="group"
                 draggable={true}
-                dragHandle={dragProps.dragHandle}
+                isDragging={dragProps.isDragging}
+                isDragOver={dragProps.isDragOver}
+                isOriginalPosition={dragProps.isOriginalPosition}
+                draggedItemHeight={dragProps.draggedItemHeight}
                 onDragStart={dragProps.onDragStart}
                 onDragOver={dragProps.onDragOver}
                 onDragEnd={dragProps.onDragEnd}
-                onDrop={dragProps.onDrop}>
+                onDrop={dragProps.onDrop}
+              >
                 <div className="flex items-center gap-3">
                   {tag.color && (
                     <div
@@ -148,12 +165,14 @@ export function TagOverview() {
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
                   <IconButton
                     clicked={() => handleEditTag(tag)}
-                    className="text-text-muted hover:text-text p-1">
+                    className="text-text-muted hover:text-text p-1"
+                  >
                     <HiPencil className="w-5 h-5" />
                   </IconButton>
                   <IconButton
                     clicked={() => handleDeleteClick(tag.id)}
-                    className="text-danger hover:text-danger-hover p-1">
+                    className="text-danger hover:text-danger-hover p-1"
+                  >
                     <HiTrash className="w-5 h-5" />
                   </IconButton>
                 </div>

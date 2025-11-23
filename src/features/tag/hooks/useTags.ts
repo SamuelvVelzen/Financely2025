@@ -15,6 +15,7 @@ import {
   reorderTags,
   updateTag,
 } from "@/features/tag/api/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
  * Query tags list
@@ -66,11 +67,72 @@ export function useDeleteTag() {
 
 /**
  * Reorder tags mutation
- * - Invalidates tags query on success
+ * - Optimistic update: immediately reorders tags in cache
+ * - Invalidates tags query on success to sync with server
+ * - Reverts on error
  */
 export function useReorderTags() {
-  return useFinMutation<{ success: boolean }, Error, IReorderTagsInput>({
+  const queryClient = useQueryClient();
+
+  return useFinMutation<
+    { success: boolean },
+    Error,
+    IReorderTagsInput,
+    { previousTags: ITagsResponse | undefined }
+  >({
     mutationFn: reorderTags,
-    invalidateQueries: [queryKeys.tags],
+    onMutate: async (variables) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.tags(),
+      });
+
+      // Snapshot previous value for rollback
+      const previousTags = queryClient.getQueryData<ITagsResponse>(
+        queryKeys.tags()
+      );
+
+      // Optimistically update the cache
+      if (previousTags) {
+        const tagMap = new Map(previousTags.data.map((tag) => [tag.id, tag]));
+        const reorderedTags: ITag[] = [];
+
+        // Reorder based on provided tagIds
+        variables.tagIds.forEach((tagId) => {
+          const tag = tagMap.get(tagId);
+          if (tag) {
+            reorderedTags.push(tag);
+          }
+        });
+
+        // Add any tags not in the reorder list (shouldn't happen, but safety check)
+        previousTags.data.forEach((tag) => {
+          if (!variables.tagIds.includes(tag.id)) {
+            reorderedTags.push(tag);
+          }
+        });
+
+        queryClient.setQueryData<ITagsResponse>(queryKeys.tags(), {
+          data: reorderedTags,
+        });
+      }
+
+      return { previousTags };
+    },
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousTags) {
+        queryClient.setQueryData<ITagsResponse>(
+          queryKeys.tags(),
+          context.previousTags
+        );
+      }
+    },
+    onSettled: () => {
+      // Refetch to ensure sync with server
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tags(),
+      });
+    },
   });
 }
