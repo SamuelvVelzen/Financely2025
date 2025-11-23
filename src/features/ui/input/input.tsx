@@ -26,25 +26,23 @@ export function BaseInput({
   prefixIcon,
   suffixIcon,
   ...props
-}: IInputProps) {
+}: IBaseInputProps) {
   const generatedId = useId();
   const inputId = id || generatedId;
   const form = useFormContext();
   const error = form.formState.errors[name];
 
   const baseClasses =
-    "w-full border rounded-lg bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
+    "border rounded-2xl bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
   const borderClass = error ? "border-danger" : "border-border";
+  const widthBaseClasses = `h-[22px] box-content`;
 
   // Adjust padding based on icons
-  const paddingClasses =
-    prefixIcon && suffixIcon
-      ? "pl-10 pr-10 py-2"
-      : prefixIcon
-        ? "pl-10 pr-3 py-2"
-        : suffixIcon
-          ? "pl-3 pr-10 py-2"
-          : "px-3 py-2";
+  const paddingClasses = cn(
+    "py-2",
+    prefixIcon ? "pl-9" : "pl-2",
+    suffixIcon ? "pr-9" : "pr-2"
+  );
 
   return (
     <Controller
@@ -53,15 +51,13 @@ export function BaseInput({
       render={({ field }) => (
         <div className={label ? "space-y-1" : ""}>
           {label && (
-            <label
-              htmlFor={inputId}
-              className="block text-sm font-medium">
+            <label htmlFor={inputId} className="block text-sm font-medium">
               {label}
             </label>
           )}
           <div className="relative">
             {prefixIcon && (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+              <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text pointer-events-none">
                 {prefixIcon}
               </div>
             )}
@@ -72,14 +68,18 @@ export function BaseInput({
                 baseClasses,
                 borderClass,
                 paddingClasses,
+                widthBaseClasses,
                 className
               )}
+              style={{
+                width: `calc(100% - ${(prefixIcon ? 36 : 8) + (suffixIcon ? 36 : 8) + 2}px)`,
+              }}
               {...field}
               ref={field.ref}
               {...props}
             />
             {suffixIcon && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 text-text flex">
                 {suffixIcon}
               </div>
             )}

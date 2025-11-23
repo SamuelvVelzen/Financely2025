@@ -3,6 +3,7 @@
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 import { HiMagnifyingGlass } from "react-icons/hi2";
@@ -22,29 +23,89 @@ export function SearchInput({
 }: ISearchInputProps) {
   const form = useFormContext();
   const value = form.watch(name) || "";
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const lengthClass = `w-[${300}px]`;
 
   const handleClear = () => {
     form.setValue(name, "");
   };
 
+  // Expand if there's text
+  useEffect(() => {
+    if (value) {
+      setIsExpanded(true);
+    }
+  }, [value]);
+
+  // Handle click outside to collapse if no text
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node) &&
+        !value
+      ) {
+        setIsExpanded(false);
+      }
+    };
+
+    if (isExpanded) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }
+  }, [isExpanded, value]);
+
+  const handleIconClick = () => {
+    setIsExpanded(true);
+  };
+
+  const shouldExpand = isExpanded || isHovered || !!value;
+
   return (
-    <div className={cn(className)}>
-      <TextInput
-        name={name}
-        label={label}
-        placeholder={placeholder}
-        prefixIcon={<HiMagnifyingGlass className="w-4 h-4" />}
-        suffixIcon={
-          value ? (
-            <IconButton
-              clicked={handleClear}
-              className="text-text-muted hover:text-text p-1"
-              aria-label="Clear search">
-              <HiX className="w-4 h-4" />
-            </IconButton>
-          ) : undefined
-        }
-      />
+    <div
+      ref={containerRef}
+      className={cn(
+        "relative transition-all duration-300 ease-in-out",
+        `focus-within:${lengthClass}`,
+        shouldExpand ? lengthClass : "w-10",
+        className
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {shouldExpand ? (
+        <TextInput
+          name={name}
+          label={label}
+          placeholder={placeholder}
+          className="truncate"
+          prefixIcon={<HiMagnifyingGlass className="w-5 h-5" />}
+          suffixIcon={
+            value ? (
+              <IconButton
+                clicked={handleClear}
+                aria-label="Clear search"
+                className="p-0"
+              >
+                <HiX className="w-5 h-5" />
+              </IconButton>
+            ) : undefined
+          }
+        />
+      ) : (
+        <IconButton
+          clicked={handleIconClick}
+          className="w-10 h-10"
+          aria-label="Search"
+        >
+          <HiMagnifyingGlass className="w-5 h-5" />
+        </IconButton>
+      )}
     </div>
   );
 }
