@@ -1,3 +1,4 @@
+import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
@@ -78,6 +79,7 @@ export function ExpenseOverview() {
   // Fetch tags for tag filter
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
+  const orderedTags = useOrderedData(tags);
 
   const { mutate: deleteExpense } = useDeleteExpense();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -178,11 +180,13 @@ export function ExpenseOverview() {
   };
 
   // Tag options for SelectDropdown
-  const tagOptions = tags.map((tag) => ({
-    value: tag.id,
-    label: tag.name,
-    data: tag,
-  }));
+  const tagOptions = useMemo(() => {
+    return orderedTags.map((tag) => ({
+      value: tag.id,
+      label: tag.name,
+      data: tag,
+    }));
+  }, [orderedTags]);
 
   // Get month display text from date filter
   const getMonthDisplay = (): string => {

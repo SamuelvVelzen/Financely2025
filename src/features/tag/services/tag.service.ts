@@ -42,9 +42,6 @@ export class TagService {
         {
           order: "asc",
         },
-        {
-          name: validated.sort === "name:desc" ? "desc" : "asc",
-        },
       ],
     });
 

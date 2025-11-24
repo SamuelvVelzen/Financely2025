@@ -23,6 +23,7 @@ import { ListItem } from "@/features/ui/list/list-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Title } from "@/features/ui/typography/title";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
+import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
@@ -78,6 +79,7 @@ export function IncomeOverview() {
   // Fetch tags for tag filter
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
+  const orderedTags = useOrderedData(tags);
 
   const { mutate: deleteIncome } = useDeleteIncome();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -178,11 +180,13 @@ export function IncomeOverview() {
   };
 
   // Tag options for SelectDropdown
-  const tagOptions = tags.map((tag) => ({
-    value: tag.id,
-    label: tag.name,
-    data: tag,
-  }));
+  const tagOptions = useMemo(() => {
+    return orderedTags.map((tag) => ({
+      value: tag.id,
+      label: tag.name,
+      data: tag,
+    }));
+  }, [orderedTags]);
 
   // Get month display text from date filter
   const getMonthDisplay = (): string => {

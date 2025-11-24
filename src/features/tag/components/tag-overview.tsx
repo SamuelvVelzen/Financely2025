@@ -1,3 +1,4 @@
+import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITag } from "@/features/shared/validation/schemas";
 import {
   useDeleteTag,
@@ -27,6 +28,7 @@ import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 export function TagOverview() {
   const { data, isLoading, error } = useTags();
   const tags = data?.data ?? [];
+  const sortedTags = useOrderedData(tags);
   const { mutate: deleteTag } = useDeleteTag();
   const { mutate: reorderTags } = useReorderTags();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -105,7 +107,7 @@ export function TagOverview() {
         </Container>
       )}
 
-      {!isLoading && !error && tags.length === 0 && (
+      {!isLoading && !error && sortedTags.length === 0 && (
         <EmptyContainer
           icon={<HiOutlineTag />}
           emptyText={
@@ -118,10 +120,10 @@ export function TagOverview() {
         ></EmptyContainer>
       )}
 
-      {!isLoading && !error && tags.length > 0 && (
+      {!isLoading && !error && sortedTags.length > 0 && (
         <Container>
           <SortableList
-            data={tags}
+            data={sortedTags}
             getItemId={(tag) => tag.id}
             onOrderChange={(orderedIds) => {
               reorderTags(

@@ -1,5 +1,6 @@
 "use client";
 
+import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { queryKeys } from "@/features/shared/query/keys";
 import { type ITag } from "@/features/shared/validation/schemas";
@@ -42,6 +43,7 @@ export function TagSelect({
 }: ITagSelectProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
+  const orderedTags = useOrderedData(tags);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [pendingTagName, setPendingTagName] = useState<string>("");
 
@@ -52,12 +54,12 @@ export function TagSelect({
 
   // Convert tags to SelectOption format
   const tagOptions: ISelectOption<ITag>[] = useMemo(() => {
-    return tags.map((tag) => ({
+    return orderedTags.map((tag) => ({
       value: tag.id,
       label: tag.name,
       data: tag,
     }));
-  }, [tags]);
+  }, [orderedTags]);
 
   // Handle create new tag
   const handleCreateNew = (searchQuery: string) => {
