@@ -32,3 +32,4 @@ export function useHighlightText() {
 
   return { highlightText };
 }
+
