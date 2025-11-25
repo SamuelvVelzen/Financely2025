@@ -43,7 +43,7 @@ export function Checkbox({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="relative h-[16px] w-[16px]">
+      <div className="relative flex">
         <input
           type="checkbox"
           id={checkboxId}
@@ -59,13 +59,10 @@ export function Checkbox({
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth="3">
+          strokeWidth="3"
+        >
           {indeterminate && (
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M5 12h14"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
           )}
           {checked && !indeterminate && (
             <path
@@ -82,7 +79,8 @@ export function Checkbox({
           className={cn(
             "text-sm cursor-pointer",
             disabled && "opacity-50 cursor-not-allowed"
-          )}>
+          )}
+        >
           {label}
         </label>
       )}
