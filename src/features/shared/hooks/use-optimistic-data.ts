@@ -26,7 +26,7 @@ type UseOptimisticDataOptions<T> = {
  * ```tsx
  * const { data, setOptimistic, revert, clear } = useOptimisticData({
  *   data: serverData,
- *   isEqual: (source, optimistic) => 
+ *   isEqual: (source, optimistic) =>
  *     JSON.stringify(source) === JSON.stringify(optimistic)
  * });
  *
@@ -114,5 +114,3 @@ export function useOptimisticData<T>({
     clear,
   };
 }
-
-
