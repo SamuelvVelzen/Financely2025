@@ -8,11 +8,11 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { IDialogProps } from "@/features/ui/dialog/dialog/types";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { FileUploadInput } from "@/features/ui/input/file-upload-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { BodyCell } from "@/features/ui/table/body-cell";
@@ -22,7 +22,6 @@ import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/util/cn";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { HiX } from "react-icons/hi";
 import type { BankEnum } from "../config/banks";
 import {
   TRANSACTION_FIELDS,
@@ -245,21 +244,22 @@ export function TransactionCsvImportDialog({
     }
   }, [parseQuery.data, defaultType, defaultCurrency]);
 
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const selectedFile = event.target.files?.[0];
-
-    if (!selectedFile) return;
-
-    setFile(selectedFile);
-    try {
-      const result = await uploadMutation.mutateAsync(selectedFile);
-      setColumns(result.columns);
-      setStep("mapping");
-    } catch (error) {
-      console.error("Upload failed:", error);
+  const handleFileChange = (nextFile: File | null) => {
+    if (!nextFile) {
+      setFile(null);
+      return;
     }
+
+    setFile(nextFile);
+    uploadMutation
+      .mutateAsync(nextFile)
+      .then((result) => {
+        setColumns(result.columns);
+        setStep("mapping");
+      })
+      .catch((error) => {
+        console.error("Upload failed:", error);
+      });
   };
 
   const handleMappingChange = (field: string, column: string | null) => {
@@ -377,14 +377,11 @@ export function TransactionCsvImportDialog({
   const renderUploadStep = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-2">
-          Select CSV File
-        </label>
-        <input
-          type="file"
+        <FileUploadInput
+          label="Select CSV File"
           accept=".csv"
-          onChange={handleFileSelect}
-          className="block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover"
+          files={file}
+          onFilesChange={handleFileChange}
         />
       </div>
       <div>
@@ -394,26 +391,6 @@ export function TransactionCsvImportDialog({
           helperText="Selecting a bank applies tailored column defaults during mapping."
         />
       </div>
-      {file && (
-        <div className="p-4 bg-surface-hover rounded-lg grid grid-cols-2 grid-rows-2">
-          <p className="text-sm col-start-1">
-            <span className="font-medium">File:</span> {file.name}
-          </p>
-          <p className="text-sm col-start-1">
-            <span className="font-medium">Size:</span>{" "}
-            {(file.size / 1024).toFixed(2)} KB
-          </p>
-
-          <IconButton
-            className="col-start-2 row-span-full self-center justify-self-end"
-            clicked={() => {
-              setFile(null);
-            }}
-          >
-            <HiX className="h5 w-5 " />
-          </IconButton>
-        </div>
-      )}
       {uploadMutation.isError && (
         <div className="p-3 bg-danger/10 border border-danger rounded-lg">
           <p className="text-sm text-danger">
@@ -430,6 +407,8 @@ export function TransactionCsvImportDialog({
     const fieldsToShow = TRANSACTION_FIELDS.filter(
       (f) => f.name !== "currency" && (defaultType ? f.name !== "type" : true)
     );
+
+    const watchedRows = rowForm.watch("rows");
 
     return (
       <div className="space-y-4">
@@ -561,6 +540,8 @@ export function TransactionCsvImportDialog({
       return <div className="text-center py-8">No transactions found</div>;
     }
 
+    const watchedRows = rowForm.watch("rows");
+
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -604,7 +585,7 @@ export function TransactionCsvImportDialog({
           <Form form={rowForm} onSubmit={() => {}}>
             {candidates.map((candidate) => {
               const rowIndex = candidate.rowIndex;
-              const rowData = rowForm.watch(`rows.${rowIndex}`) || {};
+              const rowData = watchedRows?.[rowIndex] || {};
               const transaction = {
                 ...candidate.data,
                 occurredAt: rowData.occurredAt

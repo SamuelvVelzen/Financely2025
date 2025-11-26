@@ -10,6 +10,7 @@ import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { IDialogProps } from "@/features/ui/dialog/dialog/types";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { FileUploadInput } from "@/features/ui/input/file-upload-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { BodyCell } from "@/features/ui/table/body-cell";
@@ -203,20 +204,22 @@ export function TagCsvImportDialog({
     }
   }, [parseQuery.data]);
 
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const selectedFile = event.target.files?.[0];
-    if (!selectedFile) return;
-
-    setFile(selectedFile);
-    try {
-      const result = await uploadMutation.mutateAsync(selectedFile);
-      setColumns(result.columns);
-      setStep("mapping");
-    } catch (error) {
-      console.error("Upload failed:", error);
+  const handleFileChange = (nextFile: File | null) => {
+    if (!nextFile) {
+      setFile(null);
+      return;
     }
+
+    setFile(nextFile);
+    uploadMutation
+      .mutateAsync(nextFile)
+      .then((result) => {
+        setColumns(result.columns);
+        setStep("mapping");
+      })
+      .catch((error) => {
+        console.error("Upload failed:", error);
+      });
   };
 
   const handleMappingChange = (field: string, column: string | null) => {
@@ -312,27 +315,13 @@ export function TagCsvImportDialog({
   const renderUploadStep = () => (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium mb-2">
-          Select CSV File
-        </label>
-        <input
-          type="file"
+        <FileUploadInput
+          label="Select CSV File"
           accept=".csv"
-          onChange={handleFileSelect}
-          className="block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover"
+          files={file}
+          onFilesChange={handleFileChange}
         />
       </div>
-      {file && (
-        <div className="p-4 bg-surface-hover rounded-lg">
-          <p className="text-sm">
-            <span className="font-medium">File:</span> {file.name}
-          </p>
-          <p className="text-sm">
-            <span className="font-medium">Size:</span>{" "}
-            {(file.size / 1024).toFixed(2)} KB
-          </p>
-        </div>
-      )}
       {uploadMutation.isError && (
         <div className="p-3 bg-danger/10 border border-danger rounded-lg">
           <p className="text-sm text-danger">
@@ -407,6 +396,8 @@ export function TagCsvImportDialog({
       return <div className="text-center py-8">No tags found</div>;
     }
 
+    const watchedRows = rowForm.watch("rows");
+
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -448,7 +439,7 @@ export function TagCsvImportDialog({
           <Form form={rowForm} onSubmit={() => {}}>
             {candidates.map((candidate) => {
               const rowIndex = candidate.rowIndex;
-              const rowData = rowForm.watch(`rows.${rowIndex}`) || {};
+              const rowData = watchedRows?.[rowIndex] || {};
               const tag = {
                 ...candidate.data,
                 name: rowData.name || candidate.data.name,
@@ -481,20 +472,20 @@ export function TagCsvImportDialog({
                   <BodyCell>
                     <TextInput
                       name={`rows.${rowIndex}.name`}
-                      className="!px-2 !py-1 !text-sm"
+                      className="px-2! py-1! text-sm!"
                     />
                   </BodyCell>
                   <BodyCell>
                     <TextInput
                       name={`rows.${rowIndex}.color`}
                       placeholder="#FF6600"
-                      className="!px-2 !py-1 !text-sm"
+                      className="px-2! py-1! text-sm!"
                     />
                   </BodyCell>
                   <BodyCell>
                     <TextInput
                       name={`rows.${rowIndex}.description`}
-                      className="!px-2 !py-1 !text-sm"
+                      className="px-2! py-1! text-sm!"
                     />
                   </BodyCell>
                   <BodyCell>
