@@ -9,11 +9,9 @@ import {
   CsvMappingValidationSchema,
 } from "@/features/shared/validation/schemas";
 import { json } from "@tanstack/react-start";
-import {
-  autoDetectMapping,
-  validateMapping,
-} from "../../services/csv.service";
 import { SYSTEM_REQUIRED_FIELDS } from "../../config/transaction-fields";
+import { autoDetectMapping, validateMapping } from "../../services/csv.service";
+import { BankSchema } from "../../validation/transaction.schema";
 
 /**
  * POST /api/v1/transactions/csv/mapping
@@ -23,7 +21,7 @@ export async function POST({ request }: { request: Request }) {
   try {
     return await withAuth(async () => {
       const body = await request.json();
-      const { columns } = body;
+      const { columns, bank: rawBank } = body;
 
       if (!Array.isArray(columns) || columns.length === 0) {
         return createErrorResponse(
@@ -35,10 +33,20 @@ export async function POST({ request }: { request: Request }) {
         );
       }
 
-      const mapping = autoDetectMapping(columns);
-      const validatedMapping = CsvFieldMappingSchema.parse(mapping);
+      const bank = rawBank ? BankSchema.parse(rawBank) : undefined;
+      const autoMapping = autoDetectMapping(columns, bank);
+      const validatedMapping = CsvFieldMappingSchema.parse(autoMapping.mapping);
 
-      return json(validatedMapping, { status: 200 });
+      return json(
+        {
+          mapping: validatedMapping,
+          metadata: {
+            propertyOrder: autoMapping.metadata.propertyOrder || null,
+            bank: autoMapping.metadata.bank || null,
+          },
+        },
+        { status: 200 }
+      );
     });
   } catch (error) {
     return createErrorResponse(error);
@@ -55,7 +63,9 @@ export async function validate({ request }: { request: Request }) {
       const body = await request.json();
       const mapping = CsvFieldMappingSchema.parse(body.mapping);
       const defaultType = body.defaultType as "EXPENSE" | "INCOME" | undefined;
-      const typeDetectionStrategy = body.typeDetectionStrategy as string | undefined;
+      const typeDetectionStrategy = body.typeDetectionStrategy as
+        | string
+        | undefined;
       const defaultCurrency = body.defaultCurrency as
         | "USD"
         | "EUR"
@@ -83,4 +93,3 @@ export async function validate({ request }: { request: Request }) {
     return createErrorResponse(error);
   }
 }
-

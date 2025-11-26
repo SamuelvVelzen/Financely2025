@@ -319,6 +319,7 @@ export const CsvParseRequestSchema = z.object({
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(50),
   typeDetectionStrategy: z.string().optional(),
+  bank: z.string().optional(),
 });
 
 export const CsvCandidateTransactionErrorSchema = z.object({
@@ -404,7 +405,9 @@ export type IPaginatedTransactionsResponse = z.infer<
 >;
 export type ITagsResponse = z.infer<typeof TagsResponseSchema>;
 export type IBulkCreateTagInput = z.infer<typeof BulkCreateTagInputSchema>;
-export type IBulkCreateTagResponse = z.infer<typeof BulkCreateTagResponseSchema>;
+export type IBulkCreateTagResponse = z.infer<
+  typeof BulkCreateTagResponseSchema
+>;
 export type IBulkCreateTransactionInput = z.infer<
   typeof BulkCreateTransactionInputSchema
 >;
@@ -425,7 +428,9 @@ export type ICsvImportRequest = z.infer<typeof CsvImportRequestSchema>;
 export type ICsvImportResponse = z.infer<typeof CsvImportResponseSchema>;
 export type ITagCsvUploadResponse = z.infer<typeof TagCsvUploadResponseSchema>;
 export type ITagCsvFieldMapping = z.infer<typeof TagCsvFieldMappingSchema>;
-export type ITagCsvMappingValidation = z.infer<typeof TagCsvMappingValidationSchema>;
+export type ITagCsvMappingValidation = z.infer<
+  typeof TagCsvMappingValidationSchema
+>;
 export type ITagCsvParseRequest = z.infer<typeof TagCsvParseRequestSchema>;
 export type ITagCsvCandidate = z.infer<typeof TagCsvCandidateSchema>;
 export type ITagCsvParseResponse = z.infer<typeof TagCsvParseResponseSchema>;

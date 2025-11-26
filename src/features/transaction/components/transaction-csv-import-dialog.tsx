@@ -12,9 +12,9 @@ import { IconButton } from "@/features/ui/button/icon-button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { IDialogProps } from "@/features/ui/dialog/dialog/types";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
+import { Form } from "@/features/ui/form/form";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
-import { Form } from "@/features/ui/form/form";
 import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
@@ -23,6 +23,7 @@ import { cn } from "@/util/cn";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiX } from "react-icons/hi";
+import type { BankEnum } from "../config/banks";
 import {
   TRANSACTION_FIELDS,
   isRequiredField,
@@ -34,6 +35,7 @@ import {
   useUploadCsvFile,
   useValidateCsvMapping,
 } from "../hooks/useCsvImport";
+import { BankSelect } from "./bank-select";
 
 interface ICsvImportDialogProps {
   open: boolean;
@@ -59,7 +61,8 @@ export function TransactionCsvImportDialog({
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [parseResponse, setParseResponse] = useState<any>(null);
-  
+  const [selectedBank, setSelectedBank] = useState<BankEnum | null>(null);
+
   // Form for mapping step controls
   type MappingFormData = {
     typeDetectionStrategy: string;
@@ -85,7 +88,7 @@ export function TransactionCsvImportDialog({
         occurredAt?: string;
         name?: string;
         amount?: string;
-        type?: string;
+        type?: "EXPENSE" | "INCOME";
       }
     >;
   };
@@ -98,7 +101,8 @@ export function TransactionCsvImportDialog({
 
   const uploadMutation = useUploadCsvFile();
   const mappingQuery = useGetCsvMapping(
-    columns.length > 0 ? columns : undefined
+    columns.length > 0 ? columns : undefined,
+    selectedBank
   );
   const validateMutation = useValidateCsvMapping(defaultType);
   const parseQuery = useParseCsvRows(
@@ -109,7 +113,8 @@ export function TransactionCsvImportDialog({
     defaultType,
     // Only use type detection strategy if defaultType is not provided
     defaultType ? undefined : typeDetectionStrategy,
-    defaultCurrency
+    defaultCurrency,
+    selectedBank
   );
   const importMutation = useImportCsvTransactions();
   const isBusy =
@@ -126,6 +131,7 @@ export function TransactionCsvImportDialog({
     setSelectedRows(new Set());
     setCurrentPage(1);
     setParseResponse(null);
+    setSelectedBank(null);
     mappingForm.reset({
       typeDetectionStrategy: "sign-based",
       defaultCurrency: "EUR",
@@ -144,6 +150,7 @@ export function TransactionCsvImportDialog({
       candidates.length > 0 ||
       selectedRows.size > 0 ||
       currentPage !== 1 ||
+      selectedBank !== null ||
       mappingFormDirty ||
       rowFormDirty
     );
@@ -155,6 +162,7 @@ export function TransactionCsvImportDialog({
     candidates,
     selectedRows,
     currentPage,
+    selectedBank,
     mappingFormDirty,
     rowFormDirty,
   ]);
@@ -180,18 +188,21 @@ export function TransactionCsvImportDialog({
     handleAttemptClose();
   };
 
+  const suggestedMapping = mappingQuery.data?.mapping;
+  const mappingMetadata = mappingQuery.data?.metadata;
+
   // Auto-detect mapping when columns are available
   useEffect(() => {
-    if (columns.length > 0 && mappingQuery.data) {
-      setMapping(mappingQuery.data);
+    if (columns.length > 0 && suggestedMapping) {
+      setMapping(suggestedMapping);
       // Also update form
       const formMappings: Record<string, string> = {};
-      Object.entries(mappingQuery.data).forEach(([field, column]) => {
+      Object.entries(suggestedMapping).forEach(([field, column]) => {
         if (column) formMappings[field] = column;
       });
       mappingForm.setValue("mappings", formMappings);
     }
-  }, [columns, mappingQuery.data]);
+  }, [columns, suggestedMapping, mappingForm]);
 
   // Load candidates when parse query succeeds
   useEffect(() => {
@@ -217,7 +228,7 @@ export function TransactionCsvImportDialog({
         .filter((c) => c.status === "valid")
         .map((c) => c.rowIndex);
       setSelectedRows(new Set(validIndices));
-      
+
       // Initialize form with candidate data
       const initialRows: RowFormData["rows"] = {};
       candidatesWithDefaults.forEach((c) => {
@@ -284,6 +295,7 @@ export function TransactionCsvImportDialog({
         defaultType,
         typeDetectionStrategy: defaultType ? undefined : typeDetectionStrategy,
         defaultCurrency,
+        bank: selectedBank || undefined,
       });
       if (result.valid) {
         setStep("review");
@@ -340,11 +352,7 @@ export function TransactionCsvImportDialog({
           : candidate.data.occurredAt,
         name: edited.name || candidate.data.name,
         amount: edited.amount || candidate.data.amount,
-        type:
-          defaultType ||
-          edited.type ||
-          candidate.data.type ||
-          "EXPENSE",
+        type: defaultType || edited.type || candidate.data.type || "EXPENSE",
         currency: candidate.data.currency || defaultCurrency,
       };
 
@@ -379,6 +387,13 @@ export function TransactionCsvImportDialog({
           className="block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover"
         />
       </div>
+      <div>
+        <BankSelect
+          value={selectedBank}
+          onChange={setSelectedBank}
+          helperText="Selecting a bank applies tailored column defaults during mapping."
+        />
+      </div>
       {file && (
         <div className="p-4 bg-surface-hover rounded-lg grid grid-cols-2 grid-rows-2">
           <p className="text-sm col-start-1">
@@ -393,7 +408,8 @@ export function TransactionCsvImportDialog({
             className="col-start-2 row-span-full self-center justify-self-end"
             clicked={() => {
               setFile(null);
-            }}>
+            }}
+          >
             <HiX className="h5 w-5 " />
           </IconButton>
         </div>
@@ -424,6 +440,13 @@ export function TransactionCsvImportDialog({
             </p>
           </div>
         )}
+        {mappingMetadata?.propertyOrder && (
+          <div className="p-3 bg-surface-hover border border-border rounded-lg">
+            <p className="text-xs text-text-muted">
+              Bank-specific column order: {mappingMetadata.propertyOrder}
+            </p>
+          </div>
+        )}
         {!defaultType && (
           <Form form={mappingForm} onSubmit={() => {}}>
             <div className="space-y-2">
@@ -440,7 +463,8 @@ export function TransactionCsvImportDialog({
                   },
                   {
                     value: "amex",
-                    label: "Amex Format - Negative = Income, Positive = Expense",
+                    label:
+                      "Amex Format - Negative = Income, Positive = Expense",
                   },
                 ]}
                 placeholder="Select strategy..."
@@ -482,9 +506,7 @@ export function TransactionCsvImportDialog({
             const currentValue = mapping[field.name] || "";
 
             return (
-              <div
-                key={field.name}
-                className="space-y-1">
+              <div key={field.name} className="space-y-1">
                 <label className="block text-sm font-medium">
                   {field.label}
                   {isRequiredField(field.name) &&
@@ -577,7 +599,8 @@ export function TransactionCsvImportDialog({
             <HeaderCell align="left">Currency</HeaderCell>,
             <HeaderCell align="left">Type</HeaderCell>,
             <HeaderCell align="left">Errors</HeaderCell>,
-          ]}>
+          ]}
+        >
           <Form form={rowForm} onSubmit={() => {}}>
             {candidates.map((candidate) => {
               const rowIndex = candidate.rowIndex;
@@ -599,7 +622,8 @@ export function TransactionCsvImportDialog({
                   className={cn(
                     "border-t border-border",
                     candidate.status === "invalid" && "bg-danger/5"
-                  )}>
+                  )}
+                >
                   <BodyCell>
                     <span
                       className={cn(
@@ -608,31 +632,19 @@ export function TransactionCsvImportDialog({
                           "bg-success/20 text-success",
                         candidate.status === "invalid" &&
                           "bg-danger/20 text-danger"
-                      )}>
+                      )}
+                    >
                       {candidate.status}
                     </span>
                   </BodyCell>
                   <BodyCell>
-                    <TextInput
-                      name={`rows.${rowIndex}.occurredAt`}
-                      label=""
-                      type="date"
-                      className="!px-2 !py-1 !text-sm"
-                    />
+                    <TextInput name={`rows.${rowIndex}.occurredAt`} />
                   </BodyCell>
                   <BodyCell>
-                    <TextInput
-                      name={`rows.${rowIndex}.name`}
-                      label=""
-                      className="!px-2 !py-1 !text-sm"
-                    />
+                    <TextInput name={`rows.${rowIndex}.name`} />
                   </BodyCell>
                   <BodyCell>
-                    <TextInput
-                      name={`rows.${rowIndex}.amount`}
-                      label=""
-                      className="!px-2 !py-1 !text-sm"
-                    />
+                    <TextInput name={`rows.${rowIndex}.amount`} />
                   </BodyCell>
                   <BodyCell>
                     <span className="text-sm font-medium">

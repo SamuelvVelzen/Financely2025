@@ -19,6 +19,15 @@ import type {
   ITransactionsQuery,
   IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
+import type { BankEnum } from "../config/banks";
+
+export interface ICsvMappingSuggestion {
+  mapping: ICsvFieldMapping;
+  metadata?: {
+    bank?: BankEnum | null;
+    propertyOrder?: string | null;
+  };
+}
 
 /**
  * Transaction API Client
@@ -98,22 +107,28 @@ export async function uploadCsvFile(file: File): Promise<ICsvUploadResponse> {
 }
 
 export async function getCsvMapping(
-  columns: string[]
-): Promise<ICsvFieldMapping> {
-  return apiPost<ICsvFieldMapping>("/transactions/csv-mapping", { columns });
+  columns: string[],
+  bank?: BankEnum
+): Promise<ICsvMappingSuggestion> {
+  return apiPost<ICsvMappingSuggestion>("/transactions/csv-mapping", {
+    columns,
+    bank,
+  });
 }
 
 export async function validateCsvMapping(
   mapping: ICsvFieldMapping,
   defaultType?: "EXPENSE" | "INCOME",
   typeDetectionStrategy?: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
+  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
+  bank?: BankEnum
 ): Promise<ICsvMappingValidation> {
   return apiPost<ICsvMappingValidation>("/transactions/csv-mapping/validate", {
     mapping,
     defaultType,
     typeDetectionStrategy,
     defaultCurrency,
+    bank,
   });
 }
 
@@ -124,7 +139,8 @@ export async function parseCsvRows(
   limit: number = 50,
   defaultType?: "EXPENSE" | "INCOME",
   typeDetectionStrategy?: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
+  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
+  bank?: BankEnum
 ): Promise<ICsvParseResponse> {
   const formData = new FormData();
   formData.append("file", file);
@@ -139,6 +155,9 @@ export async function parseCsvRows(
   }
   if (defaultCurrency) {
     formData.append("defaultCurrency", defaultCurrency);
+  }
+  if (bank) {
+    formData.append("bank", bank);
   }
 
   const response = await fetch("/api/v1/transactions/csv-parse", {

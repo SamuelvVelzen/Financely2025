@@ -6,10 +6,12 @@ import {
 } from "@/features/shared/validation/schemas";
 import { TagService } from "@/features/tag/services/tag.service";
 import { prisma } from "@/util/prisma";
+import type { BankEnum } from "../config/banks";
 import {
   SYSTEM_REQUIRED_FIELDS,
   type ITransactionFieldName,
 } from "../config/transaction-fields";
+import { BankProfileFactory } from "./bank.factory";
 import {
   DEFAULT_TYPE_DETECTION_STRATEGY,
   TypeDetectionFactory,
@@ -178,40 +180,104 @@ function parseCsvLine(line: string, delimiter: string = ","): string[] {
   return result;
 }
 
+type NormalizedColumn = {
+  original: string;
+  normalized: string;
+};
+
+const normalizeColumnName = (value: string) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(/[_\s-]+/g, "_");
+
+export interface IAutoMappingResult {
+  mapping: Partial<ICsvFieldMapping>;
+  metadata: {
+    propertyOrder?: string;
+    bank?: BankEnum;
+  };
+}
+
 /**
  * Auto-detect field mapping from column names
  */
 export function autoDetectMapping(
-  columns: string[]
-): Partial<ICsvFieldMapping> {
+  columns: string[],
+  bank?: BankEnum | null
+): IAutoMappingResult {
   const mapping: Partial<ICsvFieldMapping> = {};
+  const normalizedColumns: NormalizedColumn[] = columns.map((col) => ({
+    original: col,
+    normalized: normalizeColumnName(col),
+  }));
+  const usedColumnIndexes = new Set<number>();
 
-  // Normalize column names for matching
-  const normalizedColumns = columns.map((col) =>
-    col
-      .toLowerCase()
-      .trim()
-      .replace(/[_\s-]/g, "_")
-  );
+  const applyHints = (
+    hints: Partial<Record<ITransactionFieldName, string[]>> | undefined
+  ) => {
+    if (!hints) return;
+    Object.entries(hints).forEach(([field, columnHints]) => {
+      if (!columnHints || mapping[field as ITransactionFieldName]) {
+        return;
+      }
+      const normalizedHints = columnHints.map((hint) =>
+        normalizeColumnName(hint)
+      );
+      for (let i = 0; i < normalizedColumns.length; i++) {
+        if (usedColumnIndexes.has(i)) continue;
+        const normalizedCol = normalizedColumns[i].normalized;
+        if (
+          normalizedHints.some(
+            (hint) =>
+              normalizedCol === hint ||
+              normalizedCol.includes(hint) ||
+              hint.includes(normalizedCol)
+          )
+        ) {
+          mapping[field as ITransactionFieldName] =
+            normalizedColumns[i].original;
+          usedColumnIndexes.add(i);
+          break;
+        }
+      }
+    });
+  };
 
-  // For each transaction field, find best matching column
+  // Apply bank-specific hints first for higher priority
+  const bankHints = BankProfileFactory.getColumnHints(bank);
+  applyHints(bankHints);
+
+  // Fallback to generic heuristics for remaining fields
   Object.entries(FIELD_NAME_PATTERNS).forEach(([field, patterns]) => {
-    const normalizedPatterns = patterns.map((p) =>
-      p.toLowerCase().replace(/[_\s-]/g, "_")
-    );
+    if (mapping[field as ITransactionFieldName]) {
+      return;
+    }
+    const normalizedPatterns = patterns.map((p) => normalizeColumnName(p));
 
     for (let i = 0; i < normalizedColumns.length; i++) {
-      const normalizedCol = normalizedColumns[i];
+      if (usedColumnIndexes.has(i)) continue;
+      const normalizedCol = normalizedColumns[i].normalized;
       if (
-        normalizedPatterns.some((pattern) => normalizedCol.includes(pattern))
+        normalizedPatterns.some(
+          (pattern) =>
+            normalizedCol === pattern || normalizedCol.includes(pattern)
+        )
       ) {
-        mapping[field] = columns[i];
+        mapping[field as ITransactionFieldName] = normalizedColumns[i].original;
+        usedColumnIndexes.add(i);
         break;
       }
     }
   });
 
-  return mapping;
+  return {
+    mapping,
+    metadata: {
+      propertyOrder: BankProfileFactory.getPropertyOrder(bank),
+      bank: bank || undefined,
+    },
+  };
 }
 
 /**

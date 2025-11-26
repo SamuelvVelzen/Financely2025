@@ -13,7 +13,9 @@ import {
   parseCsvRows,
   uploadCsvFile,
   validateCsvMapping,
+  type ICsvMappingSuggestion,
 } from "../api/client";
+import type { BankEnum } from "../config/banks";
 
 /**
  * Upload CSV file mutation
@@ -27,14 +29,17 @@ export function useUploadCsvFile() {
 /**
  * Get auto-detected CSV mapping query
  */
-export function useGetCsvMapping(columns: string[] | undefined) {
-  return useFinQuery<ICsvFieldMapping, Error>({
-    queryKey: ["csv-mapping", columns],
+export function useGetCsvMapping(
+  columns: string[] | undefined,
+  bank?: BankEnum | null
+) {
+  return useFinQuery<ICsvMappingSuggestion, Error>({
+    queryKey: ["csv-mapping", columns, bank],
     queryFn: () => {
       if (!columns || columns.length === 0) {
         throw new Error("Columns are required");
       }
-      return getCsvMapping(columns);
+      return getCsvMapping(columns, bank || undefined);
     },
     enabled: !!columns && columns.length > 0,
     staleTime: Infinity, // Mapping doesn't change
@@ -53,6 +58,7 @@ export function useValidateCsvMapping(defaultType?: "EXPENSE" | "INCOME") {
       defaultType?: "EXPENSE" | "INCOME";
       typeDetectionStrategy?: string;
       defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY";
+      bank?: BankEnum;
     }
   >({
     mutationFn: ({
@@ -60,12 +66,14 @@ export function useValidateCsvMapping(defaultType?: "EXPENSE" | "INCOME") {
       defaultType: dt,
       typeDetectionStrategy,
       defaultCurrency,
+      bank,
     }) =>
       validateCsvMapping(
         mapping,
         dt || defaultType,
         typeDetectionStrategy,
-        defaultCurrency
+        defaultCurrency,
+        bank
       ),
   });
 }
@@ -80,7 +88,8 @@ export function useParseCsvRows(
   limit: number = 50,
   defaultType?: "EXPENSE" | "INCOME",
   typeDetectionStrategy?: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
+  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
+  bank?: BankEnum | null
 ) {
   return useFinQuery<ICsvParseResponse, Error>({
     queryKey: [
@@ -92,6 +101,7 @@ export function useParseCsvRows(
       defaultType,
       typeDetectionStrategy,
       defaultCurrency,
+      bank,
     ],
     queryFn: () => {
       if (!file || !mapping) {
@@ -104,7 +114,8 @@ export function useParseCsvRows(
         limit,
         defaultType,
         typeDetectionStrategy,
-        defaultCurrency
+        defaultCurrency,
+        bank || undefined
       );
     },
     enabled: !!file && !!mapping,

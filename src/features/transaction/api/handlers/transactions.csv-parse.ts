@@ -60,12 +60,14 @@ export async function POST({ request }: { request: Request }) {
         | "AUD"
         | "JPY"
         | null;
+      const bank = formData.get("bank") as string | null;
 
       const parseRequest = CsvParseRequestSchema.parse({
         mapping,
         page,
         limit,
         typeDetectionStrategy: typeDetectionStrategy || undefined,
+        bank: bank || undefined,
       });
 
       // Parse rows
