@@ -395,7 +395,6 @@ export function ExpenseOverview() {
           {
             buttonContent: "Cancel",
             clicked: handleDeleteCancel,
-            className: "hover:bg-surface-hover",
           },
           {
             buttonContent: "Delete",

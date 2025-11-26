@@ -232,14 +232,14 @@ export function AddOrCreateExpenseDialog({
         footerButtons={[
           {
             clicked: handleAttemptClose,
-            className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            disabled: pending,
             buttonContent: "Cancel",
           },
           {
             clicked: () => {
               form.handleSubmit(handleSubmit)();
             },
-            className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            variant: "primary",
             buttonContent: pending
               ? isEditMode
                 ? "Updating..."

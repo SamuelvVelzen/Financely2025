@@ -38,7 +38,8 @@ export function Button({
     primary: "bg-primary hover:bg-primary-hover text-white border-primary",
   };
 
-  const baseClasses = "p-2 border rounded-2xl cursor-pointer flex items-center";
+  const baseClasses =
+    "px-4 py-2 border rounded-2xl cursor-pointer flex items-center";
   const disabledClasses =
     disabled && "opacity-50 cursor-not-allowed pointer-events-none";
 

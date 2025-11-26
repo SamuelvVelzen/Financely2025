@@ -199,7 +199,6 @@ export function TagOverview() {
           {
             buttonContent: "Cancel",
             clicked: handleDeleteCancel,
-            className: "hover:bg-surface-hover",
           },
           {
             buttonContent: "Delete",

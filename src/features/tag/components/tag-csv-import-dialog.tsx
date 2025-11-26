@@ -358,16 +358,12 @@ export function TagCsvImportDialog({
           const currentValue = mapping[field.name] || "";
 
           return (
-            <div
-              key={field.name}
-              className="space-y-1">
+            <div key={field.name} className="space-y-1">
               <label className="block text-sm font-medium">
                 {field.label}
                 {field.required && <span className="text-danger ml-1">*</span>}
               </label>
-              <Form
-                form={mappingForm}
-                onSubmit={() => {}}>
+              <Form form={mappingForm} onSubmit={() => {}}>
                 <SelectDropdown
                   name={`mappings.${field.name}`}
                   options={columnOptions}
@@ -447,10 +443,9 @@ export function TagCsvImportDialog({
             <HeaderCell align="left">Color</HeaderCell>,
             <HeaderCell align="left">Description</HeaderCell>,
             <HeaderCell align="left">Errors</HeaderCell>,
-          ]}>
-          <Form
-            form={rowForm}
-            onSubmit={() => {}}>
+          ]}
+        >
+          <Form form={rowForm} onSubmit={() => {}}>
             {candidates.map((candidate) => {
               const rowIndex = candidate.rowIndex;
               const rowData = rowForm.watch(`rows.${rowIndex}`) || {};
@@ -468,7 +463,8 @@ export function TagCsvImportDialog({
                   className={cn(
                     "border-t border-border",
                     candidate.status === "invalid" && "bg-danger/5"
-                  )}>
+                  )}
+                >
                   <BodyCell>
                     <span
                       className={cn(
@@ -477,7 +473,8 @@ export function TagCsvImportDialog({
                           "bg-success/20 text-success",
                         candidate.status === "invalid" &&
                           "bg-danger/20 text-danger"
-                      )}>
+                      )}
+                    >
                       {candidate.status}
                     </span>
                   </BodyCell>

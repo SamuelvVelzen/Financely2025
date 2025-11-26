@@ -44,7 +44,6 @@ export function UnsavedChangesDialog({
       footerButtons={[
         {
           buttonContent: cancelLabel,
-          variant: "default",
           clicked: onCancel,
         },
         {

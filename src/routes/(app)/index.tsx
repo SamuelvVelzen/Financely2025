@@ -73,7 +73,8 @@ function DefaultDialogExample() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
+        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors"
+      >
         Open Default Dialog
       </button>
       <Dialog
@@ -100,8 +101,6 @@ function DefaultDialogExample() {
         footerButtons={[
           {
             clicked: () => setOpen(false),
-            className:
-              "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors",
             buttonContent: "Cancel",
           },
           {
@@ -109,8 +108,7 @@ function DefaultDialogExample() {
               alert("Confirmed!");
               setOpen(false);
             },
-            className:
-              "px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors",
+            variant: "primary",
             buttonContent: "Confirm",
           },
         ]}
@@ -140,7 +138,8 @@ function CustomDialogExample() {
       <button
         type="button"
         onClick={dialog.open}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
+        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors"
+      >
         Open Custom Dialog
       </button>
       <Dialog
@@ -176,8 +175,6 @@ function CustomDialogExample() {
         footerButtons={[
           {
             clicked: dialog.close,
-            className:
-              "px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors",
             buttonContent: "Close",
           },
         ]}
@@ -257,27 +254,20 @@ function FormDialogExample() {
       <h3 className="font-medium text-sm">
         Form Dialog (With React Hook Form)
       </h3>
-      <DialogTrigger
-        open={open}
-        onOpenChange={setOpen}>
+      <DialogTrigger open={open} onOpenChange={setOpen}>
         <button
           type="button"
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors"
+        >
           Open Form Dialog
         </button>
       </DialogTrigger>
       <Dialog
         title="Create New Item"
         content={
-          <Form<FormData>
-            form={form}
-            onSubmit={handleSubmit}>
+          <Form<FormData> form={form} onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <TextInput
-                name="name"
-                label="Name"
-                disabled={pending}
-              />
+              <TextInput name="name" label="Name" disabled={pending} />
               <TextInput
                 name="email"
                 label="Email"
@@ -292,11 +282,7 @@ function FormDialogExample() {
                 max={150}
                 required
               />
-              <ColorInput
-                name="color"
-                label="Color"
-                disabled={pending}
-              />
+              <ColorInput name="color" label="Color" disabled={pending} />
               {pending && (
                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                   <p className="text-sm text-blue-600 dark:text-blue-400">
@@ -309,18 +295,19 @@ function FormDialogExample() {
         }
         footerButtons={[
           {
+            disabled: pending,
             clicked: () => {
               form.reset();
               setOpen(false);
             },
-            className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
             buttonContent: "Cancel",
           },
           {
+            disabled: pending,
             clicked: () => {
               form.handleSubmit(handleSubmit)();
             },
-            className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            variant: "primary",
             buttonContent: pending ? "Submitting..." : "Submit",
           },
         ]}
@@ -375,9 +362,7 @@ function SelectDropdownExample() {
           onChange={() => setIsSelected((prev) => !prev)}
         />
 
-        <Form
-          form={form}
-          onSubmit={() => {}}>
+        <Form form={form} onSubmit={() => {}}>
           <SelectDropdown
             name="singleValue"
             options={options}
@@ -402,9 +387,7 @@ function SelectDropdownExample() {
           Select multiple options. The dropdown stays open for multiple
           selections.
         </p>
-        <Form
-          form={form}
-          onSubmit={() => {}}>
+        <Form form={form} onSubmit={() => {}}>
           <SelectDropdown
             name="multipleValue"
             options={options}

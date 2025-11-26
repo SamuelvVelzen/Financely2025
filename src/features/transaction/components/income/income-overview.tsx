@@ -1,3 +1,5 @@
+import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
+import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
@@ -22,8 +24,6 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Title } from "@/features/ui/typography/title";
-import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
-import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
@@ -397,7 +397,6 @@ export function IncomeOverview() {
           {
             buttonContent: "Cancel",
             clicked: handleDeleteCancel,
-            className: "hover:bg-surface-hover",
           },
           {
             buttonContent: "Delete",
