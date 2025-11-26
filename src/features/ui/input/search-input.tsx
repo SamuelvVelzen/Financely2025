@@ -27,8 +27,6 @@ export function SearchInput({
   const [isHovered, setIsHovered] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const lengthClass = `w-[${300}px]`;
-
   const handleClear = () => {
     form.setValue(name, "");
   };
@@ -70,9 +68,8 @@ export function SearchInput({
     <div
       ref={containerRef}
       className={cn(
-        "relative transition-all duration-300 ease-in-out",
-        `focus-within:${lengthClass}`,
-        shouldExpand ? lengthClass : "w-10",
+        "relative transition-all duration-300 ease-in-out focus-within:w-[300px]",
+        shouldExpand ? "w-[300px]" : "w-10",
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
