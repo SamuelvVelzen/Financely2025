@@ -10,11 +10,11 @@ import {
   useCreateIncome,
   useUpdateIncome,
 } from "@/features/transaction/hooks/useTransactions";
+import { CurrencySelect } from "@/features/ui/currency-select/currency-select";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { Form } from "@/features/ui/form/form";
 import { DateInput } from "@/features/ui/input/date-input";
 import { NumberInput } from "@/features/ui/input/number-input";
-import { SelectInput } from "@/features/ui/input/select-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import {
@@ -183,16 +183,9 @@ export function AddOrCreateIncomeDialog({
     <Dialog
       title={isEditMode ? "Edit Income" : "Create Income"}
       content={
-        <Form<FormData>
-          form={form}
-          onSubmit={handleSubmit}>
+        <Form<FormData> form={form} onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <TextInput
-              name="name"
-              label="Name"
-              disabled={pending}
-              required
-            />
+            <TextInput name="name" label="Name" disabled={pending} required />
             <div className="grid grid-cols-2 gap-4">
               <NumberInput
                 name="amount"
@@ -202,12 +195,10 @@ export function AddOrCreateIncomeDialog({
                 step={0.01}
                 required
               />
-              <SelectInput
+              <CurrencySelect
                 name="currency"
                 label="Currency"
                 disabled={pending}
-                options={currencyOptions}
-                required
               />
             </div>
             <DateInput

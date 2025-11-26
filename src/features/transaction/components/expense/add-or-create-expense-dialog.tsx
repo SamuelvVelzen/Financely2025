@@ -3,18 +3,17 @@
 import {
   CreateTransactionInputSchema,
   CurrencySchema,
-  getCurrencyOptions,
   type ITransaction,
 } from "@/features/shared/validation/schemas";
 import {
   useCreateExpense,
   useUpdateExpense,
 } from "@/features/transaction/hooks/useTransactions";
+import { CurrencySelect } from "@/features/ui/currency-select/currency-select";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { Form } from "@/features/ui/form/form";
 import { DateInput } from "@/features/ui/input/date-input";
 import { NumberInput } from "@/features/ui/input/number-input";
-import { SelectInput } from "@/features/ui/input/select-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import {
@@ -45,9 +44,6 @@ const ExpenseFormSchema = CreateTransactionInputSchema.omit({
 });
 
 type FormData = z.infer<typeof ExpenseFormSchema>;
-
-// Currency options extracted from CurrencySchema
-const currencyOptions = getCurrencyOptions();
 
 export function AddOrCreateExpenseDialog({
   open,
@@ -183,16 +179,9 @@ export function AddOrCreateExpenseDialog({
     <Dialog
       title={isEditMode ? "Edit Expense" : "Create Expense"}
       content={
-        <Form<FormData>
-          form={form}
-          onSubmit={handleSubmit}>
+        <Form<FormData> form={form} onSubmit={handleSubmit}>
           <div className="space-y-4">
-            <TextInput
-              name="name"
-              label="Name"
-              disabled={pending}
-              required
-            />
+            <TextInput name="name" label="Name" disabled={pending} required />
             <div className="grid grid-cols-2 gap-4">
               <NumberInput
                 name="amount"
@@ -202,12 +191,10 @@ export function AddOrCreateExpenseDialog({
                 step={0.01}
                 required
               />
-              <SelectInput
+              <CurrencySelect
                 name="currency"
                 label="Currency"
                 disabled={pending}
-                options={currencyOptions}
-                required
               />
             </div>
             <DateInput
