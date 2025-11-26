@@ -32,6 +32,7 @@ export type ISelectDropdownProps<
   placeholder?: string;
   label?: string;
   maxDisplayItems?: number;
+  showClearButton?: boolean;
   children?: (
     option: ISelectOption<TData>,
     index: number,
@@ -56,6 +57,7 @@ export function SelectDropdown<
   placeholder = "Select...",
   label,
   maxDisplayItems = 2,
+  showClearButton = true,
   children,
 }: ISelectDropdownProps<TOptions, TData>) {
   const form = useFormContext();
@@ -160,7 +162,7 @@ export function SelectDropdown<
               {displayText}
             </span>
             <div className="flex items-center gap-1 ml-2">
-              {hasSelection && (
+              {hasSelection && showClearButton && (
                 <button
                   type="button"
                   onClick={handleClear}
@@ -198,7 +200,11 @@ export function SelectDropdown<
                 const optionIsSelected = isSelected(option.value, value);
                 const handleClick = () => handleOptionClick(option.value);
                 return (
-                  <DropdownItem key={option.value} clicked={handleClick}>
+                  <DropdownItem
+                    key={option.value}
+                    clicked={handleClick}
+                    selected={optionIsSelected}
+                  >
                     {
                       <div className="flex items-center gap-2 w-full">
                         {multiple && (

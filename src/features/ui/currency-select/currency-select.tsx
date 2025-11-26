@@ -54,6 +54,7 @@ export function CurrencySelect({
         className={className}
         options={currencyOptions}
         placeholder="Select currency"
+        showClearButton={false}
       >
         {(option) => {
           const Icon =
@@ -62,7 +63,7 @@ export function CurrencySelect({
 
           return (
             <span className="flex items-center gap-2 w-full">
-              <Icon className="w-4 h-4 text-text-muted" aria-hidden="true" />
+              <Icon className="w-4 h-4" aria-hidden="true" />
               <span className="flex-1">{option.label}</span>
             </span>
           );

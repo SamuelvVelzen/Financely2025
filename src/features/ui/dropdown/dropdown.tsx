@@ -72,7 +72,9 @@ export function Dropdown({
   const DropdownSelector = (
     <div ref={triggerRef}>
       {dropdownSelector ? (
-        <Button clicked={toggleDropdown}>{dropdownSelector}</Button>
+        <Button clicked={toggleDropdown} className="w-full">
+          {dropdownSelector}
+        </Button>
       ) : (
         <Button className="text-xl" clicked={toggleDropdown}>
           <HiDotsVertical />
