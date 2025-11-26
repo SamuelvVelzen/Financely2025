@@ -14,7 +14,7 @@ import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
 import { DateInput } from "@/features/ui/input/date-input";
-import { NumberInput } from "@/features/ui/input/number-input";
+import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import {
@@ -33,13 +33,19 @@ type IAddOrCreateExpenseDialog = {
   onSuccess?: () => void;
 };
 
-// Form schema that matches CreateTransactionInputSchema but with amount as number for the form
+// Form schema that matches CreateTransactionInputSchema but with localized string amount for the form
 const ExpenseFormSchema = CreateTransactionInputSchema.omit({
   type: true,
   amount: true,
   occurredAt: true,
 }).extend({
-  amount: z.coerce.number().positive("Amount must be positive"),
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine((value) => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) && parsed > 0;
+    }, "Amount must be positive"),
   occurredAt: z.string().min(1, "Date is required"),
   tagIds: z.array(z.string()).optional().default([]),
 });
@@ -47,7 +53,7 @@ const ExpenseFormSchema = CreateTransactionInputSchema.omit({
 type FormData = z.infer<typeof ExpenseFormSchema>;
 const getEmptyFormValues = (): FormData => ({
   name: "",
-  amount: 0,
+  amount: "",
   currency: "EUR",
   occurredAt: "",
   description: "",
@@ -105,7 +111,7 @@ export function AddOrCreateExpenseDialog({
         // Edit mode: populate form with existing transaction data
         form.reset({
           name: transaction.name,
-          amount: parseFloat(transaction.amount),
+          amount: transaction.amount,
           currency: transaction.currency,
           occurredAt: isoToDatetimeLocal(transaction.occurredAt),
           description: transaction.description ?? "",
@@ -116,7 +122,7 @@ export function AddOrCreateExpenseDialog({
         const now = new Date();
         form.reset({
           name: "",
-          amount: 0,
+          amount: "",
           currency: "EUR",
           occurredAt: isoToDatetimeLocal(now.toISOString()),
           description: "",
@@ -135,7 +141,7 @@ export function AddOrCreateExpenseDialog({
     // Transform form data to API format
     const submitData = {
       name: data.name.trim(),
-      amount: data.amount.toString(),
+      amount: data.amount.trim(),
       currency: CurrencySchema.parse(data.currency),
       occurredAt: datetimeLocalToIso(data.occurredAt),
       description:
@@ -193,12 +199,10 @@ export function AddOrCreateExpenseDialog({
             <div className="space-y-4">
               <TextInput name="name" label="Name" disabled={pending} required />
               <div className="grid grid-cols-2 gap-4">
-                <NumberInput
+                <DecimalInput
                   name="amount"
                   label="Amount"
                   disabled={pending}
-                  min={0}
-                  step={0.01}
                   required
                 />
                 <CurrencySelect
@@ -240,6 +244,7 @@ export function AddOrCreateExpenseDialog({
               form.handleSubmit(handleSubmit)();
             },
             variant: "primary",
+            type: "submit",
             buttonContent: pending
               ? isEditMode
                 ? "Updating..."
