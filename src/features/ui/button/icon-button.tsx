@@ -8,6 +8,7 @@ import { Button, IButtonProps } from "./button";
 type IIconButton = {
   icon?: ReactNode;
   clicked: IButtonProps["clicked"];
+  disabled?: IButtonProps["disabled"];
 } & PropsWithChildren &
   IPropsWithClassName;
 
@@ -16,6 +17,7 @@ export function IconButton({
   className,
   icon,
   clicked,
+  disabled = false,
 }: IIconButton) {
   const iconButtonContent = children ? children : icon;
 
@@ -23,6 +25,7 @@ export function IconButton({
     <Button
       className={cn("rounded-full p-2", className)}
       clicked={clicked}
+      disabled={disabled}
       buttonContent={iconButtonContent}
     />
   );
