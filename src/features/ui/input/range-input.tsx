@@ -1,9 +1,11 @@
 "use client";
 
 import { IconButton } from "@/features/ui/button/icon-button";
+import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 
 export type IPriceRange = {
@@ -14,10 +16,6 @@ export type IPriceRange = {
 export type IRangeInputProps = IPropsWithClassName & {
   value: IPriceRange;
   onChange: (range: IPriceRange) => void;
-  placeholder?: {
-    min?: string;
-    max?: string;
-  };
   minRange?: number;
   maxRange?: number;
 };
@@ -26,20 +24,31 @@ export function RangeInput({
   className = "",
   value,
   onChange,
-  placeholder = { min: "Min", max: "Max" },
   minRange = 0,
   maxRange = 1000,
 }: IRangeInputProps) {
-  const [minInput, setMinInput] = useState<string>(value.min?.toString() ?? "");
-  const [maxInput, setMaxInput] = useState<string>(value.max?.toString() ?? "");
   const [isDragging, setIsDragging] = useState<"min" | "max" | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const decimalForm = useForm<{ min: string; max: string }>({
+    defaultValues: {
+      min: value.min?.toString() ?? "",
+      max: value.max?.toString() ?? "",
+    },
+  });
 
-  // Sync local input state with value prop
+  // Sync decimal form with value prop
   useEffect(() => {
-    setMinInput(value.min?.toString() ?? "");
-    setMaxInput(value.max?.toString() ?? "");
-  }, [value.min, value.max]);
+    decimalForm.setValue("min", value.min?.toString() ?? "", {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+    decimalForm.setValue("max", value.max?.toString() ?? "", {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+  }, [value.min, value.max, decimalForm]);
 
   const currentMin = value.min ?? minRange;
   const currentMax = value.max ?? maxRange;
@@ -91,33 +100,37 @@ export function RangeInput({
     }
   }, [isDragging, sliderMin, sliderMax, value]);
 
-  const handleMinInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    setMinInput(inputValue);
-    const minValue = inputValue ? parseFloat(inputValue) : undefined;
-    if (minValue !== undefined && !isNaN(minValue)) {
-      if (value.max !== undefined && minValue >= value.max) {
-        onChange({ ...value, min: value.max - 1 });
-      } else {
-        onChange({ ...value, min: minValue });
-      }
-    } else if (inputValue === "") {
+  const handleMinDecimalChange = (normalized: string) => {
+    if (!normalized) {
       onChange({ ...value, min: undefined });
+      return;
+    }
+    let minValue = parseFloat(normalized);
+    if (Number.isNaN(minValue)) {
+      return;
+    }
+    minValue = Math.max(minValue, minRange);
+    if (value.max !== undefined && minValue >= value.max) {
+      onChange({ ...value, min: value.max - 1 });
+    } else {
+      onChange({ ...value, min: minValue });
     }
   };
 
-  const handleMaxInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
-    setMaxInput(inputValue);
-    const maxValue = inputValue ? parseFloat(inputValue) : undefined;
-    if (maxValue !== undefined && !isNaN(maxValue)) {
-      if (value.min !== undefined && maxValue <= value.min) {
-        onChange({ ...value, max: value.min + 1 });
-      } else {
-        onChange({ ...value, max: maxValue });
-      }
-    } else if (inputValue === "") {
+  const handleMaxDecimalChange = (normalized: string) => {
+    if (!normalized) {
       onChange({ ...value, max: undefined });
+      return;
+    }
+    let maxValue = parseFloat(normalized);
+    if (Number.isNaN(maxValue)) {
+      return;
+    }
+    maxValue = Math.max(maxValue, minRange);
+    if (value.min !== undefined && maxValue <= value.min) {
+      onChange({ ...value, max: value.min + 1 });
+    } else {
+      onChange({ ...value, max: maxValue });
     }
   };
 
@@ -141,8 +154,7 @@ export function RangeInput({
   };
 
   const handleClear = () => {
-    setMinInput("");
-    setMaxInput("");
+    decimalForm.reset({ min: "", max: "" });
     onChange({ min: undefined, max: undefined });
   };
 
@@ -150,86 +162,70 @@ export function RangeInput({
   const minPercentage = getPercentage(sliderMin);
   const maxPercentage = getPercentage(sliderMax);
 
-  // Use same base classes as Input component
-  const baseInputClasses =
-    "w-20 px-3 py-2 border border-border rounded-lg bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed text-sm";
+  const inputWrapperClasses = "w-24";
 
   return (
-    <div className={cn("relative", className)}>
-      <div className="flex items-center gap-3">
-        <div className="w-20">
-          <input
-            type="number"
-            value={minInput}
-            onChange={handleMinInputChange}
-            placeholder={placeholder.min}
-            className={baseInputClasses}
-            step="0.01"
-            min={minRange}
-          />
-        </div>
-
-        <div className="flex-1 relative" ref={sliderRef}>
-          <div
-            className="relative h-8 flex items-center cursor-pointer"
-            onClick={handleSliderClick}
-          >
-            {/* Track */}
-            <div className="absolute w-full h-2 bg-surface-hover rounded-lg"></div>
-
-            {/* Active range */}
-            <div
-              className="absolute h-2 bg-primary rounded-lg"
-              style={{
-                left: `${minPercentage}%`,
-                width: `${maxPercentage - minPercentage}%`,
-              }}
-            ></div>
-
-            {/* Min handle */}
-            <div
-              className="absolute w-4 h-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
-              style={{ left: `calc(${minPercentage}% - 8px)` }}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                handleMouseDown("min");
-              }}
-            ></div>
-
-            {/* Max handle */}
-            <div
-              className="absolute w-4 h-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
-              style={{ left: `calc(${maxPercentage}% - 8px)` }}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-                handleMouseDown("max");
-              }}
-            ></div>
+    <FormProvider {...decimalForm}>
+      <div className={cn("relative", className)}>
+        <div className="flex items-center gap-3">
+          <div className={inputWrapperClasses}>
+            <DecimalInput name="min" onValueChange={handleMinDecimalChange} />
           </div>
-        </div>
 
-        <div className="w-20">
-          <input
-            type="number"
-            value={maxInput}
-            onChange={handleMaxInputChange}
-            placeholder={placeholder.max}
-            className={baseInputClasses}
-            step="0.01"
-            min={minRange}
-          />
-        </div>
+          <div className="flex-1 relative" ref={sliderRef}>
+            <div
+              className="relative h-8 flex items-center cursor-pointer"
+              onClick={handleSliderClick}
+            >
+              {/* Track */}
+              <div className="absolute w-full h-2 bg-surface-hover rounded-lg"></div>
 
-        {hasValue && (
-          <IconButton
-            clicked={handleClear}
-            className="text-text-muted hover:text-text p-1"
-            aria-label="Clear range"
-          >
-            <HiX className="w-4 h-4" />
-          </IconButton>
-        )}
+              {/* Active range */}
+              <div
+                className="absolute h-2 bg-primary rounded-lg"
+                style={{
+                  left: `${minPercentage}%`,
+                  width: `${maxPercentage - minPercentage}%`,
+                }}
+              ></div>
+
+              {/* Min handle */}
+              <div
+                className="absolute w-4 h-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
+                style={{ left: `calc(${minPercentage}% - 8px)` }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  handleMouseDown("min");
+                }}
+              ></div>
+
+              {/* Max handle */}
+              <div
+                className="absolute w-4 h-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
+                style={{ left: `calc(${maxPercentage}% - 8px)` }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                  handleMouseDown("max");
+                }}
+              ></div>
+            </div>
+          </div>
+
+          <div className={inputWrapperClasses}>
+            <DecimalInput name="max" onValueChange={handleMaxDecimalChange} />
+          </div>
+
+          {hasValue && (
+            <IconButton
+              clicked={handleClear}
+              className="text-text-muted hover:text-text p-1"
+              aria-label="Clear range"
+            >
+              <HiX className="w-4 h-4" />
+            </IconButton>
+          )}
+        </div>
       </div>
-    </div>
+    </FormProvider>
   );
 }
