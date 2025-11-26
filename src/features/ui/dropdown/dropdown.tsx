@@ -11,6 +11,7 @@ import {
 import { createPortal } from "react-dom";
 import { HiDotsVertical } from "react-icons/hi";
 import { Button } from "../button/button";
+import { IconButton } from "../button/icon-button";
 import {
   useDropdownPlacement,
   type IPlacementOption,
@@ -76,9 +77,9 @@ export function Dropdown({
           {dropdownSelector}
         </Button>
       ) : (
-        <Button className="text-xl" clicked={toggleDropdown}>
+        <IconButton clicked={toggleDropdown}>
           <HiDotsVertical />
-        </Button>
+        </IconButton>
       )}
     </div>
   );
