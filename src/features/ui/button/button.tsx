@@ -1,8 +1,7 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
-import { PropsWithChildren } from "react";
+import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
 export type IButtonVariant =
   | "default"
@@ -13,12 +12,11 @@ export type IButtonVariant =
   | "primary";
 
 export type IButtonProps = {
-  clicked: () => void;
-  buttonContent?: string | React.ReactNode;
+  clicked?: () => void;
+  buttonContent?: string | ReactNode;
   variant?: IButtonVariant;
   disabled?: boolean;
-} & PropsWithChildren &
-  IPropsWithClassName;
+} & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export function Button({
   buttonContent,
@@ -26,7 +24,10 @@ export function Button({
   clicked,
   children,
   disabled = false,
+  onClick,
+  type: buttonType = "button",
   variant = "default",
+  ...rest
 }: IButtonProps) {
   const variantClasses: { [key in IButtonVariant]: string } = {
     default: "hover:bg-surface-hover border-border",
@@ -43,14 +44,19 @@ export function Button({
 
   return (
     <button
+      type={buttonType}
       className={cn(
         baseClasses,
         variantClasses[variant],
         className,
         disabledClasses
       )}
-      onClick={() => clicked()}
       disabled={disabled}
+      onClick={(event) => {
+        onClick?.(event);
+        clicked?.();
+      }}
+      {...rest}
     >
       {buttonContent ?? children}
     </button>
