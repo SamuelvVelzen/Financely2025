@@ -3,7 +3,16 @@
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useId } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  useFormContext,
+  type ControllerRenderProps,
+} from "react-hook-form";
+
+type RenderFieldParams = {
+  field: ControllerRenderProps<Record<string, unknown>, string>;
+  inputProps: React.InputHTMLAttributes<HTMLInputElement>;
+};
 
 export type IBaseInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -15,6 +24,7 @@ export type IBaseInputProps = Omit<
     id?: string;
     prefixIcon?: React.ReactNode;
     suffixIcon?: React.ReactNode;
+    renderField?: (params: RenderFieldParams) => React.ReactNode;
   };
 
 export function BaseInput({
@@ -25,6 +35,8 @@ export function BaseInput({
   id,
   prefixIcon,
   suffixIcon,
+  renderField,
+  style,
   ...props
 }: IBaseInputProps) {
   const generatedId = useId();
@@ -61,23 +73,46 @@ export function BaseInput({
                 {prefixIcon}
               </div>
             )}
-            <input
-              type={type}
-              id={inputId}
-              className={cn(
-                baseClasses,
-                borderClass,
-                paddingClasses,
-                widthBaseClasses,
-                className
-              )}
-              style={{
-                width: `calc(100% - ${(prefixIcon ? 36 : 8) + (suffixIcon ? 36 : 8) + 2}px)`,
-              }}
-              {...field}
-              ref={field.ref}
-              {...props}
-            />
+            {renderField ? (
+              renderField({
+                field,
+                inputProps: {
+                  type,
+                  id: inputId,
+                  className: cn(
+                    baseClasses,
+                    borderClass,
+                    paddingClasses,
+                    widthBaseClasses,
+                    className
+                  ),
+                  style: {
+                    width: `calc(100% - ${(prefixIcon ? 36 : 8) + (suffixIcon ? 36 : 8) + 2}px)`,
+                    ...(style ?? {}),
+                  },
+                  ...props,
+                },
+              })
+            ) : (
+              <input
+                type={type}
+                id={inputId}
+                className={cn(
+                  baseClasses,
+                  borderClass,
+                  paddingClasses,
+                  widthBaseClasses,
+                  className
+                )}
+                style={{
+                  width: `calc(100% - ${(prefixIcon ? 36 : 8) + (suffixIcon ? 36 : 8) + 2}px)`,
+                  ...(style ?? {}),
+                }}
+                {...field}
+                ref={field.ref}
+                {...props}
+              />
+            )}
             {suffixIcon && (
               <div className="absolute right-2 top-1/2 -translate-y-1/2 text-text flex">
                 {suffixIcon}
