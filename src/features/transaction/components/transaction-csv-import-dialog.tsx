@@ -11,6 +11,7 @@ import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { IDialogProps } from "@/features/ui/dialog/dialog/types";
+import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Form } from "@/features/ui/form/form";
@@ -19,7 +20,7 @@ import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/util/cn";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 import {
@@ -50,6 +51,7 @@ export function TransactionCsvImportDialog({
   defaultType,
 }: ICsvImportDialogProps) {
   const [step, setStep] = useState<IStep>("upload");
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
   const [mapping, setMapping] = useState<ICsvFieldMapping>({});
@@ -71,6 +73,7 @@ export function TransactionCsvImportDialog({
       mappings: {},
     },
   });
+  const { isDirty: mappingFormDirty } = mappingForm.formState;
   const typeDetectionStrategy = mappingForm.watch("typeDetectionStrategy");
   const defaultCurrency = mappingForm.watch("defaultCurrency");
 
@@ -91,6 +94,7 @@ export function TransactionCsvImportDialog({
       rows: {},
     },
   });
+  const { isDirty: rowFormDirty } = rowForm.formState;
 
   const uploadMutation = useUploadCsvFile();
   const mappingQuery = useGetCsvMapping(
@@ -108,6 +112,73 @@ export function TransactionCsvImportDialog({
     defaultCurrency
   );
   const importMutation = useImportCsvTransactions();
+  const isBusy =
+    uploadMutation.isPending ||
+    validateMutation.isPending ||
+    importMutation.isPending;
+
+  const resetAllState = () => {
+    setStep("upload");
+    setFile(null);
+    setColumns([]);
+    setMapping({});
+    setCandidates([]);
+    setSelectedRows(new Set());
+    setCurrentPage(1);
+    setParseResponse(null);
+    mappingForm.reset({
+      typeDetectionStrategy: "sign-based",
+      defaultCurrency: "EUR",
+      mappings: {},
+    });
+    rowForm.reset({ rows: {} });
+  };
+
+  const hasUnsavedChanges = useMemo(() => {
+    const mappingHasValues = Object.values(mapping).some(Boolean);
+    return (
+      file !== null ||
+      step !== "upload" ||
+      columns.length > 0 ||
+      mappingHasValues ||
+      candidates.length > 0 ||
+      selectedRows.size > 0 ||
+      currentPage !== 1 ||
+      mappingFormDirty ||
+      rowFormDirty
+    );
+  }, [
+    file,
+    step,
+    columns,
+    mapping,
+    candidates,
+    selectedRows,
+    currentPage,
+    mappingFormDirty,
+    rowFormDirty,
+  ]);
+
+  const handleDialogClose = () => {
+    resetAllState();
+    onOpenChange(false);
+  };
+
+  const handleAttemptClose = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedDialog(true);
+      return;
+    }
+    handleDialogClose();
+  };
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+    handleAttemptClose();
+  };
 
   // Auto-detect mapping when columns are available
   useEffect(() => {
@@ -283,20 +354,17 @@ export function TransactionCsvImportDialog({
     try {
       await importMutation.mutateAsync(transactionsToImport);
       onSuccess?.();
-      onOpenChange(false);
-      // Reset state
-      setStep("upload");
-      setFile(null);
-      setColumns([]);
-      setMapping({});
-      setCandidates([]);
-      setSelectedRows(new Set());
-      setCurrentPage(1);
-      rowForm.reset({ rows: {} });
+      handleDialogClose();
     } catch (error) {
       console.error("Import failed:", error);
     }
   };
+
+  useEffect(() => {
+    if (!open) {
+      setShowUnsavedDialog(false);
+    }
+  }, [open]);
 
   const renderUploadStep = () => (
     <div className="space-y-4">
@@ -662,11 +730,6 @@ export function TransactionCsvImportDialog({
     );
   };
 
-  const resetDialog = () => {
-    setStep("upload");
-    setFile(null);
-  };
-
   const StepOptions: {
     [key in IStep]: {
       content: React.ReactNode;
@@ -759,16 +822,26 @@ export function TransactionCsvImportDialog({
   const options = StepOptions[step];
 
   return (
-    <Dialog
-      title={options.title}
-      content={options.content}
-      footerButtons={options.footerButtons}
-      open={open}
-      onOpenChange={onOpenChange}
-      variant="modal"
-      size={options.size}
-      dismissible={false}
-      onClose={resetDialog}
-    />
+    <>
+      <Dialog
+        title={options.title}
+        content={options.content}
+        footerButtons={options.footerButtons}
+        open={open}
+        onOpenChange={handleDialogOpenChange}
+        variant="modal"
+        size={options.size}
+        dismissible={!isBusy}
+        onClose={resetAllState}
+      />
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onConfirm={() => {
+          setShowUnsavedDialog(false);
+          handleDialogClose();
+        }}
+        onCancel={() => setShowUnsavedDialog(false)}
+      />
+    </>
   );
 }

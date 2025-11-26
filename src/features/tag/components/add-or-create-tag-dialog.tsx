@@ -6,6 +6,7 @@ import {
 } from "@/features/shared/validation/schemas";
 import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
 import { ColorInput } from "@/features/ui/input/color-input";
 import { TextInput } from "@/features/ui/input/text-input";
@@ -23,6 +24,11 @@ type IAddOrCreateTagDialog = {
 };
 
 type FormData = z.infer<typeof CreateTagInputSchema>;
+const getEmptyFormValues = (): FormData => ({
+  name: "",
+  color: "",
+  description: "",
+});
 
 export function AddOrCreateTagDialog({
   open,
@@ -32,18 +38,42 @@ export function AddOrCreateTagDialog({
   onSuccess,
 }: IAddOrCreateTagDialog) {
   const [pending, setPending] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const isEditMode = !!tag;
   const { mutate: createTag } = useCreateTag();
   const { mutate: updateTag } = useUpdateTag();
 
   const form = useForm<FormData>({
     resolver: zodResolver(CreateTagInputSchema) as any,
-    defaultValues: {
-      name: "",
-      color: "",
-      description: "",
-    },
+    defaultValues: getEmptyFormValues(),
   });
+  const hasUnsavedChanges = form.formState.isDirty;
+
+  const resetFormToClosedState = () => {
+    form.reset(getEmptyFormValues());
+  };
+
+  const closeDialog = () => {
+    resetFormToClosedState();
+    onOpenChange(false);
+  };
+
+  const handleAttemptClose = () => {
+    if (pending) return;
+    if (hasUnsavedChanges) {
+      setShowUnsavedDialog(true);
+      return;
+    }
+    closeDialog();
+  };
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+    handleAttemptClose();
+  };
 
   // Reset form when dialog opens/closes or tag changes
   useEffect(() => {
@@ -65,11 +95,7 @@ export function AddOrCreateTagDialog({
       }
     } else {
       // Reset form when dialog closes to ensure clean state
-      form.reset({
-        name: "",
-        color: "",
-        description: "",
-      });
+      form.reset(getEmptyFormValues());
     }
   }, [open, tag?.id, initialName, form]);
 
@@ -98,11 +124,7 @@ export function AddOrCreateTagDialog({
           { tagId: tag.id, input: submitData },
           {
             onSuccess: () => {
-              form.reset({
-                name: "",
-                color: "",
-                description: "",
-              });
+              resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
               onSuccess?.();
@@ -117,11 +139,7 @@ export function AddOrCreateTagDialog({
         // Create new tag
         createTag(submitData, {
           onSuccess: (createdTag) => {
-            form.reset({
-              name: "",
-              color: "",
-              description: "",
-            });
+            resetFormToClosedState();
             setPending(false);
             onOpenChange(false);
             onSuccess?.(createdTag);
@@ -139,64 +157,57 @@ export function AddOrCreateTagDialog({
   };
 
   return (
-    <Dialog
-      title={isEditMode ? "Edit Tag" : "Create Tag"}
-      content={
-        <Form<FormData>
-          form={form}
-          onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <TextInput
-              name="name"
-              label="Name"
-              disabled={pending}
-              required
-            />
-            <ColorInput
-              name="color"
-              label="Color"
-              disabled={pending}
-            />
-            <TextInput
-              name="description"
-              label="Description"
-              disabled={pending}
-            />
-          </div>
-        </Form>
-      }
-      footerButtons={[
-        {
-          clicked: () => {
-            form.reset({
-              name: "",
-              color: "",
-              description: "",
-            });
-            onOpenChange(false);
+    <>
+      <Dialog
+        title={isEditMode ? "Edit Tag" : "Create Tag"}
+        content={
+          <Form<FormData> form={form} onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <TextInput name="name" label="Name" disabled={pending} required />
+              <ColorInput name="color" label="Color" disabled={pending} />
+              <TextInput
+                name="description"
+                label="Description"
+                disabled={pending}
+              />
+            </div>
+          </Form>
+        }
+        footerButtons={[
+          {
+            clicked: handleAttemptClose,
+            className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            buttonContent: "Cancel",
           },
-          className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
-          buttonContent: "Cancel",
-        },
-        {
-          clicked: () => {
-            form.handleSubmit(handleSubmit)();
+          {
+            clicked: () => {
+              form.handleSubmit(handleSubmit)();
+            },
+            className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            buttonContent: pending
+              ? isEditMode
+                ? "Updating..."
+                : "Creating..."
+              : isEditMode
+                ? "Update"
+                : "Create",
           },
-          className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
-          buttonContent: pending
-            ? isEditMode
-              ? "Updating..."
-              : "Creating..."
-            : isEditMode
-              ? "Update"
-              : "Create",
-        },
-      ]}
-      open={open}
-      onOpenChange={onOpenChange}
-      dismissible={!pending}
-      variant="modal"
-      size="xl"
-    />
+        ]}
+        open={open}
+        onOpenChange={handleDialogOpenChange}
+        dismissible={!pending}
+        variant="modal"
+        size="xl"
+      />
+
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onConfirm={() => {
+          setShowUnsavedDialog(false);
+          closeDialog();
+        }}
+        onCancel={() => setShowUnsavedDialog(false)}
+      />
+    </>
   );
 }

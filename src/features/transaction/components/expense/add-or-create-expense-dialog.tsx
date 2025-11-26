@@ -11,6 +11,7 @@ import {
 } from "@/features/transaction/hooks/useTransactions";
 import { CurrencySelect } from "@/features/ui/currency-select/currency-select";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
 import { DateInput } from "@/features/ui/input/date-input";
 import { NumberInput } from "@/features/ui/input/number-input";
@@ -44,6 +45,14 @@ const ExpenseFormSchema = CreateTransactionInputSchema.omit({
 });
 
 type FormData = z.infer<typeof ExpenseFormSchema>;
+const getEmptyFormValues = (): FormData => ({
+  name: "",
+  amount: 0,
+  currency: "EUR",
+  occurredAt: "",
+  description: "",
+  tagIds: [],
+});
 
 export function AddOrCreateExpenseDialog({
   open,
@@ -52,21 +61,42 @@ export function AddOrCreateExpenseDialog({
   onSuccess,
 }: IAddOrCreateExpenseDialog) {
   const [pending, setPending] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const isEditMode = !!transaction;
   const { mutate: createExpense } = useCreateExpense();
   const { mutate: updateExpense } = useUpdateExpense();
 
   const form = useForm<FormData>({
     resolver: zodResolver(ExpenseFormSchema) as Resolver<FormData>,
-    defaultValues: {
-      name: "",
-      amount: 0,
-      currency: "EUR",
-      occurredAt: "",
-      description: "",
-      tagIds: [],
-    },
+    defaultValues: getEmptyFormValues(),
   });
+  const hasUnsavedChanges = form.formState.isDirty;
+
+  const resetFormToClosedState = () => {
+    form.reset(getEmptyFormValues());
+  };
+
+  const closeDialog = () => {
+    resetFormToClosedState();
+    onOpenChange(false);
+  };
+
+  const handleAttemptClose = () => {
+    if (pending) return;
+    if (hasUnsavedChanges) {
+      setShowUnsavedDialog(true);
+      return;
+    }
+    closeDialog();
+  };
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      onOpenChange(true);
+      return;
+    }
+    handleAttemptClose();
+  };
 
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
@@ -95,14 +125,7 @@ export function AddOrCreateExpenseDialog({
       }
     } else {
       // Reset form when dialog closes to ensure clean state
-      form.reset({
-        name: "",
-        amount: 0,
-        currency: "EUR",
-        occurredAt: "",
-        description: "",
-        tagIds: [],
-      });
+      form.reset(getEmptyFormValues());
     }
   }, [open, transaction?.id, form]);
 
@@ -129,14 +152,7 @@ export function AddOrCreateExpenseDialog({
           { transactionId: transaction.id, input: submitData },
           {
             onSuccess: () => {
-              form.reset({
-                name: "",
-                amount: 0,
-                currency: "EUR",
-                occurredAt: "",
-                description: "",
-                tagIds: [],
-              });
+              resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
               onSuccess?.();
@@ -151,14 +167,7 @@ export function AddOrCreateExpenseDialog({
         // Create new expense
         createExpense(submitData, {
           onSuccess: () => {
-            form.reset({
-              name: "",
-              amount: 0,
-              currency: "EUR",
-              occurredAt: "",
-              description: "",
-              tagIds: [],
-            });
+            resetFormToClosedState();
             setPending(false);
             onOpenChange(false);
             onSuccess?.();
@@ -176,84 +185,85 @@ export function AddOrCreateExpenseDialog({
   };
 
   return (
-    <Dialog
-      title={isEditMode ? "Edit Expense" : "Create Expense"}
-      content={
-        <Form<FormData> form={form} onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <TextInput name="name" label="Name" disabled={pending} required />
-            <div className="grid grid-cols-2 gap-4">
-              <NumberInput
-                name="amount"
-                label="Amount"
+    <>
+      <Dialog
+        title={isEditMode ? "Edit Expense" : "Create Expense"}
+        content={
+          <Form<FormData> form={form} onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <TextInput name="name" label="Name" disabled={pending} required />
+              <div className="grid grid-cols-2 gap-4">
+                <NumberInput
+                  name="amount"
+                  label="Amount"
+                  disabled={pending}
+                  min={0}
+                  step={0.01}
+                  required
+                />
+                <CurrencySelect
+                  name="currency"
+                  label="Currency"
+                  disabled={pending}
+                />
+              </div>
+              <DateInput
+                name="occurredAt"
+                label="Date & Time"
+                type="datetime-local"
                 disabled={pending}
-                min={0}
-                step={0.01}
                 required
               />
-              <CurrencySelect
-                name="currency"
-                label="Currency"
+              <TextInput
+                name="description"
+                label="Description"
+                disabled={pending}
+              />
+              <TagSelect
+                name="tagIds"
+                label="Tags"
+                multiple={true}
+                placeholder="Select tags..."
                 disabled={pending}
               />
             </div>
-            <DateInput
-              name="occurredAt"
-              label="Date & Time"
-              type="datetime-local"
-              disabled={pending}
-              required
-            />
-            <TextInput
-              name="description"
-              label="Description"
-              disabled={pending}
-            />
-            <TagSelect
-              name="tagIds"
-              label="Tags"
-              multiple={true}
-              placeholder="Select tags..."
-              disabled={pending}
-            />
-          </div>
-        </Form>
-      }
-      footerButtons={[
-        {
-          clicked: () => {
-            form.reset({
-              name: "",
-              amount: 0,
-              currency: "EUR",
-              occurredAt: "",
-              description: "",
-              tagIds: [],
-            });
-            onOpenChange(false);
+          </Form>
+        }
+        footerButtons={[
+          {
+            clicked: handleAttemptClose,
+            className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            buttonContent: "Cancel",
           },
-          className: `px-4 py-2 border border-border rounded-lg hover:bg-surface-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
-          buttonContent: "Cancel",
-        },
-        {
-          clicked: () => {
-            form.handleSubmit(handleSubmit)();
+          {
+            clicked: () => {
+              form.handleSubmit(handleSubmit)();
+            },
+            className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
+            buttonContent: pending
+              ? isEditMode
+                ? "Updating..."
+                : "Creating..."
+              : isEditMode
+                ? "Update"
+                : "Create",
           },
-          className: `px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors ${pending ? "opacity-50 cursor-not-allowed" : ""}`,
-          buttonContent: pending
-            ? isEditMode
-              ? "Updating..."
-              : "Creating..."
-            : isEditMode
-              ? "Update"
-              : "Create",
-        },
-      ]}
-      open={open}
-      onOpenChange={onOpenChange}
-      dismissible={!pending}
-      variant="modal"
-      size="xl"
-    />
+        ]}
+        open={open}
+        onOpenChange={handleDialogOpenChange}
+        dismissible={!pending}
+        variant="modal"
+        size="xl"
+      />
+
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onConfirm={() => {
+          setShowUnsavedDialog(false);
+          closeDialog();
+        }}
+        onCancel={() => setShowUnsavedDialog(false)}
+      />
+    </>
   );
 }
