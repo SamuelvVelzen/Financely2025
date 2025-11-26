@@ -28,7 +28,7 @@ export function RangeInput({
   onChange,
   placeholder = { min: "Min", max: "Max" },
   minRange = 0,
-  maxRange = 10000,
+  maxRange = 1000,
 }: IRangeInputProps) {
   const [minInput, setMinInput] = useState<string>(value.min?.toString() ?? "");
   const [maxInput, setMaxInput] = useState<string>(value.max?.toString() ?? "");
@@ -43,6 +43,9 @@ export function RangeInput({
 
   const currentMin = value.min ?? minRange;
   const currentMax = value.max ?? maxRange;
+
+  const sliderMin = Math.max(minRange, Math.min(currentMin, maxRange));
+  const sliderMax = Math.max(sliderMin + 1, Math.min(currentMax, maxRange));
 
   const getPercentage = (val: number) => {
     return ((val - minRange) / (maxRange - minRange)) * 100;
@@ -65,10 +68,10 @@ export function RangeInput({
     const newValue = Math.round(getValueFromPercentage(percentage));
 
     if (isDragging === "min") {
-      const clampedValue = Math.min(newValue, currentMax - 1);
+      const clampedValue = Math.min(newValue, sliderMax - 1);
       onChange({ ...value, min: clampedValue });
     } else {
-      const clampedValue = Math.max(newValue, currentMin + 1);
+      const clampedValue = Math.max(newValue, sliderMin + 1);
       onChange({ ...value, max: clampedValue });
     }
   };
@@ -86,18 +89,18 @@ export function RangeInput({
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
-  }, [isDragging, currentMin, currentMax, value]);
+  }, [isDragging, sliderMin, sliderMax, value]);
 
   const handleMinInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     setMinInput(inputValue);
     const minValue = inputValue ? parseFloat(inputValue) : undefined;
     if (minValue !== undefined && !isNaN(minValue)) {
-      const clampedValue = Math.min(
-        Math.max(minRange, minValue),
-        currentMax - 1
-      );
-      onChange({ ...value, min: clampedValue });
+      if (value.max !== undefined && minValue >= value.max) {
+        onChange({ ...value, min: value.max - 1 });
+      } else {
+        onChange({ ...value, min: minValue });
+      }
     } else if (inputValue === "") {
       onChange({ ...value, min: undefined });
     }
@@ -108,11 +111,11 @@ export function RangeInput({
     setMaxInput(inputValue);
     const maxValue = inputValue ? parseFloat(inputValue) : undefined;
     if (maxValue !== undefined && !isNaN(maxValue)) {
-      const clampedValue = Math.max(
-        Math.min(maxRange, maxValue),
-        currentMin + 1
-      );
-      onChange({ ...value, max: clampedValue });
+      if (value.min !== undefined && maxValue <= value.min) {
+        onChange({ ...value, max: value.min + 1 });
+      } else {
+        onChange({ ...value, max: maxValue });
+      }
     } else if (inputValue === "") {
       onChange({ ...value, max: undefined });
     }
@@ -127,12 +130,12 @@ export function RangeInput({
     const newValue = Math.round(getValueFromPercentage(percentage));
 
     // Determine which handle is closer
-    const minDist = Math.abs(newValue - currentMin);
-    const maxDist = Math.abs(newValue - currentMax);
+    const minDist = Math.abs(newValue - sliderMin);
+    const maxDist = Math.abs(newValue - sliderMax);
 
-    if (minDist < maxDist && newValue < currentMax) {
+    if (minDist < maxDist && newValue < sliderMax) {
       onChange({ ...value, min: newValue });
-    } else if (newValue > currentMin) {
+    } else if (newValue > sliderMin) {
       onChange({ ...value, max: newValue });
     }
   };
@@ -144,8 +147,8 @@ export function RangeInput({
   };
 
   const hasValue = value.min !== undefined || value.max !== undefined;
-  const minPercentage = getPercentage(currentMin);
-  const maxPercentage = getPercentage(currentMax);
+  const minPercentage = getPercentage(sliderMin);
+  const maxPercentage = getPercentage(sliderMax);
 
   // Use same base classes as Input component
   const baseInputClasses =
@@ -163,16 +166,14 @@ export function RangeInput({
             className={baseInputClasses}
             step="0.01"
             min={minRange}
-            max={maxRange}
           />
         </div>
 
-        <div
-          className="flex-1 relative"
-          ref={sliderRef}>
+        <div className="flex-1 relative" ref={sliderRef}>
           <div
             className="relative h-8 flex items-center cursor-pointer"
-            onClick={handleSliderClick}>
+            onClick={handleSliderClick}
+          >
             {/* Track */}
             <div className="absolute w-full h-2 bg-surface-hover rounded-lg"></div>
 
@@ -182,7 +183,8 @@ export function RangeInput({
               style={{
                 left: `${minPercentage}%`,
                 width: `${maxPercentage - minPercentage}%`,
-              }}></div>
+              }}
+            ></div>
 
             {/* Min handle */}
             <div
@@ -191,7 +193,8 @@ export function RangeInput({
               onMouseDown={(e) => {
                 e.stopPropagation();
                 handleMouseDown("min");
-              }}></div>
+              }}
+            ></div>
 
             {/* Max handle */}
             <div
@@ -200,7 +203,8 @@ export function RangeInput({
               onMouseDown={(e) => {
                 e.stopPropagation();
                 handleMouseDown("max");
-              }}></div>
+              }}
+            ></div>
           </div>
         </div>
 
@@ -213,7 +217,6 @@ export function RangeInput({
             className={baseInputClasses}
             step="0.01"
             min={minRange}
-            max={maxRange}
           />
         </div>
 
@@ -221,7 +224,8 @@ export function RangeInput({
           <IconButton
             clicked={handleClear}
             className="text-text-muted hover:text-text p-1"
-            aria-label="Clear range">
+            aria-label="Clear range"
+          >
             <HiX className="w-4 h-4" />
           </IconButton>
         )}
