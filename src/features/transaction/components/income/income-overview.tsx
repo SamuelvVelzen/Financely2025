@@ -1,8 +1,10 @@
-import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
-import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
+import {
+  TransactionFilters,
+  type TransactionFilterValues,
+} from "@/features/transaction/components/transaction-filters";
 import {
   useDeleteIncome,
   useIncomes,
@@ -10,24 +12,15 @@ import {
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
-import {
-  Datepicker,
-  type IDateFilter,
-} from "@/features/ui/datepicker/datepicker";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { Form } from "@/features/ui/form/form";
-import { RangeInput, type IPriceRange } from "@/features/ui/input/range-input";
-import { SearchInput } from "@/features/ui/input/search-input";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
-import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Title } from "@/features/ui/typography/title";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
 import {
   HiArrowDownTray,
   HiArrowTrendingUp,
@@ -37,32 +30,22 @@ import {
 } from "react-icons/hi2";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
 
-type FilterFormData = {
-  searchQuery: string;
-  tagFilter: string[];
-};
-
 export function IncomeOverview() {
-  // Filter state
-  const [dateFilter, setDateFilter] = useState<IDateFilter>({
-    type: "allTime",
-    from: undefined,
-    to: undefined,
-  });
-  const [priceFilter, setPriceFilter] = useState<IPriceRange>({
-    min: undefined,
-    max: undefined,
+  const [filters, setFilters] = useState<TransactionFilterValues>({
+    dateFilter: {
+      type: "allTime",
+      from: undefined,
+      to: undefined,
+    },
+    priceFilter: {
+      min: undefined,
+      max: undefined,
+    },
+    searchQuery: "",
+    tagFilter: [],
   });
 
-  // Form for search and tag filter
-  const filterForm = useForm<FilterFormData>({
-    defaultValues: {
-      searchQuery: "",
-      tagFilter: [],
-    },
-  });
-  const searchQuery = filterForm.watch("searchQuery") || "";
-  const tagFilter = filterForm.watch("tagFilter") || [];
+  const { dateFilter, priceFilter, searchQuery, tagFilter } = filters;
 
   // Fetch incomes with date filter (backend filtering)
   // Only pass date filters if not "allTime"
@@ -75,11 +58,6 @@ export function IncomeOverview() {
       : undefined
   );
   const allIncomes = data?.data ?? [];
-
-  // Fetch tags for tag filter
-  const { data: tagsData } = useTags();
-  const tags = tagsData?.data ?? [];
-  const orderedTags = useOrderedData(tags);
 
   const { mutate: deleteIncome } = useDeleteIncome();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -179,15 +157,6 @@ export function IncomeOverview() {
     });
   };
 
-  // Tag options for SelectDropdown
-  const tagOptions = useMemo(() => {
-    return orderedTags.map((tag) => ({
-      value: tag.id,
-      label: tag.name,
-      data: tag,
-    }));
-  }, [orderedTags]);
-
   // Get month display text from date filter
   const getMonthDisplay = (): string => {
     if (dateFilter.type === "allTime") {
@@ -237,41 +206,7 @@ export function IncomeOverview() {
           </Dropdown>
         </Title>
 
-        <div className="flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto">
-          <Form form={filterForm} onSubmit={() => {}}>
-            <div className="flex gap-3 items-end">
-              <SearchInput name="searchQuery" />
-
-              <Datepicker value={dateFilter} onChange={setDateFilter} />
-
-              <div className="w-[400px] shrink-0">
-                <RangeInput
-                  value={priceFilter}
-                  onChange={setPriceFilter}
-                  placeholder={{ min: "Min", max: "Max" }}
-                />
-              </div>
-
-              <SelectDropdown
-                name="tagFilter"
-                options={tagOptions}
-                multiple={true}
-                placeholder="Filter by tags"
-                children={(option) => (
-                  <>
-                    {option.data?.color && (
-                      <div
-                        className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: option.data.color }}
-                      />
-                    )}
-                    <span className="flex-1">{option.label}</span>
-                  </>
-                )}
-              />
-            </div>
-          </Form>
-        </div>
+        <TransactionFilters onFiltersChange={setFilters} />
       </Container>
 
       {isLoading && (
