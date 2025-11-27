@@ -8,9 +8,11 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
-import { IDialogProps } from "@/features/ui/dialog/dialog/types";
-import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
+import {
+  MultiStepDialog,
+  type IStepConfig,
+  type IStepNavigation,
+} from "@/features/ui/dialog/multi-step-dialog";
 import { Form } from "@/features/ui/form/form";
 import { FileUploadInput } from "@/features/ui/input/file-upload-input";
 import { TextInput } from "@/features/ui/input/text-input";
@@ -51,8 +53,6 @@ export function TransactionCsvImportDialog({
   onSuccess,
   defaultType,
 }: ICsvImportDialogProps) {
-  const [step, setStep] = useState<IStep>("upload");
-  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
   const [mapping, setMapping] = useState<ICsvFieldMapping>({});
@@ -122,7 +122,6 @@ export function TransactionCsvImportDialog({
     importMutation.isPending;
 
   const resetAllState = () => {
-    setStep("upload");
     setFile(null);
     setColumns([]);
     setMapping({});
@@ -143,7 +142,6 @@ export function TransactionCsvImportDialog({
     const mappingHasValues = Object.values(mapping).some(Boolean);
     return (
       file !== null ||
-      step !== "upload" ||
       columns.length > 0 ||
       mappingHasValues ||
       candidates.length > 0 ||
@@ -155,7 +153,6 @@ export function TransactionCsvImportDialog({
     );
   }, [
     file,
-    step,
     columns,
     mapping,
     candidates,
@@ -165,27 +162,6 @@ export function TransactionCsvImportDialog({
     mappingFormDirty,
     rowFormDirty,
   ]);
-
-  const handleDialogClose = () => {
-    resetAllState();
-    onOpenChange(false);
-  };
-
-  const handleAttemptClose = () => {
-    if (hasUnsavedChanges) {
-      setShowUnsavedDialog(true);
-      return;
-    }
-    handleDialogClose();
-  };
-
-  const handleDialogOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      onOpenChange(true);
-      return;
-    }
-    handleAttemptClose();
-  };
 
   const suggestedMapping = mappingQuery.data?.mapping;
   const mappingMetadata = mappingQuery.data?.metadata;
@@ -279,7 +255,7 @@ export function TransactionCsvImportDialog({
     return () => subscription.unsubscribe();
   }, [mappingForm, mapping]);
 
-  const handleValidateMapping = async () => {
+  const handleValidateMapping = async (goToStep: (step: IStep) => void) => {
     try {
       const result = await validateMutation.mutateAsync({
         mapping,
@@ -289,7 +265,7 @@ export function TransactionCsvImportDialog({
         bank: selectedBank || undefined,
       });
       if (result.valid) {
-        setStep("review");
+        goToStep("review");
         // Trigger parse query with current type detection strategy
         parseQuery.refetch();
       } else {
@@ -302,14 +278,14 @@ export function TransactionCsvImportDialog({
 
   // Re-parse when type detection strategy or currency changes
   useEffect(() => {
-    if (step === "review" && parseQuery.data) {
+    if (parseQuery.data) {
       if (!defaultType && typeDetectionStrategy) {
         parseQuery.refetch();
       } else if (defaultCurrency) {
         parseQuery.refetch();
       }
     }
-  }, [typeDetectionStrategy, defaultCurrency, step, defaultType, parseQuery]);
+  }, [typeDetectionStrategy, defaultCurrency, defaultType, parseQuery]);
 
   const handleSelectAllValid = () => {
     const validIndices = candidates
@@ -353,19 +329,14 @@ export function TransactionCsvImportDialog({
     try {
       await importMutation.mutateAsync(transactionsToImport);
       onSuccess?.();
-      handleDialogClose();
+      resetAllState();
+      onOpenChange(false);
     } catch (error) {
       console.error("Import failed:", error);
     }
   };
 
-  useEffect(() => {
-    if (!open) {
-      setShowUnsavedDialog(false);
-    }
-  }, [open]);
-
-  const renderUploadStep = () => (
+  const renderUploadStep = (navigation: IStepNavigation<IStep>) => (
     <div className="space-y-4">
       <div>
         <FileUploadInput
@@ -392,7 +363,7 @@ export function TransactionCsvImportDialog({
     </div>
   );
 
-  const renderMappingStep = () => {
+  const renderMappingStep = (navigation: IStepNavigation<IStep>) => {
     // Filter out type field if defaultType is provided
     // Filter out currency field (handled separately)
     const fieldsToShow = TRANSACTION_FIELDS.filter(
@@ -512,7 +483,7 @@ export function TransactionCsvImportDialog({
     );
   };
 
-  const renderReviewStep = () => {
+  const renderReviewStep = (navigation: IStepNavigation<IStep>) => {
     if (parseQuery.isLoading) {
       return <div className="text-center py-8">Parsing CSV...</div>;
     }
@@ -690,7 +661,7 @@ export function TransactionCsvImportDialog({
     );
   };
 
-  const renderConfirmStep = () => {
+  const renderConfirmStep = (navigation: IStepNavigation<IStep>) => {
     const selectedCount = selectedRows.size;
     const totalCount = candidates.length;
 
@@ -714,19 +685,12 @@ export function TransactionCsvImportDialog({
     );
   };
 
-  const StepOptions: {
-    [key in IStep]: {
-      content: React.ReactNode;
-      title: string;
-      size: IDialogProps["size"];
-      footerButtons: IDialogProps["footerButtons"];
-    };
-  } = {
+  const steps: Record<IStep, IStepConfig<IStep>> = {
     upload: {
       title: "Upload CSV File",
-      size: "lg",
-      content: renderUploadStep(),
-      footerButtons: [
+      size: "lg" as const,
+      content: renderUploadStep,
+      footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
           clicked: () => {
             if (!file) {
@@ -737,7 +701,7 @@ export function TransactionCsvImportDialog({
               .mutateAsync(file)
               .then((result) => {
                 setColumns(result.columns);
-                setStep("mapping");
+                navigation.goToStep("mapping");
               })
               .catch((error) => {
                 console.error("Upload failed:", error);
@@ -750,20 +714,20 @@ export function TransactionCsvImportDialog({
     },
     mapping: {
       title: "Map Fields",
-      size: "full",
-      content: renderMappingStep(),
-      footerButtons: [
+      size: "full" as const,
+      content: renderMappingStep,
+      footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
-          clicked: () => setStep("upload"),
+          clicked: () => navigation.goToStep("upload"),
           buttonContent: "Back",
         },
         {
           clicked: () => {
             if (!validateMutation.isPending) {
-              handleValidateMapping();
+              handleValidateMapping(navigation.goToStep);
             }
           },
-          variant: "primary",
+          variant: "primary" as const,
           disabled: validateMutation.isPending,
           buttonContent: validateMutation.isPending
             ? "Validating..."
@@ -773,20 +737,20 @@ export function TransactionCsvImportDialog({
     },
     review: {
       title: "Review Transactions",
-      size: "full",
-      content: renderReviewStep(),
-      footerButtons: [
+      size: "full" as const,
+      content: renderReviewStep,
+      footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
-          clicked: () => setStep("mapping"),
+          clicked: () => navigation.goToStep("mapping"),
           buttonContent: "Back",
         },
         {
           clicked: () => {
             if (selectedRows.size > 0) {
-              setStep("confirm");
+              navigation.goToStep("confirm");
             }
           },
-          variant: "primary",
+          variant: "primary" as const,
           disabled: selectedRows.size === 0,
           buttonContent: "Continue to Import",
         },
@@ -794,11 +758,11 @@ export function TransactionCsvImportDialog({
     },
     confirm: {
       title: "Confirm Import",
-      size: "lg",
-      content: renderConfirmStep(),
-      footerButtons: [
+      size: "lg" as const,
+      content: renderConfirmStep,
+      footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
-          clicked: () => setStep("review"),
+          clicked: () => navigation.goToStep("review"),
           buttonContent: "Back",
         },
         {
@@ -807,7 +771,7 @@ export function TransactionCsvImportDialog({
               handleConfirmImport();
             }
           },
-          variant: "primary",
+          variant: "primary" as const,
           disabled: importMutation.isPending || selectedRows.size === 0,
           buttonContent: importMutation.isPending
             ? "Importing..."
@@ -817,29 +781,15 @@ export function TransactionCsvImportDialog({
     },
   };
 
-  const options = StepOptions[step];
-
   return (
-    <>
-      <Dialog
-        title={options.title}
-        content={options.content}
-        footerButtons={options.footerButtons}
-        open={open}
-        onOpenChange={handleDialogOpenChange}
-        variant="modal"
-        size={options.size}
-        dismissible={!isBusy}
-        onClose={resetAllState}
-      />
-      <UnsavedChangesDialog
-        open={showUnsavedDialog}
-        onConfirm={() => {
-          setShowUnsavedDialog(false);
-          handleDialogClose();
-        }}
-        onCancel={() => setShowUnsavedDialog(false)}
-      />
-    </>
+    <MultiStepDialog
+      steps={steps}
+      initialStep="upload"
+      open={open}
+      onOpenChange={onOpenChange}
+      hasUnsavedChanges={() => hasUnsavedChanges}
+      onReset={resetAllState}
+      isBusy={isBusy}
+    />
   );
 }
