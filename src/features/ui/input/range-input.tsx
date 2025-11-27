@@ -169,7 +169,11 @@ export function RangeInput({
       <div className={cn("relative", className)}>
         <div className="flex items-center gap-3">
           <div className={inputWrapperClasses}>
-            <DecimalInput name="min" onValueChange={handleMinDecimalChange} />
+            <DecimalInput
+              name="min"
+              onValueChange={handleMinDecimalChange}
+              placeholder={minRange}
+            />
           </div>
 
           <div className="flex-1 relative" ref={sliderRef}>
@@ -212,7 +216,11 @@ export function RangeInput({
           </div>
 
           <div className={inputWrapperClasses}>
-            <DecimalInput name="max" onValueChange={handleMaxDecimalChange} />
+            <DecimalInput
+              name="max"
+              onValueChange={handleMaxDecimalChange}
+              placeholder={maxRange}
+            />
           </div>
 
           {hasValue && (

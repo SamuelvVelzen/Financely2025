@@ -22,6 +22,7 @@ export type IDecimalInputProps = Omit<
   "type" | "inputMode" | "renderField" | "placeholder"
 > & {
   locale?: string;
+  placeholder?: number;
   onValueChange?: (value: string) => void;
 };
 
@@ -35,6 +36,7 @@ type CaretSyncTask = {
 export function DecimalInput({
   locale,
   onValueChange,
+  placeholder,
   ...props
 }: IDecimalInputProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -199,7 +201,7 @@ export function DecimalInput({
           <input
             {...field}
             {...restInputProps}
-            placeholder={`0${separators.decimal}00`}
+            placeholder={`${placeholder || "0"}${separators.decimal}00`}
             inputMode="decimal"
             value={formattedValue}
             ref={(node) => {
