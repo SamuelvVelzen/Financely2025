@@ -1,5 +1,6 @@
 "use client";
 
+import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { ReactNode, useState } from "react";
@@ -8,6 +9,7 @@ import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
+import { NativeSelect } from "../select/native-select";
 
 export type ISelectOption<TData = unknown> = {
   value: string;
@@ -60,9 +62,24 @@ export function SelectDropdown<
   showClearButton = true,
   children,
 }: ISelectDropdownProps<TOptions, TData>) {
+  const { isMobile } = useResponsive();
   const form = useFormContext();
   const [isOpen, setIsOpen] = useState(false);
   const error = form.formState.errors[name];
+
+  // On mobile, use native select
+  if (isMobile) {
+    return (
+      <NativeSelect
+        className={className}
+        name={name}
+        options={options}
+        multiple={multiple}
+        placeholder={placeholder}
+        label={label}
+      />
+    );
+  }
 
   // Get selected labels for display
   const getDisplayText = (value: string | string[] | undefined): string => {

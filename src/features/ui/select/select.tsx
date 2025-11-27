@@ -1,6 +1,7 @@
 "use client";
 
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
+import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
@@ -10,6 +11,7 @@ import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import type { IPlacementOption } from "../dropdown/hooks/use-dropdown-placement";
+import { NativeSelect } from "./native-select";
 
 export type ISelectOption<TData = unknown> = {
   value: string;
@@ -71,6 +73,7 @@ export function Select<
   getOptionSearchValue,
   forcePlacement,
 }: ISelectProps<TOptions, TData>) {
+  const { isMobile } = useResponsive();
   const form = useFormContext();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,6 +81,21 @@ export function Select<
   const error = form.formState.errors[name];
 
   const { highlightText } = useHighlightText();
+
+  // On mobile, use native select
+  if (isMobile) {
+    return (
+      <NativeSelect
+        className={className}
+        name={name}
+        options={options}
+        multiple={multiple}
+        placeholder={placeholder}
+        label={label}
+        disabled={disabled}
+      />
+    );
+  }
 
   // Keep dropdown open when input is focused
   useEffect(() => {
