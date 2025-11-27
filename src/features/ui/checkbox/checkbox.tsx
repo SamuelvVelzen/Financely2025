@@ -68,7 +68,7 @@ export function Checkbox({
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
-              d="M5 16l4 4L18 10"
+              d="M5 13l4 4L18 6"
             />
           )}
         </svg>
