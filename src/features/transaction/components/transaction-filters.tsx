@@ -95,9 +95,11 @@ export function TransactionFilters({
 
           <Datepicker value={dateFilter} onChange={setDateFilter} />
 
-          <div className="w-[400px] shrink-0">
-            <RangeInput value={priceFilter} onChange={setPriceFilter} />
-          </div>
+          <RangeInput
+            value={priceFilter}
+            onChange={setPriceFilter}
+            className="w-[400px]"
+          />
 
           <SelectDropdown
             name="tagFilter"
