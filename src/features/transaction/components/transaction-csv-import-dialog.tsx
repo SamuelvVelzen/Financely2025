@@ -251,15 +251,6 @@ export function TransactionCsvImportDialog({
     }
 
     setFile(nextFile);
-    uploadMutation
-      .mutateAsync(nextFile)
-      .then((result) => {
-        setColumns(result.columns);
-        setStep("mapping");
-      })
-      .catch((error) => {
-        console.error("Upload failed:", error);
-      });
   };
 
   const handleMappingChange = (field: string, column: string | null) => {
@@ -737,7 +728,21 @@ export function TransactionCsvImportDialog({
       content: renderUploadStep(),
       footerButtons: [
         {
-          clicked: () => setStep("mapping"),
+          clicked: () => {
+            if (!file) {
+              return;
+            }
+
+            uploadMutation
+              .mutateAsync(file)
+              .then((result) => {
+                setColumns(result.columns);
+                setStep("mapping");
+              })
+              .catch((error) => {
+                console.error("Upload failed:", error);
+              });
+          },
           disabled: !file,
           buttonContent: "Next",
         },
