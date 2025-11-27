@@ -88,9 +88,10 @@ export function SelectDropdown<
     }
 
     if (multiple && Array.isArray(value)) {
-      const selectedOptions = options.filter((opt) =>
-        value.includes(opt.value)
-      );
+      const selectedOptions = value
+        .map((val) => options.find((opt) => opt.value === val))
+        .filter((opt): opt is ISelectOption<TData> => opt !== undefined);
+
       if (selectedOptions.length <= maxDisplayItems) {
         return selectedOptions.map((opt) => opt.label).join(", ");
       } else {
@@ -99,7 +100,7 @@ export function SelectDropdown<
           .map((opt) => opt.label)
           .join(", ");
         const remainingCount = selectedOptions.length - maxDisplayItems;
-        return `${displayedOptions} + ${remainingCount} more`;
+        return `${displayedOptions} + ${remainingCount}`;
       }
     }
 
