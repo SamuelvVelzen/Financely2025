@@ -171,6 +171,38 @@ export function ExpenseOverview() {
     return formatMonthYear(new Date());
   };
 
+  const isDefaultDateFilter = useMemo(() => {
+    return dateFilter.type === defaultDateFilter.type;
+  }, [dateFilter]);
+
+  const isEmpty = useMemo(() => {
+    return (
+      !isLoading &&
+      !error &&
+      expenses.length === 0 &&
+      allExpenses.length === 0 &&
+      isDefaultDateFilter
+    );
+  }, [expenses, allExpenses, isLoading, error, isDefaultDateFilter]);
+
+  const isEmptyWithFilters = useMemo(() => {
+    return (
+      !isLoading &&
+      !error &&
+      expenses.length === 0 &&
+      allExpenses.length > 0 &&
+      !isDefaultDateFilter
+    );
+  }, [
+    expenses,
+    allExpenses,
+    isLoading,
+    error,
+    searchQuery,
+    tagFilter,
+    isDefaultDateFilter,
+  ]);
+
   return (
     <>
       <Container className="sticky top-0 z-10 bg-surface mb-4">
@@ -218,31 +250,35 @@ export function ExpenseOverview() {
         </Container>
       )}
 
-      {!isLoading &&
-        !error &&
-        expenses.length === 0 &&
-        allExpenses.length === 0 && (
-          <EmptyContainer
-            icon={<HiArrowTrendingDown />}
-            emptyText={"No expenses yet. Start by adding your first expense."}
-            button={{
-              buttonText: "Add expense",
-              buttonAction: () => handleCreateExpense(),
-            }}
-          ></EmptyContainer>
-        )}
+      {isEmpty && (
+        <EmptyContainer
+          icon={<HiArrowTrendingDown />}
+          emptyText={"No expenses yet. Start by adding your first expense."}
+          button={{
+            buttonText: "Add expense",
+            buttonAction: () => handleCreateExpense(),
+          }}
+        ></EmptyContainer>
+      )}
 
-      {!isLoading &&
-        !error &&
-        expenses.length === 0 &&
-        allExpenses.length > 0 && (
-          <EmptyContainer
-            icon={<HiArrowTrendingDown />}
-            emptyText={
-              "No expenses match your filters. Try adjusting your search criteria."
-            }
-          />
-        )}
+      {isEmptyWithFilters && (
+        <EmptyContainer
+          icon={<HiArrowTrendingDown />}
+          emptyText={
+            "No expenses match your filters. Try adjusting your search criteria or clearing your filters."
+          }
+          button={{
+            buttonText: "Clear filters",
+            buttonAction: () =>
+              setFilters({
+                dateFilter: defaultDateFilter,
+                priceFilter: defaultPriceFilter,
+                searchQuery: "",
+                tagFilter: [],
+              }),
+          }}
+        />
+      )}
 
       {!isLoading && !error && expenses.length > 0 && (
         <Container>

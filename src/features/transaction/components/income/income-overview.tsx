@@ -171,6 +171,42 @@ export function IncomeOverview() {
     return formatMonthYear(new Date());
   };
 
+  const isDefaultDateFilter = useMemo(() => {
+    return (
+      dateFilter.type === defaultDateFilter.type &&
+      dateFilter.from === defaultDateFilter.from &&
+      dateFilter.to === defaultDateFilter.to
+    );
+  }, [dateFilter]);
+
+  const isEmpty = useMemo(() => {
+    return (
+      !isLoading &&
+      !error &&
+      incomes.length === 0 &&
+      allIncomes.length === 0 &&
+      isDefaultDateFilter
+    );
+  }, [incomes, allIncomes, isLoading, error]);
+
+  const isEmptyWithFilters = useMemo(() => {
+    return (
+      !isLoading &&
+      !error &&
+      incomes.length === 0 &&
+      allIncomes.length > 0 &&
+      !isDefaultDateFilter
+    );
+  }, [
+    incomes,
+    allIncomes,
+    isLoading,
+    error,
+    searchQuery,
+    tagFilter,
+    isDefaultDateFilter,
+  ]);
+
   return (
     <>
       <Container className="sticky top-0 z-10 bg-surface mb-4">
@@ -218,33 +254,37 @@ export function IncomeOverview() {
         </Container>
       )}
 
-      {!isLoading &&
-        !error &&
-        incomes.length === 0 &&
-        allIncomes.length === 0 && (
-          <EmptyContainer
-            icon={<HiPlus />}
-            emptyText={
-              "No income entries yet. Start by adding your first income source."
-            }
-            button={{
-              buttonText: "Add income",
-              buttonAction: () => handleCreateIncome(),
-            }}
-          ></EmptyContainer>
-        )}
+      {isEmpty && (
+        <EmptyContainer
+          icon={<HiPlus />}
+          emptyText={
+            "No income entries yet. Start by adding your first income source."
+          }
+          button={{
+            buttonText: "Add income",
+            buttonAction: () => handleCreateIncome(),
+          }}
+        ></EmptyContainer>
+      )}
 
-      {!isLoading &&
-        !error &&
-        incomes.length === 0 &&
-        allIncomes.length > 0 && (
-          <EmptyContainer
-            icon={<HiPlus />}
-            emptyText={
-              "No incomes match your filters. Try adjusting your search criteria."
-            }
-          />
-        )}
+      {isEmptyWithFilters && (
+        <EmptyContainer
+          icon={<HiPlus />}
+          emptyText={
+            "No incomes match your filters. Try adjusting your search criteria or clearing your filters."
+          }
+          button={{
+            buttonText: "Clear filters",
+            buttonAction: () =>
+              setFilters({
+                dateFilter: defaultDateFilter,
+                priceFilter: defaultPriceFilter,
+                searchQuery: "",
+                tagFilter: [],
+              }),
+          }}
+        />
+      )}
 
       {!isLoading && !error && incomes.length > 0 && (
         <Container>
