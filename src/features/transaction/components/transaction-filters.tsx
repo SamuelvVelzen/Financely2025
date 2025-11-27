@@ -19,25 +19,25 @@ type FilterFormData = {
   tagFilter: string[];
 };
 
-export type TransactionFilterValues = {
+export type ITransactionFilterValues = {
   dateFilter: IDateFilter;
   priceFilter: IPriceRange;
   searchQuery: string;
   tagFilter: string[];
 };
 
-type TransactionFiltersProps = {
+type ITransactionFiltersProps = {
   className?: string;
-  onFiltersChange: (filters: TransactionFilterValues) => void;
+  onFiltersChange: (filters: ITransactionFilterValues) => void;
 };
 
-const defaultDateFilter: IDateFilter = {
-  type: "allTime",
+export const defaultDateFilter: IDateFilter = {
+  type: "thisMonth",
   from: undefined,
   to: undefined,
 };
 
-const defaultPriceFilter: IPriceRange = {
+export const defaultPriceFilter: IPriceRange = {
   min: undefined,
   max: undefined,
 };
@@ -45,7 +45,7 @@ const defaultPriceFilter: IPriceRange = {
 export function TransactionFilters({
   className,
   onFiltersChange,
-}: TransactionFiltersProps) {
+}: ITransactionFiltersProps) {
   const [dateFilter, setDateFilter] = useState<IDateFilter>(defaultDateFilter);
   const [priceFilter, setPriceFilter] =
     useState<IPriceRange>(defaultPriceFilter);

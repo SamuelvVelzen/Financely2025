@@ -2,8 +2,10 @@ import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
+  defaultDateFilter,
+  defaultPriceFilter,
   TransactionFilters,
-  type TransactionFilterValues,
+  type ITransactionFilterValues,
 } from "@/features/transaction/components/transaction-filters";
 import {
   useDeleteExpense,
@@ -31,16 +33,9 @@ import {
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
 
 export function ExpenseOverview() {
-  const [filters, setFilters] = useState<TransactionFilterValues>({
-    dateFilter: {
-      type: "allTime",
-      from: undefined,
-      to: undefined,
-    },
-    priceFilter: {
-      min: undefined,
-      max: undefined,
-    },
+  const [filters, setFilters] = useState<ITransactionFilterValues>({
+    dateFilter: defaultDateFilter,
+    priceFilter: defaultPriceFilter,
     searchQuery: "",
     tagFilter: [],
   });
