@@ -66,7 +66,7 @@ export function HeaderCell<T = unknown>({
   return (
     <th
       className={cn(
-        "px-4 py-2",
+        "p-4",
         alignClasses[align],
         autoFit ? "w-auto" : "w-full min-w-0",
         sortable &&
