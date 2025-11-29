@@ -4,18 +4,20 @@ import { Checkbox } from "@/features/ui/checkbox/checkbox";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useMemo } from "react";
 import { BodyCell } from "./body-cell";
+import { HeaderCell } from "./header-cell";
 import { ITableProps, Table } from "./table";
 
-export type ISelectableTableProps = {
+export type ISelectableTableProps<T = unknown> = {
   selectedRows: Set<number>;
   onSelectionChange: (selectedRows: Set<number>) => void;
   rowCount: number;
   getRowIndex: (row: React.ReactElement) => number;
-  headerCells: ITableProps["headerCells"];
+  headerCells: ITableProps<T>["headerCells"];
+  data?: T[];
 } & React.PropsWithChildren &
   IPropsWithClassName;
 
-export function SelectableTable({
+export function SelectableTable<T = unknown>({
   selectedRows,
   onSelectionChange,
   rowCount,
@@ -23,7 +25,8 @@ export function SelectableTable({
   className,
   children,
   headerCells,
-}: ISelectableTableProps) {
+  data,
+}: ISelectableTableProps<T>) {
   const allSelected = useMemo(() => {
     return rowCount > 0 && selectedRows.size === rowCount;
   }, [selectedRows.size, rowCount]);
@@ -94,33 +97,24 @@ export function SelectableTable({
   });
 
   // Add checkbox to header (prepend to headerCells)
-  // Extract content from HeaderCell components if they are HeaderCell instances
-  const headerCellsContent = headerCells.map((cell) => {
-    if (
-      React.isValidElement(cell) &&
-      (cell.type as any)?.name === "HeaderCell"
-    ) {
-      // Extract children and props from HeaderCell component
-      const cellProps = cell.props as { children?: React.ReactNode };
-      return cellProps.children || cell;
-    }
-    return cell;
-  });
-
+  // Preserve HeaderCell components as-is, they'll be handled by Table component
   const headerCellsWithCheckbox = [
-    <Checkbox
-      key="select-all-checkbox"
-      checked={allSelected}
-      indeterminate={someSelected}
-      onChange={handleSelectAll}
-    />,
-    ...headerCellsContent,
+    <HeaderCell key="select-all-checkbox" sortable={false}>
+      <Checkbox
+        checked={allSelected}
+        indeterminate={someSelected}
+        onChange={handleSelectAll}
+      />
+    </HeaderCell>,
+    ...headerCells,
   ];
 
   return (
     <Table
       className={className}
-      headerCells={headerCellsWithCheckbox}>
+      headerCells={headerCellsWithCheckbox}
+      data={data}
+    >
       {rowsWithCheckboxes}
     </Table>
   );
