@@ -88,7 +88,7 @@ export function ExpenseTable({
                   : expense.name}
               </span>
             </BodyCell>
-            <BodyCell className="text-right">
+            <BodyCell>
               <span className="text-text font-semibold">
                 {searchQuery
                   ? highlightText(
@@ -112,7 +112,7 @@ export function ExpenseTable({
             </BodyCell>
             <BodyCell>
               {expense.tags.length > 0 ? (
-                <div className="flex gap-1 flex-wrap">
+                <div className="flex gap-1">
                   {expense.tags.map((tag) => (
                     <span
                       key={tag.id}
@@ -128,7 +128,7 @@ export function ExpenseTable({
                 <span className="text-sm text-text-muted">—</span>
               )}
             </BodyCell>
-            <BodyCell className="text-right">
+            <BodyCell>
               <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
                 {onEdit && (
                   <IconButton

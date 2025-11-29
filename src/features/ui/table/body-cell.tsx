@@ -6,6 +6,7 @@ import { PropsWithChildren } from "react";
 
 export type IBodyCellProps = {
   autoFit?: boolean;
+  wrap?: boolean;
 } & IPropsWithClassName &
   PropsWithChildren;
 
@@ -13,12 +14,14 @@ export function BodyCell({
   className,
   children,
   autoFit = true,
+  wrap = false,
 }: IBodyCellProps) {
   return (
     <td
       className={cn(
         "px-4 py-2",
         autoFit ? "w-auto" : "w-full min-w-0",
+        !wrap && "whitespace-nowrap",
         className
       )}
     >

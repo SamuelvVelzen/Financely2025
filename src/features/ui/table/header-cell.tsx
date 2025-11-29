@@ -18,7 +18,7 @@ export type IHeaderCellProps<T = unknown> = {
   PropsWithChildren;
 
 export function HeaderCell<T = unknown>({
-  align = "left",
+  align = "center",
   className,
   children,
   sortable = true,
