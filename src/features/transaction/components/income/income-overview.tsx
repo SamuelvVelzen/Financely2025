@@ -10,6 +10,7 @@ import {
   useDeleteIncome,
   useIncomes,
 } from "@/features/transaction/hooks/useTransactions";
+import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
@@ -187,34 +188,34 @@ export function IncomeOverview() {
   return (
     <>
       <Container className="sticky top-0 z-10 bg-surface mb-4">
-        <Title className="flex items-center justify-between mb-4">
+        <Title className="flex items-center justify-between">
           <div className="flex gap-2 items-center">
             <HiArrowTrendingUp />
-            <div className="flex items-center gap-2">
-              <span>Incomes</span>
-              <span className="text-sm text-text-muted font-normal">
-                ({getMonthDisplay()})
-              </span>
-            </div>
+            <span>Incomes</span>
+            <span className="text-sm text-text-muted font-normal self-end">
+              ({getMonthDisplay()})
+            </span>
           </div>
 
-          <Dropdown>
-            <DropdownItem
-              icon={<HiArrowTrendingUp />}
-              clicked={() => handleCreateIncome()}
+          <div className="flex gap-2 items-center">
+            <Button
+              clicked={handleCreateIncome}
+              variant="primary"
+              className="text-sm"
             >
-              Add income
-            </DropdownItem>
-            <DropdownItem
-              icon={<HiArrowDownTray />}
-              clicked={() => setIsCsvImportDialogOpen(true)}
-            >
-              Import from CSV
-            </DropdownItem>
-          </Dropdown>
-        </Title>
+              <HiPlus className="size-6" /> Add
+            </Button>
 
-        <TransactionFilters onFiltersChange={setFilters} />
+            <Dropdown>
+              <DropdownItem
+                icon={<HiArrowDownTray />}
+                clicked={() => setIsCsvImportDialogOpen(true)}
+              >
+                Import from CSV
+              </DropdownItem>
+            </Dropdown>
+          </div>
+        </Title>
       </Container>
 
       {isLoading && (
@@ -265,6 +266,7 @@ export function IncomeOverview() {
 
       {!isLoading && !error && incomes.length > 0 && (
         <Container>
+          <TransactionFilters onFiltersChange={setFilters} />
           <IncomeTable
             data={incomes}
             searchQuery={searchQuery}
