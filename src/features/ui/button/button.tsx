@@ -12,7 +12,7 @@ export type IButtonVariant =
   | "primary";
 
 export type IButtonProps = {
-  clicked?: () => void;
+  clicked: () => void;
   buttonContent?: string | ReactNode;
   variant?: IButtonVariant;
   disabled?: boolean;
@@ -39,7 +39,7 @@ export function Button({
   };
 
   const baseClasses =
-    "px-4 py-2 border rounded-2xl cursor-pointer flex items-center";
+    "px-4 py-2 border rounded-2xl cursor-pointer flex items-center text-base font-medium gap-2";
   const disabledClasses =
     disabled && "opacity-50 cursor-not-allowed pointer-events-none";
 
