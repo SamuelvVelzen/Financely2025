@@ -1,4 +1,3 @@
-import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
@@ -11,26 +10,17 @@ import {
   useDeleteExpense,
   useExpenses,
 } from "@/features/transaction/hooks/useTransactions";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { List } from "@/features/ui/list/list";
-import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
-import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
-import {
-  HiArrowDownTray,
-  HiArrowTrendingDown,
-  HiPencil,
-  HiPlus,
-  HiTrash,
-} from "react-icons/hi2";
+import { HiArrowDownTray, HiArrowTrendingDown, HiPlus } from "react-icons/hi2";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
+import { ExpenseList } from "./expense-list";
 
 export function ExpenseOverview() {
   const [filters, setFilters] = useState<ITransactionFilterValues>({
@@ -61,8 +51,6 @@ export function ExpenseOverview() {
   const [selectedExpense, setSelectedExpense] = useState<
     ITransaction | undefined
   >(undefined);
-
-  const { highlightText } = useHighlightText();
 
   // Client-side filtering for price, tags, and search
   const expenses = useMemo(() => {
@@ -120,8 +108,8 @@ export function ExpenseOverview() {
     setIsExpenseDialogOpen(true);
   };
 
-  const handleDeleteClick = (expenseId: string) => {
-    setSelectedExpense(allExpenses.find((expense) => expense.id === expenseId));
+  const handleDeleteClick = (expense: ITransaction) => {
+    setSelectedExpense(expense);
     setIsDeleteDialogOpen(true);
   };
 
@@ -139,17 +127,6 @@ export function ExpenseOverview() {
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
     setSelectedExpense(undefined);
-  };
-
-  // Format date
-  const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   // Get month display text from date filter
@@ -282,67 +259,12 @@ export function ExpenseOverview() {
 
       {!isLoading && !error && expenses.length > 0 && (
         <Container>
-          <List data={expenses}>
-            {(expense) => (
-              <ListItem className="group">
-                <div className="flex flex-col gap-1 flex-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-text font-medium">
-                      {searchQuery
-                        ? highlightText(expense.name, searchQuery)
-                        : expense.name}
-                    </span>
-                    <span className="text-text font-semibold">
-                      {searchQuery
-                        ? highlightText(
-                            formatCurrency(expense.amount, expense.currency),
-                            searchQuery
-                          )
-                        : formatCurrency(expense.amount, expense.currency)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-text-muted">
-                    <span>{formatDate(expense.occurredAt)}</span>
-                    {expense.description && (
-                      <span className="text-text-muted">
-                        {searchQuery
-                          ? highlightText(expense.description, searchQuery)
-                          : expense.description}
-                      </span>
-                    )}
-                    {expense.tags.length > 0 && (
-                      <div className="flex gap-1">
-                        {expense.tags.map((tag) => (
-                          <span
-                            key={tag.id}
-                            className="px-2 py-0.5 bg-surface-hover rounded text-xs"
-                          >
-                            {searchQuery
-                              ? highlightText(tag.name, searchQuery)
-                              : tag.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
-                  <IconButton
-                    clicked={() => handleEditExpense(expense)}
-                    className="text-text-muted hover:text-text p-1"
-                  >
-                    <HiPencil className="w-5 h-5" />
-                  </IconButton>
-                  <IconButton
-                    clicked={() => handleDeleteClick(expense.id)}
-                    className="text-danger hover:text-danger-hover p-1"
-                  >
-                    <HiTrash className="w-5 h-5" />
-                  </IconButton>
-                </div>
-              </ListItem>
-            )}
-          </List>
+          <ExpenseList
+            data={expenses}
+            searchQuery={searchQuery}
+            onDelete={handleDeleteClick}
+            onEdit={handleEditExpense}
+          ></ExpenseList>
         </Container>
       )}
 

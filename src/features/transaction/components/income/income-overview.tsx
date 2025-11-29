@@ -1,4 +1,3 @@
-import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
@@ -11,26 +10,17 @@ import {
   useDeleteIncome,
   useIncomes,
 } from "@/features/transaction/hooks/useTransactions";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { List } from "@/features/ui/list/list";
-import { ListItem } from "@/features/ui/list/list-item";
 import { Title } from "@/features/ui/typography/title";
-import { formatCurrency } from "@/util/currency/currencyhelpers";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
-import {
-  HiArrowDownTray,
-  HiArrowTrendingUp,
-  HiPencil,
-  HiPlus,
-  HiTrash,
-} from "react-icons/hi2";
+import { HiArrowDownTray, HiArrowTrendingUp, HiPlus } from "react-icons/hi2";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
+import { IncomeList } from "./income-list";
 
 export function IncomeOverview() {
   const [filters, setFilters] = useState<ITransactionFilterValues>({
@@ -61,8 +51,6 @@ export function IncomeOverview() {
   const [selectedIncome, setSelectedIncome] = useState<
     ITransaction | undefined
   >(undefined);
-
-  const { highlightText } = useHighlightText();
 
   // Client-side filtering for price, tags, and search
   const incomes = useMemo(() => {
@@ -120,8 +108,8 @@ export function IncomeOverview() {
     setIsIncomeDialogOpen(true);
   };
 
-  const handleDeleteClick = (incomeId: string) => {
-    setSelectedIncome(allIncomes.find((income) => income.id === incomeId));
+  const handleDeleteClick = (income: ITransaction) => {
+    setSelectedIncome(income);
     setIsDeleteDialogOpen(true);
   };
 
@@ -139,17 +127,6 @@ export function IncomeOverview() {
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
     setSelectedIncome(undefined);
-  };
-
-  // Format date
-  const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   // Get month display text from date filter
@@ -288,67 +265,12 @@ export function IncomeOverview() {
 
       {!isLoading && !error && incomes.length > 0 && (
         <Container>
-          <List data={incomes}>
-            {(income) => (
-              <ListItem className="group">
-                <div className="flex flex-col gap-1 flex-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-text font-medium">
-                      {searchQuery
-                        ? highlightText(income.name, searchQuery)
-                        : income.name}
-                    </span>
-                    <span className="text-text font-semibold">
-                      {searchQuery
-                        ? highlightText(
-                            formatCurrency(income.amount, income.currency),
-                            searchQuery
-                          )
-                        : formatCurrency(income.amount, income.currency)}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-text-muted">
-                    <span>{formatDate(income.occurredAt)}</span>
-                    {income.description && (
-                      <span className="text-text-muted">
-                        {searchQuery
-                          ? highlightText(income.description, searchQuery)
-                          : income.description}
-                      </span>
-                    )}
-                    {income.tags.length > 0 && (
-                      <div className="flex gap-1">
-                        {income.tags.map((tag) => (
-                          <span
-                            key={tag.id}
-                            className="px-2 py-0.5 bg-surface-hover rounded text-xs"
-                          >
-                            {searchQuery
-                              ? highlightText(tag.name, searchQuery)
-                              : tag.name}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
-                  <IconButton
-                    clicked={() => handleEditIncome(income)}
-                    className="text-text-muted hover:text-text p-1"
-                  >
-                    <HiPencil className="w-5 h-5" />
-                  </IconButton>
-                  <IconButton
-                    clicked={() => handleDeleteClick(income.id)}
-                    className="text-danger hover:text-danger-hover p-1"
-                  >
-                    <HiTrash className="w-5 h-5" />
-                  </IconButton>
-                </div>
-              </ListItem>
-            )}
-          </List>
+          <IncomeList
+            data={incomes}
+            searchQuery={searchQuery}
+            onDelete={handleDeleteClick}
+            onEdit={handleEditIncome}
+          />
         </Container>
       )}
 
