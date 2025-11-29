@@ -35,13 +35,11 @@ export function IncomeTable({
   };
 
   const headerCells = [
-    <HeaderCell key="name" sortKey="name" autoFit={false}>
+    <HeaderCell sortKey="name" autoFit={false}>
       Name
     </HeaderCell>,
     <HeaderCell
-      key="amount"
       sortKey="amount"
-      align="right"
       sortFn={(a: ITransaction, b: ITransaction) => {
         return parseFloat(a.amount) - parseFloat(b.amount);
       }}
@@ -49,7 +47,6 @@ export function IncomeTable({
       Amount
     </HeaderCell>,
     <HeaderCell
-      key="occurredAt"
       sortKey="occurredAt"
       sortFn={(a: ITransaction, b: ITransaction) => {
         return (
@@ -59,11 +56,8 @@ export function IncomeTable({
     >
       Date
     </HeaderCell>,
-    <HeaderCell key="description" sortKey="description">
-      Description
-    </HeaderCell>,
+    <HeaderCell sortKey="description">Description</HeaderCell>,
     <HeaderCell
-      key="tags"
       sortKey="tags"
       sortFn={(a: ITransaction, b: ITransaction) => {
         const aTags = a.tags.map((t) => t.name).join(", ");
@@ -73,7 +67,7 @@ export function IncomeTable({
     >
       Tags
     </HeaderCell>,
-    <HeaderCell key="actions" sortable={false} align="right">
+    <HeaderCell sortable={false} align="right">
       Actions
     </HeaderCell>,
   ];
