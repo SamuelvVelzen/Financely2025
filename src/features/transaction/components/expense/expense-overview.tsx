@@ -1,4 +1,5 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
+import { ExportButton } from "@/features/transaction/components/export-button";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
   defaultDateFilter,
@@ -194,6 +195,13 @@ export function ExpenseOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
+            <ExportButton
+              data={expenses}
+              columns={["Name", "Amount", "Date", "Description", "Tags"]}
+              filename="expenses"
+              className="text-sm"
+            />
+
             <Button
               clicked={handleCreateExpense}
               variant="primary"
