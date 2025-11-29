@@ -20,7 +20,7 @@ import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
 import { HiArrowDownTray, HiArrowTrendingUp, HiPlus } from "react-icons/hi2";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
-import { IncomeList } from "./income-list";
+import { IncomeTable } from "./income-list";
 
 export function IncomeOverview() {
   const [filters, setFilters] = useState<ITransactionFilterValues>({
@@ -265,7 +265,7 @@ export function IncomeOverview() {
 
       {!isLoading && !error && incomes.length > 0 && (
         <Container>
-          <IncomeList
+          <IncomeTable
             data={incomes}
             searchQuery={searchQuery}
             onDelete={handleDeleteClick}

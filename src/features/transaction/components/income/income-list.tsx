@@ -15,7 +15,7 @@ type IIncomeList = {
   onEdit?: (income: ITransaction) => void;
 };
 
-export function IncomeList({
+export function IncomeTable({
   data,
   searchQuery,
   onDelete,

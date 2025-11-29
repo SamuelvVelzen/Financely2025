@@ -20,7 +20,7 @@ import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
 import { HiArrowDownTray, HiArrowTrendingDown, HiPlus } from "react-icons/hi2";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
-import { ExpenseList } from "./expense-list";
+import { ExpenseTable } from "./expense-list";
 
 export function ExpenseOverview() {
   const [filters, setFilters] = useState<ITransactionFilterValues>({
@@ -259,12 +259,12 @@ export function ExpenseOverview() {
 
       {!isLoading && !error && expenses.length > 0 && (
         <Container>
-          <ExpenseList
+          <ExpenseTable
             data={expenses}
             searchQuery={searchQuery}
             onDelete={handleDeleteClick}
             onEdit={handleEditExpense}
-          ></ExpenseList>
+          ></ExpenseTable>
         </Container>
       )}
 

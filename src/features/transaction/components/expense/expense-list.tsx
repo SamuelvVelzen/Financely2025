@@ -15,7 +15,7 @@ type IExpenseListProps = {
   onEdit?: (expense: ITransaction) => void;
 };
 
-export function ExpenseList({
+export function ExpenseTable({
   data,
   searchQuery,
   onDelete,
