@@ -15,7 +15,6 @@ import {
 } from "@/features/ui/dialog/multi-step-dialog";
 import { Form } from "@/features/ui/form/form";
 import { FileUploadInput } from "@/features/ui/input/file-upload-input";
-import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
@@ -79,25 +78,6 @@ export function TransactionCsvImportDialog({
   const typeDetectionStrategy = mappingForm.watch("typeDetectionStrategy");
   const defaultCurrency = mappingForm.watch("defaultCurrency");
 
-  // Form for managing all row edits
-  type RowFormData = {
-    rows: Record<
-      number,
-      {
-        occurredAt?: string;
-        name?: string;
-        amount?: string;
-        type?: "EXPENSE" | "INCOME";
-      }
-    >;
-  };
-  const rowForm = useForm<RowFormData>({
-    defaultValues: {
-      rows: {},
-    },
-  });
-  const { isDirty: rowFormDirty } = rowForm.formState;
-
   const uploadMutation = useUploadCsvFile();
   const mappingQuery = useGetCsvMapping(
     columns.length > 0 ? columns : undefined,
@@ -135,7 +115,6 @@ export function TransactionCsvImportDialog({
       defaultCurrency: "EUR",
       mappings: {},
     });
-    rowForm.reset({ rows: {} });
   };
 
   const hasUnsavedChanges = useMemo(() => {
@@ -148,8 +127,7 @@ export function TransactionCsvImportDialog({
       selectedRows.size > 0 ||
       currentPage !== 1 ||
       selectedBank !== null ||
-      mappingFormDirty ||
-      rowFormDirty
+      mappingFormDirty
     );
   }, [
     file,
@@ -160,7 +138,6 @@ export function TransactionCsvImportDialog({
     currentPage,
     selectedBank,
     mappingFormDirty,
-    rowFormDirty,
   ]);
 
   const suggestedMapping = mappingQuery.data?.mapping;
@@ -203,20 +180,6 @@ export function TransactionCsvImportDialog({
         .filter((c) => c.status === "valid")
         .map((c) => c.rowIndex);
       setSelectedRows(new Set(validIndices));
-
-      // Initialize form with candidate data
-      const initialRows: RowFormData["rows"] = {};
-      candidatesWithDefaults.forEach((c) => {
-        initialRows[c.rowIndex] = {
-          occurredAt: c.data.occurredAt
-            ? new Date(c.data.occurredAt).toISOString().split("T")[0]
-            : "",
-          name: c.data.name || "",
-          amount: c.data.amount || "",
-          type: c.data.type || "",
-        };
-      });
-      rowForm.reset({ rows: initialRows });
     }
   }, [parseQuery.data, defaultType, defaultCurrency]);
 
@@ -305,21 +268,14 @@ export function TransactionCsvImportDialog({
 
   const handleConfirmImport = async () => {
     const transactionsToImport: ICreateTransactionInput[] = [];
-    const formData = rowForm.getValues();
 
     for (const rowIndex of selectedRows) {
       const candidate = candidates.find((c) => c.rowIndex === rowIndex);
       if (!candidate) continue;
 
-      const edited = formData.rows[rowIndex] || {};
       const transaction: ICreateTransactionInput = {
         ...candidate.data,
-        occurredAt: edited.occurredAt
-          ? new Date(edited.occurredAt).toISOString()
-          : candidate.data.occurredAt,
-        name: edited.name || candidate.data.name,
-        amount: edited.amount || candidate.data.amount,
-        type: defaultType || edited.type || candidate.data.type || "EXPENSE",
+        type: defaultType || candidate.data.type || "EXPENSE",
         currency: candidate.data.currency || defaultCurrency,
       };
 
@@ -369,8 +325,6 @@ export function TransactionCsvImportDialog({
     const fieldsToShow = TRANSACTION_FIELDS.filter(
       (f) => f.name !== "currency" && (defaultType ? f.name !== "type" : true)
     );
-
-    const watchedRows = rowForm.watch("rows");
 
     return (
       <div className="space-y-4">
@@ -502,7 +456,13 @@ export function TransactionCsvImportDialog({
       return <div className="text-center py-8">No transactions found</div>;
     }
 
-    const watchedRows = rowForm.watch("rows");
+    const formatDate = (isoString: string) => {
+      return new Date(isoString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    };
 
     return (
       <div className="space-y-4">
@@ -544,85 +504,70 @@ export function TransactionCsvImportDialog({
             <HeaderCell align="left">Errors</HeaderCell>,
           ]}
         >
-          <Form form={rowForm} onSubmit={() => {}}>
-            {candidates.map((candidate) => {
-              const rowIndex = candidate.rowIndex;
-              const rowData = watchedRows?.[rowIndex] || {};
-              const transaction = {
-                ...candidate.data,
-                occurredAt: rowData.occurredAt
-                  ? new Date(rowData.occurredAt).toISOString()
-                  : candidate.data.occurredAt,
-                name: rowData.name || candidate.data.name,
-                amount: rowData.amount || candidate.data.amount,
-                type: rowData.type || candidate.data.type,
-              };
-
-              return (
-                <TableRow
-                  key={candidate.rowIndex}
-                  rowIndex={candidate.rowIndex}
-                  className={cn(
-                    "border-t border-border",
-                    candidate.status === "invalid" && "bg-danger/5"
+          {candidates.map((candidate) => {
+            return (
+              <TableRow
+                key={candidate.rowIndex}
+                rowIndex={candidate.rowIndex}
+                className={cn(
+                  "border-t border-border",
+                  candidate.status === "invalid" && "bg-danger/5"
+                )}
+              >
+                <BodyCell>
+                  <span
+                    className={cn(
+                      "px-2 py-1 rounded text-xs",
+                      candidate.status === "valid" &&
+                        "bg-success/20 text-success",
+                      candidate.status === "invalid" &&
+                        "bg-danger/20 text-danger"
+                    )}
+                  >
+                    {candidate.status}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  <span className="text-sm text-text-muted">
+                    {candidate.data.occurredAt
+                      ? formatDate(candidate.data.occurredAt)
+                      : "—"}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  <span className="text-sm text-text">
+                    {candidate.data.name || "—"}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  <span className="text-sm text-text">
+                    {candidate.data.amount || "—"}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  <span className="text-sm font-medium">
+                    {candidate.data.currency || defaultCurrency}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  <span className="text-sm font-medium">
+                    {defaultType || candidate.data.type || "—"}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  {candidate.errors.length > 0 && (
+                    <div className="text-xs text-danger">
+                      {candidate.errors.map((err, i) => (
+                        <div key={i}>
+                          {err.field}: {err.message}
+                        </div>
+                      ))}
+                    </div>
                   )}
-                >
-                  <BodyCell>
-                    <span
-                      className={cn(
-                        "px-2 py-1 rounded text-xs",
-                        candidate.status === "valid" &&
-                          "bg-success/20 text-success",
-                        candidate.status === "invalid" &&
-                          "bg-danger/20 text-danger"
-                      )}
-                    >
-                      {candidate.status}
-                    </span>
-                  </BodyCell>
-                  <BodyCell>
-                    <TextInput name={`rows.${rowIndex}.occurredAt`} />
-                  </BodyCell>
-                  <BodyCell>
-                    <TextInput name={`rows.${rowIndex}.name`} />
-                  </BodyCell>
-                  <BodyCell>
-                    <TextInput name={`rows.${rowIndex}.amount`} />
-                  </BodyCell>
-                  <BodyCell>
-                    <span className="text-sm font-medium">
-                      {transaction.currency || defaultCurrency}
-                    </span>
-                  </BodyCell>
-                  <BodyCell>
-                    {defaultType ? (
-                      <span className="text-sm font-medium">{defaultType}</span>
-                    ) : (
-                      <SelectDropdown
-                        name={`rows.${rowIndex}.type`}
-                        options={[
-                          { value: "EXPENSE", label: "Expense" },
-                          { value: "INCOME", label: "Income" },
-                        ]}
-                        placeholder="Select type"
-                      />
-                    )}
-                  </BodyCell>
-                  <BodyCell>
-                    {candidate.errors.length > 0 && (
-                      <div className="text-xs text-danger">
-                        {candidate.errors.map((err, i) => (
-                          <div key={i}>
-                            {err.field}: {err.message}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </BodyCell>
-                </TableRow>
-              );
-            })}
-          </Form>
+                </BodyCell>
+              </TableRow>
+            );
+          })}
         </SelectableTable>
 
         {parseResponse?.hasNext && (

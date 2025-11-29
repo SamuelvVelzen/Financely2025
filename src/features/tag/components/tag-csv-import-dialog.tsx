@@ -13,7 +13,6 @@ import {
 } from "@/features/ui/dialog/multi-step-dialog";
 import { Form } from "@/features/ui/form/form";
 import { FileUploadInput } from "@/features/ui/input/file-upload-input";
-import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
@@ -78,24 +77,6 @@ export function TagCsvImportDialog({
   });
   const { isDirty: mappingFormDirty } = mappingForm.formState;
 
-  // Form for managing all row edits
-  type RowFormData = {
-    rows: Record<
-      number,
-      {
-        name?: string;
-        color?: string;
-        description?: string;
-      }
-    >;
-  };
-  const rowForm = useForm<RowFormData>({
-    defaultValues: {
-      rows: {},
-    },
-  });
-  const { isDirty: rowFormDirty } = rowForm.formState;
-
   const uploadMutation = useUploadTagCsvFile();
   const mappingQuery = useGetTagCsvMapping(
     columns.length > 0 ? columns : undefined
@@ -117,7 +98,6 @@ export function TagCsvImportDialog({
     setCurrentPage(1);
     setParseResponse(null);
     mappingForm.reset({ mappings: {} });
-    rowForm.reset({ rows: {} });
   };
 
   const hasUnsavedChanges = useMemo(() => {
@@ -129,8 +109,7 @@ export function TagCsvImportDialog({
       candidates.length > 0 ||
       selectedRows.size > 0 ||
       currentPage !== 1 ||
-      mappingFormDirty ||
-      rowFormDirty
+      mappingFormDirty
     );
   }, [
     file,
@@ -140,7 +119,6 @@ export function TagCsvImportDialog({
     selectedRows,
     currentPage,
     mappingFormDirty,
-    rowFormDirty,
   ]);
 
   // Auto-detect mapping when columns are available
@@ -166,17 +144,6 @@ export function TagCsvImportDialog({
         .filter((c) => c.status === "valid")
         .map((c) => c.rowIndex);
       setSelectedRows(new Set(validIndices));
-
-      // Initialize form with candidate data
-      const initialRows: RowFormData["rows"] = {};
-      parseQuery.data.candidates.forEach((c) => {
-        initialRows[c.rowIndex] = {
-          name: c.data.name || "",
-          color: c.data.color || "",
-          description: c.data.description || "",
-        };
-      });
-      rowForm.reset({ rows: initialRows });
     }
   }, [parseQuery.data]);
 
@@ -247,18 +214,13 @@ export function TagCsvImportDialog({
 
   const handleConfirmImport = async () => {
     const tagsToImport: ICreateTagInput[] = [];
-    const formData = rowForm.getValues();
 
     for (const rowIndex of selectedRows) {
       const candidate = candidates.find((c) => c.rowIndex === rowIndex);
       if (!candidate) continue;
 
-      const edited = formData.rows[rowIndex] || {};
       const tag: ICreateTagInput = {
         ...candidate.data,
-        name: edited.name || candidate.data.name,
-        color: edited.color || candidate.data.color,
-        description: edited.description || candidate.data.description,
       };
 
       tagsToImport.push(tag);
@@ -358,8 +320,6 @@ export function TagCsvImportDialog({
       return <div className="text-center py-8">No tags found</div>;
     }
 
-    const watchedRows = rowForm.watch("rows");
-
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -391,80 +351,73 @@ export function TagCsvImportDialog({
             return props.rowIndex ?? -1;
           }}
           headerCells={[
-            <HeaderCell align="left">Status</HeaderCell>,
-            <HeaderCell align="left">Name</HeaderCell>,
-            <HeaderCell align="left">Color</HeaderCell>,
-            <HeaderCell align="left">Description</HeaderCell>,
-            <HeaderCell align="left">Errors</HeaderCell>,
+            <HeaderCell>Status</HeaderCell>,
+            <HeaderCell>Name</HeaderCell>,
+            <HeaderCell>Color</HeaderCell>,
+            <HeaderCell>Description</HeaderCell>,
+            <HeaderCell>Errors</HeaderCell>,
           ]}
         >
-          <Form form={rowForm} onSubmit={() => {}}>
-            {candidates.map((candidate) => {
-              const rowIndex = candidate.rowIndex;
-              const rowData = watchedRows?.[rowIndex] || {};
-              const tag = {
-                ...candidate.data,
-                name: rowData.name || candidate.data.name,
-                color: rowData.color || candidate.data.color,
-                description: rowData.description || candidate.data.description,
-              };
-
-              return (
-                <TableRow
-                  key={candidate.rowIndex}
-                  rowIndex={candidate.rowIndex}
-                  className={cn(
-                    "border-t border-border",
-                    candidate.status === "invalid" && "bg-danger/5"
-                  )}
-                >
-                  <BodyCell>
-                    <span
-                      className={cn(
-                        "px-2 py-1 rounded text-xs",
-                        candidate.status === "valid" &&
-                          "bg-success/20 text-success",
-                        candidate.status === "invalid" &&
-                          "bg-danger/20 text-danger"
-                      )}
-                    >
-                      {candidate.status}
-                    </span>
-                  </BodyCell>
-                  <BodyCell>
-                    <TextInput
-                      name={`rows.${rowIndex}.name`}
-                      className="px-2! py-1! text-sm!"
-                    />
-                  </BodyCell>
-                  <BodyCell>
-                    <TextInput
-                      name={`rows.${rowIndex}.color`}
-                      placeholder="#FF6600"
-                      className="px-2! py-1! text-sm!"
-                    />
-                  </BodyCell>
-                  <BodyCell>
-                    <TextInput
-                      name={`rows.${rowIndex}.description`}
-                      className="px-2! py-1! text-sm!"
-                    />
-                  </BodyCell>
-                  <BodyCell>
-                    {candidate.errors.length > 0 && (
-                      <div className="text-xs text-danger">
-                        {candidate.errors.map((err, i) => (
-                          <div key={i}>
-                            {err.field}: {err.message}
-                          </div>
-                        ))}
-                      </div>
+          {candidates.map((candidate) => {
+            return (
+              <TableRow
+                key={candidate.rowIndex}
+                rowIndex={candidate.rowIndex}
+                className={cn(
+                  "border-t border-border",
+                  candidate.status === "invalid" && "bg-danger/5"
+                )}
+              >
+                <BodyCell>
+                  <span
+                    className={cn(
+                      "px-2 py-1 rounded text-xs",
+                      candidate.status === "valid" &&
+                        "bg-success/20 text-success",
+                      candidate.status === "invalid" &&
+                        "bg-danger/20 text-danger"
                     )}
-                  </BodyCell>
-                </TableRow>
-              );
-            })}
-          </Form>
+                  >
+                    {candidate.status}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  <span className="text-sm text-text">
+                    {candidate.data.name || "—"}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-text">
+                      {candidate.data.color || "—"}
+                    </span>
+                    {candidate.data.color && (
+                      <span
+                        className="w-4 h-4 rounded border border-border"
+                        style={{ backgroundColor: candidate.data.color }}
+                      />
+                    )}
+                  </div>
+                </BodyCell>
+                <BodyCell>
+                  <span className="text-sm text-text-muted">
+                    {candidate.data.description || "—"}
+                  </span>
+                </BodyCell>
+                <BodyCell>
+                  {candidate.errors.length > 0 && (
+                    <div className="text-xs text-danger">
+                      {candidate.errors.map((err, i) => (
+                        <div key={i}>
+                          {err.field}: {err.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </BodyCell>
+              </TableRow>
+            );
+          })}
         </SelectableTable>
 
         {parseResponse?.hasNext && (
