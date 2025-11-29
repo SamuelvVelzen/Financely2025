@@ -7,6 +7,7 @@ import {
   TableSortProvider,
   useTableSortContext,
 } from "./context/table-sort-context";
+import { SortConfig } from "./hooks/use-table-sort";
 import { TableBody } from "./table-body";
 import { TableHeader } from "./table-header";
 import { TableRow } from "./table-row";
@@ -14,6 +15,7 @@ import { TableRow } from "./table-row";
 export type ITableProps<T = unknown> = {
   headerCells: React.ReactNode[];
   data?: T[];
+  defaultSort?: SortConfig<T>;
   children?: React.ReactNode | ((sortedData: T[]) => React.ReactNode);
 } & IPropsWithClassName;
 
@@ -62,11 +64,12 @@ export function Table<T = unknown>({
   children,
   headerCells,
   data,
+  defaultSort,
 }: ITableProps<T>) {
   // If data is provided, wrap in TableSortProvider
   if (data !== undefined) {
     return (
-      <TableSortProvider data={data}>
+      <TableSortProvider data={data} defaultSort={defaultSort}>
         <TableContent className={className} headerCells={headerCells}>
           {children}
         </TableContent>

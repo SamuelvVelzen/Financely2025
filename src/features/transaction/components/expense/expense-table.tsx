@@ -79,7 +79,11 @@ export function ExpenseTable({
   ];
 
   return (
-    <Table data={data} headerCells={headerCells}>
+    <Table
+      data={data}
+      defaultSort={{ sortKey: "occurredAt", direction: "desc" }}
+      headerCells={headerCells}
+    >
       {(sortedData) =>
         sortedData.map((expense) => (
           <TableRow key={expense.id} className="group">

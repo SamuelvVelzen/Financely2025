@@ -79,7 +79,11 @@ export function IncomeTable({
   ];
 
   return (
-    <Table data={data} headerCells={headerCells}>
+    <Table
+      data={data}
+      defaultSort={{ sortKey: "occurredAt", direction: "desc" }}
+      headerCells={headerCells}
+    >
       {(sortedData) =>
         sortedData.map((income) => (
           <TableRow key={income.id} className="group">
