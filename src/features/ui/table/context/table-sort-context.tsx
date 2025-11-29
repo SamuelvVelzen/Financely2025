@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
 import type { SortDirection } from "../header-cell";
 import type { SortConfig } from "../hooks/use-table-sort";
 import { useTableSort } from "../hooks/use-table-sort";
@@ -38,15 +38,21 @@ export function TableSortProvider<T>({
     Record<string, (a: T, b: T) => number>
   >({});
 
-  const registerSortFn = (sortKey: string, sortFn: (a: T, b: T) => number) => {
-    sortFnsRef.current[sortKey] = sortFn;
-    setSortFns({ ...sortFnsRef.current });
-  };
+  const registerSortFn = useCallback((sortKey: string, sortFn: (a: T, b: T) => number) => {
+    // Only update state if the function reference has actually changed
+    if (sortFnsRef.current[sortKey] !== sortFn) {
+      sortFnsRef.current[sortKey] = sortFn;
+      setSortFns({ ...sortFnsRef.current });
+    }
+  }, []);
 
-  const unregisterSortFn = (sortKey: string) => {
-    delete sortFnsRef.current[sortKey];
-    setSortFns({ ...sortFnsRef.current });
-  };
+  const unregisterSortFn = useCallback((sortKey: string) => {
+    // Only update state if the key actually existed
+    if (sortKey in sortFnsRef.current) {
+      delete sortFnsRef.current[sortKey];
+      setSortFns({ ...sortFnsRef.current });
+    }
+  }, []);
 
   const {
     sortedData,
@@ -58,7 +64,7 @@ export function TableSortProvider<T>({
     sortFns,
   });
 
-  const handleSort = (sortKey: string) => {
+  const handleSort = useCallback((sortKey: string) => {
     const currentDirection = getSortDirection(sortKey);
     let newDirection: SortDirection = "asc";
     if (currentDirection === "asc") {
@@ -69,15 +75,18 @@ export function TableSortProvider<T>({
 
     const sortFn = sortFnsRef.current[sortKey];
     internalHandleSort(sortKey, newDirection, sortFn);
-  };
+  }, [getSortDirection, internalHandleSort]);
 
-  const value: TableSortContextValue<T> = {
-    registerSortFn,
-    unregisterSortFn,
-    handleSort,
-    getSortDirection,
-    sortedData,
-  };
+  const value: TableSortContextValue<T> = useMemo(
+    () => ({
+      registerSortFn,
+      unregisterSortFn,
+      handleSort,
+      getSortDirection,
+      sortedData,
+    }),
+    [registerSortFn, unregisterSortFn, handleSort, getSortDirection, sortedData]
+  );
 
   return (
     <TableSortContext.Provider value={value as TableSortContextValue<unknown>}>

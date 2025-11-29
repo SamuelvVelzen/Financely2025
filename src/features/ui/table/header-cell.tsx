@@ -2,7 +2,7 @@
 
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
-import { PropsWithChildren, useEffect } from "react";
+import { PropsWithChildren, useEffect, useRef } from "react";
 import { HiArrowDown, HiArrowUp, HiArrowsUpDown } from "react-icons/hi2";
 import { useTableSortContext } from "./context/table-sort-context";
 
@@ -33,15 +33,21 @@ export function HeaderCell<T = unknown>({
     center: "text-center",
   };
 
+  // Store context functions in ref to avoid dependency issues
+  const contextRef = useRef(sortContext);
+  contextRef.current = sortContext;
+
   // Register sort function when component mounts
   useEffect(() => {
-    if (sortKey && sortFn && sortContext) {
-      sortContext.registerSortFn(sortKey, sortFn);
+    if (sortKey && sortFn && contextRef.current) {
+      contextRef.current.registerSortFn(sortKey, sortFn);
       return () => {
-        sortContext.unregisterSortFn(sortKey);
+        if (contextRef.current) {
+          contextRef.current.unregisterSortFn(sortKey);
+        }
       };
     }
-  }, [sortKey, sortFn, sortContext]);
+  }, [sortKey, sortFn]); // Only depend on sortKey and sortFn
 
   const sortDirection =
     sortKey && sortContext ? sortContext.getSortDirection(sortKey) : null;
