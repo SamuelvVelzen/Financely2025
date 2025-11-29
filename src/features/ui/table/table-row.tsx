@@ -10,5 +10,14 @@ export type ITableRowProps = {
   PropsWithChildren;
 
 export function TableRow({ rowIndex, className, children }: ITableRowProps) {
-  return <tr className={cn(className)}>{children}</tr>;
+  return (
+    <tr
+      className={cn(
+        "border-b border-border hover:bg-surface-hover motion-safe:transition-colors last:border-b-0",
+        className
+      )}
+    >
+      {children}
+    </tr>
+  );
 }
