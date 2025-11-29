@@ -20,7 +20,7 @@ import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
 import { HiArrowDownTray, HiArrowTrendingDown, HiPlus } from "react-icons/hi2";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
-import { ExpenseTable } from "./expense-list";
+import { ExpenseTable } from "./expense-table";
 
 export function ExpenseOverview() {
   const [filters, setFilters] = useState<ITransactionFilterValues>({

@@ -20,7 +20,7 @@ import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
 import { HiArrowDownTray, HiArrowTrendingUp, HiPlus } from "react-icons/hi2";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
-import { IncomeTable } from "./income-list";
+import { IncomeTable } from "./income-table";
 
 export function IncomeOverview() {
   const [filters, setFilters] = useState<ITransactionFilterValues>({
