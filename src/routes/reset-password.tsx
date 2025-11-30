@@ -5,9 +5,11 @@
  * with a token from the email link.
  */
 
+import { ROUTES } from "@/config/routes";
 import { Button } from "@/features/ui/button/button";
 import { Form } from "@/features/ui/form/form";
-import { TextInput } from "@/features/ui/input/text-input";
+import { BaseInput } from "@/features/ui/input/input";
+import { Title } from "@/features/ui/typography/title";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -91,13 +93,13 @@ function ResetPasswordPage() {
     setLoading(true);
 
     try {
-      const result = await authClient.forgetPassword({
+      const result = await authClient.requestPasswordReset({
         email: data.email,
         redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message || "An error occurred");
         return;
       }
 
@@ -125,14 +127,14 @@ function ResetPasswordPage() {
       });
 
       if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message || "An error occurred");
         return;
       }
 
       setSuccess(true);
       // Redirect to login after a delay
       setTimeout(() => {
-        navigate({ to: "/login" });
+        navigate({ to: ROUTES.LOGIN, search: { redirect: "" } });
       }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -176,9 +178,9 @@ function ResetPasswordPage() {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">
+          <Title>
             {mode === "request" ? "Reset Password" : "Set New Password"}
-          </h1>
+          </Title>
           <p className="text-text-muted mt-2">
             {mode === "request"
               ? "Enter your email to receive a password reset link"
@@ -198,7 +200,7 @@ function ResetPasswordPage() {
             onSubmit={handleRequestReset}
             className="space-y-4"
           >
-            <TextInput
+            <BaseInput
               name="email"
               type="email"
               label="Email"
@@ -209,7 +211,6 @@ function ResetPasswordPage() {
             <Button
               type="submit"
               variant="primary"
-              clicked={() => {}}
               disabled={loading}
               className="w-full"
             >
@@ -222,7 +223,7 @@ function ResetPasswordPage() {
             onSubmit={handleResetPassword}
             className="space-y-4"
           >
-            <TextInput
+            <BaseInput
               name="password"
               type="password"
               label="New Password"
@@ -230,7 +231,7 @@ function ResetPasswordPage() {
               disabled={loading}
             />
 
-            <TextInput
+            <BaseInput
               name="confirmPassword"
               type="password"
               label="Confirm Password"
@@ -241,7 +242,6 @@ function ResetPasswordPage() {
             <Button
               type="submit"
               variant="primary"
-              clicked={() => {}}
               disabled={loading}
               className="w-full"
             >
@@ -253,7 +253,9 @@ function ResetPasswordPage() {
         <div className="text-center">
           <button
             type="button"
-            onClick={() => navigate({ to: "/login" })}
+            onClick={() =>
+              navigate({ to: ROUTES.LOGIN, search: { redirect: "" } })
+            }
             className="text-sm text-primary hover:underline"
           >
             Back to login

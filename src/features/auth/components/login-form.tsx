@@ -134,11 +134,25 @@ export function LoginForm() {
     loginForm.reset();
   };
 
+  // Watch email value for reset password link
+  const emailValue = loginForm.watch("email");
+
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-4 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-4 bg-danger/10 border border-danger rounded-lg space-y-2">
           <p className="text-danger text-sm">{error}</p>
+          {ENABLE_EMAIL_PASSWORD && mode === "login" && (
+            <div className="text-sm">
+              <Link
+                to="/reset-password"
+                search={{ email: emailValue || null }}
+                className="text-primary hover:underline"
+              >
+                Forgot your password?
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
