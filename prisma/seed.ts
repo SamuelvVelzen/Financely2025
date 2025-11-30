@@ -71,6 +71,7 @@ async function main() {
 
   let user = await prisma.user.findUnique({
     where: { id: mockUserId },
+    include: { userInfo: true },
   });
 
   if (!user) {
@@ -79,12 +80,32 @@ async function main() {
       data: {
         id: mockUserId,
         email: mockUserEmail,
-        name: "Mock User",
+        userInfo: {
+          create: {
+            firstName: "Mock",
+            lastName: "User",
+            suffix: null,
+          },
+        },
       },
+      include: { userInfo: true },
     });
     console.log("✅ Mock user created");
   } else {
     console.log("✅ Mock user already exists");
+    // Ensure UserInfo exists (migration scenario)
+    if (!user.userInfo) {
+      console.log("📝 Creating UserInfo for existing user...");
+      await prisma.userInfo.create({
+        data: {
+          userId: user.id,
+          firstName: "Mock",
+          lastName: "User",
+          suffix: null,
+        },
+      });
+      console.log("✅ UserInfo created");
+    }
   }
 
   // Create tags for the user

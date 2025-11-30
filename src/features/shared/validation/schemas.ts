@@ -359,6 +359,35 @@ export const CsvImportResponseSchema = z.object({
 // User schemas
 // ============================================================================
 
+/**
+ * Format full name from firstName, lastName, and suffix
+ * @param firstName - First name
+ * @param lastName - Last name
+ * @param suffix - Suffix (e.g., "Jr.", "Sr.", "III")
+ * @returns Formatted full name or null if all fields are empty
+ */
+export function formatFullName(
+  firstName?: string | null,
+  lastName?: string | null,
+  suffix?: string | null
+): string | null {
+  const parts: string[] = [];
+
+  if (firstName) {
+    parts.push(firstName);
+  }
+
+  if (lastName) {
+    parts.push(lastName);
+  }
+
+  if (suffix) {
+    parts.push(suffix);
+  }
+
+  return parts.length > 0 ? parts.join(" ") : null;
+}
+
 export const UserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
