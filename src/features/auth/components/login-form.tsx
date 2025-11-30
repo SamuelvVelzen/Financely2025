@@ -219,13 +219,7 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
             disabled={loading}
           />
 
-          <Button
-            type="submit"
-            variant="primary"
-            clicked={() => {}}
-            disabled={loading}
-            className="w-full"
-          >
+          <Button type="submit" variant="primary" className="w-full">
             {loading
               ? "Loading..."
               : mode === "register"
@@ -252,7 +246,6 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
           <Button
             type="submit"
             variant="primary"
-            clicked={() => {}}
             disabled={loading}
             className="w-full"
           >

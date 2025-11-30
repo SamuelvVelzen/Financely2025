@@ -12,11 +12,20 @@ export type IButtonVariant =
   | "primary";
 
 export type IButtonProps = {
-  clicked: () => void;
   buttonContent?: string | ReactNode;
   variant?: IButtonVariant;
   disabled?: boolean;
-} & ButtonHTMLAttributes<HTMLButtonElement>;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> &
+  (
+    | {
+        type?: "button";
+        clicked: () => void;
+      }
+    | {
+        type: "submit" | "reset";
+        clicked?: never;
+      }
+  );
 
 export function Button({
   buttonContent,
@@ -25,7 +34,7 @@ export function Button({
   children,
   disabled = false,
   onClick,
-  type: buttonType = "button",
+  type = "button",
   variant = "default",
   ...rest
 }: IButtonProps) {
@@ -45,7 +54,7 @@ export function Button({
 
   return (
     <button
-      type={buttonType}
+      type={type}
       className={cn(
         baseClasses,
         variantClasses[variant],
