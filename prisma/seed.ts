@@ -1,6 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { hashPassword } from "better-auth/crypto";
 
 const prisma = new PrismaClient();
+
+// Seed user credentials
+const SEED_USER_EMAIL = "dev@gmail.com";
+const SEED_USER_PASSWORD = "dev";
+const SEED_USER_NAME = "Dev User";
 
 /**
  * Default tags for financial management
@@ -65,48 +71,92 @@ const defaultTags = [
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // Ensure the mock user exists
-  const mockUserId = "mock-user-id";
-  const mockUserEmail = "mock@example.com";
+  // Create BetterAuth user with credentials
+  console.log("👤 Creating seed user with BetterAuth...");
 
-  let user = await prisma.user.findUnique({
-    where: { id: mockUserId },
+  let betterAuthUser = await prisma.betterAuthUser.findUnique({
+    where: { email: SEED_USER_EMAIL },
+  });
+
+  if (!betterAuthUser) {
+    // Create BetterAuth user
+    betterAuthUser = await prisma.betterAuthUser.create({
+      data: {
+        email: SEED_USER_EMAIL,
+        name: SEED_USER_NAME,
+        emailVerified: true, // Skip email verification for seed user
+      },
+    });
+
+    // Hash password and create account
+    const hashedPassword = await hashPassword(SEED_USER_PASSWORD);
+
+    await prisma.betterAuthAccount.create({
+      data: {
+        userId: betterAuthUser.id,
+        accountId: betterAuthUser.id, // For credential accounts, accountId = userId
+        providerId: "credential", // BetterAuth uses "credential" for email/password
+        password: hashedPassword,
+      },
+    });
+
+    console.log("✅ BetterAuth user created");
+  } else {
+    console.log("✅ BetterAuth user already exists");
+  }
+
+  // Sync to app User table
+  const normalizedEmail = SEED_USER_EMAIL.toLowerCase().trim();
+  let appUser = await prisma.user.findFirst({
+    where: {
+      OR: [{ email: normalizedEmail }, { betterAuthUserId: betterAuthUser.id }],
+    },
     include: { userInfo: true },
   });
 
-  if (!user) {
-    console.log("👤 Creating mock user...");
-    user = await prisma.user.create({
+  if (!appUser) {
+    console.log("📝 Creating app User record...");
+    appUser = await prisma.user.create({
       data: {
-        id: mockUserId,
-        email: mockUserEmail,
+        email: normalizedEmail,
+        primaryEmail: normalizedEmail,
+        isEmailVerified: true,
+        betterAuthUserId: betterAuthUser.id,
+        status: "ACTIVE",
         userInfo: {
           create: {
-            firstName: "Mock",
+            firstName: "Demo",
             lastName: "User",
-            suffix: null,
           },
         },
       },
       include: { userInfo: true },
     });
-    console.log("✅ Mock user created");
+    console.log("✅ App User created");
   } else {
-    console.log("✅ Mock user already exists");
-    // Ensure UserInfo exists (migration scenario)
-    if (!user.userInfo) {
-      console.log("📝 Creating UserInfo for existing user...");
+    console.log("✅ App User already exists");
+    // Update betterAuthUserId if missing
+    if (!appUser.betterAuthUserId) {
+      await prisma.user.update({
+        where: { id: appUser.id },
+        data: { betterAuthUserId: betterAuthUser.id },
+      });
+      console.log("✅ Linked app User to BetterAuth user");
+    }
+    // Ensure UserInfo exists
+    if (!appUser.userInfo) {
       await prisma.userInfo.create({
         data: {
-          userId: user.id,
-          firstName: "Mock",
+          userId: appUser.id,
+          firstName: "Demo",
           lastName: "User",
-          suffix: null,
         },
       });
       console.log("✅ UserInfo created");
     }
   }
+
+  const user = appUser;
 
   // Create tags for the user
   console.log(`\n📋 Creating ${defaultTags.length} default tags...`);
@@ -142,6 +192,10 @@ async function main() {
   console.log(`\n🎉 Seed completed!`);
   console.log(`   Created: ${createdCount} tags`);
   console.log(`   Skipped: ${skippedCount} tags (already exist)`);
+  console.log(`\n📧 Seed User Credentials:`);
+  console.log(`   Email: ${SEED_USER_EMAIL}`);
+  console.log(`   Password: ${SEED_USER_PASSWORD}`);
+  console.log(`   (Use these credentials to log in)`);
 }
 
 main()
