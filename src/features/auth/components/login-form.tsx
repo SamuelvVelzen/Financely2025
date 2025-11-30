@@ -1,7 +1,7 @@
 /**
  * Login Form Component
  *
- * Unified authentication form supporting:
+ * Authentication form supporting:
  * - Email/password login
  * - Magic link
  * - Social OAuth providers (Google, Microsoft, Apple)
@@ -12,7 +12,7 @@ import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -25,20 +25,10 @@ const ENABLE_GOOGLE = import.meta.env.VITE_ENABLE_GOOGLE === "true";
 const ENABLE_MICROSOFT = import.meta.env.VITE_ENABLE_MICROSOFT === "true";
 const ENABLE_APPLE = import.meta.env.VITE_ENABLE_APPLE === "true";
 
-type AuthMode = "login" | "register" | "magic-link";
-
-interface LoginFormProps {
-  defaultMode?: AuthMode;
-}
+type AuthMode = "login" | "magic-link";
 
 // Validation schemas
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-const registerSchema = z.object({
-  name: z.string().min(1, "Name is required").optional().or(z.literal("")),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -48,32 +38,21 @@ const magicLinkSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
-type RegisterFormData = z.infer<typeof registerSchema>;
 type MagicLinkFormData = z.infer<typeof magicLinkSchema>;
 
-export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
-  const [mode, setMode] = useState<AuthMode>(defaultMode);
+export function LoginForm() {
+  const [mode, setMode] = useState<AuthMode>("login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   const navigate = useNavigate();
-
   const { redirect } = useSearch({ from: "/login" });
 
-  // Create form instances based on mode
+  // Create form instances
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const registerForm = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      name: "",
       email: "",
       password: "",
     },
@@ -86,43 +65,23 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
     },
   });
 
-  const handleEmailPassword = async (
-    data: LoginFormData | RegisterFormData
-  ) => {
+  const handleLogin = async (data: LoginFormData) => {
     setError(null);
     setLoading(true);
 
     try {
-      if (mode === "register") {
-        const registerData = data as RegisterFormData;
-        const result = await authClient.signUp.email({
-          email: registerData.email,
-          password: registerData.password,
-          name: registerData.name || "User",
-        });
+      const result = await authClient.signIn.email({
+        email: data.email,
+        password: data.password,
+      });
 
-        if (result.error) {
-          setError(result.error.message || "An error occurred");
-          return;
-        }
-
-        // Redirect after successful registration
-        navigate({ to: redirect || "/" });
-      } else {
-        const loginData = data as LoginFormData;
-        const result = await authClient.signIn.email({
-          email: loginData.email,
-          password: loginData.password,
-        });
-
-        if (result.error) {
-          setError(result.error.message || "An error occurred");
-          return;
-        }
-
-        // Redirect after successful login
-        navigate({ to: redirect || "/" });
+      if (result.error) {
+        setError(result.error.message || "An error occurred");
+        return;
       }
+
+      // Redirect after successful login
+      navigate({ to: redirect || "/" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -190,20 +149,8 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
       )}
 
       {/* Email/Password Form */}
-      {ENABLE_EMAIL_PASSWORD && mode !== "magic-link" && (
-        <Form
-          form={mode === "register" ? registerForm : loginForm}
-          onSubmit={handleEmailPassword}
-          className="space-y-4"
-        >
-          {mode === "register" && (
-            <BaseInput
-              name="name"
-              label="Name (optional)"
-              placeholder="Your name"
-              disabled={loading}
-            />
-          )}
+      {ENABLE_EMAIL_PASSWORD && mode === "login" && (
+        <Form form={loginForm} onSubmit={handleLogin} className="space-y-4">
           <BaseInput
             name="email"
             type="email"
@@ -220,11 +167,7 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
           />
 
           <Button type="submit" variant="primary" className="w-full">
-            {loading
-              ? "Loading..."
-              : mode === "register"
-                ? "Sign Up"
-                : "Sign In"}
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
         </Form>
       )}
@@ -254,50 +197,49 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
         </Form>
       )}
 
-      {/* Mode Toggle */}
-      {ENABLE_EMAIL_PASSWORD && (
-        <div className="flex gap-2 text-sm">
-          {mode !== "login" && (
-            <button
-              type="button"
-              onClick={() => {
-                setMode("login");
-                setError(null);
-                loginForm.reset();
-              }}
-              className="text-primary hover:underline"
-            >
-              Sign in instead
-            </button>
-          )}
-          {mode !== "register" && (
-            <button
-              type="button"
-              onClick={() => {
-                setMode("register");
-                setError(null);
-                registerForm.reset();
-              }}
-              className="text-primary hover:underline"
-            >
-              Create account
-            </button>
-          )}
-          {ENABLE_MAGIC_LINK && mode !== "magic-link" && (
-            <button
-              type="button"
-              onClick={() => {
-                setMode("magic-link");
-                setError(null);
-                magicLinkForm.reset();
-              }}
-              className="text-primary hover:underline"
-            >
-              Use magic link
-            </button>
-          )}
+      {/* Mode Toggle and Links */}
+      <div className="flex flex-col gap-3 text-sm">
+        {ENABLE_EMAIL_PASSWORD && ENABLE_MAGIC_LINK && (
+          <div className="flex gap-2 justify-center">
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("magic-link");
+                  setError(null);
+                  magicLinkForm.reset();
+                }}
+                className="text-primary hover:underline"
+              >
+                Use magic link instead
+              </button>
+            )}
+            {mode === "magic-link" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setError(null);
+                  loginForm.reset();
+                }}
+                className="text-primary hover:underline"
+              >
+                Use password instead
+              </button>
+            )}
+          </div>
+        )}
+        <div className="text-center">
+          <span className="text-text-muted">Don't have an account? </span>
+          <Link
+            to="/register"
+            search={{ redirect }}
+            className="text-primary hover:underline"
+          >
+            Create account
+          </Link>
         </div>
-      )}
+      </div>
 
       {/* Social Providers */}
       {(ENABLE_GOOGLE || ENABLE_MICROSOFT || ENABLE_APPLE) && (
