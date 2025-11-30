@@ -50,9 +50,9 @@ enum UserStatus {
 // BetterAuth Tables
 // ----------
 
-// BetterAuth User table (used by BetterAuth for authentication)
-// This table is managed by BetterAuth and should not be modified directly
-model BetterAuthUser {
+// User table (used by BetterAuth for authentication and app domain)
+// Merged BetterAuthUser and User into a single table
+model User {
   id            String    @id @default(cuid())
   name          String?
   email         String    @unique
@@ -61,8 +61,20 @@ model BetterAuthUser {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // App-specific fields
+  primaryEmail  String?     // Normalized email (lowercase)
+  status        UserStatus  @default(ACTIVE)
+  lastLoginAt   DateTime?
+
+  // BetterAuth relations
   accounts      BetterAuthAccount[]
   sessions      BetterAuthSession[]
+
+  // App domain relations
+  userInfo      UserInfo?
+  transactions  Transaction[]
+  tags          Tag[]
+  budgets       Budget[]
 }
 
 model BetterAuthAccount {
@@ -80,7 +92,7 @@ model BetterAuthAccount {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  user                  BetterAuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                  User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
   @@index([userId])
@@ -96,7 +108,7 @@ model BetterAuthSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      BetterAuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -116,26 +128,6 @@ model BetterAuthVerification {
 // ----------
 // App Domain Models
 // ----------
-
-// App User table (for app-domain data, synced with BetterAuthUser)
-model User {
-  id            String      @id @default(cuid())
-  email         String      @unique
-  primaryEmail  String?     // Normalized email (lowercase)
-  isEmailVerified Boolean   @default(false)
-  status        UserStatus  @default(ACTIVE)
-  lastLoginAt   DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  // Link to BetterAuth user
-  betterAuthUserId String?  @unique
-
-  userInfo      UserInfo?
-  transactions  Transaction[]
-  tags          Tag[]
-  budgets       Budget[]
-}
 
 model UserInfo {
   id            String         @id @default(cuid())

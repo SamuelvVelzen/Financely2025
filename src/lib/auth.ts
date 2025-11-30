@@ -9,10 +9,8 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { magicLink } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { createAuthMiddleware } from "better-auth/api";
 import { prisma } from "@/util/prisma";
 import { EmailService } from "./email/email.service";
-import { syncUserToAppUser, updateLastLoginAt } from "@/features/auth/services/user-sync.service";
 
 // Get environment variables with defaults
 const getEnv = (key: string, defaultValue?: string): string => {
@@ -41,6 +39,20 @@ export const auth = betterAuth({
   secret: getEnv("BETTER_AUTH_SECRET"),
   baseURL,
   basePath: "/api/auth",
+
+  // Configure custom model names to match our Prisma schema
+  user: {
+    modelName: "User",
+  },
+  account: {
+    modelName: "BetterAuthAccount",
+  },
+  session: {
+    modelName: "BetterAuthSession",
+  },
+  verification: {
+    modelName: "BetterAuthVerification",
+  },
   
   // Email and Password authentication
   emailAndPassword: ENABLE_EMAIL_PASSWORD
@@ -121,7 +133,7 @@ export const auth = betterAuth({
           magicLink({
             sendMagicLink: async ({ email, token, url }, ctx) => {
               // Find or create user for magic link
-              const user = await prisma.betterAuthUser.findUnique({
+              const user = await prisma.user.findUnique({
                 where: { email },
               });
 
@@ -156,34 +168,6 @@ export const auth = betterAuth({
   // Advanced configuration
   advanced: {
     cookiePrefix: "better-auth",
-  },
-
-  // Hooks for user sync
-  hooks: {
-    after: createAuthMiddleware(async (ctx) => {
-      // Sync user data after successful sign-in or sign-up
-      const newSession = ctx.context.newSession;
-      if (newSession?.user) {
-        const { user } = newSession;
-        
-        try {
-          // Sync BetterAuth user to app User table
-          await syncUserToAppUser({
-            betterAuthUserId: user.id,
-            email: user.email,
-            name: user.name || null,
-            emailVerified: user.emailVerified || false,
-            image: user.image || null,
-          });
-
-          // Update lastLoginAt
-          await updateLastLoginAt(user.id);
-        } catch (error) {
-          // Log error but don't fail the auth flow
-          console.error("Error syncing user data:", error);
-        }
-      }
-    }),
   },
 });
 

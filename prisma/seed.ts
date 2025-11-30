@@ -71,57 +71,23 @@ const defaultTags = [
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // Create BetterAuth user with credentials
-  console.log("👤 Creating seed user with BetterAuth...");
+  // Create user with credentials
+  console.log("👤 Creating seed user...");
 
-  let betterAuthUser = await prisma.betterAuthUser.findUnique({
-    where: { email: SEED_USER_EMAIL },
-  });
-
-  if (!betterAuthUser) {
-    // Create BetterAuth user
-    betterAuthUser = await prisma.betterAuthUser.create({
-      data: {
-        email: SEED_USER_EMAIL,
-        name: SEED_USER_NAME,
-        emailVerified: true, // Skip email verification for seed user
-      },
-    });
-
-    // Hash password and create account
-    const hashedPassword = await hashPassword(SEED_USER_PASSWORD);
-
-    await prisma.betterAuthAccount.create({
-      data: {
-        userId: betterAuthUser.id,
-        accountId: betterAuthUser.id, // For credential accounts, accountId = userId
-        providerId: "credential", // BetterAuth uses "credential" for email/password
-        password: hashedPassword,
-      },
-    });
-
-    console.log("✅ BetterAuth user created");
-  } else {
-    console.log("✅ BetterAuth user already exists");
-  }
-
-  // Sync to app User table
   const normalizedEmail = SEED_USER_EMAIL.toLowerCase().trim();
-  let appUser = await prisma.user.findFirst({
-    where: {
-      OR: [{ email: normalizedEmail }, { betterAuthUserId: betterAuthUser.id }],
-    },
+  let user = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
     include: { userInfo: true },
   });
 
-  if (!appUser) {
-    console.log("📝 Creating app User record...");
-    appUser = await prisma.user.create({
+  if (!user) {
+    // Create user
+    const createdUser = await prisma.user.create({
       data: {
         email: normalizedEmail,
         primaryEmail: normalizedEmail,
-        isEmailVerified: true,
-        betterAuthUserId: betterAuthUser.id,
+        name: SEED_USER_NAME,
+        emailVerified: true, // Skip email verification for seed user
         status: "ACTIVE",
         userInfo: {
           create: {
@@ -132,22 +98,28 @@ async function main() {
       },
       include: { userInfo: true },
     });
-    console.log("✅ App User created");
+
+    // Hash password and create account
+    const hashedPassword = await hashPassword(SEED_USER_PASSWORD);
+
+    await prisma.betterAuthAccount.create({
+      data: {
+        userId: createdUser.id,
+        accountId: createdUser.id, // For credential accounts, accountId = userId
+        providerId: "credential", // BetterAuth uses "credential" for email/password
+        password: hashedPassword,
+      },
+    });
+
+    user = createdUser;
+    console.log("✅ User created");
   } else {
-    console.log("✅ App User already exists");
-    // Update betterAuthUserId if missing
-    if (!appUser.betterAuthUserId) {
-      await prisma.user.update({
-        where: { id: appUser.id },
-        data: { betterAuthUserId: betterAuthUser.id },
-      });
-      console.log("✅ Linked app User to BetterAuth user");
-    }
+    console.log("✅ User already exists");
     // Ensure UserInfo exists
-    if (!appUser.userInfo) {
+    if (!user.userInfo) {
       await prisma.userInfo.create({
         data: {
-          userId: appUser.id,
+          userId: user.id,
           firstName: "Demo",
           lastName: "User",
         },
@@ -156,7 +128,10 @@ async function main() {
     }
   }
 
-  const user = appUser;
+  // At this point, user is guaranteed to exist
+  if (!user) {
+    throw new Error("Failed to create or find user");
+  }
 
   // Create tags for the user
   console.log(`\n📋 Creating ${defaultTags.length} default tags...`);
