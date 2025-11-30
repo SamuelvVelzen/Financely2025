@@ -1,4 +1,6 @@
 import { ROUTES } from "@/config/routes";
+import { authClient } from "@/lib/auth-client";
+import { useNavigate } from "@tanstack/react-router";
 import {
   HiArrowRightOnRectangle,
   HiArrowTrendingDown,
@@ -17,18 +19,17 @@ import { useSidebar } from "./useSidebar";
 
 export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
-
+  const navigate = useNavigate();
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
   const containerClasses = `h-screen flex-shrink-0 motion-safe:transition-[width,padding-left,padding-right,color,background-color,border-color] motion-safe:duration-300 motion-safe:ease-in-out rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
 
   return (
-    <Container
-      as="aside"
-      className={containerClasses}>
+    <Container as="aside" className={containerClasses}>
       <div className="flex flex-col gap-6 mb-6">
         {/* Logo - always visible */}
         <div
-          className={"h-10 flex " + (isExpanded ? "items-center" : "mx-auto")}>
+          className={"h-10 flex " + (isExpanded ? "items-center" : "mx-auto")}
+        >
           <div className="flex items-center overflow-hidden">
             <Logo />
             <span
@@ -36,7 +37,8 @@ export function Sidebar() {
                 isExpanded
                   ? "opacity-100 ml-3 max-w-xs"
                   : "opacity-0 ml-0 max-w-0"
-              }`}>
+              }`}
+            >
               Financely
             </span>
           </div>
@@ -51,7 +53,8 @@ export function Sidebar() {
               type="button"
               onClick={toggleSidebar}
               className="flex items-center justify-center w-full py-2 rounded-2xl hover:bg-background cursor-pointer"
-              aria-label="Expand sidebar">
+              aria-label="Expand sidebar"
+            >
               <HiChevronRight className="w-5 h-5 text-text-muted" />
             </button>
           )}
@@ -62,11 +65,7 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto">
         <ul className="space-y-2">
           <li>
-            <NavItem
-              href={ROUTES.ROOT}
-              label="Dashboard"
-              icon={HiChartBar}
-            />
+            <NavItem href={ROUTES.ROOT} label="Dashboard" icon={HiChartBar} />
           </li>
           <li>
             <NavItem
@@ -83,11 +82,7 @@ export function Sidebar() {
             />
           </li>
           <li>
-            <NavItem
-              href={ROUTES.TAGS}
-              label="Tags"
-              icon={HiOutlineTag}
-            />
+            <NavItem href={ROUTES.TAGS} label="Tags" icon={HiOutlineTag} />
           </li>
         </ul>
       </nav>
@@ -112,6 +107,15 @@ export function Sidebar() {
             label="Logout"
             icon={HiArrowRightOnRectangle}
             isAction={true}
+            clicked={async () => {
+              await authClient.signOut({
+                fetchOptions: {
+                  onSuccess: () => {
+                    navigate({ to: ROUTES.ROOT });
+                  },
+                },
+              });
+            }}
             className="text-danger hover:text-danger-hover"
           />
         </div>

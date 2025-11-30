@@ -9,9 +9,18 @@ type INavItemProps = {
   href: string;
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
-  isAction?: boolean;
   customIcon?: React.ReactNode;
-} & IPropsWithClassName;
+} & IPropsWithClassName &
+  (
+    | {
+        isAction: true;
+        clicked: () => void;
+      }
+    | {
+        isAction?: false;
+        clicked?: never;
+      }
+  );
 
 export function NavItem({
   className = "",
@@ -20,6 +29,7 @@ export function NavItem({
   icon: Icon,
   isAction = false,
   customIcon,
+  clicked,
 }: INavItemProps) {
   const { isActive } = useIsActiveLink(href);
   const { isExpanded } = useSidebar();
@@ -31,7 +41,8 @@ export function NavItem({
         className={cn(
           "whitespace-nowrap text-base motion-safe:transition-[opacity,margin-left,max-width,color,background-color] motion-safe:duration-300 overflow-hidden",
           isExpanded ? "opacity-100 ml-4 max-w-xs" : "opacity-0 ml-0 max-w-0"
-        )}>
+        )}
+      >
         {label}
       </span>
     </>
@@ -57,7 +68,9 @@ export function NavItem({
           "cursor-pointer",
           className
         )}
-        title={isExpanded ? label : label}>
+        title={isExpanded ? label : label}
+        onClick={clicked}
+      >
         {content}
       </button>
     );
@@ -73,7 +86,8 @@ export function NavItem({
       preload="intent"
       activeProps={{ className: combinedClasses }}
       hash={undefined}
-      search={undefined}>
+      search={undefined}
+    >
       {content}
     </Link>
   );
