@@ -6,6 +6,7 @@ import { HeaderCell } from "@/features/ui/table/header-cell";
 import { Table } from "@/features/ui/table/table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
+import { DateFormatHelpers } from "@/util/date/date-format.helpers";
 import { useMemo } from "react";
 import { HiPencil, HiTrash } from "react-icons/hi2";
 
@@ -23,17 +24,6 @@ export function IncomeTable({
   onEdit,
 }: IIncomeList) {
   const { highlightText } = useHighlightText();
-
-  // Format date
-  const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   // Memoize sort functions to prevent infinite re-renders
   const sortFns = useMemo(
@@ -127,7 +117,9 @@ export function IncomeTable({
                 </BodyCell>
                 <BodyCell>
                   <span className="text-sm text-text-muted">
-                    {formatDate(income.occurredAt)}
+                    {DateFormatHelpers.formatIsoStringToString(
+                      income.occurredAt
+                    )}
                   </span>
                 </BodyCell>
                 <BodyCell>

@@ -4,8 +4,8 @@
  */
 
 import type { ICurrency } from "@/features/shared/validation/schemas";
+import { LocaleHelpers } from "../locale.helpers";
 
-const DEFAULT_LOCALE = "nl-NL";
 const DEFAULT_FRACTION_DIGITS = 2;
 
 type DecimalFormatOptions = {
@@ -23,27 +23,6 @@ export type LocaleSeparators = {
   decimal: string;
   group: string;
 };
-
-/**
- * Get the browser's locale
- * Falls back to "en-US" if detection fails
- */
-function getBrowserLocale(): string {
-  try {
-    if (typeof Intl !== "undefined" && Intl.DateTimeFormat) {
-      const resolved = Intl.DateTimeFormat().resolvedOptions().locale;
-      if (resolved) {
-        return resolved;
-      }
-    }
-    if (typeof navigator !== "undefined" && navigator.language) {
-      return navigator.language;
-    }
-  } catch (error) {
-    // Silently fall back to default locale
-  }
-  return DEFAULT_LOCALE;
-}
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -77,7 +56,7 @@ export function getLocaleSeparators(locale: string): LocaleSeparators {
 }
 
 export function getDecimalSeparator(locale?: string): string {
-  const resolvedLocale = locale ?? getBrowserLocale();
+  const resolvedLocale = locale ?? LocaleHelpers.getLocale();
   return getLocaleSeparators(resolvedLocale).decimal;
 }
 
@@ -93,7 +72,7 @@ export function formatCurrency(amount: string, currency: ICurrency): string {
 
     // Handle invalid amounts
     if (isNaN(numAmount)) {
-      return new Intl.NumberFormat(getBrowserLocale(), {
+      return new Intl.NumberFormat(LocaleHelpers.getLocale(), {
         style: "currency",
         currency: currency,
         minimumFractionDigits: 2,
@@ -101,7 +80,7 @@ export function formatCurrency(amount: string, currency: ICurrency): string {
       }).format(0);
     }
 
-    const locale = getBrowserLocale();
+    const locale = LocaleHelpers.getLocale();
 
     return new Intl.NumberFormat(locale, {
       style: "currency",
@@ -109,20 +88,8 @@ export function formatCurrency(amount: string, currency: ICurrency): string {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(numAmount);
-  } catch (error) {
-    // Fallback to en-US if formatting fails
-    try {
-      const numAmount = parseFloat(amount) || 0;
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(numAmount);
-    } catch (fallbackError) {
-      // Last resort: return raw amount with currency code
-      return `${amount} ${currency}`;
-    }
+  } catch (err) {
+    return `${amount} ${currency}`;
   }
 }
 
@@ -136,7 +103,7 @@ export function formatDecimal(
   }
 
   const {
-    locale = getBrowserLocale(),
+    locale = LocaleHelpers.getLocale(),
     minimumFractionDigits = DEFAULT_FRACTION_DIGITS,
     maximumFractionDigits = DEFAULT_FRACTION_DIGITS,
   } = options;
@@ -157,7 +124,7 @@ export function parseLocalizedDecimal(
     return "";
   }
 
-  const locale = options.locale ?? getBrowserLocale();
+  const locale = options.locale ?? LocaleHelpers.getLocale();
   const fractionDigits = options.fractionDigits ?? DEFAULT_FRACTION_DIGITS;
   const { decimal, group } = getLocaleSeparators(locale);
 

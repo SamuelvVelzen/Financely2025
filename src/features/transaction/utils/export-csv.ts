@@ -1,5 +1,6 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { formatCurrency } from "@/util/currency/currencyhelpers";
+import { DateFormatHelpers } from "@/util/date/date-format.helpers";
 
 /**
  * Escape a value for CSV format
@@ -15,32 +16,16 @@ function escapeCsvValue(value: string): string {
 }
 
 /**
- * Format date in the same format as displayed in the table
- */
-function formatDate(isoString: string): string {
-  return new Date(isoString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-/**
  * Get the value for a specific column from a transaction
  */
-function getColumnValue(
-  transaction: ITransaction,
-  column: string
-): string {
+function getColumnValue(transaction: ITransaction, column: string): string {
   switch (column) {
     case "Name":
       return transaction.name;
     case "Amount":
       return formatCurrency(transaction.amount, transaction.currency);
     case "Date":
-      return formatDate(transaction.occurredAt);
+      return DateFormatHelpers.formatIsoStringToString(transaction.occurredAt);
     case "Description":
       return transaction.description ?? "";
     case "Tags":
@@ -90,4 +75,3 @@ export function exportTransactionsToCsv(
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
-

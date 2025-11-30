@@ -21,6 +21,7 @@ import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/util/cn";
+import { DateFormatHelpers } from "@/util/date/date-format.helpers";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { BankEnum } from "../config/banks";
@@ -456,14 +457,6 @@ export function TransactionCsvImportDialog({
       return <div className="text-center py-8">No transactions found</div>;
     }
 
-    const formatDate = (isoString: string) => {
-      return new Date(isoString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    };
-
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -530,7 +523,9 @@ export function TransactionCsvImportDialog({
                 <BodyCell>
                   <span className="text-sm text-text-muted">
                     {candidate.data.occurredAt
-                      ? formatDate(candidate.data.occurredAt)
+                      ? DateFormatHelpers.formatIsoStringToString(
+                          candidate.data.occurredAt
+                        )
                       : "—"}
                   </span>
                 </BodyCell>

@@ -7,6 +7,7 @@ import {
   startOfMonth,
   subMonths,
 } from "date-fns";
+import { LocaleHelpers } from "../locale.helpers";
 
 /**
  * Get start of current month as ISO string
@@ -90,11 +91,7 @@ export function formatDateRange(from: string, to: string): string {
     const toYear = getYear(toDate);
     const currentYear = getYear(new Date());
 
-    // Get browser locale (defaults to 'en-US' if not available)
-    const locale =
-      typeof navigator !== "undefined"
-        ? navigator.language || navigator.languages?.[0] || "en-US"
-        : "en-US";
+    const locale = LocaleHelpers.getLocale();
 
     // If same year
     if (fromYear === toYear) {
