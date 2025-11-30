@@ -255,12 +255,7 @@ function FormDialogExample() {
         Form Dialog (With React Hook Form)
       </h3>
       <DialogTrigger open={open} onOpenChange={setOpen}>
-        <button
-          type="button"
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors"
-        >
-          Open Form Dialog
-        </button>
+        Open Form Dialog
       </DialogTrigger>
       <Dialog
         title="Create New Item"

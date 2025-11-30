@@ -20,7 +20,7 @@ export async function GET({ request }: { request: Request }) {
       }
 
       return json(user);
-    }, request);
+    });
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return createErrorResponse(
