@@ -1,6 +1,8 @@
-import { createFileRoute, useSearch } from "@tanstack/react-router";
-import { authClient } from "@/lib/auth-client";
 import { LoginForm } from "@/features/auth/components/login-form";
+import { Container } from "@/features/ui/container/container";
+import { Title } from "@/features/ui/typography/title";
+import { authClient } from "@/lib/auth-client";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/login")({
@@ -26,15 +28,16 @@ function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-full max-w-md p-8 space-y-6">
+      <Container className="w-full sm:w-2/5">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Sign In</h1>
+          <Title>Sign In</Title>
           <p className="text-text-muted mt-2">
             Sign in to your account to continue.
           </p>
         </div>
+
         <LoginForm />
-      </div>
+      </Container>
     </div>
   );
 }
