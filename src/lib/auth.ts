@@ -63,7 +63,7 @@ export const auth = betterAuth({
         minPasswordLength: 8,
         maxPasswordLength: 128,
         autoSignIn: true,
-        sendResetPassword: async ({ user, url, token }, request) => {
+        sendResetPassword: async ({ user, url, token }) => {
           await EmailService.sendResetPasswordEmail({
             user: {
               id: user.id,
@@ -75,7 +75,7 @@ export const auth = betterAuth({
           });
         },
         resetPasswordTokenExpiresIn: 3600, // 1 hour
-        onPasswordReset: async ({ user }, request) => {
+        onPasswordReset: async ({ user }) => {
           // Update lastLoginAt on password reset if needed
           console.log(`Password reset for user: ${user.email}`);
         },
@@ -85,7 +85,7 @@ export const auth = betterAuth({
   // Email verification
   emailVerification: REQUIRE_EMAIL_VERIFICATION
     ? {
-        sendVerificationEmail: async ({ user, url, token }, request) => {
+        sendVerificationEmail: async ({ user, url, token }) => {
           await EmailService.sendVerificationEmail({
             user: {
               id: user.id,

@@ -29,29 +29,26 @@ export async function POST({ request }: { request: Request }) {
 
       if (!file) {
         return createErrorResponse(
-          new ApiError(
-            ErrorCodes.VALIDATION_ERROR,
-            "No file provided",
-            400
-          )
+          new ApiError(ErrorCodes.VALIDATION_ERROR, "No file provided", 400)
         );
       }
 
       if (!mappingJson) {
         return createErrorResponse(
-          new ApiError(
-            ErrorCodes.VALIDATION_ERROR,
-            "Mapping is required",
-            400
-          )
+          new ApiError(ErrorCodes.VALIDATION_ERROR, "Mapping is required", 400)
         );
       }
 
       const mapping = CsvFieldMappingSchema.parse(JSON.parse(mappingJson));
       const page = parseInt(formData.get("page") as string) || 1;
       const limit = parseInt(formData.get("limit") as string) || 50;
-      const defaultType = formData.get("defaultType") as "EXPENSE" | "INCOME" | null;
-      const typeDetectionStrategy = formData.get("typeDetectionStrategy") as string | null;
+      const defaultType = formData.get("defaultType") as
+        | "EXPENSE"
+        | "INCOME"
+        | null;
+      const typeDetectionStrategy = formData.get("typeDetectionStrategy") as
+        | string
+        | null;
       const defaultCurrency = formData.get("defaultCurrency") as
         | "USD"
         | "EUR"
@@ -101,8 +98,9 @@ export async function POST({ request }: { request: Request }) {
 
       // Calculate stats
       const totalValid = candidates.filter((c) => c.status === "valid").length;
-      const totalInvalid = candidates.filter((c) => c.status === "invalid")
-        .length;
+      const totalInvalid = candidates.filter(
+        (c) => c.status === "invalid"
+      ).length;
 
       const response = CsvParseResponseSchema.parse({
         candidates,
@@ -115,9 +113,8 @@ export async function POST({ request }: { request: Request }) {
       });
 
       return json(response, { status: 200 });
-    }, request);
+    });
   } catch (error) {
     return createErrorResponse(error);
   }
 }
-
