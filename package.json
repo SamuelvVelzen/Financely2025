@@ -13,7 +13,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset",
-    "db:reset": "rm -f data/dev.db data/dev.db-journal data/dev.db-wal data/dev.db-shm && prisma migrate dev",
+    "db:reset": "rm -f prisma/data/dev.db prisma/data/dev.db-journal prisma/data/dev.db-wal prisma/data/dev.db-shm && prisma migrate dev",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {

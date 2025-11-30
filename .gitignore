@@ -59,3 +59,4 @@ prisma/data/*.db-shm
 
 # generated prisma zod schemas (auto-generated from schema.prisma)
 src/features/shared/validation/generated.ts/
+.vscode
