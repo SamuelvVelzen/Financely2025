@@ -1,16 +1,14 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
-import { PropsWithChildren, ReactNode } from "react";
+import { ReactNode } from "react";
 import { Button, IButtonProps } from "./button";
 
 type IIconButton = {
   icon?: ReactNode;
-  clicked: IButtonProps["clicked"];
+  clicked: NonNullable<IButtonProps["clicked"]>;
   disabled?: IButtonProps["disabled"];
-} & PropsWithChildren &
-  IPropsWithClassName;
+} & Omit<IButtonProps, "clicked" | "type">;
 
 export function IconButton({
   children,
@@ -18,6 +16,7 @@ export function IconButton({
   icon,
   clicked,
   disabled = false,
+  ...props
 }: IIconButton) {
   const iconButtonContent = children ? children : icon;
 
@@ -27,6 +26,7 @@ export function IconButton({
       clicked={clicked}
       disabled={disabled}
       buttonContent={iconButtonContent}
+      {...props}
     />
   );
 }

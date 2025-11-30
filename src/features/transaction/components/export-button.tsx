@@ -7,7 +7,7 @@ type IExportButtonProps = {
   data: ITransaction[];
   columns: string[];
   filename: string;
-} & Omit<IButtonProps, "clicked">;
+} & Omit<IButtonProps, "clicked" | "type">;
 
 export function ExportButton({
   data,
