@@ -1,15 +1,15 @@
 /**
  * BetterAuth Configuration
- * 
+ *
  * Central authentication configuration using BetterAuth.
  * Supports email/password, magic links, and social OAuth providers.
  */
 
+import { prisma } from "@/util/prisma";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { magicLink } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { prisma } from "@/util/prisma";
 import { EmailService } from "./email/email.service";
 
 // Get environment variables with defaults
@@ -27,10 +27,14 @@ const ENABLE_MAGIC_LINK = process.env.ENABLE_MAGIC_LINK !== "false";
 const ENABLE_GOOGLE = process.env.ENABLE_GOOGLE === "true";
 const ENABLE_MICROSOFT = process.env.ENABLE_MICROSOFT === "true";
 const ENABLE_APPLE = process.env.ENABLE_APPLE === "true";
-const REQUIRE_EMAIL_VERIFICATION = process.env.REQUIRE_EMAIL_VERIFICATION === "true";
+const REQUIRE_EMAIL_VERIFICATION =
+  process.env.REQUIRE_EMAIL_VERIFICATION === "true";
 
 // Base URL for auth callbacks
-const baseURL = getEnv("BETTER_AUTH_URL", process.env.BETTER_AUTH_URL || "http://localhost:3000");
+const baseURL = getEnv(
+  "BETTER_AUTH_URL",
+  process.env.BETTER_AUTH_URL || "http://localhost:3000"
+);
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -47,13 +51,10 @@ export const auth = betterAuth({
   account: {
     modelName: "Account",
   },
-  session: {
-    modelName: "Session",
-  },
   verification: {
     modelName: "Verification",
   },
-  
+
   // Email and Password authentication
   emailAndPassword: ENABLE_EMAIL_PASSWORD
     ? {
@@ -120,8 +121,8 @@ export const auth = betterAuth({
       apple: {
         clientId: getEnv("APPLE_CLIENT_ID", ""),
         clientSecret: getEnv("APPLE_CLIENT_SECRET", ""),
-        teamId: getEnv("APPLE_TEAM_ID", ""),
-        keyId: getEnv("APPLE_KEY_ID", ""),
+        // teamId: getEnv("APPLE_TEAM_ID", ""),
+        // keyId: getEnv("APPLE_KEY_ID", ""),
       },
     }),
   },
@@ -157,6 +158,7 @@ export const auth = betterAuth({
 
   // Session configuration
   session: {
+    modelName: "Session",
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
     cookieCache: {
@@ -170,4 +172,3 @@ export const auth = betterAuth({
     cookiePrefix: "better-auth",
   },
 });
-
