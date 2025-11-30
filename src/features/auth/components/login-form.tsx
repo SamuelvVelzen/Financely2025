@@ -1,12 +1,5 @@
-/**
- * Login Form Component
- *
- * Authentication form supporting:
- * - Email/password login
- * - Magic link
- * - Social OAuth providers (Google, Microsoft, Apple)
- */
-
+import { MagicLinkForm } from "@/features/auth/components/magic-link-form";
+import { SocialProviders } from "@/features/auth/components/social-providers";
 import { Button } from "@/features/ui/button/button";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
@@ -37,8 +30,8 @@ const magicLinkSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
-type MagicLinkFormData = z.infer<typeof magicLinkSchema>;
+type ILoginFormData = z.infer<typeof loginSchema>;
+type IMagicLinkFormData = z.infer<typeof magicLinkSchema>;
 
 export function LoginForm() {
   const [mode, setMode] = useState<AuthMode>("login");
@@ -50,7 +43,7 @@ export function LoginForm() {
   const { redirect } = useSearch({ from: "/login" });
 
   // Create form instances
-  const loginForm = useForm<LoginFormData>({
+  const loginForm = useForm<ILoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -58,14 +51,14 @@ export function LoginForm() {
     },
   });
 
-  const magicLinkForm = useForm<MagicLinkFormData>({
+  const magicLinkForm = useForm<IMagicLinkFormData>({
     resolver: zodResolver(magicLinkSchema),
     defaultValues: {
       email: "",
     },
   });
 
-  const handleLogin = async (data: LoginFormData) => {
+  const handleLogin = async (data: ILoginFormData) => {
     setError(null);
     setLoading(true);
 
@@ -89,7 +82,7 @@ export function LoginForm() {
     }
   };
 
-  const handleMagicLink = async (data: MagicLinkFormData) => {
+  const handleMagicLink = async (data: IMagicLinkFormData) => {
     setError(null);
     setLoading(true);
 
@@ -129,16 +122,17 @@ export function LoginForm() {
     }
   };
 
-  if (magicLinkSent) {
-    return (
-      <div className="p-4 bg-success/10 border border-success rounded-lg">
-        <p className="text-success font-medium">Magic link sent!</p>
-        <p className="text-sm text-text-muted mt-2">
-          Check your email for a sign-in link. It will expire in 15 minutes.
-        </p>
-      </div>
-    );
-  }
+  const handleSwitchToMagicLink = () => {
+    setMode("magic-link");
+    setError(null);
+    magicLinkForm.reset();
+  };
+
+  const handleSwitchToPassword = () => {
+    setMode("login");
+    setError(null);
+    loginForm.reset();
+  };
 
   return (
     <div className="space-y-6">
@@ -174,59 +168,27 @@ export function LoginForm() {
 
       {/* Magic Link Form */}
       {ENABLE_MAGIC_LINK && mode === "magic-link" && (
-        <Form
+        <MagicLinkForm
           form={magicLinkForm}
           onSubmit={handleMagicLink}
-          className="space-y-4"
-        >
-          <BaseInput
-            name="email"
-            type="email"
-            label="Email"
-            placeholder="you@example.com"
-            disabled={loading}
-          />
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? "Sending..." : "Send Magic Link"}
-          </Button>
-        </Form>
+          loading={loading}
+          magicLinkSent={magicLinkSent}
+          onSwitchToPassword={handleSwitchToPassword}
+          showPasswordToggle={ENABLE_EMAIL_PASSWORD}
+        />
       )}
 
       {/* Mode Toggle and Links */}
       <div className="flex flex-col gap-3 text-sm">
-        {ENABLE_EMAIL_PASSWORD && ENABLE_MAGIC_LINK && (
+        {ENABLE_EMAIL_PASSWORD && ENABLE_MAGIC_LINK && mode === "login" && (
           <div className="flex gap-2 justify-center">
-            {mode === "login" && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("magic-link");
-                  setError(null);
-                  magicLinkForm.reset();
-                }}
-                className="text-primary hover:underline"
-              >
-                Use magic link instead
-              </button>
-            )}
-            {mode === "magic-link" && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("login");
-                  setError(null);
-                  loginForm.reset();
-                }}
-                className="text-primary hover:underline"
-              >
-                Use password instead
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleSwitchToMagicLink}
+              className="text-primary hover:underline"
+            >
+              Use magic link instead
+            </button>
           </div>
         )}
         <div className="text-center">
@@ -242,53 +204,15 @@ export function LoginForm() {
       </div>
 
       {/* Social Providers */}
-      {(ENABLE_GOOGLE || ENABLE_MICROSOFT || ENABLE_APPLE) && (
-        <div className="space-y-3">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-background text-text-muted">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <div className="grid gap-3">
-            {ENABLE_GOOGLE && (
-              <Button
-                variant="default"
-                clicked={() => handleSocialLogin("google")}
-                disabled={loading}
-                className="w-full"
-              >
-                Continue with Google
-              </Button>
-            )}
-            {ENABLE_MICROSOFT && (
-              <Button
-                variant="default"
-                clicked={() => handleSocialLogin("microsoft")}
-                disabled={loading}
-                className="w-full"
-              >
-                Continue with Microsoft
-              </Button>
-            )}
-            {ENABLE_APPLE && (
-              <Button
-                variant="default"
-                clicked={() => handleSocialLogin("apple")}
-                disabled={loading}
-                className="w-full"
-              >
-                Continue with Apple
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
+      <SocialProviders
+        enabledProviders={{
+          google: ENABLE_GOOGLE,
+          microsoft: ENABLE_MICROSOFT,
+          apple: ENABLE_APPLE,
+        }}
+        onProviderClick={handleSocialLogin}
+        loading={loading}
+      />
     </div>
   );
 }
