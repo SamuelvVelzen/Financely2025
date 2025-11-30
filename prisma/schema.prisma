@@ -67,17 +67,16 @@ model User {
   lastLoginAt   DateTime?
 
   // BetterAuth relations
-  accounts      BetterAuthAccount[]
-  sessions      BetterAuthSession[]
+  accounts      Account[]
+  sessions      Session[]
 
   // App domain relations
   userInfo      UserInfo?
   transactions  Transaction[]
   tags          Tag[]
-  budgets       Budget[]
 }
 
-model BetterAuthAccount {
+model Account {
   id                    String    @id @default(cuid())
   userId                String
   accountId             String
@@ -98,7 +97,7 @@ model BetterAuthAccount {
   @@index([userId])
 }
 
-model BetterAuthSession {
+model Session {
   id        String   @id @default(cuid())
   userId    String
   token     String   @unique
@@ -114,7 +113,7 @@ model BetterAuthSession {
   @@index([token])
 }
 
-model BetterAuthVerification {
+model Verification {
   id         String   @id @default(cuid())
   identifier String
   value      String
@@ -178,52 +177,9 @@ model Tag {
   order         Int
 
   transactions  Transaction[]
-  budgetLines  BudgetLine[]
 
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
   @@unique([userId, name])
 }
-
-model Budget {
-  id            String         @id @default(cuid())
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId        String
-
-  name          String
-  currency      Currency
-  startDate     DateTime
-  endDate       DateTime
-  notes         String?
-
-  lines         BudgetLine[]
-
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-
-  @@index([userId, startDate, endDate])
-  @@unique([userId, name, startDate, endDate])
-}
-
-model BudgetLine {
-  id            String           @id @default(cuid())
-  budget        Budget           @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  budgetId      String
-
-  direction     TransactionType
-  tag           Tag?             @relation(fields: [tagId], references: [id], onDelete: SetNull)
-  tagId         String?
-
-  plannedAmount Decimal
-  name          String?
-  notes         String?
-
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-
-  @@unique([budgetId, direction, tagId])
-  @@index([budgetId, direction])
-  @@index([tagId])
-}
-

@@ -45,13 +45,13 @@ export const auth = betterAuth({
     modelName: "User",
   },
   account: {
-    modelName: "BetterAuthAccount",
+    modelName: "Account",
   },
   session: {
-    modelName: "BetterAuthSession",
+    modelName: "Session",
   },
   verification: {
-    modelName: "BetterAuthVerification",
+    modelName: "Verification",
   },
   
   // Email and Password authentication

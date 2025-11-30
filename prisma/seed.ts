@@ -102,7 +102,7 @@ async function main() {
     // Hash password and create account
     const hashedPassword = await hashPassword(SEED_USER_PASSWORD);
 
-    await prisma.betterAuthAccount.create({
+    await prisma.account.create({
       data: {
         userId: createdUser.id,
         accountId: createdUser.id, // For credential accounts, accountId = userId
