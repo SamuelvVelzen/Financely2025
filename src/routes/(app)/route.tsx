@@ -1,10 +1,23 @@
+import { PermissionHelpers } from "@/features/auth/permission.helpers";
 import { Sidebar } from "@/features/ui/navigation/sidebar";
 import { SidebarProvider } from "@/features/ui/navigation/useSidebar";
 import { ThemeProvider } from "@/features/ui/ThemeProvider";
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 // Pathless route group - wraps all routes without adding to URL
 export const Route = createFileRoute("/(app)")({
+  beforeLoad: async ({ location }) => {
+    // Check if user has access using PermissionHelpers
+    if (!PermissionHelpers.canAccess()) {
+      throw redirect({
+        to: "/login",
+        search: {
+          // Use the current location to power a redirect after login
+          redirect: location.href,
+        },
+      });
+    }
+  },
   component: AppLayout,
 });
 

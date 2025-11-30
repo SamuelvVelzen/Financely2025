@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as appIndexRouteImport } from './routes/(app)/index'
 import { Route as appTagsRouteImport } from './routes/(app)/tags'
@@ -35,6 +36,11 @@ import { Route as ApiV1TransactionsCsvMappingValidateRouteImport } from './route
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
 import { Route as ApiV1TransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/transactions.$transactionId.tags.$tagId'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const appRouteRoute = appRouteRouteImport.update({
   id: '/(app)',
   getParentRoute: () => rootRouteImport,
@@ -169,6 +175,7 @@ const ApiV1TransactionsTransactionIdTagsTagIdRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/login': typeof LoginRoute
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesByTo {
+  '/login': typeof LoginRoute
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
@@ -223,6 +231,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(app)': typeof appRouteRouteWithChildren
+  '/login': typeof LoginRoute
   '/(app)/account': typeof appAccountRoute
   '/(app)/expenses': typeof appExpensesRoute
   '/(app)/incomes': typeof appIncomesRoute
@@ -251,6 +260,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/login'
     | '/account'
     | '/expenses'
     | '/incomes'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/$transactionId/tags/$tagId'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/login'
     | '/account'
     | '/expenses'
     | '/incomes'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/(app)'
+    | '/login'
     | '/(app)/account'
     | '/(app)/expenses'
     | '/(app)/incomes'
@@ -332,6 +344,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   appRouteRoute: typeof appRouteRouteWithChildren
+  LoginRoute: typeof LoginRoute
   ApiV1MeRoute: typeof ApiV1MeRoute
   ApiV1TagsRoute: typeof ApiV1TagsRouteWithChildren
   ApiV1TransactionsRoute: typeof ApiV1TransactionsRouteWithChildren
@@ -339,6 +352,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(app)': {
       id: '/(app)'
       path: ''
@@ -627,6 +647,7 @@ const ApiV1TransactionsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   appRouteRoute: appRouteRouteWithChildren,
+  LoginRoute: LoginRoute,
   ApiV1MeRoute: ApiV1MeRoute,
   ApiV1TagsRoute: ApiV1TagsRouteWithChildren,
   ApiV1TransactionsRoute: ApiV1TransactionsRouteWithChildren,

@@ -1,3 +1,5 @@
+import { PermissionHelpers } from "./permission.helpers";
+
 /**
  * Auth context utility
  *
@@ -23,10 +25,12 @@ export function getUserId(): string | null {
 
 /**
  * Assert that a user is authenticated
- * @throws Error if user is not authenticated
+ * @throws UnauthorizedError if user is not authenticated
  * @returns userId
  */
 export function requireAuth(): string {
+  // Use PermissionHelpers for consistent permission checking
+  PermissionHelpers.requireAuth();
   const userId = getUserId();
   if (!userId) {
     throw new Error("Unauthorized");
@@ -37,6 +41,7 @@ export function requireAuth(): string {
 /**
  * Auth middleware for API routes
  * Extracts and validates authentication, then provides userId to handlers
+ * Uses PermissionHelpers for consistent permission checking
  */
 export function withAuth<T>(
   handler: (userId: string) => Promise<T> | T

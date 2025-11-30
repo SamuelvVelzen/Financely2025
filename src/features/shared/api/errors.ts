@@ -1,3 +1,4 @@
+import { UnauthorizedError } from "@/features/auth/errors";
 import { ErrorResponseSchema } from "@/features/shared/validation/schemas";
 import { z } from "zod";
 
@@ -46,6 +47,18 @@ export function createErrorResponse(
 ): Response {
   if (error instanceof ApiError) {
     return Response.json(error.toJSON(), { status: error.statusCode });
+  }
+
+  if (error instanceof UnauthorizedError) {
+    return Response.json(
+      ErrorResponseSchema.parse({
+        error: {
+          code: ErrorCodes.UNAUTHORIZED,
+          message: error.message || "Unauthorized",
+        },
+      }),
+      { status: 401 }
+    );
   }
 
   if (error instanceof z.ZodError) {
