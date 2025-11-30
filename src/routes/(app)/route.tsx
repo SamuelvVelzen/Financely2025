@@ -6,9 +6,10 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 // Pathless route group - wraps all routes without adding to URL
 export const Route = createFileRoute("/(app)")({
-  beforeLoad: async ({ location, request }) => {
+  beforeLoad: async ({ location }) => {
     // Check if user has access using PermissionHelpers with BetterAuth
-    const canAccess = await PermissionHelpers.canAccess(request);
+    const canAccess = await PermissionHelpers.canAccess();
+
     if (!canAccess) {
       throw redirect({
         to: "/login",

@@ -1,6 +1,4 @@
-import { getSession } from "./server";
-import { UnauthorizedError } from "./errors";
-import type { Request } from "@tanstack/react-start";
+import { getServerSession } from "./server";
 
 /**
  * Permission Helpers
@@ -15,8 +13,8 @@ export class PermissionHelpers {
    * @param request - The incoming request object
    * @returns true if user is authenticated, false otherwise
    */
-  public static async isAuthenticated(request: Request): Promise<boolean> {
-    const session = await getSession(request);
+  public static async isAuthenticated(): Promise<boolean> {
+    const session = await getServerSession();
     return session !== null;
   }
 
@@ -31,23 +29,9 @@ export class PermissionHelpers {
    *                 Currently ignored, but maintains API stability for future role/permission support
    * @returns true if access is allowed, false if denied
    */
-  public static async canAccess(request: Request, action?: string): Promise<boolean> {
+  public static async canAccess(): Promise<boolean> {
     // Current implementation: Simple authentication check
     // Future: Will evaluate roles and permissions when implemented
-    return this.isAuthenticated(request);
-  }
-
-  /**
-   * Assert that the current user is authenticated (server-side)
-   * @param request - The incoming request object
-   * @throws UnauthorizedError if user is not authenticated
-   * @returns void
-   */
-  public static async requireAuth(request: Request): Promise<void> {
-    const isAuth = await this.isAuthenticated(request);
-    if (!isAuth) {
-      throw new UnauthorizedError();
-    }
+    return PermissionHelpers.isAuthenticated();
   }
 }
-
