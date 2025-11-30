@@ -98,7 +98,7 @@ export async function POST({ request }: { request: Request }) {
       });
 
       return json(response, { status: 200 });
-    });
+    }, request);
   } catch (error) {
     return createErrorResponse(error);
   }

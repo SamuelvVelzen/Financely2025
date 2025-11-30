@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as appIndexRouteImport } from './routes/(app)/index'
@@ -19,6 +20,7 @@ import { Route as appAccountRouteImport } from './routes/(app)/account'
 import { Route as ApiV1TransactionsRouteImport } from './routes/api/v1/transactions'
 import { Route as ApiV1TagsRouteImport } from './routes/api/v1/tags'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiV1TransactionsCsvUploadRouteImport } from './routes/api/v1/transactions.csv-upload'
 import { Route as ApiV1TransactionsCsvParseRouteImport } from './routes/api/v1/transactions.csv-parse'
 import { Route as ApiV1TransactionsCsvMappingRouteImport } from './routes/api/v1/transactions.csv-mapping'
@@ -36,6 +38,11 @@ import { Route as ApiV1TransactionsCsvMappingValidateRouteImport } from './route
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
 import { Route as ApiV1TransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/transactions.$transactionId.tags.$tagId'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -83,6 +90,11 @@ const ApiV1TagsRoute = ApiV1TagsRouteImport.update({
 const ApiV1MeRoute = ApiV1MeRouteImport.update({
   id: '/api/v1/me',
   path: '/api/v1/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1TransactionsCsvUploadRoute =
@@ -176,11 +188,13 @@ const ApiV1TransactionsTransactionIdTagsTagIdRoute =
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
   '/tags': typeof appTagsRoute
   '/': typeof appIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
@@ -203,11 +217,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
   '/tags': typeof appTagsRoute
   '/': typeof appIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
@@ -232,11 +248,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/(app)': typeof appRouteRouteWithChildren
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/(app)/account': typeof appAccountRoute
   '/(app)/expenses': typeof appExpensesRoute
   '/(app)/incomes': typeof appIncomesRoute
   '/(app)/tags': typeof appTagsRoute
   '/(app)/': typeof appIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/me': typeof ApiV1MeRoute
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
@@ -261,11 +279,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/login'
+    | '/reset-password'
     | '/account'
     | '/expenses'
     | '/incomes'
     | '/tags'
     | '/'
+    | '/api/auth/$'
     | '/api/v1/me'
     | '/api/v1/tags'
     | '/api/v1/transactions'
@@ -288,11 +308,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/reset-password'
     | '/account'
     | '/expenses'
     | '/incomes'
     | '/tags'
     | '/'
+    | '/api/auth/$'
     | '/api/v1/me'
     | '/api/v1/tags'
     | '/api/v1/transactions'
@@ -316,11 +338,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/(app)'
     | '/login'
+    | '/reset-password'
     | '/(app)/account'
     | '/(app)/expenses'
     | '/(app)/incomes'
     | '/(app)/tags'
     | '/(app)/'
+    | '/api/auth/$'
     | '/api/v1/me'
     | '/api/v1/tags'
     | '/api/v1/transactions'
@@ -345,6 +369,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   appRouteRoute: typeof appRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiV1MeRoute: typeof ApiV1MeRoute
   ApiV1TagsRoute: typeof ApiV1TagsRouteWithChildren
   ApiV1TransactionsRoute: typeof ApiV1TransactionsRouteWithChildren
@@ -352,6 +378,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -420,6 +453,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/me'
       fullPath: '/api/v1/me'
       preLoaderRoute: typeof ApiV1MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/transactions/csv-upload': {
@@ -648,6 +688,8 @@ const ApiV1TransactionsRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   appRouteRoute: appRouteRouteWithChildren,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiV1MeRoute: ApiV1MeRoute,
   ApiV1TagsRoute: ApiV1TagsRouteWithChildren,
   ApiV1TransactionsRoute: ApiV1TransactionsRouteWithChildren,

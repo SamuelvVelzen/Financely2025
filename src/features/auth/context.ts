@@ -1,51 +1,58 @@
+import { getUserId as getUserIdFromRequest, requireAuth as requireAuthFromRequest } from "./server";
+import type { Request } from "@tanstack/react-start";
 import { PermissionHelpers } from "./permission.helpers";
 
 /**
  * Auth context utility
  *
- * In a real application, this would:
- * - Extract userId from session/token/cookie
- * - Validate authentication
- * - Return null if unauthenticated
- *
- * For now, this is a placeholder that returns a mock userId.
- * Replace this with real auth middleware when implementing authentication.
+ * Server-side authentication utilities using BetterAuth.
+ * For client-side auth state, use the authClient from @/lib/auth-client.
  */
 
 /**
- * Get the current authenticated user ID
+ * Get the current authenticated user ID from a request
+ * @param request - The incoming request object (required for server-side)
  * @returns userId or null if unauthenticated
  */
-export function getUserId(): string | null {
-  // TODO: Replace with real auth
-  // For development, using a mock user ID
-  // In production, extract from session/cookie/JWT
-  return "mock-user-id";
+export async function getUserId(request?: Request): Promise<string | null> {
+  if (!request) {
+    // Client-side: This should not be called without a request
+    // For client-side, use authClient.useSession() hook instead
+    console.warn("getUserId called without request. Use authClient.useSession() for client-side.");
+    return null;
+  }
+  return getUserIdFromRequest(request);
 }
 
 /**
  * Assert that a user is authenticated
- * @throws UnauthorizedError if user is not authenticated
+ * @param request - The incoming request object (required for server-side)
+ * @throws Error if user is not authenticated
  * @returns userId
  */
-export function requireAuth(): string {
-  // Use PermissionHelpers for consistent permission checking
-  PermissionHelpers.requireAuth();
-  const userId = getUserId();
-  if (!userId) {
-    throw new Error("Unauthorized");
+export async function requireAuth(request?: Request): Promise<string> {
+  if (!request) {
+    throw new Error("requireAuth requires a request object");
   }
-  return userId;
+  const session = await requireAuthFromRequest(request);
+  return session.user.id;
 }
 
 /**
  * Auth middleware for API routes
  * Extracts and validates authentication, then provides userId to handlers
- * Uses PermissionHelpers for consistent permission checking
+ * 
+ * @param handler - Function that receives userId and returns a response
+ * @param request - The incoming request object (optional, but required for BetterAuth)
+ * @returns Promise that resolves to the handler's return value
  */
-export function withAuth<T>(
-  handler: (userId: string) => Promise<T> | T
+export async function withAuth<T>(
+  handler: (userId: string) => Promise<T> | T,
+  request?: Request
 ): Promise<T> {
-  const userId = requireAuth();
+  if (!request) {
+    throw new Error("withAuth requires a request object for BetterAuth integration");
+  }
+  const userId = await requireAuth(request);
   return Promise.resolve(handler(userId));
 }

@@ -1,0 +1,265 @@
+/**
+ * Password Reset Page
+ *
+ * Handles both requesting a password reset and confirming/resetting the password
+ * with a token from the email link.
+ */
+
+import { Button } from "@/features/ui/button/button";
+import { Form } from "@/features/ui/form/form";
+import { TextInput } from "@/features/ui/input/text-input";
+import { authClient } from "@/lib/auth-client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createFileRoute,
+  useNavigate,
+  useSearch,
+} from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+// Validation schemas
+const requestResetSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
+const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type RequestResetFormData = z.infer<typeof requestResetSchema>;
+type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+
+export const Route = createFileRoute("/reset-password")({
+  component: ResetPasswordPage,
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      token: (search.token as string) || null,
+      email: (search.email as string) || null,
+    };
+  },
+});
+
+function ResetPasswordPage() {
+  const { token, email: searchEmail } = useSearch({ from: "/reset-password" });
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<"request" | "reset">(
+    token ? "reset" : "request"
+  );
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const requestForm = useForm<RequestResetFormData>({
+    resolver: zodResolver(requestResetSchema),
+    defaultValues: {
+      email: searchEmail || "",
+    },
+  });
+
+  const resetForm = useForm<ResetPasswordFormData>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  // If token is provided, switch to reset mode
+  useEffect(() => {
+    if (token) {
+      setMode("reset");
+    }
+  }, [token]);
+
+  // Update email when searchEmail changes
+  useEffect(() => {
+    if (searchEmail) {
+      requestForm.setValue("email", searchEmail);
+    }
+  }, [searchEmail, requestForm]);
+
+  const handleRequestReset = async (data: RequestResetFormData) => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await authClient.forgetPassword({
+        email: data.email,
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (result.error) {
+        setError(result.error.message);
+        return;
+      }
+
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (data: ResetPasswordFormData) => {
+    if (!token) {
+      setError("Invalid or missing reset token");
+      return;
+    }
+
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await authClient.resetPassword({
+        newPassword: data.password,
+        token: token,
+      });
+
+      if (result.error) {
+        setError(result.error.message);
+        return;
+      }
+
+      setSuccess(true);
+      // Redirect to login after a delay
+      setTimeout(() => {
+        navigate({ to: "/login" });
+      }, 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success && mode === "request") {
+    const email = requestForm.getValues("email");
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="w-full max-w-md p-8 space-y-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Check your email</h1>
+            <p className="text-text-muted mt-2">
+              We've sent a password reset link to {email}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (success && mode === "reset") {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="w-full max-w-md p-8 space-y-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Password reset successful</h1>
+            <p className="text-text-muted mt-2">
+              Your password has been reset. Redirecting to login...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="w-full max-w-md p-8 space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">
+            {mode === "request" ? "Reset Password" : "Set New Password"}
+          </h1>
+          <p className="text-text-muted mt-2">
+            {mode === "request"
+              ? "Enter your email to receive a password reset link"
+              : "Enter your new password"}
+          </p>
+        </div>
+
+        {error && (
+          <div className="p-4 bg-danger/10 border border-danger rounded-lg">
+            <p className="text-danger text-sm">{error}</p>
+          </div>
+        )}
+
+        {mode === "request" ? (
+          <Form
+            form={requestForm}
+            onSubmit={handleRequestReset}
+            className="space-y-4"
+          >
+            <TextInput
+              name="email"
+              type="email"
+              label="Email"
+              placeholder="you@example.com"
+              disabled={loading}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              clicked={() => {}}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? "Processing..." : "Send Reset Link"}
+            </Button>
+          </Form>
+        ) : (
+          <Form
+            form={resetForm}
+            onSubmit={handleResetPassword}
+            className="space-y-4"
+          >
+            <TextInput
+              name="password"
+              type="password"
+              label="New Password"
+              placeholder="••••••••"
+              disabled={loading}
+            />
+
+            <TextInput
+              name="confirmPassword"
+              type="password"
+              label="Confirm Password"
+              placeholder="••••••••"
+              disabled={loading}
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              clicked={() => {}}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? "Processing..." : "Reset Password"}
+            </Button>
+          </Form>
+        )}
+
+        <div className="text-center">
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/login" })}
+            className="text-sm text-primary hover:underline"
+          >
+            Back to login
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

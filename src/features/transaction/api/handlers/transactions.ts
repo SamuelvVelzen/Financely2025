@@ -35,7 +35,7 @@ export async function GET({ request }: { request: Request }) {
         validated
       );
       return json(result);
-    });
+    }, request);
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -51,7 +51,7 @@ export async function POST({ request }: { request: Request }) {
       const body = await request.json();
       const result = await TransactionService.createTransaction(userId, body);
       return json(result, { status: 201 });
-    });
+    }, request);
   } catch (error) {
     if (
       error instanceof Error &&

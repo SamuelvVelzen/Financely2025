@@ -1,5 +1,6 @@
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
-import { PermissionHelpers } from "@/features/auth/permission.helpers";
+import { createFileRoute, useSearch } from "@tanstack/react-router";
+import { authClient } from "@/lib/auth-client";
+import { LoginForm } from "@/features/auth/components/login-form";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/login")({
@@ -13,30 +14,26 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const { redirect } = useSearch({ from: "/login" });
-  const navigate = useNavigate();
 
-  // If already authenticated, redirect to the intended destination
+  // Check if already authenticated and redirect
   useEffect(() => {
-    if (PermissionHelpers.canAccess()) {
-      navigate({ to: redirect });
-    }
-  }, [redirect, navigate]);
+    authClient.getSession().then((session) => {
+      if (session.data) {
+        window.location.href = redirect || "/";
+      }
+    });
+  }, [redirect]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Login</h1>
+          <h1 className="text-2xl font-bold">Sign In</h1>
           <p className="text-text-muted mt-2">
-            Please log in to access this application.
+            Sign in to your account to continue.
           </p>
         </div>
-        <div className="p-4 bg-surface-hover rounded-lg border border-border">
-          <p className="text-sm text-text-muted">
-            Authentication is currently in development. This is a placeholder
-            login page.
-          </p>
-        </div>
+        <LoginForm />
       </div>
     </div>
   );

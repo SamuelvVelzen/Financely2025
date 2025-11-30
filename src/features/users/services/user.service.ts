@@ -1,7 +1,7 @@
 import {
-  UserSchema,
-  type UserResponse,
   formatFullName,
+  UserSchema,
+  type IUserResponse,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/util/prisma";
 
@@ -15,7 +15,7 @@ export class UserService {
    * @param userId - User ID
    * @returns User response or null if not found
    */
-  static async getUserById(userId: string): Promise<UserResponse | null> {
+  static async getUserById(userId: string): Promise<IUserResponse | null> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { userInfo: true },
@@ -51,11 +51,10 @@ export class UserService {
    */
   static async getOrCreateUser(
     email: string,
-    name?: string,
-    firstName?: string,
-    lastName?: string,
+    firstName: string,
+    lastName: string,
     suffix?: string
-  ): Promise<UserResponse> {
+  ): Promise<IUserResponse> {
     const existing = await prisma.user.findUnique({
       where: { email },
       include: { userInfo: true },
@@ -77,24 +76,13 @@ export class UserService {
       });
     }
 
-    // Parse name if provided (legacy support)
-    let parsedFirstName = firstName;
-    let parsedLastName = lastName;
-
-    if (name && !firstName && !lastName) {
-      // Simple split on first space
-      const nameParts = name.trim().split(/\s+/);
-      parsedFirstName = nameParts[0] || null;
-      parsedLastName = nameParts.slice(1).join(" ") || null;
-    }
-
     const user = await prisma.user.create({
       data: {
         email,
         userInfo: {
           create: {
-            firstName: parsedFirstName ?? null,
-            lastName: parsedLastName ?? null,
+            firstName: firstName ?? null,
+            lastName: lastName ?? null,
             suffix: suffix ?? null,
           },
         },

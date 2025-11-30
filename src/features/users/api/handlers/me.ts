@@ -7,7 +7,7 @@ import { json } from "@tanstack/react-start";
  * GET /api/v1/me
  * Returns the current authenticated user
  */
-export async function GET() {
+export async function GET({ request }: { request: Request }) {
   try {
     return await withAuth(async (userId) => {
       const user = await UserService.getUserById(userId);
@@ -20,7 +20,7 @@ export async function GET() {
       }
 
       return json(user);
-    });
+    }, request);
   } catch (error) {
     if (error instanceof Error && error.message === "Unauthorized") {
       return createErrorResponse(

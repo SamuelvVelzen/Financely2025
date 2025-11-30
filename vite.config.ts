@@ -10,10 +10,19 @@ export default defineConfig({
     port: 3000,
   },
   plugins: [
+    // TanStack Start should come before React plugin
+    tanstackStart(),
+    viteReact(),
     tailwindcss(),
     // Enables Vite to resolve imports using path aliases.
     tsconfigPaths(),
-    tanstackStart(),
-    viteReact(),
   ],
+  optimizeDeps: {
+    exclude: [
+      "#tanstack-router-entry",
+      "#tanstack-start-entry",
+      "tanstack-start-manifest:v",
+      "tanstack-start-injected-head-scripts:v",
+    ],
+  },
 });
