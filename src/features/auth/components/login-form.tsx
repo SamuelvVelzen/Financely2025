@@ -9,7 +9,7 @@
 
 import { Button } from "@/features/ui/button/button";
 import { Form } from "@/features/ui/form/form";
-import { TextInput } from "@/features/ui/input/text-input";
+import { BaseInput } from "@/features/ui/input/input";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearch } from "@tanstack/react-router";
@@ -56,7 +56,9 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+
   const navigate = useNavigate();
+
   const { redirect } = useSearch({ from: "/login" });
 
   // Create form instances based on mode
@@ -195,23 +197,21 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
           className="space-y-4"
         >
           {mode === "register" && (
-            <TextInput
+            <BaseInput
               name="name"
               label="Name (optional)"
               placeholder="Your name"
               disabled={loading}
             />
           )}
-
-          <TextInput
+          <BaseInput
             name="email"
             type="email"
             label="Email"
             placeholder="you@example.com"
             disabled={loading}
           />
-
-          <TextInput
+          <BaseInput
             name="password"
             type="password"
             label="Password"
@@ -242,33 +242,7 @@ export function LoginForm({ defaultMode = "login" }: LoginFormProps) {
           onSubmit={handleMagicLink}
           className="space-y-4"
         >
-          <TextInput
-            name="email"
-            type="email"
-            label="Email"
-            placeholder="you@example.com"
-            disabled={loading}
-          />
-          <Button
-            type="submit"
-            variant="primary"
-            clicked={() => {}}
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? "Sending..." : "Send Magic Link"}
-          </Button>
-        </Form>
-      )}
-
-      {/* Magic Link Only Mode (when email/password is disabled) */}
-      {!ENABLE_EMAIL_PASSWORD && ENABLE_MAGIC_LINK && (
-        <Form
-          form={magicLinkForm}
-          onSubmit={handleMagicLink}
-          className="space-y-4"
-        >
-          <TextInput
+          <BaseInput
             name="email"
             type="email"
             label="Email"
