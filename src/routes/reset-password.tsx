@@ -7,6 +7,7 @@
 
 import { ROUTES } from "@/config/routes";
 import { Button } from "@/features/ui/button/button";
+import { Container } from "@/features/ui/container/container";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { Title } from "@/features/ui/typography/title";
@@ -147,14 +148,14 @@ function ResetPasswordPage() {
     const email = requestForm.getValues("email");
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="w-full max-w-md p-8 space-y-6">
+        <Container className="w-full sm:w-2/5 xl:w-1/4 mx-8 sm:mx-0">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Check your email</h1>
+            <Title>Check your email</Title>
             <p className="text-text-muted mt-2">
               We've sent a password reset link to {email}
             </p>
           </div>
-        </div>
+        </Container>
       </div>
     );
   }
@@ -162,21 +163,21 @@ function ResetPasswordPage() {
   if (success && mode === "reset") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="w-full max-w-md p-8 space-y-6">
+        <Container className="w-full sm:w-2/5 xl:w-1/4 mx-8 sm:mx-0">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Password reset successful</h1>
+            <Title>Password reset successful</Title>
             <p className="text-text-muted mt-2">
               Your password has been reset. Redirecting to login...
             </p>
           </div>
-        </div>
+        </Container>
       </div>
     );
   }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-full max-w-md p-8 space-y-6">
+      <Container className="w-full sm:w-2/5 xl:w-1/4 mx-8 sm:mx-0">
         <div className="text-center">
           <Title>
             {mode === "request" ? "Reset Password" : "Set New Password"}
@@ -261,7 +262,7 @@ function ResetPasswordPage() {
             Back to login
           </button>
         </div>
-      </div>
+      </Container>
     </div>
   );
 }
