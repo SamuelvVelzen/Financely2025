@@ -1,6 +1,7 @@
 import { MagicLinkForm } from "@/features/auth/components/magic-link-form";
 import { SocialProviders } from "@/features/auth/components/social-providers";
 import { Button } from "@/features/ui/button/button";
+import { LinkButton } from "@/features/ui/button/link-button";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { authClient } from "@/lib/auth-client";
@@ -196,13 +197,12 @@ export function LoginForm() {
       <div className="flex flex-col gap-3 text-sm">
         {ENABLE_EMAIL_PASSWORD && ENABLE_MAGIC_LINK && mode === "login" && (
           <div className="flex gap-2 justify-center">
-            <button
-              type="button"
-              onClick={handleSwitchToMagicLink}
-              className="text-primary hover:underline"
+            <LinkButton
+              clicked={() => handleSwitchToMagicLink()}
+              variant="primary"
             >
               Use magic link instead
-            </button>
+            </LinkButton>
           </div>
         )}
         <div className="text-center">
