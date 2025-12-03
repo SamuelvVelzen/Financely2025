@@ -22,7 +22,7 @@ export function BodyCell({
     <td
       colSpan={colSpan}
       className={cn(
-        "px-4 py-2",
+        "p-3",
         autoFit ? "w-auto" : "w-full min-w-0",
         !wrap && "whitespace-nowrap",
         className
