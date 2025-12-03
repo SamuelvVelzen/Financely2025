@@ -97,7 +97,7 @@ export function SearchInput({
       ) : (
         <IconButton
           clicked={handleIconClick}
-          className="w-10 h-10"
+          className="w-10 h-10 my-0"
           aria-label="Search"
         >
           <HiMagnifyingGlass className="w-5 h-5" />

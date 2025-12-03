@@ -39,7 +39,7 @@ export function Button({
   ...rest
 }: IButtonProps) {
   const variantClasses: { [key in IButtonVariant]: string } = {
-    default: "hover:bg-surface-hover border-current",
+    default: "hover:bg-surface-hover border-border",
     danger: "bg-danger hover:bg-danger-hover text-white border-danger",
     info: "bg-info hover:bg-info-hover text-white border-info",
     warning: "bg-warning hover:bg-warning-hover text-white border-warning",

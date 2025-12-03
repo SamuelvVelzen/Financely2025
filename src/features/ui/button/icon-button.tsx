@@ -22,7 +22,7 @@ export function IconButton({
 
   return (
     <Button
-      className={cn("rounded-full p-2", className)}
+      className={cn("rounded-full p-2 -my-2", className)}
       clicked={clicked}
       disabled={disabled}
       buttonContent={iconButtonContent}

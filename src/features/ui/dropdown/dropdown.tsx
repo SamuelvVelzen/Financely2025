@@ -78,7 +78,7 @@ export function Dropdown({
         </Button>
       ) : (
         <IconButton clicked={toggleDropdown}>
-          <HiDotsVertical />
+          <HiDotsVertical className="w-5 h-5" />
         </IconButton>
       )}
     </div>

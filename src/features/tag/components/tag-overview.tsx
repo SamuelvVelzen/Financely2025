@@ -165,15 +165,12 @@ export function TagOverview() {
                   )}
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
-                  <IconButton
-                    clicked={() => handleEditTag(tag)}
-                    className="text-text-muted hover:text-text p-1"
-                  >
+                  <IconButton clicked={() => handleEditTag(tag)}>
                     <HiPencil className="w-5 h-5" />
                   </IconButton>
                   <IconButton
                     clicked={() => handleDeleteClick(tag.id)}
-                    className="text-danger hover:text-danger-hover p-1"
+                    className="text-danger hover:text-danger-hover"
                   >
                     <HiTrash className="w-5 h-5" />
                   </IconButton>
