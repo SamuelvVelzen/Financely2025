@@ -4,9 +4,10 @@ import { Button } from "@/features/ui/button/button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
+import { NavLink } from "@/features/ui/navigation/nav-link";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -145,13 +146,12 @@ export function LoginForm() {
           <p className="text-danger text-sm">{error}</p>
           {ENABLE_EMAIL_PASSWORD && mode === "login" && (
             <div className="text-sm">
-              <Link
+              <NavLink
                 to="/reset-password"
-                search={{ email: emailValue || null }}
-                className="text-primary hover:underline"
+                search={{ email: emailValue || null, token: null }}
               >
                 Forgot your password?
-              </Link>
+              </NavLink>
             </div>
           )}
         </div>
@@ -207,13 +207,9 @@ export function LoginForm() {
         )}
         <div className="text-center">
           <span className="text-text-muted">Don't have an account? </span>
-          <Link
-            to="/register"
-            search={{ redirect }}
-            className="text-primary hover:underline"
-          >
+          <NavLink href="/register" to="/register" search={{ redirect }}>
             Create account
-          </Link>
+          </NavLink>
         </div>
       </div>
 

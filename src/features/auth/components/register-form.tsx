@@ -8,9 +8,10 @@
 import { Button } from "@/features/ui/button/button";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
+import { NavLink } from "@/features/ui/navigation/nav-link";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -118,13 +119,9 @@ export function RegisterForm() {
       {/* Link to Login */}
       <div className="text-center text-sm">
         <span className="text-text-muted">Already have an account? </span>
-        <Link
-          to="/login"
-          search={{ redirect }}
-          className="text-primary hover:underline"
-        >
+        <NavLink to="/login" search={{ redirect }}>
           Sign in instead
-        </Link>
+        </NavLink>
       </div>
     </div>
   );
