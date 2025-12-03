@@ -23,7 +23,7 @@ export function ExportButton({
   };
 
   return (
-    <Button clicked={handleExport} variant="default" {...props}>
+    <Button clicked={handleExport} {...props}>
       <HiArrowUpTray className="size-6" /> Export
     </Button>
   );

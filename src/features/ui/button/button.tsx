@@ -39,7 +39,7 @@ export function Button({
   ...rest
 }: IButtonProps) {
   const variantClasses: { [key in IButtonVariant]: string } = {
-    default: "hover:bg-surface-hover border-border",
+    default: "hover:bg-surface-hover border-current",
     danger: "bg-danger hover:bg-danger-hover text-white border-danger",
     info: "bg-info hover:bg-info-hover text-white border-info",
     warning: "bg-warning hover:bg-warning-hover text-white border-warning",
@@ -48,7 +48,7 @@ export function Button({
   };
 
   const baseClasses =
-    "px-4 py-2 border rounded-2xl cursor-pointer flex items-center text-base font-medium gap-2";
+    "px-4 py-2 border rounded-2xl cursor-pointer flex items-center text-base font-medium gap-2 bg-surface";
   const disabledClasses =
     disabled && "opacity-50 cursor-not-allowed pointer-events-none";
 
