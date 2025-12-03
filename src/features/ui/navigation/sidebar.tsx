@@ -13,6 +13,7 @@ import {
 import { Container } from "../container/container";
 import { Logo } from "../logo/logo";
 import { ThemeToggle } from "../ThemeToggle";
+import { BaseLink } from "./base-link";
 import { NavItem } from "./nav-item";
 import { UserHeaderSidebar } from "./user-header-sidebar";
 import { useSidebar } from "./useSidebar";
@@ -30,18 +31,20 @@ export function Sidebar() {
         <div
           className={"h-10 flex " + (isExpanded ? "items-center" : "mx-auto")}
         >
-          <div className="flex items-center overflow-hidden">
-            <Logo />
-            <span
-              className={`font-bold text-text text-lg whitespace-nowrap motion-safe:transition-[opacity,margin-left,max-width,color,background-color] motion-safe:duration-300 motion-safe:ease-in-out overflow-hidden ${
-                isExpanded
-                  ? "opacity-100 ml-3 max-w-xs"
-                  : "opacity-0 ml-0 max-w-0"
-              }`}
-            >
-              Financely
-            </span>
-          </div>
+          <BaseLink to={ROUTES.ROOT}>
+            <div className="flex items-center overflow-hidden">
+              <Logo />
+              <span
+                className={`font-bold text-text text-lg whitespace-nowrap motion-safe:transition-[opacity,margin-left,max-width,color,background-color] motion-safe:duration-300 motion-safe:ease-in-out overflow-hidden ${
+                  isExpanded
+                    ? "opacity-100 ml-3 max-w-xs"
+                    : "opacity-0 ml-0 max-w-0"
+                }`}
+              >
+                Financely
+              </span>
+            </div>
+          </BaseLink>
         </div>
 
         {/* User greeting and toggle button */}
@@ -65,24 +68,24 @@ export function Sidebar() {
       <nav className="flex-1 overflow-y-auto">
         <ul className="space-y-2">
           <li>
-            <NavItem href={ROUTES.ROOT} label="Dashboard" icon={HiChartBar} />
+            <NavItem to={ROUTES.ROOT} label="Dashboard" icon={HiChartBar} />
           </li>
           <li>
             <NavItem
-              href={ROUTES.INCOMES}
+              to={ROUTES.INCOMES}
               label="Income"
               icon={HiArrowTrendingUp}
             />
           </li>
           <li>
             <NavItem
-              href={ROUTES.EXPENSES}
+              to={ROUTES.EXPENSES}
               label="Expense"
               icon={HiArrowTrendingDown}
             />
           </li>
           <li>
-            <NavItem href={ROUTES.TAGS} label="Tags" icon={HiOutlineTag} />
+            <NavItem to={ROUTES.TAGS} label="Tags" icon={HiOutlineTag} />
           </li>
         </ul>
       </nav>
@@ -93,7 +96,7 @@ export function Sidebar() {
         <div className="space-y-2">
           <ThemeToggle />
           <NavItem
-            href={ROUTES.ACCOUNT}
+            to={ROUTES.ACCOUNT}
             label="Account"
             icon={HiUser}
             customIcon={
@@ -103,7 +106,6 @@ export function Sidebar() {
             }
           />
           <NavItem
-            href={ROUTES.LOGOUT}
             label="Logout"
             icon={HiArrowRightOnRectangle}
             isAction={true}

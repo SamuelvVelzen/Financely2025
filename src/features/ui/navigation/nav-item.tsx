@@ -1,37 +1,37 @@
 import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
-import { Link } from "@tanstack/react-router";
+import { IPropsWithClassName, Never } from "@/util/type-helpers/props";
 import React from "react";
-import { useIsActiveLink } from "./useIsActiveLink";
+import { BaseLink, IBaseLinkProps } from "./base-link";
 import { useSidebar } from "./useSidebar";
 
 type INavItemProps = {
-  href: string;
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
   customIcon?: React.ReactNode;
 } & IPropsWithClassName &
   (
-    | {
+    | ({
         isAction: true;
         clicked: () => void;
-      }
-    | {
+        to?: never;
+      } & Never<Omit<IBaseLinkProps, "className">>)
+    | ({
         isAction?: false;
         clicked?: never;
-      }
+        to: NonNullable<IBaseLinkProps["to"]>;
+      } & IBaseLinkProps)
   );
 
 export function NavItem({
   className = "",
-  href,
   label,
   icon: Icon,
   isAction = false,
   customIcon,
   clicked,
+  to,
+  ...props
 }: INavItemProps) {
-  const { isActive } = useIsActiveLink(href);
   const { isExpanded } = useSidebar();
 
   const content = (
@@ -53,9 +53,8 @@ export function NavItem({
     isExpanded ? "px-4" : "justify-center px-0"
   );
 
-  const stateClasses = isActive
-    ? "bg-background text-text font-semibold"
-    : "text-text-muted hover:bg-background hover:text-text";
+  const activeClasses = "bg-background text-text font-semibold";
+  const inactiveClasses = "text-text-muted hover:bg-background hover:text-text";
 
   if (isAction) {
     return (
@@ -64,7 +63,7 @@ export function NavItem({
         className={cn(
           "w-full",
           baseClasses,
-          stateClasses,
+          inactiveClasses,
           "cursor-pointer",
           className
         )}
@@ -76,19 +75,19 @@ export function NavItem({
     );
   }
 
-  const combinedClasses = cn(className, baseClasses, stateClasses);
+  const combinedClasses = cn(className, baseClasses);
+  const combinedActiveClasses = cn(combinedClasses, activeClasses);
 
   return (
-    <Link
-      to={href}
+    <BaseLink
+      to={to}
       className={combinedClasses}
       title={isExpanded ? label : label}
-      preload="intent"
-      activeProps={{ className: combinedClasses }}
-      hash={undefined}
-      search={undefined}
+      inactiveProps={{ className: inactiveClasses }}
+      activeProps={{ className: combinedActiveClasses }}
+      {...props}
     >
       {content}
-    </Link>
+    </BaseLink>
   );
 }
