@@ -214,15 +214,13 @@ export function Select<
                 selectedOptions.map((option) => (
                   <span
                     key={option.value}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-hover rounded text-xs text-text shrink-0"
-                  >
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-hover rounded text-xs text-text shrink-0">
                     {option.label}
                     <button
                       type="button"
                       onClick={(e) => handleRemoveChip(e, option.value)}
                       className="hover:text-text-muted focus:outline-none"
-                      aria-label={`Remove ${option.label}`}
-                    >
+                      aria-label={`Remove ${option.label}`}>
                       <HiX className="w-3 h-3" />
                     </button>
                   </span>
@@ -293,15 +291,16 @@ export function Select<
               dropdownSelector={selectorContent}
               open={disabled ? false : isOpen}
               onOpenChange={(open) => !disabled && setIsOpen(open)}
-              placement={forcePlacement}
-            >
+              placement={forcePlacement}>
               {filteredOptions.length > 0 && (
                 <>
                   {filteredOptions.map((option, index) => {
                     const optionIsSelected = isSelected(option.value, value);
                     const handleClick = () => handleOptionClick(option.value);
                     return (
-                      <DropdownItem key={option.value} clicked={handleClick}>
+                      <DropdownItem
+                        key={option.value}
+                        clicked={handleClick}>
                         <div className="flex items-center gap-2 w-full">
                           {multiple && (
                             <Checkbox
@@ -351,8 +350,10 @@ export function Select<
                   clicked={() => {
                     handleCreateNew();
                   }}
-                  className="text-primary font-medium hover:bg-primary/10 cursor-pointer border-t border-border mt-1"
-                >
+                  className={cn(
+                    `text-primary font-medium hover:bg-primary/10 cursor-pointer`,
+                    filteredOptions.length > 0 && "mt-1 border-t border-border"
+                  )}>
                   {typeof createNewLabel === "function"
                     ? createNewLabel(searchQuery.trim())
                     : `${createNewLabel} "${searchQuery.trim()}"`}
