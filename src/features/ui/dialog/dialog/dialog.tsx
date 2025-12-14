@@ -4,6 +4,7 @@ import { cn } from "@/util/cn";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -13,8 +14,8 @@ import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
 import { DialogOverlay } from "./dialog-overlay";
-import { useDialogStack } from "./use-dialog-stack";
 import type { IDialogProps, IDialogStatus } from "./types";
+import { useDialogStack } from "./use-dialog-stack";
 
 /**
  * Dialog component provides a fully accessible modal dialog system
@@ -86,7 +87,7 @@ export function Dialog({
   // Determine if controlled or uncontrolled
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-  
+
   // Get z-index for dialog stacking (must be after open is defined)
   const dialogZIndex = useDialogStack(open ? dialogIdRef.current : undefined);
 
@@ -232,6 +233,18 @@ export function Dialog({
     handleOpenChange(false);
   }, [handleOpenChange]);
 
+  // Generate title ID for aria-labelledby if title is provided
+  // Regenerates only when title changes to maintain stable ID across re-renders
+  // Must be called before any early returns to follow Rules of Hooks
+  const titleId = useMemo(
+    () =>
+      title
+        ? `dialog-title-${Math.random().toString(36).substr(2, 9)}`
+        : undefined,
+    [title]
+  );
+  const finalAriaLabelledBy = ariaLabelledBy || titleId;
+
   // Don't render on server when closed
   if (!isMounted && !open) return null;
 
@@ -273,12 +286,6 @@ export function Dialog({
 
   // Determine content to display (content prop takes precedence over children)
   const bodyContent = content !== undefined ? content : children;
-
-  // Generate title ID for aria-labelledby if title is provided
-  const titleId = title
-    ? `dialog-title-${Math.random().toString(36).substr(2, 9)}`
-    : undefined;
-  const finalAriaLabelledBy = ariaLabelledBy || titleId;
 
   const statusClasses: Record<IDialogStatus | "none", string> = {
     none: "",
