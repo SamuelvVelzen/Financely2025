@@ -47,15 +47,13 @@ export function CurrencySelect({
   return (
     <div
       className={cn(disabled && "opacity-60 pointer-events-none")}
-      aria-disabled={disabled}
-    >
+      aria-disabled={disabled}>
       <SelectDropdown
         {...props}
         className={className}
         options={currencyOptions}
         placeholder="Select currency"
-        showClearButton={false}
-      >
+        showClearButton={false}>
         {(option) => {
           const Icon =
             CURRENCY_ICONS[option.value as ICurrency] ??
@@ -63,8 +61,11 @@ export function CurrencySelect({
 
           return (
             <span className="flex items-center gap-2 w-full">
-              <Icon className="w-4 h-4" aria-hidden="true" />
-              <span className="flex-1">{option.label}</span>
+              <Icon
+                className="w-4 h-4"
+                aria-hidden="true"
+              />
+              <span className="">{option.label}</span>
             </span>
           );
         }}

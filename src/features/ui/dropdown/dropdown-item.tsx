@@ -3,11 +3,12 @@
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { PropsWithChildren, ReactNode } from "react";
+import { Button, IButtonProps } from "../button/button";
 
 type IDropdownItemProps = {
   text?: string;
   icon?: ReactNode;
-  clicked?: () => void;
+  clicked: NonNullable<IButtonProps["clicked"]>;
   selected?: boolean;
 } & PropsWithChildren &
   IPropsWithClassName;
@@ -23,14 +24,14 @@ export function DropdownItem({
   const content = children ? children : text;
 
   return (
-    <div
+    <Button
       className={cn(
-        "flex items-center gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap",
+        "gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full border-0 rounded-none justify-start",
         selected && "bg-primary/10 text-primary font-medium",
         className
       )}
-      onClick={clicked}>
+      clicked={clicked}>
       {icon && <span>{icon}</span>} {content}
-    </div>
+    </Button>
   );
 }

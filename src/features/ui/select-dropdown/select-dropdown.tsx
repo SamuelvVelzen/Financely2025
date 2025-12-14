@@ -188,8 +188,7 @@ export function SelectDropdown<
                     "p-1 rounded hover:bg-surface-hover text-text-muted hover:text-text",
                     "flex items-center justify-center"
                   )}
-                  aria-label="Clear selection"
-                >
+                  aria-label="Clear selection">
                   <HiX className="w-4 h-4" />
                 </button>
               )}
@@ -212,8 +211,7 @@ export function SelectDropdown<
             <Dropdown
               dropdownSelector={selectorButton}
               open={isOpen}
-              onOpenChange={setIsOpen}
-            >
+              onOpenChange={setIsOpen}>
               {options.map((option, index) => {
                 const optionIsSelected = isSelected(option.value, value);
                 const handleClick = () => handleOptionClick(option.value);
@@ -221,8 +219,7 @@ export function SelectDropdown<
                   <DropdownItem
                     key={option.value}
                     clicked={handleClick}
-                    selected={optionIsSelected}
-                  >
+                    selected={optionIsSelected}>
                     {
                       <div className="flex items-center gap-2 w-full">
                         {multiple && (
@@ -240,7 +237,7 @@ export function SelectDropdown<
                             multiple,
                           })
                         ) : (
-                          <span className="flex-1">{option.label}</span>
+                          <span>{option.label}</span>
                         )}
                       </div>
                     }
