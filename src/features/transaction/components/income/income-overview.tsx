@@ -314,7 +314,6 @@ export function IncomeOverview() {
         onSuccess={() => {
           // Transactions will be refetched automatically via query invalidation
         }}
-        defaultType="INCOME"
       />
     </>
   );

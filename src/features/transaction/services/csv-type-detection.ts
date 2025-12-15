@@ -3,12 +3,16 @@
  * Factory pattern for determining transaction type from CSV data
  */
 
+import type { ICsvFieldMapping } from "@/features/shared/validation/schemas";
+import type { BankEnum } from "../config/banks";
+
 export type ITransactionType = "EXPENSE" | "INCOME";
 
 export interface ITypeDetectionContext {
   amount: string; // Parsed amount as string
   rawAmount: string; // Original raw amount value from CSV
   row: Record<string, string>; // Full CSV row data
+  mapping?: ICsvFieldMapping; // Field mapping to access mapped columns
 }
 
 /**
@@ -53,7 +57,6 @@ export class SignBasedTypeDetection implements ITypeDetectionStrategy {
 /**
  * Amex strategy: Inverted sign-based detection
  * Negative amount = INCOME, Positive amount = EXPENSE
- * (Placeholder - not yet implemented)
  */
 export class AmexTypeDetection implements ITypeDetectionStrategy {
   detectType(context: ITypeDetectionContext): ITransactionType {
@@ -72,12 +75,49 @@ export class AmexTypeDetection implements ITypeDetectionStrategy {
 }
 
 /**
+ * ING strategy: Column-based detection
+ * Uses a mapped "type" column containing "debit" or "credit"
+ * "debit" = EXPENSE, "credit" = INCOME
+ */
+export class IngTypeDetection implements ITypeDetectionStrategy {
+  detectType(context: ITypeDetectionContext): ITransactionType {
+    if (!context.mapping?.type) {
+      throw new Error(
+        "ING strategy requires 'type' field to be mapped to debit/credit column"
+      );
+    }
+
+    const typeColumn = context.mapping.type;
+    const typeValue = context.row[typeColumn]?.trim().toLowerCase() || "";
+
+    if (typeValue === "debit" || typeValue === "af") {
+      return "EXPENSE";
+    } else if (typeValue === "credit" || typeValue === "bij") {
+      return "INCOME";
+    } else {
+      throw new Error(
+        `Invalid type value "${context.row[typeColumn]}". Expected "debit"/"af" or "credit"/"bij"`
+      );
+    }
+  }
+
+  getName(): string {
+    return "ING Format";
+  }
+
+  getDescription(): string {
+    return "Uses debit/credit column: debit = expense, credit = income";
+  }
+}
+
+/**
  * Type detection strategy factory
  */
 export class TypeDetectionFactory {
   private static strategies: Map<string, ITypeDetectionStrategy> = new Map([
     ["sign-based", new SignBasedTypeDetection()],
     ["amex", new AmexTypeDetection()],
+    ["ing", new IngTypeDetection()],
   ]);
 
   /**
@@ -114,4 +154,19 @@ export class TypeDetectionFactory {
  * Default strategy name
  */
 export const DEFAULT_TYPE_DETECTION_STRATEGY = "sign-based";
+
+/**
+ * Get default type detection strategy for a bank
+ */
+export function getDefaultStrategyForBank(
+  bank?: BankEnum | null
+): string {
+  if (bank === "AMERICAN_EXPRESS") {
+    return "amex";
+  }
+  if (bank === "ING") {
+    return "ing";
+  }
+  return DEFAULT_TYPE_DETECTION_STRATEGY;
+}
 

@@ -118,14 +118,12 @@ export async function getCsvMapping(
 
 export async function validateCsvMapping(
   mapping: ICsvFieldMapping,
-  defaultType?: "EXPENSE" | "INCOME",
-  typeDetectionStrategy?: string,
+  typeDetectionStrategy: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
   bank?: BankEnum
 ): Promise<ICsvMappingValidation> {
   return apiPost<ICsvMappingValidation>("/transactions/csv-mapping/validate", {
     mapping,
-    defaultType,
     typeDetectionStrategy,
     defaultCurrency,
     bank,
@@ -137,8 +135,7 @@ export async function parseCsvRows(
   mapping: ICsvFieldMapping,
   page: number = 1,
   limit: number = 50,
-  defaultType?: "EXPENSE" | "INCOME",
-  typeDetectionStrategy?: string,
+  typeDetectionStrategy: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
   bank?: BankEnum
 ): Promise<ICsvParseResponse> {
@@ -147,12 +144,7 @@ export async function parseCsvRows(
   formData.append("mapping", JSON.stringify(mapping));
   formData.append("page", page.toString());
   formData.append("limit", limit.toString());
-  if (defaultType) {
-    formData.append("defaultType", defaultType);
-  }
-  if (typeDetectionStrategy) {
-    formData.append("typeDetectionStrategy", typeDetectionStrategy);
-  }
+  formData.append("typeDetectionStrategy", typeDetectionStrategy);
   if (defaultCurrency) {
     formData.append("defaultCurrency", defaultCurrency);
   }

@@ -36,13 +36,13 @@ import {
   useUploadCsvFile,
   useValidateCsvMapping,
 } from "../hooks/useCsvImport";
+import { getDefaultStrategyForBank } from "../services/csv-type-detection";
 import { BankSelect } from "./bank-select";
 
 interface ICsvImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
-  defaultType?: "EXPENSE" | "INCOME";
 }
 
 type IStep = "upload" | "mapping" | "review" | "confirm";
@@ -51,7 +51,6 @@ export function TransactionCsvImportDialog({
   open,
   onOpenChange,
   onSuccess,
-  defaultType,
 }: ICsvImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
@@ -62,21 +61,21 @@ export function TransactionCsvImportDialog({
   const [parseResponse, setParseResponse] = useState<any>(null);
   const [selectedBank, setSelectedBank] = useState<BankEnum | null>(null);
 
+  // Derive strategy from bank selection
+  const typeDetectionStrategy = getDefaultStrategyForBank(selectedBank);
+
   // Form for mapping step controls
   type MappingFormData = {
-    typeDetectionStrategy: string;
     defaultCurrency: ICurrency;
     mappings: Record<string, string>;
   };
   const mappingForm = useForm<MappingFormData>({
     defaultValues: {
-      typeDetectionStrategy: "sign-based",
       defaultCurrency: "EUR",
       mappings: {},
     },
   });
   const { isDirty: mappingFormDirty } = mappingForm.formState;
-  const typeDetectionStrategy = mappingForm.watch("typeDetectionStrategy");
   const defaultCurrency = mappingForm.watch("defaultCurrency");
 
   const uploadMutation = useUploadCsvFile();
@@ -84,15 +83,13 @@ export function TransactionCsvImportDialog({
     columns.length > 0 ? columns : undefined,
     selectedBank
   );
-  const validateMutation = useValidateCsvMapping(defaultType);
+  const validateMutation = useValidateCsvMapping();
   const parseQuery = useParseCsvRows(
     file,
     mapping,
     currentPage,
     50,
-    defaultType,
-    // Only use type detection strategy if defaultType is not provided
-    defaultType ? undefined : typeDetectionStrategy,
+    typeDetectionStrategy,
     defaultCurrency,
     selectedBank
   );
@@ -112,7 +109,6 @@ export function TransactionCsvImportDialog({
     setParseResponse(null);
     setSelectedBank(null);
     mappingForm.reset({
-      typeDetectionStrategy: "sign-based",
       defaultCurrency: "EUR",
       mappings: {},
     });
@@ -144,7 +140,7 @@ export function TransactionCsvImportDialog({
   const suggestedMapping = mappingQuery.data?.mapping;
   const mappingMetadata = mappingQuery.data?.metadata;
 
-  // Auto-detect mapping when columns are available
+  // Auto-detect mapping when columns are available or bank changes
   useEffect(() => {
     if (columns.length > 0 && suggestedMapping) {
       setMapping(suggestedMapping);
@@ -155,17 +151,14 @@ export function TransactionCsvImportDialog({
       });
       mappingForm.setValue("mappings", formMappings);
     }
-  }, [columns, suggestedMapping, mappingForm]);
+  }, [columns, suggestedMapping, mappingForm, selectedBank]);
 
   // Load candidates when parse query succeeds
   useEffect(() => {
     if (parseQuery.data) {
-      // Ensure defaultType and defaultCurrency are set in all candidates if provided
+      // Ensure defaultCurrency is set in all candidates if provided
       const candidatesWithDefaults = parseQuery.data.candidates.map((c) => {
         const updatedData = { ...c.data };
-        if (defaultType && !c.data.type) {
-          updatedData.type = defaultType;
-        }
         if (defaultCurrency && !c.data.currency) {
           updatedData.currency = defaultCurrency;
         }
@@ -182,7 +175,7 @@ export function TransactionCsvImportDialog({
         .map((c) => c.rowIndex);
       setSelectedRows(new Set(validIndices));
     }
-  }, [parseQuery.data, defaultType, defaultCurrency]);
+  }, [parseQuery.data, defaultCurrency]);
 
   const handleFileChange = (nextFile: File | null) => {
     if (!nextFile) {
@@ -223,8 +216,7 @@ export function TransactionCsvImportDialog({
     try {
       const result = await validateMutation.mutateAsync({
         mapping,
-        defaultType,
-        typeDetectionStrategy: defaultType ? undefined : typeDetectionStrategy,
+        typeDetectionStrategy,
         defaultCurrency,
         bank: selectedBank || undefined,
       });
@@ -240,16 +232,12 @@ export function TransactionCsvImportDialog({
     }
   };
 
-  // Re-parse when type detection strategy or currency changes
+  // Re-parse when bank/strategy or currency changes
   useEffect(() => {
     if (parseQuery.data) {
-      if (!defaultType && typeDetectionStrategy) {
-        parseQuery.refetch();
-      } else if (defaultCurrency) {
-        parseQuery.refetch();
-      }
+      parseQuery.refetch();
     }
-  }, [typeDetectionStrategy, defaultCurrency, defaultType, parseQuery]);
+  }, [typeDetectionStrategy, defaultCurrency, parseQuery]);
 
   const handleSelectAllValid = () => {
     const validIndices = candidates
@@ -276,7 +264,7 @@ export function TransactionCsvImportDialog({
 
       const transaction: ICreateTransactionInput = {
         ...candidate.data,
-        type: defaultType || candidate.data.type || "EXPENSE",
+        type: candidate.data.type || "EXPENSE",
         currency: candidate.data.currency || defaultCurrency,
       };
 
@@ -321,18 +309,30 @@ export function TransactionCsvImportDialog({
   );
 
   const renderMappingStep = (navigation: IStepNavigation<IStep>) => {
-    // Filter out type field if defaultType is provided
     // Filter out currency field (handled separately)
     const fieldsToShow = TRANSACTION_FIELDS.filter(
-      (f) => f.name !== "currency" && (defaultType ? f.name !== "type" : true)
+      (f) => f.name !== "currency"
     );
 
     return (
       <div className="space-y-4">
-        {defaultType && (
+        <div>
+          <BankSelect
+            value={selectedBank}
+            onChange={setSelectedBank}
+            helperText="Selecting a bank applies tailored column defaults and type detection strategy."
+          />
+        </div>
+        {selectedBank && (
           <div className="p-3 bg-primary/10 border border-primary rounded-lg">
             <p className="text-sm text-primary font-medium">
-              Transaction type will be set to: {defaultType}
+              Using{" "}
+              {selectedBank === "AMERICAN_EXPRESS"
+                ? "Amex"
+                : selectedBank === "ING"
+                  ? "ING"
+                  : selectedBank}{" "}
+              type detection strategy
             </p>
           </div>
         )}
@@ -343,36 +343,20 @@ export function TransactionCsvImportDialog({
             </p>
           </div>
         )}
-        {!defaultType && (
-          <Form form={mappingForm} onSubmit={() => {}}>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium">
-                Type Detection Strategy
-              </label>
-              <SelectDropdown
-                name="typeDetectionStrategy"
-                options={[
-                  {
-                    value: "sign-based",
-                    label:
-                      "Sign-based (Default) - Negative = Expense, Positive = Income",
-                  },
-                  {
-                    value: "amex",
-                    label:
-                      "Amex Format - Negative = Income, Positive = Expense",
-                  },
-                ]}
-                placeholder="Select strategy..."
-                multiple={false}
-              />
-              <p className="text-xs text-text-muted">
-                How to determine transaction type when not specified in CSV
-              </p>
-            </div>
-          </Form>
+        {selectedBank === "ING" && (
+          <div className="p-3 bg-info/10 border border-info rounded-lg">
+            <p className="text-sm text-info font-medium mb-1">
+              ING Strategy: Type Column Required
+            </p>
+            <p className="text-xs text-text-muted">
+              The "Type" field must be mapped to a column containing "debit" or
+              "credit" values. "Debit" = Expense, "Credit" = Income.
+            </p>
+          </div>
         )}
-        <Form form={mappingForm} onSubmit={() => {}}>
+        <Form
+          form={mappingForm}
+          onSubmit={() => {}}>
           <div className="space-y-2">
             <label className="block text-sm font-medium">
               Currency <span className="text-danger ml-1">*</span>
@@ -402,17 +386,30 @@ export function TransactionCsvImportDialog({
             const currentValue = mapping[field.name] || "";
 
             return (
-              <div key={field.name} className="space-y-1">
+              <div
+                key={field.name}
+                className="space-y-1">
                 <label className="block text-sm font-medium">
                   {field.label}
                   {isRequiredField(field.name) &&
                     !(
-                      field.name === "type" &&
-                      !defaultType &&
-                      typeDetectionStrategy
+                      field.name === "type" && typeDetectionStrategy !== "ing"
                     ) && <span className="text-danger ml-1">*</span>}
+                  {field.name === "type" && typeDetectionStrategy === "ing" && (
+                    <span className="text-danger ml-1">*</span>
+                  )}
                 </label>
-                <Form form={mappingForm} onSubmit={() => {}}>
+                {field.name === "type" &&
+                  typeDetectionStrategy === "ing" &&
+                  field.description && (
+                    <p className="text-xs text-text-muted">
+                      {field.description} (Required for ING: map to debit/credit
+                      column)
+                    </p>
+                  )}
+                <Form
+                  form={mappingForm}
+                  onSubmit={() => {}}>
                   <SelectDropdown
                     name={`mappings.${field.name}`}
                     options={columnOptions}
@@ -495,8 +492,7 @@ export function TransactionCsvImportDialog({
             <HeaderCell align="left">Currency</HeaderCell>,
             <HeaderCell align="left">Type</HeaderCell>,
             <HeaderCell align="left">Errors</HeaderCell>,
-          ]}
-        >
+          ]}>
           {candidates.map((candidate) => {
             return (
               <TableRow
@@ -505,8 +501,7 @@ export function TransactionCsvImportDialog({
                 className={cn(
                   "border-t border-border",
                   candidate.status === "invalid" && "bg-danger/5"
-                )}
-              >
+                )}>
                 <BodyCell>
                   <span
                     className={cn(
@@ -515,8 +510,7 @@ export function TransactionCsvImportDialog({
                         "bg-success/20 text-success",
                       candidate.status === "invalid" &&
                         "bg-danger/20 text-danger"
-                    )}
-                  >
+                    )}>
                     {candidate.status}
                   </span>
                 </BodyCell>
@@ -546,7 +540,7 @@ export function TransactionCsvImportDialog({
                 </BodyCell>
                 <BodyCell>
                   <span className="text-sm font-medium">
-                    {defaultType || candidate.data.type || "—"}
+                    {candidate.data.type || "—"}
                   </span>
                 </BodyCell>
                 <BodyCell>

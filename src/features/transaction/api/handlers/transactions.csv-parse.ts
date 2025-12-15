@@ -42,10 +42,6 @@ export async function POST({ request }: { request: Request }) {
       const mapping = CsvFieldMappingSchema.parse(JSON.parse(mappingJson));
       const page = parseInt(formData.get("page") as string) || 1;
       const limit = parseInt(formData.get("limit") as string) || 50;
-      const defaultType = formData.get("defaultType") as
-        | "EXPENSE"
-        | "INCOME"
-        | null;
       const typeDetectionStrategy = formData.get("typeDetectionStrategy") as
         | string
         | null;
@@ -91,8 +87,7 @@ export async function POST({ request }: { request: Request }) {
         rows,
         parseRequest.mapping,
         userId,
-        defaultType || undefined,
-        parseRequest.typeDetectionStrategy,
+        parseRequest.typeDetectionStrategy || "sign-based",
         defaultCurrency || undefined
       );
 

@@ -49,32 +49,19 @@ export function useGetCsvMapping(
 /**
  * Validate CSV mapping mutation
  */
-export function useValidateCsvMapping(defaultType?: "EXPENSE" | "INCOME") {
+export function useValidateCsvMapping() {
   return useFinMutation<
     ICsvMappingValidation,
     Error,
     {
       mapping: ICsvFieldMapping;
-      defaultType?: "EXPENSE" | "INCOME";
-      typeDetectionStrategy?: string;
+      typeDetectionStrategy: string;
       defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY";
       bank?: BankEnum;
     }
   >({
-    mutationFn: ({
-      mapping,
-      defaultType: dt,
-      typeDetectionStrategy,
-      defaultCurrency,
-      bank,
-    }) =>
-      validateCsvMapping(
-        mapping,
-        dt || defaultType,
-        typeDetectionStrategy,
-        defaultCurrency,
-        bank
-      ),
+    mutationFn: ({ mapping, typeDetectionStrategy, defaultCurrency, bank }) =>
+      validateCsvMapping(mapping, typeDetectionStrategy, defaultCurrency, bank),
   });
 }
 
@@ -86,8 +73,7 @@ export function useParseCsvRows(
   mapping: ICsvFieldMapping | null,
   page: number = 1,
   limit: number = 50,
-  defaultType?: "EXPENSE" | "INCOME",
-  typeDetectionStrategy?: string,
+  typeDetectionStrategy: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
   bank?: BankEnum | null
 ) {
@@ -98,7 +84,6 @@ export function useParseCsvRows(
       mapping,
       page,
       limit,
-      defaultType,
       typeDetectionStrategy,
       defaultCurrency,
       bank,
@@ -112,13 +97,12 @@ export function useParseCsvRows(
         mapping,
         page,
         limit,
-        defaultType,
         typeDetectionStrategy,
         defaultCurrency,
         bank || undefined
       );
     },
-    enabled: !!file && !!mapping,
+    enabled: !!file && !!mapping && false,
     staleTime: 30 * 1000, // 30 seconds
   });
 }

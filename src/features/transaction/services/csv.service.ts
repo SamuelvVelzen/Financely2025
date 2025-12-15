@@ -217,6 +217,7 @@ export function autoDetectMapping(
     hints: Partial<Record<ITransactionFieldName, string[]>> | undefined
   ) => {
     if (!hints) return;
+
     Object.entries(hints).forEach(([field, columnHints]) => {
       if (!columnHints || mapping[field as ITransactionFieldName]) {
         return;
@@ -224,21 +225,39 @@ export function autoDetectMapping(
       const normalizedHints = columnHints.map((hint) =>
         normalizeColumnName(hint)
       );
-      for (let i = 0; i < normalizedColumns.length; i++) {
-        if (usedColumnIndexes.has(i)) continue;
-        const normalizedCol = normalizedColumns[i].normalized;
-        if (
-          normalizedHints.some(
-            (hint) =>
-              normalizedCol === hint ||
-              normalizedCol.includes(hint) ||
-              hint.includes(normalizedCol)
-          )
-        ) {
-          mapping[field as ITransactionFieldName] =
-            normalizedColumns[i].original;
-          usedColumnIndexes.add(i);
-          break;
+
+      // First pass: look for exact matches (check hints in order, then find matching column)
+      for (const hint of normalizedHints) {
+        for (let i = 0; i < normalizedColumns.length; i++) {
+          if (usedColumnIndexes.has(i)) continue;
+          const normalizedCol = normalizedColumns[i].normalized;
+
+          if (normalizedCol === hint) {
+            mapping[field as ITransactionFieldName] =
+              normalizedColumns[i].original;
+            usedColumnIndexes.add(i);
+            break; // Found match for this hint, move to next hint
+          }
+        }
+
+        if (mapping[field as ITransactionFieldName]) break; // Found exact match, stop
+      }
+
+      // Second pass: look for substring matches (only if no exact match found)
+      if (!mapping[field as ITransactionFieldName]) {
+        for (const hint of normalizedHints) {
+          for (let i = 0; i < normalizedColumns.length; i++) {
+            if (usedColumnIndexes.has(i)) continue;
+            const normalizedCol = normalizedColumns[i].normalized;
+
+            if (normalizedCol.includes(hint) || hint.includes(normalizedCol)) {
+              mapping[field as ITransactionFieldName] =
+                normalizedColumns[i].original;
+              usedColumnIndexes.add(i);
+              break; // Found match for this hint, move to next hint
+            }
+          }
+          if (mapping[field as ITransactionFieldName]) break; // Found match, stop
         }
       }
     });
@@ -286,15 +305,20 @@ export function autoDetectMapping(
 export function validateMapping(
   mapping: ICsvFieldMapping,
   requiredFields: readonly string[],
-  defaultType?: "EXPENSE" | "INCOME",
-  hasTypeDetection?: boolean,
+  typeDetectionStrategy?: string,
   hasDefaultCurrency?: boolean
 ): { valid: boolean; missingFields: string[] } {
   const missingFields: string[] = [];
 
   for (const field of requiredFields) {
-    // Skip type field if defaultType is provided or type detection is enabled
-    if (field === "type" && (defaultType || hasTypeDetection)) {
+    // Skip type field if type detection strategy is enabled and doesn't require type column
+    // ING strategy requires type column, so we don't skip for ING
+    if (
+      field === "type" &&
+      typeDetectionStrategy &&
+      typeDetectionStrategy !== "ing"
+    ) {
+      // Other strategies (amex, sign-based) don't require type column
       continue;
     }
     // Skip currency field if defaultCurrency is provided
@@ -320,8 +344,7 @@ export async function convertRowToTransaction(
   row: Record<string, string>,
   mapping: ICsvFieldMapping,
   userId: string,
-  defaultType?: "EXPENSE" | "INCOME",
-  typeDetectionStrategy?: string,
+  typeDetectionStrategy: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
 ): Promise<Partial<ICreateTransactionInput>> {
   const transaction: Partial<ICreateTransactionInput> = {};
@@ -342,20 +365,15 @@ export async function convertRowToTransaction(
     }
   }
 
-  // Determine type
-  if (defaultType) {
-    // Use provided default type (from expense/income overview context)
-    transaction.type = defaultType;
-  } else if (mapping.type && row[mapping.type]) {
-    // Type is explicitly mapped in CSV
-    transaction.type = parseType(row[mapping.type].trim());
-  } else if (parsedAmount && typeDetectionStrategy) {
-    // Use type detection strategy
+  // Determine type using strategy
+  if (parsedAmount && typeDetectionStrategy) {
+    // Use type detection strategy (strategy will handle whether it needs type column or not)
     const strategy = TypeDetectionFactory.getStrategy(typeDetectionStrategy);
     const context: ITypeDetectionContext = {
       amount: parsedAmount,
       rawAmount: row[mapping.amount || ""] || "",
       row,
+      mapping,
     };
     transaction.type = strategy.detectType(context);
   } else if (parsedAmount) {
@@ -367,6 +385,7 @@ export async function convertRowToTransaction(
       amount: parsedAmount,
       rawAmount: row[mapping.amount || ""] || "",
       row,
+      mapping,
     };
     transaction.type = strategy.detectType(context);
   }
@@ -575,7 +594,7 @@ async function parseTags(value: string, userId: string): Promise<string[]> {
 export function validateCandidateTransaction(
   candidate: Partial<ICreateTransactionInput>,
   rawValues: Record<string, string>,
-  hasTypeDetection: boolean = false
+  typeDetectionStrategy?: string
 ): Array<{ field: string; message: string }> {
   const errors: Array<{ field: string; message: string }> = [];
 
@@ -583,7 +602,13 @@ export function validateCandidateTransaction(
   for (const field of SYSTEM_REQUIRED_FIELDS) {
     // Skip type validation if type detection is enabled and type is not set
     // (it will be set during conversion)
-    if (field === "type" && hasTypeDetection && !candidate.type) {
+    // But ING strategy requires type to be set
+    if (
+      field === "type" &&
+      typeDetectionStrategy &&
+      typeDetectionStrategy !== "ing" &&
+      !candidate.type
+    ) {
       continue;
     }
     if (!candidate[field as keyof ICreateTransactionInput]) {
@@ -619,8 +644,7 @@ export async function convertRowsToCandidates(
   rows: Record<string, string>[],
   mapping: ICsvFieldMapping,
   userId: string,
-  defaultType?: "EXPENSE" | "INCOME",
-  typeDetectionStrategy?: string,
+  typeDetectionStrategy: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
 ): Promise<ICsvCandidateTransaction[]> {
   const candidates: ICsvCandidateTransaction[] = [];
@@ -632,14 +656,13 @@ export async function convertRowsToCandidates(
         row,
         mapping,
         userId,
-        defaultType,
         typeDetectionStrategy,
         defaultCurrency
       );
       const errors = validateCandidateTransaction(
         transaction,
         row,
-        !!typeDetectionStrategy && !defaultType
+        typeDetectionStrategy
       );
 
       // Determine status

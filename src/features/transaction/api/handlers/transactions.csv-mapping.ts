@@ -62,7 +62,6 @@ export async function validate({ request }: { request: Request }) {
     return await withAuth(async () => {
       const body = await request.json();
       const mapping = CsvFieldMappingSchema.parse(body.mapping);
-      const defaultType = body.defaultType as "EXPENSE" | "INCOME" | undefined;
       const typeDetectionStrategy = body.typeDetectionStrategy as
         | string
         | undefined;
@@ -75,13 +74,12 @@ export async function validate({ request }: { request: Request }) {
         | "JPY"
         | undefined;
 
-      // If type detection strategy is provided and defaultType is not, type field is optional
+      // If type detection strategy is provided, type field may be optional (except for ING)
       // If defaultCurrency is provided, currency field is optional
       const validation = validateMapping(
         mapping,
         SYSTEM_REQUIRED_FIELDS,
-        defaultType,
-        !!typeDetectionStrategy && !defaultType,
+        typeDetectionStrategy,
         !!defaultCurrency
       );
 

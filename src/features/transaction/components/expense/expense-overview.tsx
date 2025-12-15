@@ -308,7 +308,6 @@ export function ExpenseOverview() {
         onSuccess={() => {
           // Transactions will be refetched automatically via query invalidation
         }}
-        defaultType="EXPENSE"
       />
     </>
   );
