@@ -60,10 +60,10 @@ export function TransactionCsvImportDialog({
   const [currentPage, setCurrentPage] = useState(1);
   const [parseResponse, setParseResponse] = useState<any>(null);
   const [selectedBank, setSelectedBank] = useState<BankEnum | null>(null);
+  const [currentStep, setCurrentStep] = useState<IStep>("upload");
 
   // Derive strategy from bank selection
   const typeDetectionStrategy = getDefaultStrategyForBank(selectedBank);
-
   // Form for mapping step controls
   type MappingFormData = {
     defaultCurrency: ICurrency;
@@ -91,7 +91,8 @@ export function TransactionCsvImportDialog({
     50,
     typeDetectionStrategy,
     defaultCurrency,
-    selectedBank
+    selectedBank,
+    currentStep === "review" // Only enable parsing when on review step
   );
   const importMutation = useImportCsvTransactions();
   const isBusy =
@@ -222,8 +223,6 @@ export function TransactionCsvImportDialog({
       });
       if (result.valid) {
         goToStep("review");
-        // Trigger parse query with current type detection strategy
-        parseQuery.refetch();
       } else {
         alert(`Missing required fields: ${result.missingFields.join(", ")}`);
       }
@@ -231,13 +230,6 @@ export function TransactionCsvImportDialog({
       console.error("Validation failed:", error);
     }
   };
-
-  // Re-parse when bank/strategy or currency changes
-  useEffect(() => {
-    if (parseQuery.data) {
-      parseQuery.refetch();
-    }
-  }, [typeDetectionStrategy, defaultCurrency, parseQuery]);
 
   const handleSelectAllValid = () => {
     const validIndices = candidates
@@ -260,12 +252,24 @@ export function TransactionCsvImportDialog({
 
     for (const rowIndex of selectedRows) {
       const candidate = candidates.find((c) => c.rowIndex === rowIndex);
-      if (!candidate) continue;
+      if (
+        !candidate ||
+        !candidate.data.type ||
+        !candidate.data.amount ||
+        !candidate.data.occurredAt ||
+        !candidate.data.name
+      ) {
+        continue; // Skip invalid candidates
+      }
 
       const transaction: ICreateTransactionInput = {
         ...candidate.data,
-        type: candidate.data.type || "EXPENSE",
-        currency: candidate.data.currency || defaultCurrency,
+        type: candidate.data.type,
+        currency: candidate.data.currency || defaultCurrency || "EUR",
+        amount: candidate.data.amount,
+        occurredAt: candidate.data.occurredAt,
+        name: candidate.data.name,
+        tagIds: candidate.data.tagIds || [],
       };
 
       transactionsToImport.push(transaction);
@@ -642,6 +646,7 @@ export function TransactionCsvImportDialog({
               });
           },
           disabled: !file,
+          variant: "primary",
           buttonContent: "Next",
         },
       ],
@@ -724,6 +729,9 @@ export function TransactionCsvImportDialog({
       hasUnsavedChanges={() => hasUnsavedChanges}
       onReset={resetAllState}
       isBusy={isBusy}
+      onStepChange={(_, nextStep) => {
+        setCurrentStep(nextStep);
+      }}
     />
   );
 }

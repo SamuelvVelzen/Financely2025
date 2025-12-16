@@ -75,7 +75,8 @@ export function useParseCsvRows(
   limit: number = 50,
   typeDetectionStrategy: string,
   defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
-  bank?: BankEnum | null
+  bank?: BankEnum | null,
+  enabled: boolean = false
 ) {
   return useFinQuery<ICsvParseResponse, Error>({
     queryKey: [
@@ -102,7 +103,7 @@ export function useParseCsvRows(
         bank || undefined
       );
     },
-    enabled: !!file && !!mapping && false,
+    enabled: !!file && !!mapping && enabled,
     staleTime: 30 * 1000, // 30 seconds
   });
 }

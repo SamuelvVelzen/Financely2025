@@ -679,10 +679,18 @@ export async function convertRowsToCandidates(
         errors,
       });
     } catch (error) {
+      // Create a valid but empty transaction structure for invalid candidates
       candidates.push({
         rowIndex: i,
         status: "invalid",
-        data: {} as ICreateTransactionInput,
+        data: {
+          type: "EXPENSE",
+          amount: "0",
+          currency: "EUR",
+          occurredAt: new Date().toISOString(),
+          name: "Invalid transaction",
+          tagIds: [],
+        } as ICreateTransactionInput,
         rawValues: row,
         errors: [
           {

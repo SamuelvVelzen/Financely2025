@@ -34,6 +34,8 @@ export interface IMultiStepDialogProps<StepType extends string> {
   onReset: () => void;
   /** Whether dialog is busy (disables dismissal) */
   isBusy?: boolean;
+  /** Callback when step changes, receives previous and next step */
+  onStepChange?: (previousStep: StepType, nextStep: StepType) => void;
 }
 
 export function MultiStepDialog<StepType extends string>({
@@ -44,6 +46,7 @@ export function MultiStepDialog<StepType extends string>({
   hasUnsavedChanges,
   onReset,
   isBusy = false,
+  onStepChange,
 }: IMultiStepDialogProps<StepType>) {
   const [step, setStep] = useState<StepType>(initialStep);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
@@ -51,7 +54,12 @@ export function MultiStepDialog<StepType extends string>({
   // Reset step when dialog opens
   useEffect(() => {
     if (open) {
+      const previousStep = step;
       setStep(initialStep);
+      // Call onStepChange if step actually changed
+      if (previousStep !== initialStep) {
+        onStepChange?.(previousStep, initialStep);
+      }
     }
   }, [open, initialStep]);
 
@@ -89,9 +97,15 @@ export function MultiStepDialog<StepType extends string>({
     return null;
   }
 
+  const handleStepChange = (nextStep: StepType) => {
+    const previousStep = step;
+    setStep(nextStep);
+    onStepChange?.(previousStep, nextStep);
+  };
+
   const navigation: IStepNavigation<StepType> = {
     currentStep: step,
-    goToStep: setStep,
+    goToStep: handleStepChange,
   };
 
   return (
