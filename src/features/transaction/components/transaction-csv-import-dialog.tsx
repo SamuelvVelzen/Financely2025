@@ -346,13 +346,6 @@ export function TransactionCsvImportDialog({
             </p>
           </div>
         )}
-        {mappingMetadata?.propertyOrder && (
-          <div className="p-3 bg-surface-hover border border-border rounded-lg">
-            <p className="text-xs text-text-muted">
-              Bank-specific column order: {mappingMetadata.propertyOrder}
-            </p>
-          </div>
-        )}
         {selectedBank === "ING" && (
           <div className="p-3 bg-info/10 border border-info rounded-lg">
             <p className="text-sm text-info font-medium mb-1">

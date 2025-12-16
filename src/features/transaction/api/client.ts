@@ -25,7 +25,6 @@ export interface ICsvMappingSuggestion {
   mapping: ICsvFieldMapping;
   metadata?: {
     bank?: BankEnum | null;
-    propertyOrder?: string | null;
   };
 }
 

@@ -41,7 +41,6 @@ export async function POST({ request }: { request: Request }) {
         {
           mapping: validatedMapping,
           metadata: {
-            propertyOrder: autoMapping.metadata.propertyOrder || null,
             bank: autoMapping.metadata.bank || null,
           },
         },

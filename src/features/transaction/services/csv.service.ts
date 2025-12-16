@@ -194,7 +194,6 @@ const normalizeColumnName = (value: string) =>
 export interface IAutoMappingResult {
   mapping: Partial<ICsvFieldMapping>;
   metadata: {
-    propertyOrder?: string;
     bank?: BankEnum;
   };
 }
@@ -293,7 +292,6 @@ export function autoDetectMapping(
   return {
     mapping,
     metadata: {
-      propertyOrder: BankProfileFactory.getPropertyOrder(bank),
       bank: bank || undefined,
     },
   };

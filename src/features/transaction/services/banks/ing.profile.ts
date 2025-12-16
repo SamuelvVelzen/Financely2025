@@ -10,7 +10,6 @@ const VALIDATED_COLUMN_HINTS = {
 };
 
 export const ingProfile: BankProfile = {
-  propertyOrder: "Datum,Naam/Omschrijving,Rekening,Tegenrekening,CODE",
   columnHints: {
     occurredAt: [
       ...VALIDATED_COLUMN_HINTS.occurredAt,

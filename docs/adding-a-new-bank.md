@@ -45,9 +45,6 @@ Create a new profile file with column hints. Column hints help the system automa
 import type { BankProfile } from "../bank.factory";
 
 export const yourNewBankProfile: BankProfile = {
-  // Optional: Expected column order in CSV (for reference/documentation)
-  propertyOrder: "Date,Description,Amount,Currency,Type",
-  
   // Column hints: array of possible column names for each field
   columnHints: {
     occurredAt: ["Date", "Transaction Date", "Booking Date"],

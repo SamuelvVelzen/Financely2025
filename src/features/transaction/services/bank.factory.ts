@@ -7,7 +7,6 @@ import { n26Profile } from "./banks/n26.profile";
 type BankColumnHints = Partial<Record<ITransactionFieldName, string[]>>;
 
 export interface BankProfile {
-  propertyOrder: string;
   columnHints: BankColumnHints;
 }
 
@@ -29,11 +28,5 @@ export class BankProfileFactory {
     bank: BankEnum | null | undefined
   ): BankColumnHints | undefined {
     return this.getProfile(bank)?.columnHints;
-  }
-
-  static getPropertyOrder(
-    bank: BankEnum | null | undefined
-  ): string | undefined {
-    return this.getProfile(bank)?.propertyOrder;
   }
 }

@@ -1,7 +1,6 @@
 import type { BankProfile } from "../bank.factory";
 
 export const americanExpressProfile: BankProfile = {
-  propertyOrder: "Date,Description,Amount,Currency,Type",
   columnHints: {
     occurredAt: ["Date", "Date & Time", "Transaction Date"],
     name: ["Description", "Card Member", "Merchant"],
