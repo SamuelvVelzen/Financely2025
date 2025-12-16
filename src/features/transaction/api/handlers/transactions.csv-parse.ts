@@ -15,6 +15,7 @@ import {
   MAX_ROWS,
   parseCsvRows,
 } from "../../services/csv.service";
+import { BankSchema } from "../../validation/transaction.schema";
 
 /**
  * POST /api/v1/transactions/csv/parse
@@ -63,6 +64,11 @@ export async function POST({ request }: { request: Request }) {
         bank: bank || undefined,
       });
 
+      // Validate bank if provided
+      const validatedBank = parseRequest.bank
+        ? BankSchema.parse(parseRequest.bank)
+        : undefined;
+
       // Parse rows
       const { rows, total } = await parseCsvRows(
         file,
@@ -87,8 +93,9 @@ export async function POST({ request }: { request: Request }) {
         rows,
         parseRequest.mapping,
         userId,
-        parseRequest.typeDetectionStrategy || "sign-based",
-        defaultCurrency || undefined
+        parseRequest.typeDetectionStrategy || "default",
+        defaultCurrency || undefined,
+        validatedBank
       );
 
       // Calculate stats

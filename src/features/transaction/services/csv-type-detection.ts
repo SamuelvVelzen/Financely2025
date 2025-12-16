@@ -46,7 +46,7 @@ export class SignBasedTypeDetection implements ITypeDetectionStrategy {
   }
 
   getName(): string {
-    return "Sign-based (Default)";
+    return "Default";
   }
 
   getDescription(): string {
@@ -115,7 +115,7 @@ export class IngTypeDetection implements ITypeDetectionStrategy {
  */
 export class TypeDetectionFactory {
   private static strategies: Map<string, ITypeDetectionStrategy> = new Map([
-    ["sign-based", new SignBasedTypeDetection()],
+    ["default", new SignBasedTypeDetection()],
     ["amex", new AmexTypeDetection()],
     ["ing", new IngTypeDetection()],
   ]);
@@ -126,8 +126,8 @@ export class TypeDetectionFactory {
   static getStrategy(name: string): ITypeDetectionStrategy {
     const strategy = this.strategies.get(name);
     if (!strategy) {
-      // Default to sign-based if strategy not found
-      return this.strategies.get("sign-based")!;
+      // Default to default if strategy not found
+      return this.strategies.get("default")!;
     }
     return strategy;
   }
@@ -153,7 +153,7 @@ export class TypeDetectionFactory {
 /**
  * Default strategy name
  */
-export const DEFAULT_TYPE_DETECTION_STRATEGY = "sign-based";
+export const DEFAULT_TYPE_DETECTION_STRATEGY = "default";
 
 /**
  * Get default type detection strategy for a bank
@@ -167,6 +167,6 @@ export function getDefaultStrategyForBank(
   if (bank === "ING") {
     return "ing";
   }
-  return DEFAULT_TYPE_DETECTION_STRATEGY;
+  return "default";
 }
 

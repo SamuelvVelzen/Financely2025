@@ -12,6 +12,7 @@ import {
   type ITransactionFieldName,
 } from "../config/transaction-fields";
 import { BankProfileFactory } from "./bank.factory";
+import { DateParsingFactory } from "./csv-date-parsing";
 import {
   DEFAULT_TYPE_DETECTION_STRATEGY,
   TypeDetectionFactory,
@@ -316,7 +317,7 @@ export function validateMapping(
       typeDetectionStrategy &&
       typeDetectionStrategy !== "ing"
     ) {
-      // Other strategies (amex, sign-based) don't require type column
+      // Other strategies (amex, default) don't require type column
       continue;
     }
     // Skip currency field if defaultCurrency is provided
@@ -343,7 +344,8 @@ export async function convertRowToTransaction(
   mapping: ICsvFieldMapping,
   userId: string,
   typeDetectionStrategy: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
+  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
+  bank?: BankEnum | null
 ): Promise<Partial<ICreateTransactionInput>> {
   const transaction: Partial<ICreateTransactionInput> = {};
 
@@ -375,7 +377,7 @@ export async function convertRowToTransaction(
     };
     transaction.type = strategy.detectType(context);
   } else if (parsedAmount) {
-    // Fallback to default sign-based strategy
+    // Fallback to default strategy
     const strategy = TypeDetectionFactory.getStrategy(
       DEFAULT_TYPE_DETECTION_STRATEGY
     );
@@ -408,7 +410,8 @@ export async function convertRowToTransaction(
         }
         break;
       case "occurredAt":
-        transaction.occurredAt = parseDate(rawValue);
+        const dateStrategy = DateParsingFactory.getStrategy(bank);
+        transaction.occurredAt = dateStrategy.parseDate(rawValue);
         break;
       case "name":
         transaction.name = rawValue;
@@ -487,50 +490,6 @@ function parseCurrency(
     return normalized as any;
   }
   return "USD"; // Default
-}
-
-/**
- * Parse date (supports multiple formats)
- */
-function parseDate(value: string): string {
-  if (!value) {
-    throw new Error("Date is required");
-  }
-
-  // Try ISO format first
-  const isoDate = new Date(value);
-  if (!isNaN(isoDate.getTime())) {
-    return isoDate.toISOString();
-  }
-
-  // Try common formats: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, DD.MM.YYYY
-  const formats = [
-    /^(\d{4})-(\d{2})-(\d{2})/, // YYYY-MM-DD
-    /^(\d{2})\/(\d{2})\/(\d{4})/, // MM/DD/YYYY or DD/MM/YYYY
-    /^(\d{2})\.(\d{2})\.(\d{4})/, // DD.MM.YYYY
-  ];
-
-  for (const format of formats) {
-    const match = value.match(format);
-    if (match) {
-      let year: string, month: string, day: string;
-
-      if (format === formats[0]) {
-        // YYYY-MM-DD
-        [, year, month, day] = match;
-      } else {
-        // Assume DD/MM/YYYY or DD.MM.YYYY (most common in Europe)
-        [, day, month, year] = match;
-      }
-
-      const date = new Date(`${year}-${month}-${day}`);
-      if (!isNaN(date.getTime())) {
-        return date.toISOString();
-      }
-    }
-  }
-
-  throw new Error(`Invalid date format: ${value}`);
 }
 
 /**
@@ -643,7 +602,8 @@ export async function convertRowsToCandidates(
   mapping: ICsvFieldMapping,
   userId: string,
   typeDetectionStrategy: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY"
+  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
+  bank?: BankEnum | null
 ): Promise<ICsvCandidateTransaction[]> {
   const candidates: ICsvCandidateTransaction[] = [];
 
@@ -655,7 +615,8 @@ export async function convertRowsToCandidates(
         mapping,
         userId,
         typeDetectionStrategy,
-        defaultCurrency
+        defaultCurrency,
+        bank
       );
       const errors = validateCandidateTransaction(
         transaction,

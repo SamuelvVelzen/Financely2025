@@ -97,9 +97,9 @@ const BANK_REGISTRY: Record<BankEnum, BankProfile> = {
 
 **File**: `src/features/transaction/services/csv-type-detection.ts`
 
-You only need to create a custom strategy if the bank doesn't use the default sign-based detection.
+You only need to create a custom strategy if the bank doesn't use the default detection.
 
-#### Option A: Use Default Sign-Based Strategy
+#### Option A: Use Default Strategy
 
 If your bank uses standard conventions:
 - **Negative amounts** = EXPENSE
@@ -107,7 +107,7 @@ If your bank uses standard conventions:
 
 No additional code needed! Skip to Step 5.
 
-#### Option B: Create Inverted Sign-Based Strategy
+#### Option B: Create Inverted Strategy
 
 If your bank inverts the signs (like Amex):
 - **Negative amounts** = INCOME
@@ -184,7 +184,7 @@ If you created a custom strategy, register it in the factory:
 ```typescript
 export class TypeDetectionFactory {
   private static strategies: Map<string, ITypeDetectionStrategy> = new Map([
-    ["sign-based", new SignBasedTypeDetection()],
+    ["default", new SignBasedTypeDetection()],
     ["amex", new AmexTypeDetection()],
     ["ing", new IngTypeDetection()],
     ["your-new-bank", new YourNewBankTypeDetection()], // Add here
@@ -209,7 +209,7 @@ export function getDefaultStrategyForBank(
     return "ing";
   }
   if (bank === "YOUR_NEW_BANK") {
-    return "your-new-bank"; // Add here (or "sign-based" if using default)
+    return "your-new-bank"; // Add here (or "default" if using default)
   }
   return DEFAULT_TYPE_DETECTION_STRATEGY;
 }
@@ -220,14 +220,14 @@ export function getDefaultStrategyForBank(
 ### Example 1: Simple Bank (Default Strategy)
 
 **Bank**: SimpleBank
-- Uses standard sign-based detection
+- Uses standard default detection
 - CSV columns: "Date", "Description", "Amount", "Currency"
 
 **Steps:**
 1. Add `"SIMPLE_BANK"` to `banks.ts`
 2. Create `simple-bank.profile.ts` with column hints
 3. Register profile in `bank.factory.ts`
-4. Map to `"sign-based"` strategy in `getDefaultStrategyForBank()`
+4. Map to `"default"` strategy in `getDefaultStrategyForBank()`
 
 ### Example 2: Bank with Inverted Signs
 
@@ -264,7 +264,7 @@ export function getDefaultStrategyForBank(
    - Check that the mapping step shows correct suggestions
 
 2. **Test Type Detection:**
-   - For sign-based: Test with positive and negative amounts
+   - For default: Test with positive and negative amounts
    - For column-based: Test with different debit/credit values
    - Verify transactions show correct EXPENSE/INCOME types in review step
 
@@ -288,7 +288,7 @@ src/features/transaction/
 ## Common Patterns
 
 ### Pattern 1: Standard Bank (Most Common)
-- Use default `"sign-based"` strategy
+- Use default `"default"` strategy
 - Only need to create profile with column hints
 
 ### Pattern 2: Inverted Signs
