@@ -19,7 +19,7 @@ export type IButtonProps = {
   (
     | {
         type?: "button";
-        clicked: () => void;
+        clicked: (event: React.MouseEvent<HTMLButtonElement>) => void;
       }
     | {
         type: "submit" | "reset";
@@ -64,10 +64,9 @@ export function Button({
       disabled={disabled}
       onClick={(event) => {
         onClick?.(event);
-        clicked?.();
+        clicked?.(event);
       }}
-      {...rest}
-    >
+      {...rest}>
       {buttonContent ?? children}
     </button>
   );
