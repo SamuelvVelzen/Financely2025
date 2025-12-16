@@ -24,6 +24,7 @@ import { cn } from "@/util/cn";
 import { DateFormatHelpers } from "@/util/date/date-format.helpers";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { HiExclamationCircle } from "react-icons/hi";
 import type { BankEnum } from "../config/banks";
 import {
   TRANSACTION_FIELDS,
@@ -38,6 +39,7 @@ import {
 } from "../hooks/useCsvImport";
 import { getDefaultStrategyForBank } from "../services/csv-type-detection";
 import { BankSelect } from "./bank-select";
+import { CsvRowErrorDialog } from "./csv-row-error-dialog";
 
 interface ICsvImportDialogProps {
   open: boolean;
@@ -61,6 +63,9 @@ export function TransactionCsvImportDialog({
   const [parseResponse, setParseResponse] = useState<any>(null);
   const [selectedBank, setSelectedBank] = useState<BankEnum | null>(null);
   const [currentStep, setCurrentStep] = useState<IStep>("upload");
+  const [errorDialogRowIndex, setErrorDialogRowIndex] = useState<number | null>(
+    null
+  );
 
   // Derive strategy from bank selection
   const typeDetectionStrategy = getDefaultStrategyForBank(selectedBank);
@@ -109,6 +114,7 @@ export function TransactionCsvImportDialog({
     setCurrentPage(1);
     setParseResponse(null);
     setSelectedBank(null);
+    setErrorDialogRowIndex(null);
     mappingForm.reset({
       defaultCurrency: "EUR",
       mappings: {},
@@ -458,6 +464,12 @@ export function TransactionCsvImportDialog({
       return <div className="text-center py-8">No transactions found</div>;
     }
 
+    // Find the candidate for the error dialog
+    const errorDialogCandidate =
+      errorDialogRowIndex !== null
+        ? candidates.find((c) => c.rowIndex === errorDialogRowIndex)
+        : null;
+
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -548,20 +560,40 @@ export function TransactionCsvImportDialog({
                   </span>
                 </BodyCell>
                 <BodyCell>
-                  {candidate.errors.length > 0 && (
-                    <div className="text-xs text-danger">
-                      {candidate.errors.map((err, i) => (
-                        <div key={i}>
-                          {err.field}: {err.message}
+                  {candidate.errors.length > 0 ? (
+                    <Button
+                      clicked={() => setErrorDialogRowIndex(candidate.rowIndex)}
+                      buttonContent={
+                        <div className="flex items-center gap-2">
+                          <HiExclamationCircle className="w-4 h-4 text-danger" />
+                          <span className="text-sm text-danger">
+                            {candidate.errors.length} error
+                            {candidate.errors.length !== 1 ? "s" : ""}
+                          </span>
                         </div>
-                      ))}
-                    </div>
+                      }
+                      className="px-2 py-1 text-sm border-0 bg-transparent hover:bg-danger/10"
+                      variant="default"
+                    />
+                  ) : (
+                    <span className="text-sm text-text-muted">—</span>
                   )}
                 </BodyCell>
               </TableRow>
             );
           })}
         </SelectableTable>
+
+        {/* Error Dialog */}
+        <CsvRowErrorDialog
+          candidate={errorDialogCandidate ?? null}
+          open={errorDialogRowIndex !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setErrorDialogRowIndex(null);
+            }
+          }}
+        />
 
         {parseResponse?.hasNext && (
           <div className="flex justify-center gap-2">
