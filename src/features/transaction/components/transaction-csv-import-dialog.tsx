@@ -8,6 +8,7 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
+import { LinkButton } from "@/features/ui/button/link-button";
 import {
   MultiStepDialog,
   type IStepConfig,
@@ -385,8 +386,10 @@ export function TransactionCsvImportDialog({
               { value: "", label: "— Not mapped —" },
               ...columns.map((col) => ({ value: col, label: col })),
             ];
-
+            const suggestedColumn = suggestedMapping?.[field.name];
+            const hasSuggestedMapping = !!suggestedColumn;
             const currentValue = mapping[field.name] || "";
+            const isDifferentFromSuggested = currentValue !== suggestedColumn;
 
             return (
               <div
@@ -418,8 +421,16 @@ export function TransactionCsvImportDialog({
                     options={columnOptions}
                     placeholder="Select column..."
                     multiple={false}
+                    showClearButton={false}
                   />
                 </Form>
+                {hasSuggestedMapping && isDifferentFromSuggested && (
+                  <LinkButton
+                    clicked={() => handleResetToSuggested(field.name)}
+                    buttonContent={`Reset to auto detected colomn: ${suggestedColumn}`}
+                    className="text-xs mt-1"
+                  />
+                )}
                 {field.description && (
                   <p className="text-xs text-text-muted">{field.description}</p>
                 )}
@@ -436,6 +447,13 @@ export function TransactionCsvImportDialog({
         )}
       </div>
     );
+  };
+
+  const handleResetToSuggested = (fieldName: string) => {
+    const suggestedColumn = suggestedMapping?.[fieldName];
+    if (suggestedColumn) {
+      handleMappingChange(fieldName, suggestedColumn);
+    }
   };
 
   const renderReviewStep = (navigation: IStepNavigation<IStep>) => {
