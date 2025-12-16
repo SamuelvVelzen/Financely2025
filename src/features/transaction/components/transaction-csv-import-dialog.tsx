@@ -321,9 +321,7 @@ export function TransactionCsvImportDialog({
 
   const renderMappingStep = (navigation: IStepNavigation<IStep>) => {
     // Filter out currency field (handled separately)
-    const fieldsToShow = TRANSACTION_FIELDS.filter(
-      (f) => f.name !== "currency"
-    );
+    const fieldsToShow = TRANSACTION_FIELDS;
 
     return (
       <div className="space-y-4">

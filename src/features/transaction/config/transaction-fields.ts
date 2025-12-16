@@ -46,13 +46,6 @@ export const TRANSACTION_FIELDS: ITransactionFieldMetadata[] = [
     description: "Transaction amount (decimal number)",
   },
   {
-    name: "currency",
-    label: "Currency",
-    required: true,
-    type: "enum",
-    description: "Currency code (USD, EUR, GBP, CAD, AUD, JPY)",
-  },
-  {
     name: "occurredAt",
     label: "Date",
     required: true,
@@ -105,4 +98,3 @@ export function getFieldMetadata(
 export function isRequiredField(fieldName: ITransactionFieldName): boolean {
   return SYSTEM_REQUIRED_FIELDS.includes(fieldName as any);
 }
-
