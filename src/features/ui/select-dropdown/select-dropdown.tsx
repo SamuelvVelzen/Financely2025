@@ -169,7 +169,8 @@ export function SelectDropdown<
           if (multiple) {
             field.onChange([]);
           } else {
-            field.onChange(undefined);
+            // Reset to default value so React Hook Form recognizes it as set
+            form.resetField(name);
           }
         };
 
@@ -185,17 +186,17 @@ export function SelectDropdown<
                   type="button"
                   onClick={handleClear}
                   className={cn(
-                    "p-1 rounded hover:bg-surface-hover text-text-muted hover:text-text",
+                    "p-1 rounded text-text-muted hover:text-text cursor-pointer",
                     "flex items-center justify-center"
                   )}
                   aria-label="Clear selection">
-                  <HiX className="w-4 h-4" />
+                  <HiX className="size-4" />
                 </button>
               )}
 
               <HiChevronDown
                 className={cn(
-                  "w-4 h-4 text-text-muted transition-transform duration-200",
+                  "size-5 transition-transform duration-200 text-text-muted hover:text-text",
                   isOpen && "rotate-180"
                 )}
               />
