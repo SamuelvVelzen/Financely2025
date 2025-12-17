@@ -44,8 +44,13 @@ function getColumnValue(transaction: ITransaction, column: string): string {
 export function exportTransactionsToCsv(
   transactions: ITransaction[],
   columns: string[],
-  filename: string
+  filename?: string
 ): void {
+  const now = new Date();
+  const date = now.toISOString().split("T")[0];
+  const time = now.toTimeString().split(" ")[0];
+  const mappedFilename = `${filename ?? "transactions"}_${date}-${time}`;
+
   // Generate CSV headers
   const headers = columns.map((col) => escapeCsvValue(col)).join(",");
 
@@ -68,7 +73,7 @@ export function exportTransactionsToCsv(
   const url = URL.createObjectURL(blob);
 
   link.setAttribute("href", url);
-  link.setAttribute("download", `${filename}.csv`);
+  link.setAttribute("download", `${mappedFilename}.csv`);
   link.style.visibility = "hidden";
   document.body.appendChild(link);
   link.click();

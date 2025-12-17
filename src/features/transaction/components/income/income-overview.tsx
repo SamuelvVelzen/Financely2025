@@ -1,5 +1,4 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
-import { ExportButton } from "@/features/transaction/components/export-button";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
   defaultDateFilter,
@@ -11,16 +10,22 @@ import {
   useDeleteIncome,
   useIncomes,
 } from "@/features/transaction/hooks/useTransactions";
-import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Title } from "@/features/ui/typography/title";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
-import { HiArrowDownTray, HiArrowTrendingUp, HiPlus } from "react-icons/hi2";
+import {
+  HiArrowDownTray,
+  HiArrowTrendingUp,
+  HiArrowUpTray,
+  HiPlus,
+} from "react-icons/hi2";
+import { exportTransactionsToCsv } from "../../utils/export-csv";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
 import { IncomeTable } from "./income-table";
 
@@ -199,27 +204,25 @@ export function IncomeOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
-            <ExportButton
-              data={incomes}
-              columns={["Name", "Amount", "Date", "Description", "Tags"]}
-              filename="incomes"
-              className="text-sm"
-            />
-
-            <Button
-              clicked={handleCreateIncome}
-              variant="primary"
-              className="text-sm"
-            >
-              <HiPlus className="size-6" /> Add
-            </Button>
-
             <Dropdown>
               <DropdownItem
                 icon={<HiArrowDownTray />}
                 clicked={() => setIsCsvImportDialogOpen(true)}
               >
                 Import from CSV
+              </DropdownItem>
+              <DropdownDivider />
+              <DropdownItem
+                icon={<HiArrowUpTray />}
+                clicked={() =>
+                  exportTransactionsToCsv(
+                    incomes,
+                    ["Name", "Amount", "Date", "Description", "Tags"],
+                    "incomes"
+                  )
+                }
+              >
+                Export from CSV
               </DropdownItem>
             </Dropdown>
           </div>

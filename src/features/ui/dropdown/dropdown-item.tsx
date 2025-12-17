@@ -30,7 +30,8 @@ export function DropdownItem({
         selected && "bg-primary/10 text-primary font-medium",
         className
       )}
-      clicked={clicked}>
+      clicked={clicked}
+    >
       {icon && <span>{icon}</span>} {content}
     </Button>
   );

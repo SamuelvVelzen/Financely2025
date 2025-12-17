@@ -1,5 +1,4 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
-import { ExportButton } from "@/features/transaction/components/export-button";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
   defaultDateFilter,
@@ -16,11 +15,18 @@ import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Title } from "@/features/ui/typography/title";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
-import { HiArrowDownTray, HiArrowTrendingDown, HiPlus } from "react-icons/hi2";
+import {
+  HiArrowDownTray,
+  HiArrowTrendingDown,
+  HiArrowUpTray,
+  HiPlus,
+} from "react-icons/hi2";
+import { exportTransactionsToCsv } from "../../utils/export-csv";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
 import { ExpenseTable } from "./expense-table";
 
@@ -195,13 +201,6 @@ export function ExpenseOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
-            <ExportButton
-              data={expenses}
-              columns={["Name", "Amount", "Date", "Description", "Tags"]}
-              filename="expenses"
-              className="text-sm"
-            />
-
             <Button
               clicked={handleCreateExpense}
               variant="primary"
@@ -216,6 +215,20 @@ export function ExpenseOverview() {
                 clicked={() => setIsCsvImportDialogOpen(true)}
               >
                 Import from CSV
+              </DropdownItem>
+
+              <DropdownDivider />
+              <DropdownItem
+                icon={<HiArrowUpTray />}
+                clicked={() =>
+                  exportTransactionsToCsv(
+                    expenses,
+                    ["Name", "Amount", "Date", "Description", "Tags"],
+                    "expenses"
+                  )
+                }
+              >
+                Export from CSV
               </DropdownItem>
             </Dropdown>
           </div>
