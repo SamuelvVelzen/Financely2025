@@ -135,7 +135,10 @@ export class TypeDetectionFactory {
   /**
    * Get all available strategies
    */
-  static getAllStrategies(): Array<{ name: string; strategy: ITypeDetectionStrategy }> {
+  static getAllStrategies(): Array<{
+    name: string;
+    strategy: ITypeDetectionStrategy;
+  }> {
     return Array.from(this.strategies.entries()).map(([name, strategy]) => ({
       name,
       strategy,
@@ -145,7 +148,10 @@ export class TypeDetectionFactory {
   /**
    * Register a new strategy
    */
-  static registerStrategy(name: string, strategy: ITypeDetectionStrategy): void {
+  static registerStrategy(
+    name: string,
+    strategy: ITypeDetectionStrategy
+  ): void {
     this.strategies.set(name, strategy);
   }
 }
@@ -158,9 +164,7 @@ export const DEFAULT_TYPE_DETECTION_STRATEGY = "default";
 /**
  * Get default type detection strategy for a bank
  */
-export function getDefaultStrategyForBank(
-  bank?: BankEnum | null
-): string {
+export function getDefaultStrategyForBank(bank?: BankEnum | null): string {
   if (bank === "AMERICAN_EXPRESS") {
     return "amex";
   }
@@ -169,4 +173,3 @@ export function getDefaultStrategyForBank(
   }
   return "default";
 }
-
