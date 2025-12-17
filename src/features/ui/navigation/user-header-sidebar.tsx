@@ -1,6 +1,10 @@
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { HiChevronLeft } from "react-icons/hi2";
+import { TextWithTooltip } from "../typography/text-with-tooltip";
 import { useSidebar } from "./useSidebar";
+
+const capitalizeFirst = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
 export function UserHeaderSidebar() {
   const { data: profile, isLoading } = useMyProfile();
@@ -17,21 +21,22 @@ export function UserHeaderSidebar() {
   }
 
   // Use display name or construct from parts
-  const displayName =
-    profile.name ||
-    [profile.firstName, profile.suffix, profile.lastName]
-      .filter(Boolean)
-      .join(" ") ||
-    "User";
+  const displayName = [
+    capitalizeFirst(profile.firstName),
+    profile.suffix,
+    capitalizeFirst(profile.lastName),
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
       <div className="flex-1 overflow-hidden">
         <h2 className="text-2xl font-bold text-text mb-1 whitespace-nowrap truncate">
-          Hello {displayName}
+          Hello <TextWithTooltip>{displayName}</TextWithTooltip>
         </h2>
         <p className="text-sm text-text-muted whitespace-nowrap truncate">
-          {profile.email}
+          <TextWithTooltip>{profile.email}</TextWithTooltip>
         </p>
       </div>
       <button
