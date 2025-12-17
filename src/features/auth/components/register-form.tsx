@@ -8,6 +8,7 @@
 import { Button } from "@/features/ui/button/button";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
+import { TextInput } from "@/features/ui/input/text-input";
 import { NavLink } from "@/features/ui/navigation/nav-link";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +23,9 @@ const ENABLE_EMAIL_PASSWORD =
 
 // Validation schema
 const registerSchema = z.object({
-  name: z.string().min(1, "Name is required").optional().or(z.literal("")),
+  firstname: z.string().min(1, "Firstname is required"),
+  suffix: z.string().optional(),
+  lastname: z.string().min(1, "Lastname is required"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -39,7 +42,9 @@ export function RegisterForm() {
   const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      name: "",
+      firstname: "",
+      suffix: undefined,
+      lastname: "",
       email: "",
       password: "",
     },
@@ -50,10 +55,16 @@ export function RegisterForm() {
     setLoading(true);
 
     try {
+      const suffix = data.suffix ? `${data.suffix} ` : "";
+      const name = `${data.firstname} ${suffix}${data.lastname}`;
+
       const result = await authClient.signUp.email({
         email: data.email,
         password: data.password,
-        name: data.name || "User",
+        name,
+        firstName: data.firstname,
+        lastName: data.lastname,
+        suffix: data.suffix || undefined,
       });
 
       if (result.error) {
@@ -90,12 +101,29 @@ export function RegisterForm() {
 
       {/* Registration Form */}
       <Form form={registerForm} onSubmit={handleRegister} className="space-y-4">
-        <BaseInput
-          name="name"
-          label="Name (optional)"
-          placeholder="Your name"
+        <div className="gap-4 grid grid-cols-[70%_30%]">
+          <TextInput
+            name="firstname"
+            label="Firstname"
+            placeholder="Your firstname"
+            disabled={loading}
+          />
+
+          <TextInput
+            name="suffix"
+            label="Suffix (optional)"
+            placeholder="Your suffix"
+            disabled={loading}
+          />
+        </div>
+
+        <TextInput
+          name="lastname"
+          label="Lastname"
+          placeholder="Your lastname"
           disabled={loading}
         />
+
         <BaseInput
           name="email"
           type="email"
