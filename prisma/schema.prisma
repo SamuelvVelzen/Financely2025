@@ -37,11 +37,6 @@ enum Currency {
   JPY
 }
 
-enum UserStatus {
-  ACTIVE
-  DISABLED
-}
-
 // ----------
 // Models
 // ----------
@@ -50,30 +45,28 @@ enum UserStatus {
 // BetterAuth Tables
 // ----------
 
-// User table (used by BetterAuth for authentication and app domain)
-// Merged BetterAuthUser and User into a single table
-model User {
+// UserInfo table (used by BetterAuth for authentication)
+// Contains auth fields + user profile information
+model UserInfo {
   id            String    @id @default(cuid())
-  name          String?
   email         String    @unique
   emailVerified Boolean   @default(false)
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // App-specific fields
-  primaryEmail  String?     // Normalized email (lowercase)
-  status        UserStatus  @default(ACTIVE)
-  lastLoginAt   DateTime?
+  // Profile fields
+  firstName     String
+  lastName      String
+  suffix        String?
+  name          String?   // Display name (computed from firstName suffix lastName)
 
   // BetterAuth relations
   accounts      Account[]
   sessions      Session[]
 
-  // App domain relations
-  userInfo      UserInfo?
-  transactions  Transaction[]
-  tags          Tag[]
+  // App domain relation (1-to-1)
+  user          User?
 }
 
 model Account {
@@ -91,7 +84,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  user                  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userInfo              UserInfo @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([providerId, accountId])
   @@index([userId])
@@ -107,7 +100,7 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userInfo  UserInfo @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -128,17 +121,20 @@ model Verification {
 // App Domain Models
 // ----------
 
-model UserInfo {
+// User table (app-specific data)
+// Contains relations to transactions, tags, and other app entities
+model User {
   id            String         @id @default(cuid())
-  userId        String         @unique
-  firstName     String?
-  lastName      String?
-  suffix        String?
-  avatar_url    String?
+  userInfoId    String         @unique
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relation to BetterAuth UserInfo
+  userInfo      UserInfo       @relation(fields: [userInfoId], references: [id], onDelete: Cascade)
+
+  // App domain relations
+  transactions  Transaction[]
+  tags          Tag[]
 }
 
 model Transaction {

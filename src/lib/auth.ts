@@ -45,14 +45,45 @@ export const auth = betterAuth({
   basePath: "/api/auth",
 
   // Configure custom model names to match our Prisma schema
+  // UserInfo is now the BetterAuth user table
   user: {
-    modelName: "User",
+    modelName: "UserInfo",
+    additionalFields: {
+      firstName: {
+        type: "string",
+        required: true,
+      },
+      lastName: {
+        type: "string",
+        required: true,
+      },
+      suffix: {
+        type: "string",
+        required: false,
+      },
+    },
   },
   account: {
     modelName: "Account",
   },
   verification: {
     modelName: "Verification",
+  },
+
+  // Database hooks to auto-create User record on signup
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (userInfo) => {
+          // Create the app User record linked to this UserInfo
+          await prisma.user.create({
+            data: {
+              userInfoId: userInfo.id,
+            },
+          });
+        },
+      },
+    },
   },
 
   // Email and Password authentication
@@ -132,17 +163,17 @@ export const auth = betterAuth({
     ...(ENABLE_MAGIC_LINK
       ? [
           magicLink({
-            sendMagicLink: async ({ email, token, url }, ctx) => {
-              // Find or create user for magic link
-              const user = await prisma.user.findUnique({
+            sendMagicLink: async ({ email, token, url }) => {
+              // Find user for magic link
+              const userInfo = await prisma.userInfo.findUnique({
                 where: { email },
               });
 
               await EmailService.sendMagicLinkEmail({
                 user: {
-                  id: user?.id || "new-user",
+                  id: userInfo?.id || "new-user",
                   email,
-                  name: user?.name || undefined,
+                  name: userInfo?.name || undefined,
                 },
                 url,
                 token,

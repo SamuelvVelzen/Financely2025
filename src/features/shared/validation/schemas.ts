@@ -388,16 +388,34 @@ export function formatFullName(
   return parts.length > 0 ? parts.join(" ") : null;
 }
 
+/**
+ * App User schema (User table - app data)
+ */
 export const UserSchema = z.object({
   id: z.string(),
-  email: z.string().email(),
-  name: z.string().nullable(),
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
-  // preferences.defaultCurrency will be added later if needed
 });
 
 export const UserResponseSchema = UserSchema;
+
+/**
+ * User Profile schema (UserInfo table - auth/profile data)
+ */
+export const UserProfileSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  emailVerified: z.boolean(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
+  suffix: z.string().nullable(),
+  name: z.string().nullable(),
+  image: z.string().nullable(),
+  createdAt: ISODateStringSchema,
+  updatedAt: ISODateStringSchema,
+});
+
+export const UserProfileResponseSchema = UserProfileSchema;
 
 // ============================================================================
 // Error response schema
@@ -444,6 +462,7 @@ export type IBulkCreateTransactionResponse = z.infer<
   typeof BulkCreateTransactionResponseSchema
 >;
 export type IUserResponse = z.infer<typeof UserResponseSchema>;
+export type IUserProfile = z.infer<typeof UserProfileSchema>;
 export type IErrorResponse = z.infer<typeof ErrorResponseSchema>;
 export type ICsvUploadResponse = z.infer<typeof CsvUploadResponseSchema>;
 export type ICsvFieldMapping = z.infer<typeof CsvFieldMappingSchema>;
