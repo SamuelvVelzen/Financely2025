@@ -18,7 +18,7 @@ export type IHeaderCellProps<T = unknown> = {
   PropsWithChildren;
 
 export function HeaderCell<T = unknown>({
-  align = "center",
+  align = "left",
   className,
   children,
   sortable = true,
@@ -28,9 +28,9 @@ export function HeaderCell<T = unknown>({
 }: IHeaderCellProps<T>) {
   const sortContext = useTableSortContext<T>();
   const alignClasses = {
-    left: "text-left",
-    right: "text-right",
-    center: "text-center",
+    left: "justify-start",
+    right: "justify-end",
+    center: "justify-center",
   };
 
   // Store context functions in ref to avoid dependency issues
@@ -73,7 +73,6 @@ export function HeaderCell<T = unknown>({
     <th
       className={cn(
         "p-3",
-        alignClasses[align],
         autoFit ? "w-auto" : "w-full min-w-0",
         sortable &&
           sortKey &&
@@ -103,9 +102,8 @@ export function HeaderCell<T = unknown>({
             : sortable && sortKey
               ? "none"
               : undefined
-      }
-    >
-      <div className="flex items-center gap-2">
+      }>
+      <div className={`flex items-center gap-2 ${alignClasses[align]}`}>
         {children}
         {getSortIcon()}
       </div>

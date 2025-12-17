@@ -510,13 +510,13 @@ export function TransactionCsvImportDialog({
             return props.rowIndex ?? -1;
           }}
           headerCells={[
-            <HeaderCell align="left">Status</HeaderCell>,
-            <HeaderCell align="left">Date</HeaderCell>,
-            <HeaderCell align="left">Name</HeaderCell>,
-            <HeaderCell align="left">Amount</HeaderCell>,
-            <HeaderCell align="left">Currency</HeaderCell>,
-            <HeaderCell align="left">Type</HeaderCell>,
-            <HeaderCell align="left">Errors</HeaderCell>,
+            <HeaderCell key="status">Status</HeaderCell>,
+            <HeaderCell key="date">Date</HeaderCell>,
+            <HeaderCell key="name">Name</HeaderCell>,
+            <HeaderCell key="amount">Amount</HeaderCell>,
+            <HeaderCell key="currency">Currency</HeaderCell>,
+            <HeaderCell key="type">Type</HeaderCell>,
+            <HeaderCell key="errors">Errors</HeaderCell>,
           ]}>
           {candidates.map((candidate) => {
             return (

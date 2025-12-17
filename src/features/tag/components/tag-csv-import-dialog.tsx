@@ -271,12 +271,16 @@ export function TagCsvImportDialog({
           const currentValue = mapping[field.name] || "";
 
           return (
-            <div key={field.name} className="space-y-1">
+            <div
+              key={field.name}
+              className="space-y-1">
               <label className="block text-sm font-medium">
                 {field.label}
                 {field.required && <span className="text-danger ml-1">*</span>}
               </label>
-              <Form form={mappingForm} onSubmit={() => {}}>
+              <Form
+                form={mappingForm}
+                onSubmit={() => {}}>
                 <SelectDropdown
                   name={`mappings.${field.name}`}
                   options={columnOptions}
@@ -351,13 +355,12 @@ export function TagCsvImportDialog({
             return props.rowIndex ?? -1;
           }}
           headerCells={[
-            <HeaderCell>Status</HeaderCell>,
-            <HeaderCell>Name</HeaderCell>,
-            <HeaderCell>Color</HeaderCell>,
-            <HeaderCell>Description</HeaderCell>,
-            <HeaderCell>Errors</HeaderCell>,
-          ]}
-        >
+            <HeaderCell key="status">Status</HeaderCell>,
+            <HeaderCell key="name">Name</HeaderCell>,
+            <HeaderCell key="color">Color</HeaderCell>,
+            <HeaderCell key="description">Description</HeaderCell>,
+            <HeaderCell key="errors">Errors</HeaderCell>,
+          ]}>
           {candidates.map((candidate) => {
             return (
               <TableRow
@@ -366,8 +369,7 @@ export function TagCsvImportDialog({
                 className={cn(
                   "border-t border-border",
                   candidate.status === "invalid" && "bg-danger/5"
-                )}
-              >
+                )}>
                 <BodyCell>
                   <span
                     className={cn(
@@ -376,8 +378,7 @@ export function TagCsvImportDialog({
                         "bg-success/20 text-success",
                       candidate.status === "invalid" &&
                         "bg-danger/20 text-danger"
-                    )}
-                  >
+                    )}>
                     {candidate.status}
                   </span>
                 </BodyCell>
