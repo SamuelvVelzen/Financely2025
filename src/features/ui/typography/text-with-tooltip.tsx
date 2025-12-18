@@ -1,12 +1,10 @@
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
-import { PropsWithChildren } from "react";
 
 type ITextWithTooltipProps = {
   title?: string;
-  children: string;
-} & PropsWithChildren &
-  IPropsWithClassName;
+  children?: string | null;
+} & IPropsWithClassName;
 
 export function TextWithTooltip({
   title,
@@ -14,7 +12,10 @@ export function TextWithTooltip({
   className,
 }: ITextWithTooltipProps) {
   return (
-    <span className={cn("truncate", className)} title={title ?? children}>
+    <span
+      className={cn("truncate", className)}
+      title={title ?? children ?? undefined}
+    >
       {children}
     </span>
   );

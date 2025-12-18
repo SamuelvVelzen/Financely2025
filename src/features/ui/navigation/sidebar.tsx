@@ -6,7 +6,6 @@ import {
   HiArrowTrendingDown,
   HiArrowTrendingUp,
   HiChartBar,
-  HiChevronRight,
   HiOutlineTag,
   HiUser,
 } from "react-icons/hi2";
@@ -22,7 +21,7 @@ export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
-  const containerClasses = `h-screen flex-shrink-0 motion-safe:transition-[width,padding-left,padding-right,color,background-color,border-color] motion-safe:duration-300 motion-safe:ease-in-out rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
+  const containerClasses = `h-screen flex-shrink-0 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
 
   return (
     <Container as="aside" className={containerClasses}>
@@ -35,10 +34,8 @@ export function Sidebar() {
             <div className="flex items-center overflow-hidden">
               <Logo />
               <span
-                className={`font-bold text-text text-lg whitespace-nowrap motion-safe:transition-[opacity,margin-left,max-width,color,background-color] motion-safe:duration-300 motion-safe:ease-in-out overflow-hidden ${
-                  isExpanded
-                    ? "opacity-100 ml-3 max-w-xs"
-                    : "opacity-0 ml-0 max-w-0"
+                className={`font-bold text-text text-lg whitespace-nowrap overflow-hidden ${
+                  isExpanded ? "ml-3" : "hidden"
                 }`}
               >
                 Financely
@@ -48,25 +45,13 @@ export function Sidebar() {
         </div>
 
         {/* User greeting and toggle button */}
-        <div className="flex w-full items-center">
-          {isExpanded ? (
-            <UserHeaderSidebar />
-          ) : (
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              className="flex items-center justify-center w-full py-2 rounded-2xl hover:bg-background cursor-pointer"
-              aria-label="Expand sidebar"
-            >
-              <HiChevronRight className="w-5 h-5 text-text-muted" />
-            </button>
-          )}
-        </div>
+
+        <UserHeaderSidebar />
       </div>
 
       {/* Main Navigation */}
-      <nav className="flex-1 overflow-y-auto">
-        <ul className="space-y-2">
+      <nav className="flex-1">
+        <ul>
           <li>
             <NavItem to={ROUTES.ROOT} label="Dashboard" icon={HiChartBar} />
           </li>
@@ -93,7 +78,7 @@ export function Sidebar() {
       {/* Bottom Navigation */}
       <div className="mt-auto pt-4 space-y-4">
         {/* Bottom Actions */}
-        <div className="space-y-2">
+        <div>
           <ThemeToggle />
           <NavItem
             to={ROUTES.ACCOUNT}

@@ -1,5 +1,8 @@
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
-import { HiChevronLeft } from "react-icons/hi2";
+import { cn } from "@/util/cn";
+import { useMemo } from "react";
+import { HiChevronRight } from "react-icons/hi2";
+import { IconButton } from "../button/icon-button";
 import { TextWithTooltip } from "../typography/text-with-tooltip";
 import { useSidebar } from "./useSidebar";
 
@@ -8,45 +11,47 @@ const capitalizeFirst = (str: string) =>
 
 export function UserHeaderSidebar() {
   const { data: profile, isLoading } = useMyProfile();
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isExpanded } = useSidebar();
 
-  if (isLoading || !profile) {
-    return (
-      <div className="flex-1">
-        <h2 className="text-2xl font-bold text-text mb-1 whitespace-nowrap">
-          Loading...
+  const displayName = useMemo(() => {
+    if (!profile) return null;
+
+    return [
+      capitalizeFirst(profile.firstName),
+      profile.suffix,
+      capitalizeFirst(profile.lastName),
+    ]
+      .filter(Boolean)
+      .join(" ");
+  }, [profile]);
+
+  const expandedProfileCard = (
+    <>
+      {isLoading || !profile ? (
+        <h2 className="text-2xl font-bold text-text mb-1 whitespace-nowrap truncate grow">
+          <div>Loading...</div>
         </h2>
-      </div>
-    );
-  }
-
-  // Use display name or construct from parts
-  const displayName = [
-    capitalizeFirst(profile.firstName),
-    profile.suffix,
-    capitalizeFirst(profile.lastName),
-  ]
-    .filter(Boolean)
-    .join(" ");
+      ) : (
+        <div className="flex-1 overflow-hidden">
+          <h2 className="text-2xl font-bold text-text mb-1 whitespace-nowrap truncate">
+            Hello <TextWithTooltip>{displayName}</TextWithTooltip>
+          </h2>
+          <p className="text-sm text-text-muted whitespace-nowrap truncate">
+            <TextWithTooltip>{profile?.email}</TextWithTooltip>
+          </p>
+        </div>
+      )}
+    </>
+  );
 
   return (
-    <>
-      <div className="flex-1 overflow-hidden">
-        <h2 className="text-2xl font-bold text-text mb-1 whitespace-nowrap truncate">
-          Hello <TextWithTooltip>{displayName}</TextWithTooltip>
-        </h2>
-        <p className="text-sm text-text-muted whitespace-nowrap truncate">
-          <TextWithTooltip>{profile.email}</TextWithTooltip>
-        </p>
-      </div>
-      <button
-        type="button"
-        onClick={toggleSidebar}
-        className="flex items-center justify-center w-8 h-8 rounded-2xl hover:bg-background motion-safe:transition-colors motion-safe:duration-300 shrink-0 cursor-pointer"
-        aria-label="Collapse sidebar"
-      >
-        <HiChevronLeft className="w-5 h-5 text-text-muted" />
-      </button>
-    </>
+    <div className="flex w-full items-center justify-center gap-2 h-[56px]">
+      {isExpanded && expandedProfileCard}
+      <IconButton clicked={toggleSidebar} aria-label="Toggle sidebar">
+        <HiChevronRight
+          className={cn("size-7", isExpanded ? "rotate-180" : "")}
+        />
+      </IconButton>
+    </div>
   );
 }

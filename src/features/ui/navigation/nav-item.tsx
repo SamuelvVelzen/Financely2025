@@ -39,8 +39,8 @@ export function NavItem({
       {customIcon || (Icon && <Icon className="w-6 h-6 flex-shrink-0" />)}
       <span
         className={cn(
-          "whitespace-nowrap text-base motion-safe:transition-[opacity,margin-left,max-width,color,background-color] motion-safe:duration-300 overflow-hidden",
-          isExpanded ? "opacity-100 ml-4 max-w-xs" : "opacity-0 ml-0 max-w-0"
+          "whitespace-nowrap text-base overflow-hidden",
+          isExpanded ? "ml-4" : "hidden"
         )}
       >
         {label}
@@ -49,8 +49,8 @@ export function NavItem({
   );
 
   const baseClasses = cn(
-    "flex items-center py-3.5 rounded-3xl motion-safe:transition-[padding-left,padding-right,color,background-color,border-color] motion-safe:duration-300 overflow-hidden",
-    isExpanded ? "px-4" : "justify-center px-0"
+    "flex items-center py-3.5 rounded-3xl overflow-hidden",
+    isExpanded ? "px-3 -mx-3" : "justify-center px-0"
   );
 
   const activeClasses = "bg-background text-text font-semibold";
