@@ -201,11 +201,7 @@ export function ExpenseOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
-            <Button
-              clicked={handleCreateExpense}
-              variant="primary"
-              className="text-sm"
-            >
+            <Button clicked={handleCreateExpense} variant="primary" size="sm">
               <HiPlus className="size-6" /> Add
             </Button>
 

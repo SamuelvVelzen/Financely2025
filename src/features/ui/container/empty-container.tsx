@@ -21,13 +21,14 @@ export function EmptyContainer({
     <Container
       className={
         "flex flex-col gap-6 text-text-muted items-center " + className
-      }>
+      }
+    >
       {icon && <div className="text-7xl border-4 p-2 rounded-full">{icon}</div>}
 
       <p>{emptyText}</p>
 
       {button && (
-        <Button clicked={() => button.buttonAction()}>
+        <Button clicked={() => button.buttonAction()} variant="primary">
           {button.buttonText}
         </Button>
       )}

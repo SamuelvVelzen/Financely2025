@@ -10,6 +10,7 @@ import {
   useDeleteIncome,
   useIncomes,
 } from "@/features/transaction/hooks/useTransactions";
+import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
@@ -204,6 +205,10 @@ export function IncomeOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
+            <Button clicked={handleCreateIncome} variant="primary" size="sm">
+              <HiPlus className="size-6" /> Add
+            </Button>
+
             <Dropdown>
               <DropdownItem
                 icon={<HiArrowDownTray />}
