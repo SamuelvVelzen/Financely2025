@@ -6,11 +6,11 @@ import { useEffect, useState } from "react";
 let dialogStack: string[] = [];
 
 export function useDialogStack(dialogId?: string) {
-  const [zIndex, setZIndex] = useState(50);
+  const [zIndex, setZIndex] = useState(100);
 
   useEffect(() => {
     if (!dialogId) {
-      setZIndex(50);
+      setZIndex(100);
       return;
     }
 
@@ -21,9 +21,9 @@ export function useDialogStack(dialogId?: string) {
 
     // Calculate z-index based on position in stack
     const index = dialogStack.indexOf(dialogId);
-    // Base z-index is 50, each dialog adds 10
+    // Base z-index is 100, each dialog adds 20 (room for nested dropdowns at +5)
     // Overlay is always 1 less than dialog
-    setZIndex(50 + index * 10);
+    setZIndex(100 + index * 20);
 
     return () => {
       // Remove dialog from stack

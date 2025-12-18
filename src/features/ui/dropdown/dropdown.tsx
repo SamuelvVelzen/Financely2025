@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import { HiDotsVertical } from "react-icons/hi";
 import { Button } from "../button/button";
 import { IconButton } from "../button/icon-button";
+import { useDialogContext } from "../dialog/dialog/dialog-context";
 import {
   useDropdownPlacement,
   type IPlacementOption,
@@ -35,6 +36,7 @@ export function Dropdown({
   showExpanded = false,
   placement,
 }: IDropdownProps) {
+  const dialogContext = useDialogContext();
   const [internalOpen, setInternalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -135,10 +137,14 @@ export function Dropdown({
 
       {dropdownIsOpen &&
         (() => {
+          // If inside a dialog, use dialog's z-index + 5, otherwise use 60
+          const dropdownZIndex = dialogContext ? dialogContext.zIndex + 5 : 60;
+
           const dropdownContent = (
             <div
-              className="fixed z-[60] flex shadow-lg rounded-2xl"
+              className="fixed flex shadow-lg rounded-2xl"
               style={{
+                zIndex: dropdownZIndex,
                 visibility: dropdownPosition ? "visible" : "hidden",
                 top: dropdownPosition ? `${dropdownPosition.top}px` : "-9999px",
                 left: dropdownPosition

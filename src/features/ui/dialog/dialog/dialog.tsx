@@ -13,6 +13,7 @@ import { createPortal } from "react-dom";
 import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
+import { DialogContext } from "./dialog-context";
 import { DialogOverlay } from "./dialog-overlay";
 import type { IDialogProps, IDialogStatus } from "./types";
 import { useDialogStack } from "./use-dialog-stack";
@@ -296,7 +297,7 @@ export function Dialog({
   };
 
   const dialogContent = (
-    <>
+    <DialogContext.Provider value={{ zIndex: dialogZIndex }}>
       <DialogOverlay
         open={open}
         dismissible={dismissible}
@@ -356,7 +357,7 @@ export function Dialog({
           </footer>
         )}
       </div>
-    </>
+    </DialogContext.Provider>
   );
 
   // Portal rendering with SSR safety
