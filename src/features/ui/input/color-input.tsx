@@ -15,6 +15,10 @@ function cssColorToHex(color: string): string {
     return color;
   }
 
+  if (!color) {
+    return "";
+  }
+
   // Try to convert CSS color name to hex
   if (typeof document === "undefined") {
     return color;
@@ -62,7 +66,7 @@ export function ColorInput({
   const textInputId = `${generatedId}-text-input`;
   const form = useFormContext();
   const error = form.formState.errors[name];
-  const [textValue, setTextValue] = useState("");
+  const [textValue, setTextValue] = useState(() => form.getValues(name) || "");
 
   const baseClasses =
     "w-full px-3 py-2 border rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
@@ -84,7 +88,7 @@ export function ColorInput({
           setTextValue(currentFieldValue);
         }
 
-        const displayTextValue = textValue || currentFieldValue || "";
+        const displayTextValue = textValue;
 
         const handleColorPickerChange = (
           e: React.ChangeEvent<HTMLInputElement>
@@ -121,21 +125,18 @@ export function ColorInput({
             {label && (
               <label
                 htmlFor={colorPickerId}
-                className="block text-sm font-medium">
+                className="block text-sm font-medium"
+              >
                 {label}
               </label>
             )}
             <div className="flex items-center gap-3">
               {/* Color Picker */}
               <div
-                className={cn("rounded-lg overflow-hidden shrink-0")}
-                style={{
-                  width: "4rem",
-                  height: "2.5rem",
-                  boxShadow: error
-                    ? "inset 0 0 0 1px var(--danger)"
-                    : "inset 0 0 0 1px var(--border)",
-                }}>
+                className={cn(
+                  "rounded-lg overflow-hidden shrink-0 w-16 h-[2.47rem]"
+                )}
+              >
                 <input
                   type="color"
                   id={colorPickerId}
@@ -143,8 +144,12 @@ export function ColorInput({
                   onChange={handleColorPickerChange}
                   disabled={disabled}
                   className={cn(
-                    "w-full h-full cursor-pointer border-0 rounded-lg appearance-none",
+                    "w-full h-full cursor-pointer border-0 rounded-2xl appearance-none",
                     "[-webkit-appearance:none]",
+                    "[&::-webkit-color-swatch]:border-0",
+                    "[&::-webkit-color-swatch]:rounded-lg",
+                    "[&::-moz-color-swatch]:border-0",
+                    "[&::-moz-color-swatch]:rounded-lg",
                     className
                   )}
                   style={{

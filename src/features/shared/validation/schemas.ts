@@ -109,11 +109,64 @@ export const TagSchema = z.object({
   updatedAt: ISODateStringSchema,
 });
 
+/**
+ * Colors reserved by the app's theme (from globals.css).
+ * Users cannot use these for tags to avoid confusion with UI elements.
+ */
+export const FORBIDDEN_COLORS = [
+  // Light mode
+  "#f5f5f5", // background
+  "#171717", // foreground/text/surface (dark)
+  "#737373", // text-muted
+  "#e5e5e5", // border/surface-hover
+  "#ffffff", // surface/white
+  "#2563eb", // primary/info
+  "#1d4ed8", // primary-hover/info-hover
+  "#dc2626", // danger
+  "#b91c1c", // danger-hover
+  "#fee2e2", // danger-bg
+  "#dbeafe", // info-bg
+  "#d97706", // warning
+  "#b45309", // warning-hover
+  "#fef3c7", // warning-bg
+  "#16a34a", // success
+  "#15803d", // success-hover
+  "#dcfce7", // success-bg
+  // Dark mode
+  "#0a0a0a", // background
+  "#ededed", // foreground/text
+  "#a3a3a3", // text-muted
+  "#262626", // border/surface-hover
+  "#3b82f6", // primary/info
+  "#60a5fa", // primary-hover/info-hover
+  "#ef4444", // danger
+  "#f87171", // danger-hover
+  "#7f1d1d", // danger-bg
+  "#1e3a8a", // info-bg
+  "#f59e0b", // warning
+  "#fbbf24", // warning-hover
+  "#78350f", // warning-bg
+  "#22c55e", // success
+  "#4ade80", // success-hover
+  "#14532d", // success-bg
+];
+
 export const CreateTagInputSchema = z.object({
   name: z.string().min(1).max(100),
   color: z
     .string()
-    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .regex(
+      /^#[0-9A-Fa-f]{6}$/,
+      "Color must be a valid hex code (e.g., #FF5500)"
+    )
+    .superRefine((val, ctx) => {
+      if (FORBIDDEN_COLORS.some((c) => c.toLowerCase() === val.toLowerCase())) {
+        ctx.addIssue({
+          code: "custom",
+          message: `${val} is a reserved color and cannot be used`,
+        });
+      }
+    })
     .nullable()
     .optional(),
   description: z.string().max(500).nullable().optional(),
