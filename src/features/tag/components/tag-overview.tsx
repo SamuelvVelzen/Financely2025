@@ -73,7 +73,7 @@ export function TagOverview() {
     <>
       <Container className="mb-4">
         <Title className="flex items-center justify-between">
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center ">
             <HiOutlineTag />
 
             <span>Tags</span>
