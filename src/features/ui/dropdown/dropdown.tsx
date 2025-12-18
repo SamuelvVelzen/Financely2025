@@ -25,6 +25,8 @@ type IDropdownProps = {
   expandedContent?: ReactNode;
   showExpanded?: boolean;
   placement?: IPlacementOption | IPlacementOption[];
+  /** Whether to close the dropdown when an item is clicked. Defaults to true. */
+  closeOnItemClick?: boolean;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -35,6 +37,7 @@ export function Dropdown({
   expandedContent,
   showExpanded = false,
   placement,
+  closeOnItemClick = true,
 }: IDropdownProps) {
   const dialogContext = useDialogContext();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -167,6 +170,11 @@ export function Dropdown({
                   maxHeight: dropdownPosition
                     ? `${dropdownPosition.maxHeight}px`
                     : "none",
+                }}
+                onClick={() => {
+                  if (closeOnItemClick) {
+                    setDropdownState(false);
+                  }
                 }}
               >
                 {children}
