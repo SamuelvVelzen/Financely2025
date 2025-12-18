@@ -49,7 +49,10 @@ export function UserHeaderSidebar() {
       {isExpanded && expandedProfileCard}
       <IconButton clicked={toggleSidebar} aria-label="Toggle sidebar">
         <HiChevronRight
-          className={cn("size-7", isExpanded ? "rotate-180" : "")}
+          className={cn(
+            "size-7 transition-transform",
+            isExpanded ? "rotate-180" : ""
+          )}
         />
       </IconButton>
     </div>
