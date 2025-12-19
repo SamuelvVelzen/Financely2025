@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/features/ui/button/button";
 import { Checkbox } from "@/features/ui/checkbox/checkbox";
 import { Container } from "@/features/ui/container/container";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -12,6 +13,7 @@ import { ColorInput } from "@/features/ui/input/color-input";
 import { NumberInput } from "@/features/ui/input/number-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
@@ -38,6 +40,11 @@ function Home() {
         <p className="text-text-muted text-sm">
           Welcome to Financely. Manage your finances with ease.
         </p>
+      </Container>
+
+      <Container className="mb-4">
+        <h2 className="text-lg font-semibold mb-4">Toast Examples</h2>
+        <ToastExample />
       </Container>
 
       <Container className="mb-4">
@@ -405,6 +412,155 @@ function SelectDropdownExample() {
               .join(", ")}
           </p>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Toast Example
+ *
+ * Demonstrates:
+ * - Different toast variants (success, error, info, warning)
+ * - Custom duration
+ * - Manual dismiss (duration: 0)
+ * - Hover to pause auto-dismiss
+ * - Close button
+ * - Different positions
+ */
+function ToastExample() {
+  const toast = useToast();
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-text-muted">
+        Click the buttons below to trigger different toast notifications. Hover
+        over a toast to pause its timer. Click the X button to dismiss
+        immediately.
+      </p>
+
+      <h4 className="font-medium text-sm">Variants</h4>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="success"
+          clicked={() => toast.success("Transaction saved successfully!")}
+        >
+          Success Toast
+        </Button>
+
+        <Button
+          variant="danger"
+          clicked={() =>
+            toast.error("Failed to delete item", {
+              title: "Error",
+            })
+          }
+        >
+          Error Toast
+        </Button>
+
+        <Button
+          variant="info"
+          clicked={() =>
+            toast.info("Your data is being synced", {
+              title: "Info",
+              duration: 5000,
+            })
+          }
+        >
+          Info Toast (5s)
+        </Button>
+
+        <Button
+          variant="warning"
+          clicked={() =>
+            toast.warning("Your session will expire soon", {
+              title: "Warning",
+            })
+          }
+        >
+          Warning Toast
+        </Button>
+      </div>
+
+      <h4 className="font-medium text-sm">Options</h4>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          clicked={() =>
+            toast.info("This toast won't auto-dismiss. Click X to close.", {
+              title: "Persistent Toast",
+              duration: 0,
+            })
+          }
+        >
+          No Auto-Dismiss
+        </Button>
+
+        <Button
+          clicked={() =>
+            toast.success("Minimal toast", {
+              showCloseButton: false,
+              duration: 2000,
+            })
+          }
+        >
+          No Close Button (2s)
+        </Button>
+
+        <Button variant="danger" clicked={() => toast.clearAll()}>
+          Clear All Toasts
+        </Button>
+      </div>
+
+      <h4 className="font-medium text-sm">Positions</h4>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          clicked={() => toast.info("Top left toast", { position: "top-left" })}
+        >
+          Top Left
+        </Button>
+
+        <Button
+          clicked={() =>
+            toast.info("Top center toast", { position: "top-center" })
+          }
+        >
+          Top Center
+        </Button>
+
+        <Button
+          clicked={() =>
+            toast.info("Top right toast", { position: "top-right" })
+          }
+        >
+          Top Right
+        </Button>
+
+        <Button
+          clicked={() =>
+            toast.info("Bottom left toast", { position: "bottom-left" })
+          }
+        >
+          Bottom Left
+        </Button>
+
+        <Button
+          clicked={() =>
+            toast.info("Bottom center toast", { position: "bottom-center" })
+          }
+        >
+          Bottom Center
+        </Button>
+
+        <Button
+          clicked={() =>
+            toast.info("Bottom right toast (default)", {
+              position: "bottom-right",
+            })
+          }
+        >
+          Bottom Right
+        </Button>
       </div>
     </div>
   );

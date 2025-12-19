@@ -1,4 +1,5 @@
 import { QueryProvider } from "@/features/shared/query/client";
+import { ToastContainer, ToastProvider } from "@/features/ui/toast";
 import {
   createRootRoute,
   HeadContent,
@@ -53,7 +54,10 @@ function RootLayout() {
       </head>
       <body>
         <QueryProvider>
-          <Outlet />
+          <ToastProvider>
+            <Outlet />
+            <ToastContainer />
+          </ToastProvider>
         </QueryProvider>
         <Scripts />
       </body>
