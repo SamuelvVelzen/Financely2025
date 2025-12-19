@@ -36,8 +36,10 @@ import { Route as ApiV1TagsCsvImportRouteImport } from './routes/api/v1/tags.csv
 import { Route as ApiV1TagsBulkRouteImport } from './routes/api/v1/tags.bulk'
 import { Route as ApiV1TagsTagIdRouteImport } from './routes/api/v1/tags.$tagId'
 import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
+import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
 import { Route as ApiV1TransactionsCsvMappingValidateRouteImport } from './routes/api/v1/transactions.csv-mapping.validate'
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
+import { Route as ApiV1MeAccountsAccountIdRouteImport } from './routes/api/v1/me.accounts.$accountId'
 import { Route as ApiV1TransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/transactions.$transactionId.tags.$tagId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -179,6 +181,11 @@ const ApiV1MeProfileRoute = ApiV1MeProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => ApiV1MeRoute,
 } as any)
+const ApiV1MeAccountsRoute = ApiV1MeAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
+  getParentRoute: () => ApiV1MeRoute,
+} as any)
 const ApiV1TransactionsCsvMappingValidateRoute =
   ApiV1TransactionsCsvMappingValidateRouteImport.update({
     id: '/validate',
@@ -190,6 +197,12 @@ const ApiV1TagsCsvMappingValidateRoute =
     id: '/validate',
     path: '/validate',
     getParentRoute: () => ApiV1TagsCsvMappingRoute,
+  } as any)
+const ApiV1MeAccountsAccountIdRoute =
+  ApiV1MeAccountsAccountIdRouteImport.update({
+    id: '/$accountId',
+    path: '/$accountId',
+    getParentRoute: () => ApiV1MeAccountsRoute,
   } as any)
 const ApiV1TransactionsTransactionIdTagsTagIdRoute =
   ApiV1TransactionsTransactionIdTagsTagIdRouteImport.update({
@@ -211,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
@@ -225,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
   '/api/v1/transactions/csv-parse': typeof ApiV1TransactionsCsvParseRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/transactions/csv-mapping/validate': typeof ApiV1TransactionsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
@@ -242,6 +257,7 @@ export interface FileRoutesByTo {
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
@@ -256,6 +272,7 @@ export interface FileRoutesByTo {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
   '/api/v1/transactions/csv-parse': typeof ApiV1TransactionsCsvParseRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/transactions/csv-mapping/validate': typeof ApiV1TransactionsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
@@ -275,6 +292,7 @@ export interface FileRoutesById {
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
@@ -289,6 +307,7 @@ export interface FileRoutesById {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
   '/api/v1/transactions/csv-parse': typeof ApiV1TransactionsCsvParseRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/transactions/csv-mapping/validate': typeof ApiV1TransactionsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
@@ -308,6 +327,7 @@ export interface FileRouteTypes {
     | '/api/v1/me'
     | '/api/v1/tags'
     | '/api/v1/transactions'
+    | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
@@ -322,6 +342,7 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-parse'
     | '/api/v1/transactions/csv-upload'
+    | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/transactions/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
@@ -339,6 +360,7 @@ export interface FileRouteTypes {
     | '/api/v1/me'
     | '/api/v1/tags'
     | '/api/v1/transactions'
+    | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
@@ -353,6 +375,7 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-parse'
     | '/api/v1/transactions/csv-upload'
+    | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/transactions/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
@@ -371,6 +394,7 @@ export interface FileRouteTypes {
     | '/api/v1/me'
     | '/api/v1/tags'
     | '/api/v1/transactions'
+    | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
@@ -385,6 +409,7 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-parse'
     | '/api/v1/transactions/csv-upload'
+    | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/transactions/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
@@ -592,6 +617,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeProfileRouteImport
       parentRoute: typeof ApiV1MeRoute
     }
+    '/api/v1/me/accounts': {
+      id: '/api/v1/me/accounts'
+      path: '/accounts'
+      fullPath: '/api/v1/me/accounts'
+      preLoaderRoute: typeof ApiV1MeAccountsRouteImport
+      parentRoute: typeof ApiV1MeRoute
+    }
     '/api/v1/transactions/csv-mapping/validate': {
       id: '/api/v1/transactions/csv-mapping/validate'
       path: '/validate'
@@ -605,6 +637,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/tags/csv-mapping/validate'
       preLoaderRoute: typeof ApiV1TagsCsvMappingValidateRouteImport
       parentRoute: typeof ApiV1TagsCsvMappingRoute
+    }
+    '/api/v1/me/accounts/$accountId': {
+      id: '/api/v1/me/accounts/$accountId'
+      path: '/$accountId'
+      fullPath: '/api/v1/me/accounts/$accountId'
+      preLoaderRoute: typeof ApiV1MeAccountsAccountIdRouteImport
+      parentRoute: typeof ApiV1MeAccountsRoute
     }
     '/api/v1/transactions/$transactionId/tags/$tagId': {
       id: '/api/v1/transactions/$transactionId/tags/$tagId'
@@ -636,11 +675,25 @@ const appRouteRouteWithChildren = appRouteRoute._addFileChildren(
   appRouteRouteChildren,
 )
 
+interface ApiV1MeAccountsRouteChildren {
+  ApiV1MeAccountsAccountIdRoute: typeof ApiV1MeAccountsAccountIdRoute
+}
+
+const ApiV1MeAccountsRouteChildren: ApiV1MeAccountsRouteChildren = {
+  ApiV1MeAccountsAccountIdRoute: ApiV1MeAccountsAccountIdRoute,
+}
+
+const ApiV1MeAccountsRouteWithChildren = ApiV1MeAccountsRoute._addFileChildren(
+  ApiV1MeAccountsRouteChildren,
+)
+
 interface ApiV1MeRouteChildren {
+  ApiV1MeAccountsRoute: typeof ApiV1MeAccountsRouteWithChildren
   ApiV1MeProfileRoute: typeof ApiV1MeProfileRoute
 }
 
 const ApiV1MeRouteChildren: ApiV1MeRouteChildren = {
+  ApiV1MeAccountsRoute: ApiV1MeAccountsRouteWithChildren,
   ApiV1MeProfileRoute: ApiV1MeProfileRoute,
 }
 

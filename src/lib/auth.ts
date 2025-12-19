@@ -62,6 +62,10 @@ export const auth = betterAuth({
         required: false,
       },
     },
+    // Allow users to change their email
+    changeEmail: {
+      enabled: true,
+    },
   },
   account: {
     modelName: "Account",

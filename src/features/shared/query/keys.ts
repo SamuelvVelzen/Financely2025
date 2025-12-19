@@ -12,6 +12,7 @@ export const queryKeys = {
   // User queries
   me: () => ["me"] as const,
   myProfile: () => ["me", "profile"] as const,
+  myAccounts: () => ["me", "accounts"] as const,
 
   // Tag queries
   tags: (params?: { q?: string; sort?: "name:asc" | "name:desc" }) =>
