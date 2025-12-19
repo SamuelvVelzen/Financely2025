@@ -27,8 +27,6 @@ const ENABLE_MAGIC_LINK = process.env.ENABLE_MAGIC_LINK !== "false";
 const ENABLE_GOOGLE = process.env.ENABLE_GOOGLE === "true";
 const ENABLE_MICROSOFT = process.env.ENABLE_MICROSOFT === "true";
 const ENABLE_APPLE = process.env.ENABLE_APPLE === "true";
-const REQUIRE_EMAIL_VERIFICATION =
-  process.env.REQUIRE_EMAIL_VERIFICATION === "true";
 
 // Base URL for auth callbacks
 const baseURL = getEnv(
@@ -94,7 +92,7 @@ export const auth = betterAuth({
   emailAndPassword: ENABLE_EMAIL_PASSWORD
     ? {
         enabled: true,
-        requireEmailVerification: REQUIRE_EMAIL_VERIFICATION,
+        requireEmailVerification: true, // Always require email verification when email/password is enabled
         minPasswordLength: 8,
         maxPasswordLength: 128,
         autoSignIn: true,
@@ -117,11 +115,12 @@ export const auth = betterAuth({
       }
     : undefined,
 
-  // Email verification
-  emailVerification: REQUIRE_EMAIL_VERIFICATION
+  // Email verification - always enabled when email/password auth is enabled
+  emailVerification: ENABLE_EMAIL_PASSWORD
     ? {
         sendVerificationEmail: async ({ user, url, token }) => {
-          await EmailService.sendVerificationEmail({
+          // Use void to prevent timing attacks (BetterAuth recommendation)
+          void EmailService.sendVerificationEmail({
             user: {
               id: user.id,
               email: user.email,
@@ -132,7 +131,7 @@ export const auth = betterAuth({
           });
         },
         sendOnSignUp: true,
-        sendOnSignIn: false,
+        sendOnSignIn: false, // Prevents auto-resend on login attempts
         autoSignInAfterVerification: true,
         expiresIn: 3600, // 1 hour
       }

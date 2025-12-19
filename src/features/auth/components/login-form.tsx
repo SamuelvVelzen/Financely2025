@@ -41,6 +41,8 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const toast = useToast();
 
   const navigate = useNavigate();
@@ -64,16 +66,36 @@ export function LoginForm() {
 
   const handleLogin = async (data: ILoginFormData) => {
     setError(null);
+    setShowResendButton(false);
     setLoading(true);
 
     try {
-      const result = await authClient.signIn.email({
-        email: data.email,
-        password: data.password,
-      });
+      const result = await authClient.signIn.email(
+        {
+          email: data.email,
+          password: data.password,
+        },
+        {
+          onError: (ctx) => {
+            // BetterAuth returns 403 for unverified emails
+            if (ctx.error.status === 403) {
+              setError("Please verify your email address before logging in.");
+              setShowResendButton(true);
+            } else {
+              setError(ctx.error.message || "An error occurred");
+            }
+          },
+        }
+      );
 
       if (result.error) {
-        setError(result.error.message || "An error occurred");
+        // Fallback error handling
+        if (result.error.status === 403) {
+          setError("Please verify your email address before logging in.");
+          setShowResendButton(true);
+        } else {
+          setError(result.error.message || "An error occurred");
+        }
         toast.error(result.error.message || "Login failed");
         return;
       }
@@ -87,6 +109,35 @@ export function LoginForm() {
       toast.error(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const email = loginForm.getValues("email");
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setResendLoading(true);
+    try {
+      const result = await authClient.sendVerificationEmail({
+        email,
+        callbackURL: redirect || "/",
+      });
+
+      if (result.error) {
+        toast.error(
+          result.error.message || "Failed to send verification email"
+        );
+      } else {
+        toast.success("Verification email sent! Please check your inbox.");
+        setShowResendButton(false);
+      }
+    } catch (err) {
+      toast.error("Failed to send verification email");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -155,11 +206,20 @@ export function LoginForm() {
         <div className="p-4 bg-danger/10 border border-danger rounded-lg space-y-2">
           <p className="text-danger text-sm">{error}</p>
           {ENABLE_EMAIL_PASSWORD && mode === "login" && (
-            <div className="text-sm">
+            <div className="flex flex-col gap-2 text-sm">
+              {showResendButton && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleResendVerification}
+                  disabled={resendLoading}
+                  className="w-full">
+                  {resendLoading ? "Sending..." : "Resend verification email"}
+                </Button>
+              )}
               <NavLink
                 to="/reset-password"
-                search={{ email: emailValue || null, token: null }}
-              >
+                search={{ email: emailValue || null, token: null }}>
                 Forgot your password?
               </NavLink>
             </div>
@@ -169,7 +229,10 @@ export function LoginForm() {
 
       {/* Email/Password Form */}
       {ENABLE_EMAIL_PASSWORD && mode === "login" && (
-        <Form form={loginForm} onSubmit={handleLogin} className="space-y-4">
+        <Form
+          form={loginForm}
+          onSubmit={handleLogin}
+          className="space-y-4">
           <BaseInput
             name="email"
             type="email"
@@ -185,7 +248,10 @@ export function LoginForm() {
             disabled={loading}
           />
 
-          <Button type="submit" variant="primary" className="w-full">
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-full">
             {loading ? "Signing in..." : "Sign In"}
           </Button>
         </Form>
@@ -209,15 +275,17 @@ export function LoginForm() {
           <div className="flex gap-2 justify-center">
             <LinkButton
               clicked={() => handleSwitchToMagicLink()}
-              variant="primary"
-            >
+              variant="primary">
               Use magic link instead
             </LinkButton>
           </div>
         )}
         <div className="text-center">
           <span className="text-text-muted">Don't have an account? </span>
-          <NavLink href="/register" to="/register" search={{ redirect }}>
+          <NavLink
+            href="/register"
+            to="/register"
+            search={{ redirect }}>
             Create account
           </NavLink>
         </div>
