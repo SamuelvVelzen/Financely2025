@@ -21,6 +21,7 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
+import { useToast } from "@/features/ui/toast";
 import { cn } from "@/util/cn";
 import { DateFormatHelpers } from "@/util/date/date-format.helpers";
 import { useEffect, useMemo, useState } from "react";
@@ -84,6 +85,7 @@ export function TransactionCsvImportDialog({
   const { isDirty: mappingFormDirty } = mappingForm.formState;
   const defaultCurrency = mappingForm.watch("defaultCurrency");
 
+  const toast = useToast();
   const uploadMutation = useUploadCsvFile();
   const mappingQuery = useGetCsvMapping(
     columns.length > 0 ? columns : undefined,
@@ -284,11 +286,15 @@ export function TransactionCsvImportDialog({
 
     try {
       await importMutation.mutateAsync(transactionsToImport);
+      toast.success(
+        `Successfully imported ${transactionsToImport.length} transactions`
+      );
       onSuccess?.();
       resetAllState();
       onOpenChange(false);
     } catch (error) {
       console.error("Import failed:", error);
+      toast.error("Failed to import transactions");
     }
   };
 
@@ -356,9 +362,7 @@ export function TransactionCsvImportDialog({
             </p>
           </div>
         )}
-        <Form
-          form={mappingForm}
-          onSubmit={() => {}}>
+        <Form form={mappingForm} onSubmit={() => {}}>
           <div className="space-y-2">
             <label className="block text-sm font-medium">
               Currency <span className="text-danger ml-1">*</span>
@@ -390,9 +394,7 @@ export function TransactionCsvImportDialog({
             const isDifferentFromSuggested = currentValue !== suggestedColumn;
 
             return (
-              <div
-                key={field.name}
-                className="space-y-1">
+              <div key={field.name} className="space-y-1">
                 <label className="block text-sm font-medium">
                   {field.label}
                   {isRequiredField(field.name) &&
@@ -411,9 +413,7 @@ export function TransactionCsvImportDialog({
                       column)
                     </p>
                   )}
-                <Form
-                  form={mappingForm}
-                  onSubmit={() => {}}>
+                <Form form={mappingForm} onSubmit={() => {}}>
                   <SelectDropdown
                     name={`mappings.${field.name}`}
                     options={columnOptions}
@@ -517,7 +517,8 @@ export function TransactionCsvImportDialog({
             <HeaderCell key="currency">Currency</HeaderCell>,
             <HeaderCell key="type">Type</HeaderCell>,
             <HeaderCell key="errors">Errors</HeaderCell>,
-          ]}>
+          ]}
+        >
           {candidates.map((candidate) => {
             return (
               <TableRow
@@ -526,7 +527,8 @@ export function TransactionCsvImportDialog({
                 className={cn(
                   "border-t border-border",
                   candidate.status === "invalid" && "bg-danger/5"
-                )}>
+                )}
+              >
                 <BodyCell>
                   <span
                     className={cn(
@@ -535,7 +537,8 @@ export function TransactionCsvImportDialog({
                         "bg-success/20 text-success",
                       candidate.status === "invalid" &&
                         "bg-danger/20 text-danger"
-                    )}>
+                    )}
+                  >
                     {candidate.status}
                   </span>
                 </BodyCell>

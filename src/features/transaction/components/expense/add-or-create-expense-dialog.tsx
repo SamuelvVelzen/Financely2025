@@ -17,6 +17,7 @@ import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
+import { useToast } from "@/features/ui/toast";
 import {
   datetimeLocalToIso,
   isoToDatetimeLocal,
@@ -71,6 +72,7 @@ export function AddOrCreateExpenseDialog({
   const isEditMode = !!transaction;
   const { mutate: createExpense } = useCreateExpense();
   const { mutate: updateExpense } = useUpdateExpense();
+  const toast = useToast();
 
   const form = useForm<FormData>({
     resolver: zodResolver(ExpenseFormSchema) as Resolver<FormData>,
@@ -161,10 +163,12 @@ export function AddOrCreateExpenseDialog({
               resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
+              toast.success("Expense updated successfully");
               onSuccess?.();
             },
             onError: (error) => {
               setPending(false);
+              toast.error("Failed to update expense");
               throw error;
             },
           }
@@ -176,10 +180,12 @@ export function AddOrCreateExpenseDialog({
             resetFormToClosedState();
             setPending(false);
             onOpenChange(false);
+            toast.success("Expense created successfully");
             onSuccess?.();
           },
           onError: (error) => {
             setPending(false);
+            toast.error("Failed to create expense");
             throw error;
           },
         });

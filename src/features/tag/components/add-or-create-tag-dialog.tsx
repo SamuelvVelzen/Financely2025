@@ -10,6 +10,7 @@ import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialo
 import { Form } from "@/features/ui/form/form";
 import { ColorInput } from "@/features/ui/input/color-input";
 import { TextInput } from "@/features/ui/input/text-input";
+import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -42,6 +43,7 @@ export function AddOrCreateTagDialog({
   const isEditMode = !!tag;
   const { mutate: createTag } = useCreateTag();
   const { mutate: updateTag } = useUpdateTag();
+  const toast = useToast();
 
   const form = useForm<FormData>({
     resolver: zodResolver(CreateTagInputSchema) as any,
@@ -127,10 +129,12 @@ export function AddOrCreateTagDialog({
               resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
+              toast.success("Tag updated successfully");
               onSuccess?.();
             },
             onError: (error) => {
               setPending(false);
+              toast.error("Failed to update tag");
               throw error;
             },
           }
@@ -142,10 +146,12 @@ export function AddOrCreateTagDialog({
             resetFormToClosedState();
             setPending(false);
             onOpenChange(false);
+            toast.success("Tag created successfully");
             onSuccess?.(createdTag);
           },
           onError: (error) => {
             setPending(false);
+            toast.error("Failed to create tag");
             throw error;
           },
         });

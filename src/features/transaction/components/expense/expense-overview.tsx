@@ -17,6 +17,7 @@ import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { formatMonthYear } from "@/util/date/date-helpers";
 import { useMemo, useState } from "react";
@@ -53,6 +54,7 @@ export function ExpenseOverview() {
   const allExpenses = data?.data ?? [];
 
   const { mutate: deleteExpense } = useDeleteExpense();
+  const toast = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
@@ -127,6 +129,10 @@ export function ExpenseOverview() {
         onSuccess: () => {
           setIsDeleteDialogOpen(false);
           setSelectedExpense(undefined);
+          toast.success("Expense deleted successfully");
+        },
+        onError: () => {
+          toast.error("Failed to delete expense");
         },
       });
     }

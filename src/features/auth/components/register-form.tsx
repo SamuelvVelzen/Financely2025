@@ -10,6 +10,7 @@ import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { NavLink } from "@/features/ui/navigation/nav-link";
+import { useToast } from "@/features/ui/toast";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearch } from "@tanstack/react-router";
@@ -35,6 +36,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/register" });
@@ -69,13 +71,17 @@ export function RegisterForm() {
 
       if (result.error) {
         setError(result.error.message || "An error occurred");
+        toast.error(result.error.message || "Registration failed");
         return;
       }
 
+      toast.success("Account created successfully!");
       // Redirect after successful registration
       navigate({ to: redirect || "/" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

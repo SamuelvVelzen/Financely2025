@@ -18,6 +18,7 @@ import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
+import { useToast } from "@/features/ui/toast";
 import {
   datetimeLocalToIso,
   isoToDatetimeLocal,
@@ -75,6 +76,7 @@ export function AddOrCreateIncomeDialog({
   const isEditMode = !!transaction;
   const { mutate: createIncome } = useCreateIncome();
   const { mutate: updateIncome } = useUpdateIncome();
+  const toast = useToast();
 
   const form = useForm<FormData>({
     resolver: zodResolver(IncomeFormSchema) as Resolver<FormData>,
@@ -165,10 +167,12 @@ export function AddOrCreateIncomeDialog({
               resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
+              toast.success("Income updated successfully");
               onSuccess?.();
             },
             onError: (error) => {
               setPending(false);
+              toast.error("Failed to update income");
               throw error;
             },
           }
@@ -180,10 +184,12 @@ export function AddOrCreateIncomeDialog({
             resetFormToClosedState();
             setPending(false);
             onOpenChange(false);
+            toast.success("Income created successfully");
             onSuccess?.();
           },
           onError: (error) => {
             setPending(false);
+            toast.error("Failed to create income");
             throw error;
           },
         });

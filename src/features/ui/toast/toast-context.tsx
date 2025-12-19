@@ -2,12 +2,17 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useState,
-  useCallback,
   type ReactNode,
 } from "react";
-import type { IToast, IToastContext, IToastOptions, IToastPosition } from "./types";
+import type {
+  IToast,
+  IToastContext,
+  IToastOptions,
+  IToastPosition,
+} from "./types";
 
 const ToastContext = createContext<IToastContext | null>(null);
 
@@ -23,7 +28,7 @@ interface IToastProviderProps {
 
 export function ToastProvider({
   children,
-  defaultPosition = "bottom-right",
+  defaultPosition = "bottom-center",
 }: IToastProviderProps) {
   const [toasts, setToasts] = useState<IToast[]>([]);
 

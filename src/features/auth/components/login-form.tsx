@@ -5,6 +5,7 @@ import { LinkButton } from "@/features/ui/button/link-button";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { NavLink } from "@/features/ui/navigation/nav-link";
+import { useToast } from "@/features/ui/toast";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearch } from "@tanstack/react-router";
@@ -40,6 +41,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const toast = useToast();
 
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/login" });
@@ -72,13 +74,17 @@ export function LoginForm() {
 
       if (result.error) {
         setError(result.error.message || "An error occurred");
+        toast.error(result.error.message || "Login failed");
         return;
       }
 
+      toast.success("Welcome back!");
       // Redirect after successful login
       navigate({ to: redirect || "/" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -96,12 +102,16 @@ export function LoginForm() {
 
       if (result.error) {
         setError(result.error.message || "An error occurred");
+        toast.error(result.error.message || "Failed to send magic link");
         return;
       }
 
       setMagicLinkSent(true);
+      toast.success("Magic link sent! Check your email.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

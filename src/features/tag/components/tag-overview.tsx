@@ -13,6 +13,7 @@ import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { SortableList } from "@/features/ui/list/sortable-list";
 import { SortableListItem } from "@/features/ui/list/sortable-list-item";
+import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useState } from "react";
 import {
@@ -31,6 +32,7 @@ export function TagOverview() {
   const sortedTags = useOrderedData(tags);
   const { mutate: deleteTag } = useDeleteTag();
   const { mutate: reorderTags } = useReorderTags();
+  const toast = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
@@ -57,6 +59,10 @@ export function TagOverview() {
         onSuccess: () => {
           setIsDeleteDialogOpen(false);
           setSelectedTag(undefined);
+          toast.success("Tag deleted successfully");
+        },
+        onError: () => {
+          toast.error("Failed to delete tag");
         },
       });
     }
