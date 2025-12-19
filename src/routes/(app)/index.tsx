@@ -21,6 +21,13 @@ import { z } from "zod";
 
 export const Route = createFileRoute("/(app)/")({
   component: Home,
+  head: () => ({
+    meta: [
+      {
+        title: "Dashboard | Financely",
+      },
+    ],
+  }),
 });
 
 function Home() {

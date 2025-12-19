@@ -3,9 +3,15 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/tags")({
   component: TagsPage,
+  head: () => ({
+    meta: [
+      {
+        title: "Tags | Financely  ",
+      },
+    ],
+  }),
 });
 
-export function TagsPage() {
+function TagsPage() {
   return <TagOverview />;
 }
-

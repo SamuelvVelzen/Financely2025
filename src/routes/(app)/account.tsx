@@ -5,6 +5,13 @@ import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/account")({
   component: AccountPage,
+  head: () => ({
+    meta: [
+      {
+        title: "Account | Financely",
+      },
+    ],
+  }),
 });
 
 function AccountPage() {
