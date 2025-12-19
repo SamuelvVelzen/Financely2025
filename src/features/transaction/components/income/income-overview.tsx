@@ -250,7 +250,7 @@ export function IncomeOverview() {
 
       {isEmpty && (
         <EmptyContainer
-          icon={<HiPlus />}
+          icon={<HiArrowTrendingUp />}
           emptyText={
             "No income entries yet. Start by adding your first income source."
           }
@@ -263,7 +263,7 @@ export function IncomeOverview() {
 
       {isEmptyWithFilters && (
         <EmptyContainer
-          icon={<HiPlus />}
+          icon={<HiArrowTrendingUp />}
           emptyText={
             "No incomes match your filters. Try adjusting your search criteria or clearing your filters."
           }
