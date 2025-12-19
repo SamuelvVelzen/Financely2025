@@ -5,7 +5,7 @@ import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
 export type IButtonSize = "sm" | "md" | "lg";
 
-export type IButtonVariant =
+export type IVariant =
   | "default"
   | "danger"
   | "info"
@@ -15,7 +15,7 @@ export type IButtonVariant =
 
 export type IButtonProps = {
   buttonContent?: string | ReactNode;
-  variant?: IButtonVariant;
+  variant?: IVariant;
   disabled?: boolean;
   size?: IButtonSize;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> &
@@ -42,7 +42,7 @@ export function Button({
   size = "md",
   ...rest
 }: IButtonProps) {
-  const variantClasses: { [key in IButtonVariant]: string } = {
+  const variantClasses: { [key in IVariant]: string } = {
     default: "hover:bg-surface-hover border-border",
     danger: "bg-danger hover:bg-danger-hover text-white border-danger",
     info: "bg-info hover:bg-info-hover text-white border-info",
@@ -75,8 +75,7 @@ export function Button({
         onClick?.(event);
         clicked?.(event);
       }}
-      {...rest}
-    >
+      {...rest}>
       {buttonContent ?? children}
     </button>
   );

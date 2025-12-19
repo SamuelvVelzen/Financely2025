@@ -1,4 +1,4 @@
-export type IToastVariant = "success" | "danger" | "info" | "warning";
+import { IVariant } from "../button/button";
 
 export type IToastPosition =
   | "top-left"
@@ -11,7 +11,7 @@ export type IToastPosition =
 export interface IToast {
   id: string;
   message: string;
-  variant: IToastVariant;
+  variant: IVariant;
   duration: number;
   title?: string;
   showCloseButton: boolean;
@@ -21,7 +21,7 @@ export interface IToast {
 
 export interface IToastOptions {
   message: string;
-  variant?: IToastVariant;
+  variant?: IVariant;
   /** Duration in ms. Default: 3000. Set to 0 for no auto-dismiss. */
   duration?: number;
   title?: string;
