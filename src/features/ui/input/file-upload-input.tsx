@@ -43,42 +43,44 @@ export function FileUploadInput(props: FileUploadInputProps) {
     allowClear = true,
     name,
     id,
-    multiple: multipleProp,
+    multiple = false,
+    files,
+    defaultFiles,
+    onFilesChange,
     ...rest
   } = props;
-  const multiple = multipleProp ?? false;
   const inputId = useId();
   const resolvedId = id ?? inputId;
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [internalFiles, setInternalFiles] = useState<File[]>(() => {
-    if (props.multiple) {
-      return props.defaultFiles ?? [];
+    if (multiple) {
+      return (defaultFiles as File[] | undefined) ?? [];
     }
-    return props.defaultFiles ? [props.defaultFiles] : [];
+    return defaultFiles ? [defaultFiles as File] : [];
   });
 
   const selectedFiles = useMemo(() => {
-    if (props.multiple) {
-      return props.files ?? internalFiles;
+    if (multiple) {
+      return (files as File[] | undefined) ?? internalFiles;
     }
-    if (props.files === undefined) {
+    if (files === undefined) {
       return internalFiles;
     }
-    return props.files ? [props.files] : [];
-  }, [props.multiple, props.files, internalFiles]);
+    return files ? [files as File] : [];
+  }, [multiple, files, internalFiles]);
 
   const handleFilesChange = (nextFiles: File[]) => {
-    if (props.multiple) {
-      if (props.files === undefined) {
+    if (multiple) {
+      if (files === undefined) {
         setInternalFiles(nextFiles);
       }
-      props.onFilesChange?.(nextFiles);
+      (onFilesChange as ((files: File[]) => void) | undefined)?.(nextFiles);
     } else {
       const nextFile = nextFiles[0] ?? null;
-      if (props.files === undefined) {
+      if (files === undefined) {
         setInternalFiles(nextFile ? [nextFile] : []);
       }
-      props.onFilesChange?.(nextFile);
+      (onFilesChange as ((file: File | null) => void) | undefined)?.(nextFile);
     }
   };
 
@@ -93,7 +95,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
   };
 
   const handleRemoveFile = (index: number) => {
-    if (props.multiple) {
+    if (multiple) {
       const nextFiles = selectedFiles.filter((_, i) => i !== index);
       handleFilesChange(nextFiles);
     } else {
