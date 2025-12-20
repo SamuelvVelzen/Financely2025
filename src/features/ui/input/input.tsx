@@ -22,6 +22,7 @@ export type IBaseInputProps = Omit<
   IPropsWithClassName & {
     name: string;
     label?: string;
+    hint?: string;
     id?: string;
     prefixIcon?: React.ReactNode;
     suffixIcon?: React.ReactNode;
@@ -32,6 +33,7 @@ export function BaseInput({
   className,
   type,
   label,
+  hint,
   name,
   id,
   prefixIcon,
@@ -62,7 +64,7 @@ export function BaseInput({
       name={name}
       control={form.control}
       render={({ field }) => (
-        <div className={label ? "space-y-1" : ""}>
+        <div className={label || hint ? "space-y-1" : ""}>
           {label && <Label htmlFor={inputId}>{label}</Label>}
           <div className="relative">
             {prefixIcon && (
@@ -120,6 +122,9 @@ export function BaseInput({
             <p className="text-sm text-danger mt-1">
               {error.message as string}
             </p>
+          )}
+          {!error && hint && (
+            <p className="text-xs text-text-muted mt-1">{hint}</p>
           )}
         </div>
       )}
