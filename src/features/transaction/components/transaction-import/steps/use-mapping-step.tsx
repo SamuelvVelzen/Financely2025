@@ -1,4 +1,6 @@
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
+import { Accordion } from "@/features/ui/accordion/accordion";
+import { Alert } from "@/features/ui/alert/alert";
 import { LinkButton } from "@/features/ui/button/link-button";
 import type {
   IStepConfig,
@@ -7,128 +9,173 @@ import type {
 import { Form } from "@/features/ui/form/form";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Label } from "@/features/ui/typography/label";
-import { TRANSACTION_FIELDS } from "../../../config/transaction-fields";
+import {
+  TRANSACTION_FIELDS,
+  type ITransactionFieldMetadata,
+} from "../../../config/transaction-fields";
 import { BankSelect } from "../../bank-select";
 import {
   useTransactionImportContext,
   type IStep,
 } from "./transaction-import-context";
 
-function MappingStepContent() {
+interface IFieldMappingCardProps {
+  field: ITransactionFieldMetadata;
+  isRequired: boolean;
+  showTypeHint: boolean;
+}
+
+function FieldMappingCard({
+  field,
+  isRequired,
+  showTypeHint,
+}: IFieldMappingCardProps) {
   const {
-    selectedBank,
-    setSelectedBank,
     mappingForm,
     columns,
     mapping,
     suggestedMapping,
     handleResetToSuggested,
+  } = useTransactionImportContext();
+
+  const columnOptions = [
+    { value: "", label: "— Not mapped —" },
+    ...columns.map((col) => ({ value: col, label: col })),
+  ];
+  const suggestedColumn = suggestedMapping?.[field.name];
+  const hasSuggestedMapping = !!suggestedColumn;
+  const currentValue = mapping[field.name] || "";
+  const isDifferentFromSuggested = currentValue !== suggestedColumn;
+  const fieldError = mappingForm.formState.errors.mappings?.[field.name];
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <Label required={isRequired} className="text-sm">
+          {field.label}
+        </Label>
+        {hasSuggestedMapping && isDifferentFromSuggested && (
+          <LinkButton
+            clicked={() => handleResetToSuggested(field.name)}
+            buttonContent="Reset"
+            className="text-xs"
+          />
+        )}
+      </div>
+      <Form form={mappingForm} onSubmit={() => {}}>
+        <SelectDropdown
+          name={`mappings.${field.name}`}
+          options={columnOptions}
+          placeholder="Select column..."
+          multiple={false}
+          showClearButton={false}
+        />
+      </Form>
+      {fieldError && (
+        <p className="text-xs text-danger">{fieldError.message}</p>
+      )}
+      {showTypeHint && (
+        <p className="text-xs text-info">Map to debit/credit column</p>
+      )}
+    </div>
+  );
+}
+
+function MappingStepContent() {
+  const {
+    selectedBank,
+    setSelectedBank,
+    mappingForm,
     requiredMappingFields,
     transformMutation,
   } = useTransactionImportContext();
 
-  const fieldsToShow = TRANSACTION_FIELDS;
+  const requiredFields = TRANSACTION_FIELDS.filter((f) =>
+    requiredMappingFields.includes(f.name)
+  );
+  const optionalFields = TRANSACTION_FIELDS.filter(
+    (f) => !requiredMappingFields.includes(f.name)
+  );
+
+  const bankDisplayName =
+    selectedBank === "AMERICAN_EXPRESS"
+      ? "American Express"
+      : selectedBank === "ING"
+        ? "ING"
+        : selectedBank === "N26"
+          ? "N26"
+          : null;
 
   return (
-    <div className="space-y-4">
-      <div>
+    <div className="space-y-6">
+      {/* Header: Bank & Currency */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <BankSelect
           value={selectedBank}
           onChange={setSelectedBank}
-          helperText="Selecting a bank applies tailored column defaults and type detection strategy."
+          helperText="Auto-detects columns and type strategy"
         />
+        <Form form={mappingForm} onSubmit={() => {}}>
+          <div className="space-y-1.5">
+            <Label required className="text-sm">
+              Currency
+            </Label>
+            <SelectDropdown
+              name="defaultCurrency"
+              options={getCurrencyOptions()}
+              placeholder="Select currency..."
+              multiple={false}
+            />
+          </div>
+        </Form>
       </div>
+
+      {/* Bank Strategy Info */}
       {selectedBank && (
-        <div className="p-3 bg-primary/10 border border-primary rounded-lg">
-          <p className="text-sm text-primary font-medium">
-            Using{" "}
-            {selectedBank === "AMERICAN_EXPRESS"
-              ? "Amex"
-              : selectedBank === "ING"
-                ? "ING"
-                : selectedBank}{" "}
-            type detection strategy
-          </p>
-        </div>
+        <Alert variant="primary">
+          Using{" "}
+          <span className="text-primary font-medium">{bankDisplayName}</span>{" "}
+          detection strategy
+          {selectedBank === "ING" && (
+            <> — requires Type column (debit/credit)</>
+          )}
+        </Alert>
       )}
-      {selectedBank === "ING" && (
-        <div className="p-3 bg-info/10 border border-info rounded-lg">
-          <p className="text-sm text-info font-medium mb-1">
-            ING Strategy: Type Column Required
-          </p>
-          <p className="text-xs text-text-muted">
-            The "Type" field must be mapped to a column containing "debit" or
-            "credit" values. "Debit" = Expense, "Credit" = Income.
-          </p>
-        </div>
-      )}
-      <Form form={mappingForm} onSubmit={() => {}}>
-        <div className="space-y-2">
-          <Label required>Currency</Label>
-          <SelectDropdown
-            name="defaultCurrency"
-            options={getCurrencyOptions()}
-            placeholder="Select currency..."
-            multiple={false}
-          />
-          <p className="text-xs text-text-muted">
-            Currency for all transactions in this CSV file
-          </p>
-        </div>
-      </Form>
-      <p className="text-sm text-text-muted">
-        Map CSV columns to transaction fields. Required fields are marked with
-        an asterisk (*).
-      </p>
-      <div className="space-y-3">
-        {fieldsToShow.map((field) => {
-          const columnOptions = [
-            { value: "", label: "— Not mapped —" },
-            ...columns.map((col) => ({ value: col, label: col })),
-          ];
-          const suggestedColumn = suggestedMapping?.[field.name];
-          const hasSuggestedMapping = !!suggestedColumn;
-          const currentValue = mapping[field.name] || "";
-          const isDifferentFromSuggested = currentValue !== suggestedColumn;
 
-          const isRequired = requiredMappingFields.includes(field.name);
-          const fieldError =
-            mappingForm.formState.errors.mappings?.[field.name];
+      {/* Field Mappings */}
+      <div className="space-y-4">
+        {/* Required Fields */}
+        <Accordion title="Required Fields" defaultOpen>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {requiredFields.map((field) => (
+              <FieldMappingCard
+                key={field.name}
+                field={field}
+                isRequired={true}
+                showTypeHint={field.name === "type" && selectedBank === "ING"}
+              />
+            ))}
+          </div>
+        </Accordion>
 
-          return (
-            <div key={field.name} className="space-y-1">
-              <Label required={isRequired}>{field.label}</Label>
-              {field.name === "type" && isRequired && field.description && (
-                <p className="text-xs text-text-muted">
-                  {field.description} (Required: map to debit/credit column)
-                </p>
-              )}
-              <Form form={mappingForm} onSubmit={() => {}}>
-                <SelectDropdown
-                  name={`mappings.${field.name}`}
-                  options={columnOptions}
-                  placeholder="Select column..."
-                  multiple={false}
-                  showClearButton={false}
+        {/* Optional Fields */}
+        {optionalFields.length > 0 && (
+          <Accordion title="Optional Fields" defaultOpen={false}>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {optionalFields.map((field) => (
+                <FieldMappingCard
+                  key={field.name}
+                  field={field}
+                  isRequired={false}
+                  showTypeHint={false}
                 />
-              </Form>
-              {fieldError && (
-                <p className="text-xs text-danger">{fieldError.message}</p>
-              )}
-              {hasSuggestedMapping && isDifferentFromSuggested && (
-                <LinkButton
-                  clicked={() => handleResetToSuggested(field.name)}
-                  buttonContent={`Reset to auto detected colomn: ${suggestedColumn}`}
-                  className="text-xs mt-1"
-                />
-              )}
-              {field.description && !(field.name === "type" && isRequired) && (
-                <p className="text-xs text-text-muted">{field.description}</p>
-              )}
+              ))}
             </div>
-          );
-        })}
+          </Accordion>
+        )}
       </div>
+
+      {/* Error Display */}
       {transformMutation.isError && (
         <div className="p-3 bg-danger/10 border border-danger rounded-lg">
           <p className="text-sm text-danger">
@@ -145,7 +192,7 @@ export function useMappingStep(): IStepConfig<IStep> {
 
   return {
     title: "Map Fields",
-    size: "full",
+    size: "3/4",
     content: () => <MappingStepContent />,
     footerButtons: (navigation: IStepNavigation<IStep>) => [
       {
