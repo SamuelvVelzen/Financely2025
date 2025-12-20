@@ -36,6 +36,8 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const toast = useToast();
 
   const navigate = useNavigate();
@@ -75,15 +77,44 @@ export function RegisterForm() {
         return;
       }
 
-      toast.success("Account created successfully!");
-      // Redirect after successful registration
-      navigate({ to: redirect || "/" });
+      setRegistrationSuccess(true);
+      toast.success(
+        "Account created successfully! Please check your email to verify your account."
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";
       setError(message);
       toast.error(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const email = registerForm.getValues("email");
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setResendLoading(true);
+    try {
+      const result = await authClient.sendVerificationEmail({
+        email,
+        callbackURL: redirect || "/",
+      });
+
+      if (result.error) {
+        toast.error(
+          result.error.message || "Failed to send verification email"
+        );
+      } else {
+        toast.success("Verification email sent! Please check your inbox.");
+      }
+    } catch (err) {
+      toast.error("Failed to send verification email");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -97,6 +128,36 @@ export function RegisterForm() {
     );
   }
 
+  if (registrationSuccess) {
+    return (
+      <div className="space-y-6">
+        <div className="p-4 bg-success/10 border border-success rounded-lg space-y-4">
+          <p className="text-success text-sm font-medium">
+            Account created successfully!
+          </p>
+          <p className="text-text-muted text-sm">
+            Please check your email to verify your account before logging in.
+          </p>
+          <div className="flex flex-col gap-2">
+            <Button
+              type="button"
+              clicked={handleResendVerification}
+              disabled={resendLoading}
+              className="w-full">
+              {resendLoading ? "Sending..." : "Resend verification email"}
+            </Button>
+            <NavLink
+              to="/login"
+              search={{ redirect }}
+              className="text-center text-sm">
+              Continue to login
+            </NavLink>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {error && (
@@ -106,7 +167,10 @@ export function RegisterForm() {
       )}
 
       {/* Registration Form */}
-      <Form form={registerForm} onSubmit={handleRegister} className="space-y-4">
+      <Form
+        form={registerForm}
+        onSubmit={handleRegister}
+        className="space-y-4">
         <div className="gap-4 grid grid-cols-[70%_30%]">
           <TextInput
             name="firstname"
@@ -143,9 +207,13 @@ export function RegisterForm() {
           label="Password"
           placeholder="••••••••"
           disabled={loading}
+          hint="Password must be at least 8 characters"
         />
 
-        <Button type="submit" variant="primary" className="w-full">
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full">
           {loading ? "Creating account..." : "Sign Up"}
         </Button>
       </Form>
@@ -153,7 +221,9 @@ export function RegisterForm() {
       {/* Link to Login */}
       <div className="text-center text-sm">
         <span className="text-text-muted">Already have an account? </span>
-        <NavLink to="/login" search={{ redirect }}>
+        <NavLink
+          to="/login"
+          search={{ redirect }}>
           Sign in instead
         </NavLink>
       </div>

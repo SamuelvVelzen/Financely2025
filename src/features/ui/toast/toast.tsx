@@ -2,14 +2,16 @@
 
 import { cn } from "@/util/cn";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { HiX } from "react-icons/hi";
+import { HiQuestionMarkCircle, HiX } from "react-icons/hi";
 import {
   HiCheckCircle,
   HiExclamationCircle,
   HiExclamationTriangle,
   HiInformationCircle,
 } from "react-icons/hi2";
-import type { IToast, IToastPosition, IToastVariant } from "./types";
+import { IVariant } from "../button/button";
+import { IconButton } from "../button/icon-button";
+import type { IToast, IToastPosition } from "./types";
 
 interface IToastProps {
   toast: IToast;
@@ -17,7 +19,7 @@ interface IToastProps {
 }
 
 const variantConfig: Record<
-  IToastVariant,
+  IVariant,
   { bg: string; border: string; text: string; icon: React.ElementType }
 > = {
   success: {
@@ -44,9 +46,24 @@ const variantConfig: Record<
     text: "text-warning",
     icon: HiExclamationTriangle,
   },
+  default: {
+    bg: "bg-surface",
+    border: "border-border",
+    text: "text-text",
+    icon: HiQuestionMarkCircle,
+  },
+  primary: {
+    bg: "bg-primary",
+    border: "border-primary",
+    text: "text-primary",
+    icon: HiCheckCircle,
+  },
 };
 
-function getAnimationClasses(position: IToastPosition, isExiting: boolean): string {
+function getAnimationClasses(
+  position: IToastPosition,
+  isExiting: boolean
+): string {
   const isLeft = position.includes("left");
   const isCenter = position.includes("center");
   const isTop = position.includes("top");
@@ -165,8 +182,7 @@ export function Toast({ toast, onRemove }: IToastProps) {
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      role="alert"
-    >
+      role="alert">
       <Icon className={cn("w-5 h-5 flex-shrink-0 mt-0.5", config.text)} />
 
       <div className="flex-1 min-w-0">
@@ -179,17 +195,16 @@ export function Toast({ toast, onRemove }: IToastProps) {
       </div>
 
       {showCloseButton && (
-        <button
-          type="button"
-          onClick={handleClose}
+        <IconButton
+          clicked={handleClose}
+          variant={variant}
           className={cn(
-            "flex-shrink-0 p-1 rounded-lg hover:bg-surface-hover transition-colors cursor-pointer",
-            config.text
+            "flex-shrink-0 p-1 transition-colors cursor-pointer"
+            // config.text
           )}
-          aria-label="Close notification"
-        >
+          aria-label="Close notification">
           <HiX className="w-4 h-4" />
-        </button>
+        </IconButton>
       )}
     </div>
   );

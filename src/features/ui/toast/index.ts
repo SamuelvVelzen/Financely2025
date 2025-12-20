@@ -6,6 +6,5 @@ export type {
   IToastContext,
   IToastOptions,
   IToastPosition,
-  IToastVariant,
 } from "./types";
 export { useToast } from "./use-toast";

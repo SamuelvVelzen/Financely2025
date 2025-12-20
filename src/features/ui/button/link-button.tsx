@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/util/cn";
-import { Button, IButtonProps, IButtonVariant } from "./button";
+import { Button, IButtonProps, IVariant } from "./button";
 
 type ILinkButton = {
   clicked: NonNullable<IButtonProps["clicked"]>;
@@ -16,7 +16,7 @@ export function LinkButton({
   variant = "default",
   ...props
 }: ILinkButton) {
-  const variantClasses: { [key in IButtonVariant]: string } = {
+  const variantClasses: { [key in IVariant]: string } = {
     default: "hover:underline p-0 border-none hover:bg-transparent",
     primary:
       "hover:underline p-0 border-none hover:bg-transparent text-primary",
@@ -37,8 +37,7 @@ export function LinkButton({
       )}
       clicked={clicked}
       disabled={disabled}
-      {...props}
-    >
+      {...props}>
       {children}
     </Button>
   );

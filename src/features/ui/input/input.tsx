@@ -1,5 +1,6 @@
 "use client";
 
+import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
 import React, { useId } from "react";
@@ -21,6 +22,8 @@ export type IBaseInputProps = Omit<
   IPropsWithClassName & {
     name: string;
     label?: string;
+    hint?: string;
+    required?: boolean;
     id?: string;
     prefixIcon?: React.ReactNode;
     suffixIcon?: React.ReactNode;
@@ -31,6 +34,8 @@ export function BaseInput({
   className,
   type,
   label,
+  hint,
+  required,
   name,
   id,
   prefixIcon,
@@ -61,11 +66,13 @@ export function BaseInput({
       name={name}
       control={form.control}
       render={({ field }) => (
-        <div className={label ? "space-y-1" : ""}>
+        <div className={label || hint ? "space-y-1" : ""}>
           {label && (
-            <label htmlFor={inputId} className="block text-sm font-medium">
+            <Label
+              htmlFor={inputId}
+              required={required}>
               {label}
-            </label>
+            </Label>
           )}
           <div className="relative">
             {prefixIcon && (
@@ -79,6 +86,7 @@ export function BaseInput({
                 inputProps: {
                   type,
                   id: inputId,
+                  required,
                   className: cn(
                     baseClasses,
                     borderClass,
@@ -97,6 +105,7 @@ export function BaseInput({
               <input
                 type={type}
                 id={inputId}
+                required={required}
                 className={cn(
                   baseClasses,
                   borderClass,
@@ -123,6 +132,9 @@ export function BaseInput({
             <p className="text-sm text-danger mt-1">
               {error.message as string}
             </p>
+          )}
+          {!error && hint && (
+            <p className="text-xs text-text-muted mt-1">{hint}</p>
           )}
         </div>
       )}

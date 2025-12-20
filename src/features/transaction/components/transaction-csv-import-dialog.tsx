@@ -21,6 +21,7 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
+import { Label } from "@/features/ui/typography/label";
 import { useToast } from "@/features/ui/toast";
 import { cn } from "@/util/cn";
 import { DateFormatHelpers } from "@/util/date/date-format.helpers";
@@ -364,9 +365,7 @@ export function TransactionCsvImportDialog({
         )}
         <Form form={mappingForm} onSubmit={() => {}}>
           <div className="space-y-2">
-            <label className="block text-sm font-medium">
-              Currency <span className="text-danger ml-1">*</span>
-            </label>
+            <Label required>Currency</Label>
             <SelectDropdown
               name="defaultCurrency"
               options={getCurrencyOptions()}
@@ -395,16 +394,17 @@ export function TransactionCsvImportDialog({
 
             return (
               <div key={field.name} className="space-y-1">
-                <label className="block text-sm font-medium">
+                <Label
+                  required={
+                    (isRequiredField(field.name) &&
+                      !(
+                        field.name === "type" &&
+                        typeDetectionStrategy !== "ing"
+                      )) ||
+                    (field.name === "type" && typeDetectionStrategy === "ing")
+                  }>
                   {field.label}
-                  {isRequiredField(field.name) &&
-                    !(
-                      field.name === "type" && typeDetectionStrategy !== "ing"
-                    ) && <span className="text-danger ml-1">*</span>}
-                  {field.name === "type" && typeDetectionStrategy === "ing" && (
-                    <span className="text-danger ml-1">*</span>
-                  )}
-                </label>
+                </Label>
                 {field.name === "type" &&
                   typeDetectionStrategy === "ing" &&
                   field.description && (

@@ -470,6 +470,50 @@ export const UserProfileSchema = z.object({
 
 export const UserProfileResponseSchema = UserProfileSchema;
 
+/**
+ * Update User Profile Input schema (for profile editing)
+ */
+export const UpdateUserProfileInputSchema = z.object({
+  firstName: z.string().min(1, "First name is required").max(100),
+  lastName: z.string().min(1, "Last name is required").max(100),
+  suffix: z.string().max(20).nullable().optional(),
+});
+
+/**
+ * Connected Account schema (for account management)
+ */
+export const ConnectedAccountSchema = z.object({
+  id: z.string(),
+  providerId: z.string(), // "credential", "google", "microsoft", "apple"
+  createdAt: z.string().datetime(),
+});
+
+export const ConnectedAccountsResponseSchema = z.object({
+  accounts: z.array(ConnectedAccountSchema),
+  hasPassword: z.boolean(),
+});
+
+/**
+ * Change Password Input schema
+ */
+export const ChangePasswordInputSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+/**
+ * Change Email Input schema
+ */
+export const ChangeEmailInputSchema = z.object({
+  newEmail: z.string().email("Invalid email address"),
+});
+
 // ============================================================================
 // Error response schema
 // ============================================================================
@@ -516,6 +560,15 @@ export type IBulkCreateTransactionResponse = z.infer<
 >;
 export type IUserResponse = z.infer<typeof UserResponseSchema>;
 export type IUserProfile = z.infer<typeof UserProfileSchema>;
+export type IUpdateUserProfileInput = z.infer<
+  typeof UpdateUserProfileInputSchema
+>;
+export type IConnectedAccount = z.infer<typeof ConnectedAccountSchema>;
+export type IConnectedAccountsResponse = z.infer<
+  typeof ConnectedAccountsResponseSchema
+>;
+export type IChangePasswordInput = z.infer<typeof ChangePasswordInputSchema>;
+export type IChangeEmailInput = z.infer<typeof ChangeEmailInputSchema>;
 export type IErrorResponse = z.infer<typeof ErrorResponseSchema>;
 export type ICsvUploadResponse = z.infer<typeof CsvUploadResponseSchema>;
 export type ICsvFieldMapping = z.infer<typeof CsvFieldMappingSchema>;

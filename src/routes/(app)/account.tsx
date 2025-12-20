@@ -1,6 +1,12 @@
 import { Container } from "@/features/ui/container/container";
+import { SkeletonText, SkeletonTitle } from "@/features/ui/skeleton";
 import { Title } from "@/features/ui/typography/title";
-import { useMe } from "@/features/users/hooks/useUser";
+import { ChangeEmail } from "@/features/users/components/change-email";
+import { ChangePassword } from "@/features/users/components/change-password";
+import { ConnectedAccounts } from "@/features/users/components/connected-accounts";
+import { ProfileInformation } from "@/features/users/components/profile-information";
+import { useConnectedAccounts } from "@/features/users/hooks/useConnectedAccounts";
+import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/account")({
@@ -15,7 +21,10 @@ export const Route = createFileRoute("/(app)/account")({
 });
 
 function AccountPage() {
-  const { data: user, isLoading, error } = useMe();
+  const { data: profile, isLoading: profileLoading, error } = useMyProfile();
+  const { isLoading: accountsLoading } = useConnectedAccounts();
+
+  const isLoading = profileLoading || accountsLoading;
 
   return (
     <>
@@ -26,30 +35,35 @@ function AccountPage() {
         </p>
       </Container>
 
-      <Container>
-        {isLoading && <p className="text-text-muted text-center">Loading...</p>}
-        {error && (
-          <p className="text-red-500 text-center">Error: {error.message}</p>
-        )}
-        {user && (
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-text-muted">
-                Email
-              </label>
-              <p className="text-text">{user.email}</p>
-            </div>
-            {user.name && (
-              <div>
-                <label className="text-sm font-medium text-text-muted">
-                  Name
-                </label>
-                <p className="text-text">{user.name}</p>
-              </div>
-            )}
+      {error && (
+        <Container>
+          <div className="p-4 bg-danger/10 border border-danger rounded-lg">
+            <p className="text-danger text-sm">{error.message}</p>
           </div>
-        )}
-      </Container>
+        </Container>
+      )}
+
+      {isLoading ? (
+        <Container>
+          <div className="space-y-4">
+            <SkeletonTitle />
+
+            <SkeletonText
+              lines={12}
+              alineas={3}
+            />
+          </div>
+        </Container>
+      ) : (
+        profile && (
+          <>
+            <ProfileInformation />
+            <ConnectedAccounts />
+            <ChangeEmail />
+            <ChangePassword />
+          </>
+        )
+      )}
     </>
   );
 }

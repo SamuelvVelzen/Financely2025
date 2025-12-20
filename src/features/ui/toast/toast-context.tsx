@@ -35,13 +35,16 @@ export function ToastProvider({
   const addToast = useCallback(
     (options: IToastOptions): string => {
       const id = `toast-${++toastIdCounter}`;
+      const showCloseButton =
+        options.duration === 0 ? true : (options.showCloseButton ?? true);
+
       const toast: IToast = {
         id,
         message: options.message,
         variant: options.variant ?? "info",
         duration: options.duration ?? 3000,
         title: options.title,
-        showCloseButton: options.showCloseButton ?? true,
+        showCloseButton,
         isExiting: false,
         position: options.position ?? defaultPosition,
       };
@@ -87,8 +90,7 @@ export function ToastProvider({
         removeToast,
         startExiting,
         clearAll,
-      }}
-    >
+      }}>
       {children}
     </ToastContext.Provider>
   );

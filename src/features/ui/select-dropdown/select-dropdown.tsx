@@ -10,6 +10,7 @@ import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import { NativeSelect } from "../select/native-select";
+import { Label } from "../typography/label";
 
 export type ISelectOption<TData = unknown> = {
   value: string;
@@ -207,9 +208,7 @@ export function SelectDropdown<
 
         return (
           <div className={cn("relative", className)}>
-            {label && (
-              <label className="block text-sm font-medium mb-1">{label}</label>
-            )}
+            {label && <Label className="mb-1">{label}</Label>}
             <Dropdown
               dropdownSelector={selectorButton}
               open={isOpen}

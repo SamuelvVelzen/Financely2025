@@ -10,6 +10,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { magicLink } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { getAuthConfig } from "./auth-config";
 import { EmailService } from "./email/email.service";
 
 // Get environment variables with defaults
@@ -21,14 +22,15 @@ const getEnv = (key: string, defaultValue?: string): string => {
   return value || defaultValue!;
 };
 
-// Feature flags for auth methods
-const ENABLE_EMAIL_PASSWORD = process.env.ENABLE_EMAIL_PASSWORD !== "false";
-const ENABLE_MAGIC_LINK = process.env.ENABLE_MAGIC_LINK !== "false";
-const ENABLE_GOOGLE = process.env.ENABLE_GOOGLE === "true";
-const ENABLE_MICROSOFT = process.env.ENABLE_MICROSOFT === "true";
-const ENABLE_APPLE = process.env.ENABLE_APPLE === "true";
-const REQUIRE_EMAIL_VERIFICATION =
-  process.env.REQUIRE_EMAIL_VERIFICATION === "true";
+// Get auth configuration
+const authConfig = getAuthConfig();
+const {
+  emailPassword: ENABLE_EMAIL_PASSWORD,
+  magicLink: ENABLE_MAGIC_LINK,
+  google: ENABLE_GOOGLE,
+  microsoft: ENABLE_MICROSOFT,
+  apple: ENABLE_APPLE,
+} = authConfig;
 
 // Base URL for auth callbacks
 const baseURL = getEnv(
@@ -62,6 +64,10 @@ export const auth = betterAuth({
         required: false,
       },
     },
+    // Allow users to change their email
+    changeEmail: {
+      enabled: true,
+    },
   },
   account: {
     modelName: "Account",
@@ -90,7 +96,7 @@ export const auth = betterAuth({
   emailAndPassword: ENABLE_EMAIL_PASSWORD
     ? {
         enabled: true,
-        requireEmailVerification: REQUIRE_EMAIL_VERIFICATION,
+        requireEmailVerification: true, // Always require email verification when email/password is enabled
         minPasswordLength: 8,
         maxPasswordLength: 128,
         autoSignIn: true,
@@ -113,11 +119,12 @@ export const auth = betterAuth({
       }
     : undefined,
 
-  // Email verification
-  emailVerification: REQUIRE_EMAIL_VERIFICATION
+  // Email verification - always enabled when email/password auth is enabled
+  emailVerification: ENABLE_EMAIL_PASSWORD
     ? {
         sendVerificationEmail: async ({ user, url, token }) => {
-          await EmailService.sendVerificationEmail({
+          // Use void to prevent timing attacks (BetterAuth recommendation)
+          void EmailService.sendVerificationEmail({
             user: {
               id: user.id,
               email: user.email,
@@ -128,7 +135,7 @@ export const auth = betterAuth({
           });
         },
         sendOnSignUp: true,
-        sendOnSignIn: false,
+        sendOnSignIn: false, // Prevents auto-resend on login attempts
         autoSignInAfterVerification: true,
         expiresIn: 3600, // 1 hour
       }
