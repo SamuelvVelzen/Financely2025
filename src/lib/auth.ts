@@ -10,6 +10,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { magicLink } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { getAuthConfig } from "./auth-config";
 import { EmailService } from "./email/email.service";
 
 // Get environment variables with defaults
@@ -21,12 +22,15 @@ const getEnv = (key: string, defaultValue?: string): string => {
   return value || defaultValue!;
 };
 
-// Feature flags for auth methods
-const ENABLE_EMAIL_PASSWORD = process.env.ENABLE_EMAIL_PASSWORD !== "false";
-const ENABLE_MAGIC_LINK = process.env.ENABLE_MAGIC_LINK !== "false";
-const ENABLE_GOOGLE = process.env.ENABLE_GOOGLE === "true";
-const ENABLE_MICROSOFT = process.env.ENABLE_MICROSOFT === "true";
-const ENABLE_APPLE = process.env.ENABLE_APPLE === "true";
+// Get auth configuration
+const authConfig = getAuthConfig();
+const {
+  emailPassword: ENABLE_EMAIL_PASSWORD,
+  magicLink: ENABLE_MAGIC_LINK,
+  google: ENABLE_GOOGLE,
+  microsoft: ENABLE_MICROSOFT,
+  apple: ENABLE_APPLE,
+} = authConfig;
 
 // Base URL for auth callbacks
 const baseURL = getEnv(
