@@ -21,27 +21,27 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
-import { Label } from "@/features/ui/typography/label";
 import { useToast } from "@/features/ui/toast";
+import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/util/cn";
 import { DateFormatHelpers } from "@/util/date/date-format.helpers";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiExclamationCircle } from "react-icons/hi";
-import type { BankEnum } from "../config/banks";
+import type { BankEnum } from "../../config/banks";
 import {
   TRANSACTION_FIELDS,
   isRequiredField,
-} from "../config/transaction-fields";
+} from "../../config/transaction-fields";
 import {
   useGetCsvMapping,
   useImportCsvTransactions,
   useParseCsvRows,
   useUploadCsvFile,
   useValidateCsvMapping,
-} from "../hooks/useCsvImport";
-import { getDefaultStrategyForBank } from "../services/csv-type-detection";
-import { BankSelect } from "./bank-select";
+} from "../../hooks/useCsvImport";
+import { getDefaultStrategyForBank } from "../../services/csv-type-detection";
+import { BankSelect } from "../bank-select";
 import { CsvRowErrorDialog } from "./csv-row-error-dialog";
 
 interface ICsvImportDialogProps {
@@ -398,11 +398,11 @@ export function TransactionCsvImportDialog({
                   required={
                     (isRequiredField(field.name) &&
                       !(
-                        field.name === "type" &&
-                        typeDetectionStrategy !== "ing"
+                        field.name === "type" && typeDetectionStrategy !== "ing"
                       )) ||
                     (field.name === "type" && typeDetectionStrategy === "ing")
-                  }>
+                  }
+                >
                   {field.label}
                 </Label>
                 {field.name === "type" &&
@@ -670,7 +670,7 @@ export function TransactionCsvImportDialog({
   const steps: Record<IStep, IStepConfig<IStep>> = {
     upload: {
       title: "Upload CSV File",
-      size: "lg" as const,
+      size: "lg",
       content: renderUploadStep,
       footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
@@ -697,7 +697,7 @@ export function TransactionCsvImportDialog({
     },
     mapping: {
       title: "Map Fields",
-      size: "full" as const,
+      size: "full",
       content: renderMappingStep,
       footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
@@ -710,7 +710,7 @@ export function TransactionCsvImportDialog({
               handleValidateMapping(navigation.goToStep);
             }
           },
-          variant: "primary" as const,
+          variant: "primary",
           disabled: validateMutation.isPending,
           buttonContent: validateMutation.isPending
             ? "Validating..."
@@ -720,7 +720,7 @@ export function TransactionCsvImportDialog({
     },
     review: {
       title: "Review Transactions",
-      size: "full" as const,
+      size: "full",
       content: renderReviewStep,
       footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
@@ -733,7 +733,7 @@ export function TransactionCsvImportDialog({
               navigation.goToStep("confirm");
             }
           },
-          variant: "primary" as const,
+          variant: "primary",
           disabled: selectedRows.size === 0,
           buttonContent: "Continue to Import",
         },
@@ -741,7 +741,7 @@ export function TransactionCsvImportDialog({
     },
     confirm: {
       title: "Confirm Import",
-      size: "lg" as const,
+      size: "lg",
       content: renderConfirmStep,
       footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
@@ -754,7 +754,7 @@ export function TransactionCsvImportDialog({
               handleConfirmImport();
             }
           },
-          variant: "primary" as const,
+          variant: "primary",
           disabled: importMutation.isPending || selectedRows.size === 0,
           buttonContent: importMutation.isPending
             ? "Importing..."

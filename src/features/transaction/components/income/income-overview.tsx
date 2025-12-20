@@ -1,11 +1,11 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
-import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-csv-import-dialog";
 import {
   defaultDateFilter,
   defaultPriceFilter,
   TransactionFilters,
   type ITransactionFilterValues,
 } from "@/features/transaction/components/transaction-filters";
+import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
 import {
   useDeleteIncome,
   useIncomes,
