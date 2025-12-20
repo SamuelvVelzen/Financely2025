@@ -330,8 +330,7 @@ export const PaginatedTransactionsResponseSchema = z.object({
 
 export const BulkCreateTransactionInputSchema = z
   .array(CreateTransactionInputSchema)
-  .min(1)
-  .max(100);
+  .min(1);
 
 export const BulkCreateTransactionErrorSchema = z.object({
   index: z.number().int().min(0),
