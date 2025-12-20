@@ -14,6 +14,7 @@ export type IHeaderCellProps<T = unknown> = {
   sortKey?: string;
   sortFn?: (a: T, b: T) => number;
   autoFit?: boolean;
+  size?: "sm" | "md" | "lg";
 } & IPropsWithClassName &
   PropsWithChildren;
 
@@ -25,8 +26,14 @@ export function HeaderCell<T = unknown>({
   sortKey,
   sortFn,
   autoFit = true,
+  size = "md",
 }: IHeaderCellProps<T>) {
   const sortContext = useTableSortContext<T>();
+  const sizeClasses = {
+    sm: "px-3 py-1",
+    md: "px-3 py-1.5",
+    lg: "px-3 py-2",
+  };
   const alignClasses = {
     left: "justify-start",
     right: "justify-end",
@@ -72,7 +79,7 @@ export function HeaderCell<T = unknown>({
   return (
     <th
       className={cn(
-        "p-3",
+        sizeClasses[size],
         autoFit ? "w-auto" : "w-full min-w-0",
         sortable &&
           sortKey &&
@@ -102,7 +109,8 @@ export function HeaderCell<T = unknown>({
             : sortable && sortKey
               ? "none"
               : undefined
-      }>
+      }
+    >
       <div className={`flex items-center gap-2 ${alignClasses[align]}`}>
         {children}
         {getSortIcon()}

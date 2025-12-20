@@ -344,9 +344,7 @@ export function Dialog({
           </IconButton>
         </header>
 
-        <div className={"px-6 py-4 overflow-y-auto max-h-[60vh]"}>
-          {bodyContent}
-        </div>
+        <div className={"px-6 py-4 overflow-y-auto"}>{bodyContent}</div>
 
         {footerButtons && footerButtons.length > 0 && (
           <footer

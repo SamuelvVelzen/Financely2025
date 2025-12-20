@@ -61,7 +61,7 @@ function ReviewStepContent({
       : null;
 
   // Pagination for display (client-side)
-  const pageSize = 50;
+  const pageSize = 20;
   const totalPages = Math.ceil(candidates.length / pageSize);
   const paginatedCandidates = candidates.slice(
     (currentPage - 1) * pageSize,
@@ -72,8 +72,9 @@ function ReviewStepContent({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="text-sm">
-          Showing {paginatedCandidates.length} of {transformResponse?.total || candidates.length}{" "}
-          transactions ({transformResponse?.totalValid || 0} valid,{" "}
+          Showing {paginatedCandidates.length} of{" "}
+          {transformResponse?.total || candidates.length} transactions (
+          {transformResponse?.totalValid || 0} valid,{" "}
           {transformResponse?.totalInvalid || 0} invalid)
         </div>
         <div className="flex gap-2">
