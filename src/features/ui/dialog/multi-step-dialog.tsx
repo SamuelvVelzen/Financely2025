@@ -33,7 +33,7 @@ export interface IMultiStepDialogProps<StepType extends string> {
   /** Callback to reset state when dialog closes */
   onReset: () => void;
   /** Whether dialog is busy (disables dismissal) */
-  isBusy?: boolean;
+  dismissible?: boolean;
   /** Callback when step changes, receives previous and next step */
   onStepChange?: (previousStep: StepType, nextStep: StepType) => void;
 }
@@ -45,7 +45,7 @@ export function MultiStepDialog<StepType extends string>({
   onOpenChange,
   hasUnsavedChanges,
   onReset,
-  isBusy = false,
+  dismissible = true,
   onStepChange,
 }: IMultiStepDialogProps<StepType>) {
   const [step, setStep] = useState<StepType>(initialStep);
@@ -118,7 +118,7 @@ export function MultiStepDialog<StepType extends string>({
         onOpenChange={handleDialogOpenChange}
         variant="modal"
         size={currentStepConfig.size}
-        dismissible={!isBusy}
+        dismissible={dismissible}
         onClose={onReset}
       />
       <UnsavedChangesDialog
