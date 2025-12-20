@@ -3,14 +3,20 @@ import type {
   IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
 import { FileUploadInput } from "@/features/ui/input/file-upload-input";
+import { useToast } from "@/features/ui/toast";
+import { useUploadCsvFile } from "../../../hooks/useCsvImport";
 import { BankSelect } from "../../bank-select";
 import {
   useTransactionImportContext,
   type IStep,
 } from "./transaction-import-context";
 
-function UploadStepContent() {
-  const { selectedBank, setSelectedBank, uploadMutation, file, setFile } =
+type IUploadStepContentProps = {
+  error: Error | null;
+};
+
+function UploadStepContent({ error }: IUploadStepContentProps) {
+  const { selectedBank, setSelectedBank, file, setFile } =
     useTransactionImportContext();
 
   return (
@@ -30,10 +36,10 @@ function UploadStepContent() {
           helperText="Selecting a bank applies tailored column defaults during mapping."
         />
       </div>
-      {uploadMutation.isError && (
+      {error && (
         <div className="p-3 bg-danger/10 border border-danger rounded-lg">
           <p className="text-sm text-danger">
-            {uploadMutation.error?.message || "Upload failed"}
+            {error.message || "Upload failed"}
           </p>
         </div>
       )}
@@ -42,28 +48,35 @@ function UploadStepContent() {
 }
 
 export function useUploadStep(): IStepConfig<IStep> {
-  const ctx = useTransactionImportContext();
+  const { file, setColumns, setIsPending } = useTransactionImportContext();
+  const toast = useToast();
+
+  const uploadMutation = useUploadCsvFile();
 
   return {
     title: "Upload CSV File",
     size: "lg",
-    content: () => <UploadStepContent />,
+    content: () => <UploadStepContent error={uploadMutation.error} />,
     footerButtons: (navigation: IStepNavigation<IStep>) => [
       {
         clicked: () => {
-          if (!ctx.file) return;
+          if (!file) return;
 
-          ctx.uploadMutation
-            .mutateAsync(ctx.file)
+          setIsPending(true);
+          uploadMutation
+            .mutateAsync(file)
             .then((result) => {
-              ctx.setColumns(result.columns);
+              setColumns(result.columns);
               navigation.goToStep("mapping");
             })
-            .catch((error) => {
-              console.error("Upload failed:", error);
+            .catch(() => {
+              toast.error("Upload failed");
+            })
+            .finally(() => {
+              setIsPending(false);
             });
         },
-        disabled: !ctx.file,
+        disabled: !file,
         variant: "primary",
         buttonContent: "Next",
       },

@@ -14,19 +14,14 @@ import { useUploadStep } from "./steps/use-upload-step";
 interface ICsvImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
 }
 
 export function TransactionCsvImportDialog({
   open,
   onOpenChange,
-  onSuccess,
 }: ICsvImportDialogProps) {
   return (
-    <TransactionImportProvider
-      onSuccess={onSuccess}
-      onClose={() => onOpenChange(false)}
-    >
+    <TransactionImportProvider onClose={() => onOpenChange(false)}>
       <TransactionImportDialogContent open={open} onOpenChange={onOpenChange} />
     </TransactionImportProvider>
   );

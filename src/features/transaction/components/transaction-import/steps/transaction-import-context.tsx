@@ -21,7 +21,6 @@ import {
   useGetCsvMapping,
   useImportCsvTransactions,
   useParseCsvRows,
-  useUploadCsvFile,
   useValidateCsvMapping,
 } from "../../../hooks/useCsvImport";
 import { getDefaultStrategyForBank } from "../../../services/csv-type-detection";
@@ -71,6 +70,8 @@ export interface ITransactionImportContext {
   setSelectedBank: (bank: BankEnum | null) => void;
   setCurrentStep: (step: IStep) => void;
 
+  setIsPending: (isPending: boolean) => void;
+
   // Handlers
   handleMappingChange: (field: string, column: string | null) => void;
   handleResetToSuggested: (fieldName: string) => void;
@@ -81,10 +82,12 @@ export interface ITransactionImportContext {
   resetAllState: () => void;
 
   // Mutations
-  uploadMutation: ReturnType<typeof useUploadCsvFile>;
   validateMutation: ReturnType<typeof useValidateCsvMapping>;
   parseQuery: ReturnType<typeof useParseCsvRows>;
   importMutation: ReturnType<typeof useImportCsvTransactions>;
+
+  // Other
+  onClose: () => void;
 }
 
 const TransactionImportContext =
@@ -102,15 +105,15 @@ export function useTransactionImportContext() {
 
 interface ITransactionImportProviderProps {
   children: ReactNode;
-  onSuccess?: () => void;
   onClose: () => void;
 }
 
 export function TransactionImportProvider({
   children,
-  onSuccess,
   onClose,
 }: ITransactionImportProviderProps) {
+  const [isPending, setIsPending] = useState(false);
+
   const [file, setFile] = useState<File | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
   const [mapping, setMapping] = useState<ICsvFieldMapping>({});
@@ -137,7 +140,6 @@ export function TransactionImportProvider({
   const defaultCurrency = mappingForm.watch("defaultCurrency");
 
   const toast = useToast();
-  const uploadMutation = useUploadCsvFile();
   const mappingQuery = useGetCsvMapping(
     columns.length > 0 ? columns : undefined,
     selectedBank
@@ -156,9 +158,7 @@ export function TransactionImportProvider({
   const importMutation = useImportCsvTransactions();
 
   const isBusy =
-    uploadMutation.isPending ||
-    validateMutation.isPending ||
-    importMutation.isPending;
+    isPending || validateMutation.isPending || importMutation.isPending;
 
   const suggestedMapping = mappingQuery.data?.mapping;
 
@@ -331,7 +331,6 @@ export function TransactionImportProvider({
       toast.success(
         `Successfully imported ${transactionsToImport.length} transactions`
       );
-      onSuccess?.();
       resetAllState();
       onClose();
     } catch (error) {
@@ -370,6 +369,7 @@ export function TransactionImportProvider({
     setParseResponse,
     setSelectedBank,
     setCurrentStep,
+    setIsPending,
 
     // Handlers
     handleMappingChange,
@@ -381,10 +381,12 @@ export function TransactionImportProvider({
     resetAllState,
 
     // Mutations
-    uploadMutation,
     validateMutation,
     parseQuery,
     importMutation,
+
+    // Other
+    onClose,
   };
 
   return (

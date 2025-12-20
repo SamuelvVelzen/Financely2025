@@ -320,9 +320,6 @@ export function ExpenseOverview() {
       <TransactionCsvImportDialog
         open={isCsvImportDialogOpen}
         onOpenChange={setIsCsvImportDialogOpen}
-        onSuccess={() => {
-          // Transactions will be refetched automatically via query invalidation
-        }}
       />
     </>
   );
