@@ -78,7 +78,9 @@ export function RegisterForm() {
       }
 
       setRegistrationSuccess(true);
-      toast.success("Account created successfully! Please check your email to verify your account.");
+      toast.success(
+        "Account created successfully! Please check your email to verify your account."
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";
       setError(message);
@@ -103,7 +105,9 @@ export function RegisterForm() {
       });
 
       if (result.error) {
-        toast.error(result.error.message || "Failed to send verification email");
+        toast.error(
+          result.error.message || "Failed to send verification email"
+        );
       } else {
         toast.success("Verification email sent! Please check your inbox.");
       }
@@ -137,18 +141,15 @@ export function RegisterForm() {
           <div className="flex flex-col gap-2">
             <Button
               type="button"
-              variant="secondary"
-              onClick={handleResendVerification}
+              clicked={handleResendVerification}
               disabled={resendLoading}
-              className="w-full"
-            >
+              className="w-full">
               {resendLoading ? "Sending..." : "Resend verification email"}
             </Button>
             <NavLink
               to="/login"
               search={{ redirect }}
-              className="text-center text-sm"
-            >
+              className="text-center text-sm">
               Continue to login
             </NavLink>
           </div>
@@ -166,7 +167,10 @@ export function RegisterForm() {
       )}
 
       {/* Registration Form */}
-      <Form form={registerForm} onSubmit={handleRegister} className="space-y-4">
+      <Form
+        form={registerForm}
+        onSubmit={handleRegister}
+        className="space-y-4">
         <div className="gap-4 grid grid-cols-[70%_30%]">
           <TextInput
             name="firstname"
@@ -203,9 +207,13 @@ export function RegisterForm() {
           label="Password"
           placeholder="••••••••"
           disabled={loading}
+          hint="Password must be at least 8 characters"
         />
 
-        <Button type="submit" variant="primary" className="w-full">
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full">
           {loading ? "Creating account..." : "Sign Up"}
         </Button>
       </Form>
@@ -213,7 +221,9 @@ export function RegisterForm() {
       {/* Link to Login */}
       <div className="text-center text-sm">
         <span className="text-text-muted">Already have an account? </span>
-        <NavLink to="/login" search={{ redirect }}>
+        <NavLink
+          to="/login"
+          search={{ redirect }}>
           Sign in instead
         </NavLink>
       </div>

@@ -1,8 +1,8 @@
 "use client";
 
+import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
-import { Label } from "@/features/ui/typography/label";
 import React, { useId } from "react";
 import {
   Controller,
@@ -23,6 +23,7 @@ export type IBaseInputProps = Omit<
     name: string;
     label?: string;
     hint?: string;
+    required?: boolean;
     id?: string;
     prefixIcon?: React.ReactNode;
     suffixIcon?: React.ReactNode;
@@ -34,6 +35,7 @@ export function BaseInput({
   type,
   label,
   hint,
+  required,
   name,
   id,
   prefixIcon,
@@ -65,7 +67,13 @@ export function BaseInput({
       control={form.control}
       render={({ field }) => (
         <div className={label || hint ? "space-y-1" : ""}>
-          {label && <Label htmlFor={inputId}>{label}</Label>}
+          {label && (
+            <Label
+              htmlFor={inputId}
+              required={required}>
+              {label}
+            </Label>
+          )}
           <div className="relative">
             {prefixIcon && (
               <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text pointer-events-none">
@@ -78,6 +86,7 @@ export function BaseInput({
                 inputProps: {
                   type,
                   id: inputId,
+                  required,
                   className: cn(
                     baseClasses,
                     borderClass,
@@ -96,6 +105,7 @@ export function BaseInput({
               <input
                 type={type}
                 id={inputId}
+                required={required}
                 className={cn(
                   baseClasses,
                   borderClass,

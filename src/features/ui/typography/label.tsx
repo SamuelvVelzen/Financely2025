@@ -19,11 +19,14 @@ export const Label = forwardRef<HTMLLabelElement, ILabelProps>(
         className={cn("text-sm font-medium text-text-muted", className)}
         {...props}>
         {children}
-        {required && <span className="text-danger ml-1">*</span>}
+        {required && (
+          <span className="text-danger ml-1 text-[0.5em] leading-none align-super">
+            ●
+          </span>
+        )}
       </label>
     );
   }
 );
 
 Label.displayName = "Label";
-
