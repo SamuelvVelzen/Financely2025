@@ -9,11 +9,14 @@ import {
   UpdateUserProfileInputSchema,
 } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
+import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
+import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { useToast } from "@/features/ui/toast";
+import { Label } from "@/features/ui/typography/label";
 import { Title } from "@/features/ui/typography/title";
 import { useChangeEmail } from "@/features/users/hooks/useChangeEmail";
 import { useChangePassword } from "@/features/users/hooks/useChangePassword";
@@ -24,6 +27,7 @@ import {
 } from "@/features/users/hooks/useConnectedAccounts";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { useUpdateProfile } from "@/features/users/hooks/useUpdateProfile";
+import { getEnabledSocialProviders } from "@/lib/auth-config";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -48,7 +52,9 @@ const PROVIDER_INFO: Record<
   google: {
     name: "Google",
     icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24">
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24">
         <path
           fill="currentColor"
           d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -72,11 +78,25 @@ const PROVIDER_INFO: Record<
   microsoft: {
     name: "Microsoft",
     icon: (
-      <svg className="w-5 h-5" viewBox="0 0 24 24">
-        <path fill="#F25022" d="M1 1h10v10H1z" />
-        <path fill="#00A4EF" d="M1 13h10v10H1z" />
-        <path fill="#7FBA00" d="M13 1h10v10H13z" />
-        <path fill="#FFB900" d="M13 13h10v10H13z" />
+      <svg
+        className="w-5 h-5"
+        viewBox="0 0 24 24">
+        <path
+          fill="#F25022"
+          d="M1 1h10v10H1z"
+        />
+        <path
+          fill="#00A4EF"
+          d="M1 13h10v10H1z"
+        />
+        <path
+          fill="#7FBA00"
+          d="M13 1h10v10H13z"
+        />
+        <path
+          fill="#FFB900"
+          d="M13 13h10v10H13z"
+        />
       </svg>
     ),
     color: "text-text",
@@ -84,7 +104,10 @@ const PROVIDER_INFO: Record<
   apple: {
     name: "Apple",
     icon: (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-5 h-5"
+        fill="currentColor"
+        viewBox="0 0 24 24">
         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
       </svg>
     ),
@@ -97,8 +120,7 @@ const PROVIDER_INFO: Record<
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+        viewBox="0 0 24 24">
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -111,12 +133,8 @@ const PROVIDER_INFO: Record<
   },
 };
 
-// Available social providers (these would ideally come from env/config)
-const AVAILABLE_PROVIDERS: Array<"google" | "microsoft" | "apple"> = [
-  "google",
-  "microsoft",
-  "apple",
-];
+// Get available social providers from auth config
+const AVAILABLE_PROVIDERS = getEnabledSocialProviders();
 
 function AccountPage() {
   const { data: profile, isLoading: profileLoading, error } = useMyProfile();
@@ -129,6 +147,11 @@ function AccountPage() {
   const linkSocial = useLinkSocialAccount();
   const toast = useToast();
   const [unlinkingId, setUnlinkingId] = useState<string | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [showEmailUnsavedDialog, setShowEmailUnsavedDialog] = useState(false);
+  const [showPasswordUnsavedDialog, setShowPasswordUnsavedDialog] =
+    useState(false);
 
   // Profile form
   const profileForm = useForm<IUpdateUserProfileInput>({
@@ -173,11 +196,33 @@ function AccountPage() {
     try {
       await updateProfile.mutateAsync(data);
       toast.success("Profile updated successfully");
+      setIsEditingProfile(false);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to update profile"
       );
     }
+  };
+
+  const handleCancelEdit = () => {
+    const hasUnsavedChanges = profileForm.formState.isDirty;
+    if (hasUnsavedChanges) {
+      setShowUnsavedDialog(true);
+      return;
+    }
+    setIsEditingProfile(false);
+  };
+
+  const handleDiscardChanges = () => {
+    if (profile) {
+      profileForm.reset({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        suffix: profile.suffix || "",
+      });
+    }
+    setShowUnsavedDialog(false);
+    setIsEditingProfile(false);
   };
 
   const handlePasswordSubmit = async (data: IChangePasswordInput) => {
@@ -195,6 +240,20 @@ function AccountPage() {
     }
   };
 
+  const handleCancelPassword = () => {
+    const hasUnsavedChanges = passwordForm.formState.isDirty;
+    if (hasUnsavedChanges) {
+      setShowPasswordUnsavedDialog(true);
+      return;
+    }
+    passwordForm.reset();
+  };
+
+  const handleDiscardPasswordChanges = () => {
+    passwordForm.reset();
+    setShowPasswordUnsavedDialog(false);
+  };
+
   const handleEmailSubmit = async (data: IChangeEmailInput) => {
     try {
       await changeEmail.mutateAsync(data);
@@ -205,6 +264,20 @@ function AccountPage() {
         err instanceof Error ? err.message : "Failed to change email"
       );
     }
+  };
+
+  const handleCancelEmail = () => {
+    const hasUnsavedChanges = emailForm.formState.isDirty;
+    if (hasUnsavedChanges) {
+      setShowEmailUnsavedDialog(true);
+      return;
+    }
+    emailForm.reset();
+  };
+
+  const handleDiscardEmailChanges = () => {
+    emailForm.reset();
+    setShowEmailUnsavedDialog(false);
   };
 
   const handleUnlinkAccount = async (accountId: string) => {
@@ -280,73 +353,161 @@ function AccountPage() {
 
       {profile && !isLoading && (
         <>
-          {/* Account Information (Read-only) */}
+          {/* Profile Information Section */}
           <Container className="mb-4">
-            <h2 className="text-lg font-semibold text-text mb-4">
-              Account Information
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium text-text-muted">
-                  Email
-                </label>
-                <p className="text-text mt-1">{profile.email}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-text-muted">
-                  Email Verified
-                </label>
-                <p className="mt-1">
-                  {profile.emailVerified ? (
-                    <span className="inline-flex items-center gap-1 text-success">
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Verified
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-warning">
-                      <svg
-                        className="w-4 h-4"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Not verified
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-text-muted">
-                  Member Since
-                </label>
-                <p className="text-text mt-1">
-                  {formatDate(profile.createdAt)}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-text-muted">
-                  Last Updated
-                </label>
-                <p className="text-text mt-1">
-                  {formatDate(profile.updatedAt)}
-                </p>
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-text">
+                Profile Information
+              </h2>
+              <IconButton
+                clicked={
+                  isEditingProfile
+                    ? handleCancelEdit
+                    : () => setIsEditingProfile(true)
+                }
+                aria-label={
+                  isEditingProfile ? "Cancel editing" : "Edit profile"
+                }>
+                {isEditingProfile ? (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
+                )}
+              </IconButton>
             </div>
+
+            <Form
+              form={profileForm}
+              onSubmit={isEditingProfile ? handleProfileSubmit : () => {}}
+              className="space-y-4">
+              {/* First Name and Suffix Row */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* First Name */}
+                {isEditingProfile ? (
+                  <TextInput
+                    name="firstName"
+                    label="First Name"
+                    placeholder="Your first name"
+                    disabled={updateProfile.isPending}
+                  />
+                ) : (
+                  <div>
+                    <Label>First Name</Label>
+                    <p className="text-text mt-1">
+                      {profile.firstName || (
+                        <span className="text-text-muted">Not set</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                {/* Suffix */}
+                {isEditingProfile ? (
+                  <TextInput
+                    name="suffix"
+                    label="Suffix (optional)"
+                    placeholder="Jr., Sr., III"
+                    disabled={updateProfile.isPending}
+                  />
+                ) : (
+                  <div>
+                    <Label>Suffix</Label>
+                    <p className="text-text mt-1">
+                      {profile.suffix || (
+                        <span className="text-text-muted">-</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Last Name */}
+              {isEditingProfile ? (
+                <TextInput
+                  name="lastName"
+                  label="Last Name"
+                  placeholder="Your last name"
+                  disabled={updateProfile.isPending}
+                />
+              ) : (
+                <div>
+                  <Label>Last Name</Label>
+                  <p className="text-text mt-1">
+                    {profile.lastName || (
+                      <span className="text-text-muted">Not set</span>
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {/* Email, Member Since, Last Updated */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Email (read-only) */}
+                <div className="col-span-2">
+                  <Label>Email</Label>
+                  <p className="text-text mt-1">{profile.email}</p>
+                </div>
+
+                {/* Member Since (read-only) */}
+                <div>
+                  <Label>Member Since</Label>
+                  <p className="text-text mt-1">
+                    {formatDate(profile.createdAt)}
+                  </p>
+                </div>
+
+                {/* Last Updated (read-only) */}
+                <div>
+                  <Label>Last Updated</Label>
+                  <p className="text-text mt-1">
+                    {formatDate(profile.updatedAt)}
+                  </p>
+                </div>
+              </div>
+
+              {isEditingProfile && (
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="default"
+                    clicked={handleCancelEdit}
+                    disabled={updateProfile.isPending}>
+                    Cancel
+                  </Button>
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={
+                      updateProfile.isPending || !profileForm.formState.isDirty
+                    }>
+                    {updateProfile.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              )}
+            </Form>
           </Container>
 
           {/* Connected Accounts */}
@@ -372,8 +533,7 @@ function AccountPage() {
                 return (
                   <div
                     key={account.id}
-                    className="flex items-center justify-between p-3 bg-surface border border-border rounded-lg"
-                  >
+                    className="flex items-center justify-between p-3 bg-surface border border-border rounded-lg">
                     <div className="flex items-center gap-3">
                       <span className={info.color}>{info.icon}</span>
                       <div>
@@ -388,8 +548,7 @@ function AccountPage() {
                         variant="danger"
                         size="sm"
                         clicked={() => handleUnlinkAccount(account.id)}
-                        disabled={!canUnlink || unlinkingId === account.id}
-                      >
+                        disabled={!canUnlink || unlinkingId === account.id}>
                         {unlinkingId === account.id
                           ? "Disconnecting..."
                           : "Disconnect"}
@@ -415,7 +574,7 @@ function AccountPage() {
                         variant="default"
                         clicked={() => handleLinkSocial(provider)}
                         disabled={linkSocial.isPending}
-                      >
+                        className="whitespace-nowrap flex-1">
                         <span className={`mr-2 ${info.color}`}>
                           {info.icon}
                         </span>
@@ -428,81 +587,80 @@ function AccountPage() {
             )}
           </Container>
 
-          {/* Edit Profile Form */}
-          <Container className="mb-4">
-            <h2 className="text-lg font-semibold text-text mb-4">
-              Edit Profile
-            </h2>
-            <Form
-              form={profileForm}
-              onSubmit={handleProfileSubmit}
-              className="space-y-4"
-            >
-              <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-                <TextInput
-                  name="firstName"
-                  label="First Name"
-                  placeholder="Your first name"
-                  disabled={updateProfile.isPending}
-                />
-                <TextInput
-                  name="suffix"
-                  label="Suffix (optional)"
-                  placeholder="Jr., Sr., III"
-                  disabled={updateProfile.isPending}
-                />
-              </div>
-              <TextInput
-                name="lastName"
-                label="Last Name"
-                placeholder="Your last name"
-                disabled={updateProfile.isPending}
-              />
-              <div className="flex justify-end pt-2">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={
-                    updateProfile.isPending || !profileForm.formState.isDirty
-                  }
-                >
-                  {updateProfile.isPending ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
-            </Form>
-          </Container>
-
-          {/* Change Email */}
           <Container className="mb-4">
             <h2 className="text-lg font-semibold text-text mb-4">
               Change Email
             </h2>
-            <p className="text-sm text-text-muted mb-4">
-              A verification email will be sent to your new address. Your email
-              will only update after you verify it.
-            </p>
+            <div className="grid gap-4 sm:grid-cols-2 mb-4">
+              <div>
+                <Label>Current Email</Label>
+                <p className="text-text mt-1">{profile.email}</p>
+              </div>
+              <div>
+                <Label>Email Verified</Label>
+                <p className="mt-1">
+                  {profile.emailVerified ? (
+                    <span className="inline-flex items-center gap-1 text-success">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Verified
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-warning">
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Not verified
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
             <Form
               form={emailForm}
               onSubmit={handleEmailSubmit}
-              className="space-y-4"
-            >
-              <div className="max-w-md">
-                <BaseInput
-                  name="newEmail"
-                  type="email"
-                  label="New Email Address"
-                  placeholder="new@example.com"
-                  disabled={changeEmail.isPending}
-                />
-              </div>
-              <div className="flex justify-end pt-2">
+              className="space-y-4">
+              <BaseInput
+                name="newEmail"
+                type="email"
+                label="New Email Address"
+                placeholder="new@example.com"
+                disabled={changeEmail.isPending}
+                hint="A verification email will be sent to your new address. Your email
+              will only update after you verify it."
+              />
+              <div className="flex justify-end gap-2 pt-2">
+                {emailForm.formState.isDirty && (
+                  <Button
+                    type="button"
+                    variant="default"
+                    clicked={handleCancelEmail}
+                    disabled={changeEmail.isPending}>
+                    Cancel
+                  </Button>
+                )}
                 <Button
                   type="submit"
                   variant="primary"
                   disabled={
                     changeEmail.isPending || !emailForm.formState.isDirty
-                  }
-                >
+                  }>
                   {changeEmail.isPending ? "Sending..." : "Send Verification"}
                 </Button>
               </div>
@@ -518,40 +676,46 @@ function AccountPage() {
               <Form
                 form={passwordForm}
                 onSubmit={handlePasswordSubmit}
-                className="space-y-4"
-              >
-                <div className="max-w-md space-y-4">
-                  <BaseInput
-                    name="currentPassword"
-                    type="password"
-                    label="Current Password"
-                    placeholder="Enter current password"
-                    disabled={changePassword.isPending}
-                  />
-                  <BaseInput
-                    name="newPassword"
-                    type="password"
-                    label="New Password"
-                    placeholder="Enter new password"
-                    disabled={changePassword.isPending}
-                  />
-                  <BaseInput
-                    name="confirmPassword"
-                    type="password"
-                    label="Confirm New Password"
-                    placeholder="Confirm new password"
-                    disabled={changePassword.isPending}
-                  />
-                </div>
-                <div className="flex justify-end pt-2">
+                className="space-y-4">
+                <BaseInput
+                  name="currentPassword"
+                  type="password"
+                  label="Current Password"
+                  placeholder="Enter current password"
+                  disabled={changePassword.isPending}
+                />
+                <BaseInput
+                  name="newPassword"
+                  type="password"
+                  label="New Password"
+                  placeholder="Enter new password"
+                  disabled={changePassword.isPending}
+                />
+                <BaseInput
+                  name="confirmPassword"
+                  type="password"
+                  label="Confirm New Password"
+                  placeholder="Confirm new password"
+                  disabled={changePassword.isPending}
+                />
+
+                <div className="flex justify-end gap-2 pt-2">
+                  {passwordForm.formState.isDirty && (
+                    <Button
+                      type="button"
+                      variant="default"
+                      clicked={handleCancelPassword}
+                      disabled={changePassword.isPending}>
+                      Cancel
+                    </Button>
+                  )}
                   <Button
                     type="submit"
                     variant="primary"
                     disabled={
                       changePassword.isPending ||
                       !passwordForm.formState.isDirty
-                    }
-                  >
+                    }>
                     {changePassword.isPending
                       ? "Changing..."
                       : "Change Password"}
@@ -562,6 +726,22 @@ function AccountPage() {
           )}
         </>
       )}
+
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onConfirm={handleDiscardChanges}
+        onCancel={() => setShowUnsavedDialog(false)}
+      />
+      <UnsavedChangesDialog
+        open={showEmailUnsavedDialog}
+        onConfirm={handleDiscardEmailChanges}
+        onCancel={() => setShowEmailUnsavedDialog(false)}
+      />
+      <UnsavedChangesDialog
+        open={showPasswordUnsavedDialog}
+        onConfirm={handleDiscardPasswordChanges}
+        onCancel={() => setShowPasswordUnsavedDialog(false)}
+      />
     </>
   );
 }
