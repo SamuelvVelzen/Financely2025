@@ -10,7 +10,7 @@ export type IDialogVariant = "modal" | "fullscreen";
 /**
  * Dialog size for modal variant
  */
-export type IDialogSize = "sm" | "md" | "lg" | "xl" | "full";
+export type IDialogSize = "sm" | "md" | "lg" | "xl" | "1/2" | "3/4" | "full";
 
 /**
  * Dialog status determines the color theme

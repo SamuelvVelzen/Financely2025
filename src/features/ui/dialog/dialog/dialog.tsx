@@ -257,6 +257,8 @@ export function Dialog({
     md: "max-w-md",
     lg: "max-w-lg",
     xl: "max-w-xl",
+    "1/2": "max-w-1/2",
+    "3/4": "max-w-3/4",
     full: "max-w-full",
   };
 
@@ -317,19 +319,22 @@ export function Dialog({
         className={baseClasses}
         style={{ ...style, zIndex: dialogZIndex }}
         onKeyDown={handleKeyDown}
-        tabIndex={-1}>
+        tabIndex={-1}
+      >
         {/* Header - Always rendered */}
         <header
           className={cn(
             "flex items-center justify-between gap-4 px-6 py-4 border-b border-border"
           )}
-          id={titleId}>
+          id={titleId}
+        >
           <div className="flex-1">
             <h2
               className={cn(
                 "text-xl font-semibold",
                 statusClasses[status ?? "none"]
-              )}>
+              )}
+            >
               {title}
             </h2>
           </div>
@@ -347,12 +352,10 @@ export function Dialog({
           <footer
             className={
               "flex items-center gap-3 px-6 py-4 border-t border-border justify-end "
-            }>
+            }
+          >
             {footerButtons?.map((buttonProps, index) => (
-              <Button
-                key={index}
-                {...buttonProps}
-              />
+              <Button key={index} {...buttonProps} />
             ))}
           </footer>
         )}
