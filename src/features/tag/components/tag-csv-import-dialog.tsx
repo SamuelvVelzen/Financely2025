@@ -18,6 +18,7 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
+import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/util/cn";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -274,10 +275,7 @@ export function TagCsvImportDialog({
             <div
               key={field.name}
               className="space-y-1">
-              <label className="block text-sm font-medium">
-                {field.label}
-                {field.required && <span className="text-danger ml-1">*</span>}
-              </label>
+              <Label required={field.required}>{field.label}</Label>
               <Form
                 form={mappingForm}
                 onSubmit={() => {}}>

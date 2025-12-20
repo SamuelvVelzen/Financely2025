@@ -2,6 +2,7 @@
 
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { Label } from "@/features/ui/typography/label";
 import { Controller, useFormContext } from "react-hook-form";
 
 export type ISelectOption<TData = unknown> = {
@@ -59,9 +60,7 @@ export function NativeSelect<
       control={form.control}
       render={({ field }) => (
         <div className={cn("relative", label ? "space-y-1" : "", className)}>
-          {label && (
-            <label className="block text-sm font-medium">{label}</label>
-          )}
+          {label && <Label>{label}</Label>}
           <select
             name={field.name}
             ref={field.ref}

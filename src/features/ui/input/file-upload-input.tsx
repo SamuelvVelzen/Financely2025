@@ -1,6 +1,7 @@
 "use client";
 
 import { IconButton } from "@/features/ui/button/icon-button";
+import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/util/cn";
 import { useId, useMemo, useRef, useState } from "react";
 import { HiX } from "react-icons/hi";
@@ -115,11 +116,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 
   return (
     <div className={cn("space-y-3", className)}>
-      {label && (
-        <label htmlFor={resolvedId} className="block text-sm font-medium">
-          {label}
-        </label>
-      )}
+      {label && <Label htmlFor={resolvedId}>{label}</Label>}
       <input
         ref={inputRef}
         id={resolvedId}

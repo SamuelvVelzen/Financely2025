@@ -11,6 +11,7 @@ import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import type { IPlacementOption } from "../dropdown/hooks/use-dropdown-placement";
+import { Label } from "../typography/label";
 import { NativeSelect } from "./native-select";
 
 export type ISelectOption<TData = unknown> = {
@@ -286,9 +287,7 @@ export function Select<
 
         return (
           <div className={cn("relative", className)}>
-            {label && (
-              <label className="block text-sm font-medium mb-1">{label}</label>
-            )}
+            {label && <Label className="mb-1">{label}</Label>}
             <Dropdown
               dropdownSelector={selectorContent}
               open={disabled ? false : isOpen}

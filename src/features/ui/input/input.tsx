@@ -2,6 +2,7 @@
 
 import { cn } from "@/util/cn";
 import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { Label } from "@/features/ui/typography/label";
 import React, { useId } from "react";
 import {
   Controller,
@@ -62,11 +63,7 @@ export function BaseInput({
       control={form.control}
       render={({ field }) => (
         <div className={label ? "space-y-1" : ""}>
-          {label && (
-            <label htmlFor={inputId} className="block text-sm font-medium">
-              {label}
-            </label>
-          )}
+          {label && <Label htmlFor={inputId}>{label}</Label>}
           <div className="relative">
             {prefixIcon && (
               <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text pointer-events-none">
