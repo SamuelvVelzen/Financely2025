@@ -4,7 +4,6 @@ import type {
   ICurrency,
   ICsvFieldMapping,
   ICsvImportResponse,
-  ICsvMappingValidation,
   ICsvTransformResponse,
   ICsvUploadResponse,
 } from "@/features/shared/validation/schemas";
@@ -13,7 +12,6 @@ import {
   importCsvTransactions,
   transformCsvRows,
   uploadCsvFile,
-  validateCsvMapping,
   type ICsvMappingSuggestion,
 } from "../api/client";
 import type { BankEnum } from "../config/banks";
@@ -44,25 +42,6 @@ export function useGetCsvMapping(
     },
     enabled: !!columns && columns.length > 0,
     staleTime: Infinity, // Mapping doesn't change
-  });
-}
-
-/**
- * Validate CSV mapping mutation
- */
-export function useValidateCsvMapping() {
-  return useFinMutation<
-    ICsvMappingValidation,
-    Error,
-    {
-      mapping: ICsvFieldMapping;
-      typeDetectionStrategy: string;
-      defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY";
-      bank?: BankEnum;
-    }
-  >({
-    mutationFn: ({ mapping, typeDetectionStrategy, defaultCurrency, bank }) =>
-      validateCsvMapping(mapping, typeDetectionStrategy, defaultCurrency, bank),
   });
 }
 

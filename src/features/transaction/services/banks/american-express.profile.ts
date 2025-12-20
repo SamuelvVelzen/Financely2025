@@ -9,4 +9,6 @@ export const americanExpressProfile: BankProfile = {
     type: ["Card Member", "Type"],
     externalId: ["Reference", "Reference Number"],
   },
+  // AMEX can auto-detect type from amount sign
+  requiredFields: [],
 };

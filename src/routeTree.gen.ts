@@ -37,7 +37,6 @@ import { Route as ApiV1TagsBulkRouteImport } from './routes/api/v1/tags.bulk'
 import { Route as ApiV1TagsTagIdRouteImport } from './routes/api/v1/tags.$tagId'
 import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
 import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
-import { Route as ApiV1TransactionsCsvMappingValidateRouteImport } from './routes/api/v1/transactions.csv-mapping.validate'
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
 import { Route as ApiV1MeAccountsAccountIdRouteImport } from './routes/api/v1/me.accounts.$accountId'
 import { Route as ApiV1TransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/transactions.$transactionId.tags.$tagId'
@@ -186,12 +185,6 @@ const ApiV1MeAccountsRoute = ApiV1MeAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => ApiV1MeRoute,
 } as any)
-const ApiV1TransactionsCsvMappingValidateRoute =
-  ApiV1TransactionsCsvMappingValidateRouteImport.update({
-    id: '/validate',
-    path: '/validate',
-    getParentRoute: () => ApiV1TransactionsCsvMappingRoute,
-  } as any)
 const ApiV1TagsCsvMappingValidateRoute =
   ApiV1TagsCsvMappingValidateRouteImport.update({
     id: '/validate',
@@ -236,12 +229,11 @@ export interface FileRoutesByFullPath {
   '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
-  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
+  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
-  '/api/v1/transactions/csv-mapping/validate': typeof ApiV1TransactionsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesByTo {
@@ -269,12 +261,11 @@ export interface FileRoutesByTo {
   '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
-  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
+  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
-  '/api/v1/transactions/csv-mapping/validate': typeof ApiV1TransactionsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesById {
@@ -304,12 +295,11 @@ export interface FileRoutesById {
   '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
-  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
+  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
-  '/api/v1/transactions/csv-mapping/validate': typeof ApiV1TransactionsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRouteTypes {
@@ -344,7 +334,6 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
-    | '/api/v1/transactions/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -377,7 +366,6 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
-    | '/api/v1/transactions/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
   id:
     | '__root__'
@@ -411,7 +399,6 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
-    | '/api/v1/transactions/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
   fileRoutesById: FileRoutesById
 }
@@ -624,13 +611,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeAccountsRouteImport
       parentRoute: typeof ApiV1MeRoute
     }
-    '/api/v1/transactions/csv-mapping/validate': {
-      id: '/api/v1/transactions/csv-mapping/validate'
-      path: '/validate'
-      fullPath: '/api/v1/transactions/csv-mapping/validate'
-      preLoaderRoute: typeof ApiV1TransactionsCsvMappingValidateRouteImport
-      parentRoute: typeof ApiV1TransactionsCsvMappingRoute
-    }
     '/api/v1/tags/csv-mapping/validate': {
       id: '/api/v1/tags/csv-mapping/validate'
       path: '/validate'
@@ -750,26 +730,11 @@ const ApiV1TransactionsTransactionIdRouteWithChildren =
     ApiV1TransactionsTransactionIdRouteChildren,
   )
 
-interface ApiV1TransactionsCsvMappingRouteChildren {
-  ApiV1TransactionsCsvMappingValidateRoute: typeof ApiV1TransactionsCsvMappingValidateRoute
-}
-
-const ApiV1TransactionsCsvMappingRouteChildren: ApiV1TransactionsCsvMappingRouteChildren =
-  {
-    ApiV1TransactionsCsvMappingValidateRoute:
-      ApiV1TransactionsCsvMappingValidateRoute,
-  }
-
-const ApiV1TransactionsCsvMappingRouteWithChildren =
-  ApiV1TransactionsCsvMappingRoute._addFileChildren(
-    ApiV1TransactionsCsvMappingRouteChildren,
-  )
-
 interface ApiV1TransactionsRouteChildren {
   ApiV1TransactionsTransactionIdRoute: typeof ApiV1TransactionsTransactionIdRouteWithChildren
   ApiV1TransactionsBulkRoute: typeof ApiV1TransactionsBulkRoute
   ApiV1TransactionsCsvImportRoute: typeof ApiV1TransactionsCsvImportRoute
-  ApiV1TransactionsCsvMappingRoute: typeof ApiV1TransactionsCsvMappingRouteWithChildren
+  ApiV1TransactionsCsvMappingRoute: typeof ApiV1TransactionsCsvMappingRoute
   ApiV1TransactionsCsvTransformRoute: typeof ApiV1TransactionsCsvTransformRoute
   ApiV1TransactionsCsvUploadRoute: typeof ApiV1TransactionsCsvUploadRoute
 }
@@ -779,8 +744,7 @@ const ApiV1TransactionsRouteChildren: ApiV1TransactionsRouteChildren = {
     ApiV1TransactionsTransactionIdRouteWithChildren,
   ApiV1TransactionsBulkRoute: ApiV1TransactionsBulkRoute,
   ApiV1TransactionsCsvImportRoute: ApiV1TransactionsCsvImportRoute,
-  ApiV1TransactionsCsvMappingRoute:
-    ApiV1TransactionsCsvMappingRouteWithChildren,
+  ApiV1TransactionsCsvMappingRoute: ApiV1TransactionsCsvMappingRoute,
   ApiV1TransactionsCsvTransformRoute: ApiV1TransactionsCsvTransformRoute,
   ApiV1TransactionsCsvUploadRoute: ApiV1TransactionsCsvUploadRoute,
 }

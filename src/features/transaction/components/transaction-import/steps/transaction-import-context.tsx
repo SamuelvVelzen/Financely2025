@@ -17,13 +17,38 @@ import {
 } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import type { BankEnum } from "../../../config/banks";
+import type { ITransactionFieldName } from "../../../config/transaction-fields";
 import {
   useGetCsvMapping,
   useImportCsvTransactions,
   useTransformCsvRows,
-  useValidateCsvMapping,
 } from "../../../hooks/useCsvImport";
+import { BankProfileFactory } from "../../../services/bank.factory";
 import { getDefaultStrategyForBank } from "../../../services/csv-type-detection";
+
+/**
+ * Compute required mapping fields based on bank and whether default currency is set.
+ * Base required fields: amount, occurredAt, name
+ * Additional fields based on bank profile (e.g., ING requires "type")
+ * Currency is required if no default currency is set
+ */
+function getRequiredMappingFields(
+  bank: BankEnum | null,
+  hasDefaultCurrency: boolean
+): ITransactionFieldName[] {
+  // Base required fields (always needed in mapping)
+  const base: ITransactionFieldName[] = ["amount", "occurredAt", "name"];
+
+  // Add bank-specific required fields (e.g., ING requires "type")
+  const bankRequired = BankProfileFactory.getRequiredFields(bank);
+
+  // Add currency if no default currency is set
+  if (!hasDefaultCurrency) {
+    base.push("currency");
+  }
+
+  return [...base, ...bankRequired];
+}
 
 export type IStep = "upload" | "mapping" | "review" | "confirm";
 
@@ -53,6 +78,7 @@ export interface ITransactionImportContext {
   suggestedMapping: ICsvFieldMapping | undefined;
   typeDetectionStrategy: string;
   mappingForm: UseFormReturn<MappingFormData>;
+  requiredMappingFields: ITransactionFieldName[];
 
   // Computed
   hasUnsavedChanges: boolean;
@@ -81,7 +107,6 @@ export interface ITransactionImportContext {
   resetAllState: () => void;
 
   // Mutations
-  validateMutation: ReturnType<typeof useValidateCsvMapping>;
   transformMutation: ReturnType<typeof useTransformCsvRows>;
   importMutation: ReturnType<typeof useImportCsvTransactions>;
 
@@ -142,15 +167,17 @@ export function TransactionImportProvider({
     columns.length > 0 ? columns : undefined,
     selectedBank
   );
-  const validateMutation = useValidateCsvMapping();
   const transformMutation = useTransformCsvRows();
   const importMutation = useImportCsvTransactions();
 
   const isBusy =
-    isPending ||
-    validateMutation.isPending ||
-    transformMutation.isPending ||
-    importMutation.isPending;
+    isPending || transformMutation.isPending || importMutation.isPending;
+
+  // Compute required mapping fields based on bank and default currency
+  const requiredMappingFields = useMemo(
+    () => getRequiredMappingFields(selectedBank, !!defaultCurrency),
+    [selectedBank, defaultCurrency]
+  );
 
   const suggestedMapping = mappingQuery.data?.mapping;
 
@@ -221,6 +248,25 @@ export function TransactionImportProvider({
     return () => subscription.unsubscribe();
   }, [mappingForm, mapping]);
 
+  // Register form validation rules for required mapping fields
+  useEffect(() => {
+    // Clear previous validation rules
+    mappingForm.clearErrors();
+
+    // Register validation rules for each required field
+    requiredMappingFields.forEach((field) => {
+      mappingForm.register(`mappings.${field}`, {
+        required: `${field} mapping is required`,
+        validate: (value) => {
+          if (!value || value.trim() === "") {
+            return `${field} mapping is required`;
+          }
+          return true;
+        },
+      });
+    });
+  }, [requiredMappingFields, mappingForm]);
+
   const handleMappingChange = (field: string, column: string | null) => {
     setMapping((prev) => ({
       ...prev,
@@ -251,54 +297,46 @@ export function TransactionImportProvider({
   };
 
   const handleValidateMapping = async (goToStep: (step: IStep) => void) => {
+    // Form validation already passed (triggered by handleSubmit in mapping step)
+    // Only call transform API
     try {
-      const result = await validateMutation.mutateAsync({
+      const transformResult = await transformMutation.mutateAsync({
+        rows,
         mapping,
         typeDetectionStrategy,
         defaultCurrency,
         bank: selectedBank || undefined,
       });
-      if (result.valid) {
-        // Transform rows into candidates
-        const transformResult = await transformMutation.mutateAsync({
-          rows,
-          mapping,
-          typeDetectionStrategy,
-          defaultCurrency,
-          bank: selectedBank || undefined,
-        });
 
-        // Apply default currency to candidates
-        const candidatesWithDefaults = transformResult.candidates.map((c) => {
-          const updatedData = { ...c.data };
-          if (defaultCurrency && !c.data.currency) {
-            updatedData.currency = defaultCurrency;
-          }
-          return {
-            ...c,
-            data: updatedData,
-          };
-        });
+      // Apply default currency to candidates
+      const candidatesWithDefaults = transformResult.candidates.map((c) => {
+        const updatedData = { ...c.data };
+        if (defaultCurrency && !c.data.currency) {
+          updatedData.currency = defaultCurrency;
+        }
+        return {
+          ...c,
+          data: updatedData,
+        };
+      });
 
-        setCandidates(candidatesWithDefaults);
-        setTransformResponse({
-          total: transformResult.total,
-          totalValid: transformResult.totalValid,
-          totalInvalid: transformResult.totalInvalid,
-        });
+      setCandidates(candidatesWithDefaults);
+      setTransformResponse({
+        total: transformResult.total,
+        totalValid: transformResult.totalValid,
+        totalInvalid: transformResult.totalInvalid,
+      });
 
-        // Select all valid rows by default
-        const validIndices = candidatesWithDefaults
-          .filter((c) => c.status === "valid")
-          .map((c) => c.rowIndex);
-        setSelectedRows(new Set(validIndices));
+      // Select all valid rows by default
+      const validIndices = candidatesWithDefaults
+        .filter((c) => c.status === "valid")
+        .map((c) => c.rowIndex);
+      setSelectedRows(new Set(validIndices));
 
-        goToStep("review");
-      } else {
-        alert(`Missing required fields: ${result.missingFields.join(", ")}`);
-      }
+      goToStep("review");
     } catch (error) {
-      console.error("Validation failed:", error);
+      console.error("Transform failed:", error);
+      toast.error("Failed to process CSV data");
     }
   };
 
@@ -358,6 +396,7 @@ export function TransactionImportProvider({
     suggestedMapping,
     typeDetectionStrategy,
     mappingForm,
+    requiredMappingFields,
 
     // Computed
     hasUnsavedChanges,
@@ -385,7 +424,6 @@ export function TransactionImportProvider({
     resetAllState,
 
     // Mutations
-    validateMutation,
     transformMutation,
     importMutation,
 

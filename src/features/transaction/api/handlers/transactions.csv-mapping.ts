@@ -4,13 +4,9 @@ import {
   createErrorResponse,
   ErrorCodes,
 } from "@/features/shared/api/errors";
-import {
-  CsvFieldMappingSchema,
-  CsvMappingValidationSchema,
-} from "@/features/shared/validation/schemas";
+import { CsvFieldMappingSchema } from "@/features/shared/validation/schemas";
 import { json } from "@tanstack/react-start";
-import { SYSTEM_REQUIRED_FIELDS } from "../../config/transaction-fields";
-import { autoDetectMapping, validateMapping } from "../../services/csv.service";
+import { autoDetectMapping } from "../../services/csv.service";
 import { BankSchema } from "../../validation/transaction.schema";
 
 /**
@@ -46,45 +42,6 @@ export async function POST({ request }: { request: Request }) {
         },
         { status: 200 }
       );
-    });
-  } catch (error) {
-    return createErrorResponse(error);
-  }
-}
-
-/**
- * POST /api/v1/transactions/csv/mapping/validate
- * Validate mapping against required fields
- */
-export async function validate({ request }: { request: Request }) {
-  try {
-    return await withAuth(async () => {
-      const body = await request.json();
-      const mapping = CsvFieldMappingSchema.parse(body.mapping);
-      const typeDetectionStrategy = body.typeDetectionStrategy as
-        | string
-        | undefined;
-      const defaultCurrency = body.defaultCurrency as
-        | "USD"
-        | "EUR"
-        | "GBP"
-        | "CAD"
-        | "AUD"
-        | "JPY"
-        | undefined;
-
-      // If type detection strategy is provided, type field may be optional (except for ING)
-      // If defaultCurrency is provided, currency field is optional
-      const validation = validateMapping(
-        mapping,
-        SYSTEM_REQUIRED_FIELDS,
-        typeDetectionStrategy,
-        !!defaultCurrency
-      );
-
-      const response = CsvMappingValidationSchema.parse(validation);
-
-      return json(response, { status: 200 });
     });
   } catch (error) {
     return createErrorResponse(error);

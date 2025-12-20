@@ -344,20 +344,17 @@ export function autoDetectMapping(
 export function validateMapping(
   mapping: ICsvFieldMapping,
   requiredFields: readonly string[],
-  typeDetectionStrategy?: string,
+  bank?: BankEnum | null,
   hasDefaultCurrency?: boolean
 ): { valid: boolean; missingFields: string[] } {
   const missingFields: string[] = [];
 
+  // Get bank-specific required fields (e.g., ING requires "type")
+  const bankRequiredFields = BankProfileFactory.getRequiredFields(bank);
+
   for (const field of requiredFields) {
-    // Skip type field if type detection strategy is enabled and doesn't require type column
-    // ING strategy requires type column, so we don't skip for ING
-    if (
-      field === "type" &&
-      typeDetectionStrategy &&
-      typeDetectionStrategy !== "ing"
-    ) {
-      // Other strategies (amex, default) don't require type column
+    // Skip type field unless bank profile requires it
+    if (field === "type" && !bankRequiredFields.includes("type")) {
       continue;
     }
     // Skip currency field if defaultCurrency is provided

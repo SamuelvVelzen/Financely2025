@@ -8,6 +8,8 @@ type BankColumnHints = Partial<Record<ITransactionFieldName, string[]>>;
 
 export interface BankProfile {
   columnHints: BankColumnHints;
+  /** Fields that MUST be mapped for this bank (cannot be auto-detected) */
+  requiredFields: ITransactionFieldName[];
 }
 
 const BANK_REGISTRY: Record<BankEnum, BankProfile> = {
@@ -28,5 +30,11 @@ export class BankProfileFactory {
     bank: BankEnum | null | undefined
   ): BankColumnHints | undefined {
     return this.getProfile(bank)?.columnHints;
+  }
+
+  static getRequiredFields(
+    bank: BankEnum | null | undefined
+  ): ITransactionFieldName[] {
+    return this.getProfile(bank)?.requiredFields ?? [];
   }
 }

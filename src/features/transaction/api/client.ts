@@ -8,13 +8,12 @@ import {
 import type {
   IBulkCreateTransactionInput,
   IBulkCreateTransactionResponse,
-  ICurrency,
   ICreateTransactionInput,
   ICsvFieldMapping,
   ICsvImportResponse,
-  ICsvMappingValidation,
   ICsvTransformResponse,
   ICsvUploadResponse,
+  ICurrency,
   IPaginatedTransactionsResponse,
   ITransaction,
   ITransactionsQuery,
@@ -112,20 +111,6 @@ export async function getCsvMapping(
 ): Promise<ICsvMappingSuggestion> {
   return apiPost<ICsvMappingSuggestion>("/transactions/csv-mapping", {
     columns,
-    bank,
-  });
-}
-
-export async function validateCsvMapping(
-  mapping: ICsvFieldMapping,
-  typeDetectionStrategy: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
-  bank?: BankEnum
-): Promise<ICsvMappingValidation> {
-  return apiPost<ICsvMappingValidation>("/transactions/csv-mapping/validate", {
-    mapping,
-    typeDetectionStrategy,
-    defaultCurrency,
     bank,
   });
 }

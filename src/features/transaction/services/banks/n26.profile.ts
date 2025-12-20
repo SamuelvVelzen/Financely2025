@@ -9,4 +9,6 @@ export const n26Profile: BankProfile = {
     type: ["Transaction Type", "Type"],
     notes: ["Reference", "Notes"],
   },
+  // N26 can auto-detect type from amount sign
+  requiredFields: [],
 };

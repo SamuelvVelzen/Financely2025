@@ -42,4 +42,6 @@ export const ingProfile: BankProfile = {
       "Omschrijving",
     ],
   },
+  // ING requires explicit type column mapping (cannot auto-detect from amount sign)
+  requiredFields: ["type"],
 };
