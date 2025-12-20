@@ -183,9 +183,15 @@ export function SelectDropdown<
             </span>
             <div className="flex items-center gap-1 ml-2">
               {hasSelection && showClearButton && (
-                <button
-                  type="button"
+                <span
+                  role="button"
                   onClick={handleClear}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleClear(e as unknown as React.MouseEvent);
+                    }
+                  }}
                   className={cn(
                     "p-1 rounded text-text-muted hover:text-text cursor-pointer",
                     "flex items-center justify-center"
@@ -193,7 +199,7 @@ export function SelectDropdown<
                   aria-label="Clear selection"
                 >
                   <HiX className="size-4" />
-                </button>
+                </span>
               )}
 
               <HiChevronDown
