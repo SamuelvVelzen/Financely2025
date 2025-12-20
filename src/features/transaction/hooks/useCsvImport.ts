@@ -1,16 +1,17 @@
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
+  ICurrency,
   ICsvFieldMapping,
   ICsvImportResponse,
   ICsvMappingValidation,
-  ICsvParseResponse,
+  ICsvTransformResponse,
   ICsvUploadResponse,
 } from "@/features/shared/validation/schemas";
 import {
   getCsvMapping,
   importCsvTransactions,
-  parseCsvRows,
+  transformCsvRows,
   uploadCsvFile,
   validateCsvMapping,
   type ICsvMappingSuggestion,
@@ -66,45 +67,23 @@ export function useValidateCsvMapping() {
 }
 
 /**
- * Parse CSV rows query (paginated)
+ * Transform CSV rows mutation
+ * Transforms raw CSV rows into candidate transactions using the provided mapping
  */
-export function useParseCsvRows(
-  file: File | null,
-  mapping: ICsvFieldMapping | null,
-  page: number = 1,
-  limit: number = 50,
-  typeDetectionStrategy: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
-  bank?: BankEnum | null,
-  enabled: boolean = false
-) {
-  return useFinQuery<ICsvParseResponse, Error>({
-    queryKey: [
-      "csv-parse",
-      file?.name,
-      mapping,
-      page,
-      limit,
-      typeDetectionStrategy,
-      defaultCurrency,
-      bank,
-    ],
-    queryFn: () => {
-      if (!file || !mapping) {
-        throw new Error("File and mapping are required");
-      }
-      return parseCsvRows(
-        file,
-        mapping,
-        page,
-        limit,
-        typeDetectionStrategy,
-        defaultCurrency,
-        bank || undefined
-      );
-    },
-    enabled: !!file && !!mapping && enabled,
-    staleTime: 30 * 1000, // 30 seconds
+export function useTransformCsvRows() {
+  return useFinMutation<
+    ICsvTransformResponse,
+    Error,
+    {
+      rows: Record<string, string>[];
+      mapping: ICsvFieldMapping;
+      typeDetectionStrategy?: string;
+      defaultCurrency?: ICurrency;
+      bank?: BankEnum;
+    }
+  >({
+    mutationFn: ({ rows, mapping, typeDetectionStrategy, defaultCurrency, bank }) =>
+      transformCsvRows(rows, mapping, typeDetectionStrategy, defaultCurrency, bank),
   });
 }
 

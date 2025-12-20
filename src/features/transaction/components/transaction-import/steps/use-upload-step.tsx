@@ -4,6 +4,7 @@ import type {
 } from "@/features/ui/dialog/multi-step-dialog";
 import { FileUploadInput } from "@/features/ui/input/file-upload-input";
 import { useToast } from "@/features/ui/toast";
+import { useState } from "react";
 import { useUploadCsvFile } from "../../../hooks/useCsvImport";
 import { BankSelect } from "../../bank-select";
 import {
@@ -13,11 +14,12 @@ import {
 
 type IUploadStepContentProps = {
   error: Error | null;
+  file: File | null;
+  setFile: (file: File | null) => void;
 };
 
-function UploadStepContent({ error }: IUploadStepContentProps) {
-  const { selectedBank, setSelectedBank, file, setFile } =
-    useTransactionImportContext();
+function UploadStepContent({ error, file, setFile }: IUploadStepContentProps) {
+  const { selectedBank, setSelectedBank } = useTransactionImportContext();
 
   return (
     <div className="space-y-4">
@@ -48,15 +50,24 @@ function UploadStepContent({ error }: IUploadStepContentProps) {
 }
 
 export function useUploadStep(): IStepConfig<IStep> {
-  const { file, setColumns, setIsPending } = useTransactionImportContext();
+  const { setColumns, setRows, setIsPending } = useTransactionImportContext();
   const toast = useToast();
+
+  // Local file state - only needed for upload, not stored in context
+  const [file, setFile] = useState<File | null>(null);
 
   const uploadMutation = useUploadCsvFile();
 
   return {
     title: "Upload CSV File",
     size: "lg",
-    content: () => <UploadStepContent error={uploadMutation.error} />,
+    content: () => (
+      <UploadStepContent
+        error={uploadMutation.error}
+        file={file}
+        setFile={setFile}
+      />
+    ),
     footerButtons: (navigation: IStepNavigation<IStep>) => [
       {
         clicked: () => {
@@ -67,6 +78,7 @@ export function useUploadStep(): IStepConfig<IStep> {
             .mutateAsync(file)
             .then((result) => {
               setColumns(result.columns);
+              setRows(result.rows);
               navigation.goToStep("mapping");
             })
             .catch(() => {

@@ -23,7 +23,7 @@ import { Route as ApiV1TagsRouteImport } from './routes/api/v1/tags'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiV1TransactionsCsvUploadRouteImport } from './routes/api/v1/transactions.csv-upload'
-import { Route as ApiV1TransactionsCsvParseRouteImport } from './routes/api/v1/transactions.csv-parse'
+import { Route as ApiV1TransactionsCsvTransformRouteImport } from './routes/api/v1/transactions.csv-transform'
 import { Route as ApiV1TransactionsCsvMappingRouteImport } from './routes/api/v1/transactions.csv-mapping'
 import { Route as ApiV1TransactionsCsvImportRouteImport } from './routes/api/v1/transactions.csv-import'
 import { Route as ApiV1TransactionsBulkRouteImport } from './routes/api/v1/transactions.bulk'
@@ -112,10 +112,10 @@ const ApiV1TransactionsCsvUploadRoute =
     path: '/csv-upload',
     getParentRoute: () => ApiV1TransactionsRoute,
   } as any)
-const ApiV1TransactionsCsvParseRoute =
-  ApiV1TransactionsCsvParseRouteImport.update({
-    id: '/csv-parse',
-    path: '/csv-parse',
+const ApiV1TransactionsCsvTransformRoute =
+  ApiV1TransactionsCsvTransformRouteImport.update({
+    id: '/csv-transform',
+    path: '/csv-transform',
     getParentRoute: () => ApiV1TransactionsRoute,
   } as any)
 const ApiV1TransactionsCsvMappingRoute =
@@ -237,7 +237,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
-  '/api/v1/transactions/csv-parse': typeof ApiV1TransactionsCsvParseRoute
+  '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
@@ -270,7 +270,7 @@ export interface FileRoutesByTo {
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
-  '/api/v1/transactions/csv-parse': typeof ApiV1TransactionsCsvParseRoute
+  '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
@@ -305,7 +305,7 @@ export interface FileRoutesById {
   '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
   '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRouteWithChildren
-  '/api/v1/transactions/csv-parse': typeof ApiV1TransactionsCsvParseRoute
+  '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
@@ -340,7 +340,7 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/bulk'
     | '/api/v1/transactions/csv-import'
     | '/api/v1/transactions/csv-mapping'
-    | '/api/v1/transactions/csv-parse'
+    | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
@@ -373,7 +373,7 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/bulk'
     | '/api/v1/transactions/csv-import'
     | '/api/v1/transactions/csv-mapping'
-    | '/api/v1/transactions/csv-parse'
+    | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
@@ -407,7 +407,7 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/bulk'
     | '/api/v1/transactions/csv-import'
     | '/api/v1/transactions/csv-mapping'
-    | '/api/v1/transactions/csv-parse'
+    | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
@@ -526,11 +526,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1TransactionsCsvUploadRouteImport
       parentRoute: typeof ApiV1TransactionsRoute
     }
-    '/api/v1/transactions/csv-parse': {
-      id: '/api/v1/transactions/csv-parse'
-      path: '/csv-parse'
-      fullPath: '/api/v1/transactions/csv-parse'
-      preLoaderRoute: typeof ApiV1TransactionsCsvParseRouteImport
+    '/api/v1/transactions/csv-transform': {
+      id: '/api/v1/transactions/csv-transform'
+      path: '/csv-transform'
+      fullPath: '/api/v1/transactions/csv-transform'
+      preLoaderRoute: typeof ApiV1TransactionsCsvTransformRouteImport
       parentRoute: typeof ApiV1TransactionsRoute
     }
     '/api/v1/transactions/csv-mapping': {
@@ -770,7 +770,7 @@ interface ApiV1TransactionsRouteChildren {
   ApiV1TransactionsBulkRoute: typeof ApiV1TransactionsBulkRoute
   ApiV1TransactionsCsvImportRoute: typeof ApiV1TransactionsCsvImportRoute
   ApiV1TransactionsCsvMappingRoute: typeof ApiV1TransactionsCsvMappingRouteWithChildren
-  ApiV1TransactionsCsvParseRoute: typeof ApiV1TransactionsCsvParseRoute
+  ApiV1TransactionsCsvTransformRoute: typeof ApiV1TransactionsCsvTransformRoute
   ApiV1TransactionsCsvUploadRoute: typeof ApiV1TransactionsCsvUploadRoute
 }
 
@@ -781,7 +781,7 @@ const ApiV1TransactionsRouteChildren: ApiV1TransactionsRouteChildren = {
   ApiV1TransactionsCsvImportRoute: ApiV1TransactionsCsvImportRoute,
   ApiV1TransactionsCsvMappingRoute:
     ApiV1TransactionsCsvMappingRouteWithChildren,
-  ApiV1TransactionsCsvParseRoute: ApiV1TransactionsCsvParseRoute,
+  ApiV1TransactionsCsvTransformRoute: ApiV1TransactionsCsvTransformRoute,
   ApiV1TransactionsCsvUploadRoute: ApiV1TransactionsCsvUploadRoute,
 }
 

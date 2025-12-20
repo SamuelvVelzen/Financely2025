@@ -8,11 +8,12 @@ import {
 import type {
   IBulkCreateTransactionInput,
   IBulkCreateTransactionResponse,
+  ICurrency,
   ICreateTransactionInput,
   ICsvFieldMapping,
   ICsvImportResponse,
   ICsvMappingValidation,
-  ICsvParseResponse,
+  ICsvTransformResponse,
   ICsvUploadResponse,
   IPaginatedTransactionsResponse,
   ITransaction,
@@ -129,39 +130,20 @@ export async function validateCsvMapping(
   });
 }
 
-export async function parseCsvRows(
-  file: File,
+export async function transformCsvRows(
+  rows: Record<string, string>[],
   mapping: ICsvFieldMapping,
-  page: number = 1,
-  limit: number = 50,
-  typeDetectionStrategy: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
+  typeDetectionStrategy?: string,
+  defaultCurrency?: ICurrency,
   bank?: BankEnum
-): Promise<ICsvParseResponse> {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("mapping", JSON.stringify(mapping));
-  formData.append("page", page.toString());
-  formData.append("limit", limit.toString());
-  formData.append("typeDetectionStrategy", typeDetectionStrategy);
-  if (defaultCurrency) {
-    formData.append("defaultCurrency", defaultCurrency);
-  }
-  if (bank) {
-    formData.append("bank", bank);
-  }
-
-  const response = await fetch("/api/v1/transactions/csv-parse", {
-    method: "POST",
-    body: formData,
+): Promise<ICsvTransformResponse> {
+  return apiPost<ICsvTransformResponse>("/transactions/csv-transform", {
+    rows,
+    mapping,
+    typeDetectionStrategy,
+    defaultCurrency,
+    bank,
   });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Parse failed");
-  }
-
-  return response.json();
 }
 
 export async function importCsvTransactions(

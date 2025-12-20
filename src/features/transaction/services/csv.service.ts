@@ -101,7 +101,47 @@ export async function parseCsvHeaders(
 }
 
 /**
- * Parse CSV rows with pagination
+ * Parse all CSV rows from file (returns columns and all rows)
+ */
+export async function parseAllCsvRows(
+  file: File | { text(): Promise<string> }
+): Promise<{
+  columns: string[];
+  rows: Record<string, string>[];
+}> {
+  const text = await file.text();
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+
+  if (lines.length === 0) {
+    throw new Error("CSV file is empty");
+  }
+
+  // Detect delimiter from first line
+  const delimiter = detectDelimiter(lines[0]);
+
+  // Parse headers
+  const columns = parseCsvLine(lines[0], delimiter).map((h) => h.trim());
+
+  if (lines.length < 2) {
+    return { columns, rows: [] };
+  }
+
+  // Parse all data rows
+  const dataLines = lines.slice(1);
+  const rows = dataLines.map((line) => {
+    const values = parseCsvLine(line, delimiter);
+    const row: Record<string, string> = {};
+    columns.forEach((header, index) => {
+      row[header] = values[index]?.trim() || "";
+    });
+    return row;
+  });
+
+  return { columns, rows };
+}
+
+/**
+ * Parse CSV rows with pagination (used by Tag CSV import)
  */
 export async function parseCsvRows(
   file: File | { text(): Promise<string> },

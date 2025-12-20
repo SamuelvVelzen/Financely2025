@@ -25,9 +25,9 @@ function ReviewStepContent({
   setErrorDialogRowIndex: (index: number | null) => void;
 }) {
   const {
-    parseQuery,
+    transformMutation,
     candidates,
-    parseResponse,
+    transformResponse,
     selectedRows,
     setSelectedRows,
     defaultCurrency,
@@ -37,15 +37,15 @@ function ReviewStepContent({
     handleExcludeAllInvalid,
   } = useTransactionImportContext();
 
-  if (parseQuery.isLoading) {
-    return <div className="text-center py-8">Parsing CSV...</div>;
+  if (transformMutation.isPending) {
+    return <div className="text-center py-8">Processing CSV...</div>;
   }
 
-  if (parseQuery.isError) {
+  if (transformMutation.isError) {
     return (
       <div className="p-3 bg-danger/10 border border-danger rounded-lg">
         <p className="text-sm text-danger">
-          {parseQuery.error?.message || "Failed to parse CSV"}
+          {transformMutation.error?.message || "Failed to process CSV"}
         </p>
       </div>
     );
@@ -60,13 +60,21 @@ function ReviewStepContent({
       ? candidates.find((c) => c.rowIndex === errorDialogRowIndex)
       : null;
 
+  // Pagination for display (client-side)
+  const pageSize = 50;
+  const totalPages = Math.ceil(candidates.length / pageSize);
+  const paginatedCandidates = candidates.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="text-sm">
-          Showing {candidates.length} of {parseResponse?.total || 0}{" "}
-          transactions ({parseResponse?.totalValid || 0} valid,{" "}
-          {parseResponse?.totalInvalid || 0} invalid)
+          Showing {paginatedCandidates.length} of {transformResponse?.total || candidates.length}{" "}
+          transactions ({transformResponse?.totalValid || 0} valid,{" "}
+          {transformResponse?.totalInvalid || 0} invalid)
         </div>
         <div className="flex gap-2">
           <Button
@@ -85,7 +93,7 @@ function ReviewStepContent({
       <SelectableTable
         selectedRows={selectedRows}
         onSelectionChange={setSelectedRows}
-        rowCount={candidates.length}
+        rowCount={paginatedCandidates.length}
         getRowIndex={(row) => {
           const props = row.props as { rowIndex?: number };
           return props.rowIndex ?? -1;
@@ -100,7 +108,7 @@ function ReviewStepContent({
           <HeaderCell key="errors">Errors</HeaderCell>,
         ]}
       >
-        {candidates.map((candidate) => {
+        {paginatedCandidates.map((candidate) => {
           return (
             <TableRow
               key={candidate.rowIndex}
@@ -186,7 +194,7 @@ function ReviewStepContent({
         }}
       />
 
-      {parseResponse?.hasNext && (
+      {totalPages > 1 && (
         <div className="flex justify-center gap-2">
           <Button
             clicked={() => {
@@ -195,24 +203,26 @@ function ReviewStepContent({
               }
             }}
             buttonContent="Previous"
+            disabled={currentPage === 1}
             className={cn(
               "px-4 py-2",
               currentPage === 1 && "opacity-50 cursor-not-allowed"
             )}
           />
           <span className="px-4 py-2 text-sm">
-            Page {currentPage} of {Math.ceil((parseResponse?.total || 0) / 50)}
+            Page {currentPage} of {totalPages}
           </span>
           <Button
             clicked={() => {
-              if (parseResponse?.hasNext) {
+              if (currentPage < totalPages) {
                 setCurrentPage((p) => p + 1);
               }
             }}
             buttonContent="Next"
+            disabled={currentPage >= totalPages}
             className={cn(
               "px-4 py-2",
-              !parseResponse?.hasNext && "opacity-50 cursor-not-allowed"
+              currentPage >= totalPages && "opacity-50 cursor-not-allowed"
             )}
           />
         </div>

@@ -20,7 +20,7 @@ import type { BankEnum } from "../../../config/banks";
 import {
   useGetCsvMapping,
   useImportCsvTransactions,
-  useParseCsvRows,
+  useTransformCsvRows,
   useValidateCsvMapping,
 } from "../../../hooks/useCsvImport";
 import { getDefaultStrategyForBank } from "../../../services/csv-type-detection";
@@ -32,22 +32,21 @@ export type MappingFormData = {
   mappings: Record<string, string>;
 };
 
-export interface IParseResponse {
+export interface ITransformResponse {
   total: number;
   totalValid: number;
   totalInvalid: number;
-  hasNext: boolean;
 }
 
 export interface ITransactionImportContext {
   // State
-  file: File | null;
+  rows: Record<string, string>[];
   columns: string[];
   mapping: ICsvFieldMapping;
   candidates: ICsvCandidateTransaction[];
   selectedRows: Set<number>;
   currentPage: number;
-  parseResponse: IParseResponse | null;
+  transformResponse: ITransformResponse | null;
   selectedBank: BankEnum | null;
   currentStep: IStep;
   defaultCurrency: ICurrency;
@@ -60,13 +59,13 @@ export interface ITransactionImportContext {
   isBusy: boolean;
 
   // Setters
-  setFile: (file: File | null) => void;
+  setRows: (rows: Record<string, string>[]) => void;
   setColumns: (columns: string[]) => void;
   setMapping: React.Dispatch<React.SetStateAction<ICsvFieldMapping>>;
   setCandidates: (candidates: ICsvCandidateTransaction[]) => void;
   setSelectedRows: (rows: Set<number>) => void;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
-  setParseResponse: (response: IParseResponse | null) => void;
+  setTransformResponse: (response: ITransformResponse | null) => void;
   setSelectedBank: (bank: BankEnum | null) => void;
   setCurrentStep: (step: IStep) => void;
 
@@ -83,7 +82,7 @@ export interface ITransactionImportContext {
 
   // Mutations
   validateMutation: ReturnType<typeof useValidateCsvMapping>;
-  parseQuery: ReturnType<typeof useParseCsvRows>;
+  transformMutation: ReturnType<typeof useTransformCsvRows>;
   importMutation: ReturnType<typeof useImportCsvTransactions>;
 
   // Other
@@ -114,15 +113,14 @@ export function TransactionImportProvider({
 }: ITransactionImportProviderProps) {
   const [isPending, setIsPending] = useState(false);
 
-  const [file, setFile] = useState<File | null>(null);
+  const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
   const [mapping, setMapping] = useState<ICsvFieldMapping>({});
   const [candidates, setCandidates] = useState<ICsvCandidateTransaction[]>([]);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const [parseResponse, setParseResponse] = useState<IParseResponse | null>(
-    null
-  );
+  const [transformResponse, setTransformResponse] =
+    useState<ITransformResponse | null>(null);
   const [selectedBank, setSelectedBank] = useState<BankEnum | null>(null);
   const [currentStep, setCurrentStep] = useState<IStep>("upload");
 
@@ -145,31 +143,25 @@ export function TransactionImportProvider({
     selectedBank
   );
   const validateMutation = useValidateCsvMapping();
-  const parseQuery = useParseCsvRows(
-    file,
-    mapping,
-    currentPage,
-    50,
-    typeDetectionStrategy,
-    defaultCurrency,
-    selectedBank,
-    currentStep === "review" // Only enable parsing when on review step
-  );
+  const transformMutation = useTransformCsvRows();
   const importMutation = useImportCsvTransactions();
 
   const isBusy =
-    isPending || validateMutation.isPending || importMutation.isPending;
+    isPending ||
+    validateMutation.isPending ||
+    transformMutation.isPending ||
+    importMutation.isPending;
 
   const suggestedMapping = mappingQuery.data?.mapping;
 
   const resetAllState = () => {
-    setFile(null);
+    setRows([]);
     setColumns([]);
     setMapping({});
     setCandidates([]);
     setSelectedRows(new Set());
     setCurrentPage(1);
-    setParseResponse(null);
+    setTransformResponse(null);
     setSelectedBank(null);
     mappingForm.reset({
       defaultCurrency: "EUR",
@@ -180,7 +172,7 @@ export function TransactionImportProvider({
   const hasUnsavedChanges = useMemo(() => {
     const mappingHasValues = Object.values(mapping).some(Boolean);
     return (
-      file !== null ||
+      rows.length > 0 ||
       columns.length > 0 ||
       mappingHasValues ||
       candidates.length > 0 ||
@@ -190,7 +182,7 @@ export function TransactionImportProvider({
       mappingFormDirty
     );
   }, [
-    file,
+    rows,
     columns,
     mapping,
     candidates,
@@ -211,28 +203,6 @@ export function TransactionImportProvider({
       mappingForm.setValue("mappings", formMappings);
     }
   }, [columns, suggestedMapping, mappingForm, selectedBank]);
-
-  // Load candidates when parse query succeeds
-  useEffect(() => {
-    if (parseQuery.data) {
-      const candidatesWithDefaults = parseQuery.data.candidates.map((c) => {
-        const updatedData = { ...c.data };
-        if (defaultCurrency && !c.data.currency) {
-          updatedData.currency = defaultCurrency;
-        }
-        return {
-          ...c,
-          data: updatedData,
-        };
-      });
-      setCandidates(candidatesWithDefaults);
-      setParseResponse(parseQuery.data);
-      const validIndices = candidatesWithDefaults
-        .filter((c) => c.status === "valid")
-        .map((c) => c.rowIndex);
-      setSelectedRows(new Set(validIndices));
-    }
-  }, [parseQuery.data, defaultCurrency]);
 
   // Sync form mapping values back to mapping state
   useEffect(() => {
@@ -289,6 +259,40 @@ export function TransactionImportProvider({
         bank: selectedBank || undefined,
       });
       if (result.valid) {
+        // Transform rows into candidates
+        const transformResult = await transformMutation.mutateAsync({
+          rows,
+          mapping,
+          typeDetectionStrategy,
+          defaultCurrency,
+          bank: selectedBank || undefined,
+        });
+
+        // Apply default currency to candidates
+        const candidatesWithDefaults = transformResult.candidates.map((c) => {
+          const updatedData = { ...c.data };
+          if (defaultCurrency && !c.data.currency) {
+            updatedData.currency = defaultCurrency;
+          }
+          return {
+            ...c,
+            data: updatedData,
+          };
+        });
+
+        setCandidates(candidatesWithDefaults);
+        setTransformResponse({
+          total: transformResult.total,
+          totalValid: transformResult.totalValid,
+          totalInvalid: transformResult.totalInvalid,
+        });
+
+        // Select all valid rows by default
+        const validIndices = candidatesWithDefaults
+          .filter((c) => c.status === "valid")
+          .map((c) => c.rowIndex);
+        setSelectedRows(new Set(validIndices));
+
         goToStep("review");
       } else {
         alert(`Missing required fields: ${result.missingFields.join(", ")}`);
@@ -341,13 +345,13 @@ export function TransactionImportProvider({
 
   const contextValue: ITransactionImportContext = {
     // State
-    file,
+    rows,
     columns,
     mapping,
     candidates,
     selectedRows,
     currentPage,
-    parseResponse,
+    transformResponse,
     selectedBank,
     currentStep,
     defaultCurrency,
@@ -360,13 +364,13 @@ export function TransactionImportProvider({
     isBusy,
 
     // Setters
-    setFile,
+    setRows,
     setColumns,
     setMapping,
     setCandidates,
     setSelectedRows,
     setCurrentPage,
-    setParseResponse,
+    setTransformResponse,
     setSelectedBank,
     setCurrentStep,
     setIsPending,
@@ -382,7 +386,7 @@ export function TransactionImportProvider({
 
     // Mutations
     validateMutation,
-    parseQuery,
+    transformMutation,
     importMutation,
 
     // Other

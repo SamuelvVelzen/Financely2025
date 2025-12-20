@@ -8,7 +8,8 @@ import { CsvUploadResponseSchema } from "@/features/shared/validation/schemas";
 import { json } from "@tanstack/react-start";
 import {
   MAX_FILE_SIZE,
-  parseCsvHeaders,
+  MAX_ROWS,
+  parseAllCsvRows,
 } from "../../services/csv.service";
 
 /**
@@ -23,11 +24,7 @@ export async function POST({ request }: { request: Request }) {
 
       if (!file) {
         return createErrorResponse(
-          new ApiError(
-            ErrorCodes.VALIDATION_ERROR,
-            "No file provided",
-            400
-          )
+          new ApiError(ErrorCodes.VALIDATION_ERROR, "No file provided", 400)
         );
       }
 
@@ -64,38 +61,41 @@ export async function POST({ request }: { request: Request }) {
 
       if (file.size === 0) {
         return createErrorResponse(
-          new ApiError(
-            ErrorCodes.VALIDATION_ERROR,
-            "File is empty",
-            400
-          )
+          new ApiError(ErrorCodes.VALIDATION_ERROR, "File is empty", 400)
         );
       }
 
-      // Parse headers
+      // Parse all CSV rows
       let columns: string[];
+      let rows: Record<string, string>[];
       try {
-        columns = await parseCsvHeaders(file);
+        const parsed = await parseAllCsvRows(file);
+        columns = parsed.columns;
+        rows = parsed.rows;
       } catch (error) {
         return createErrorResponse(
           new ApiError(
             ErrorCodes.VALIDATION_ERROR,
-            error instanceof Error ? error.message : "Failed to parse CSV headers",
+            error instanceof Error ? error.message : "Failed to parse CSV",
             400
           )
         );
       }
 
-      // Estimate row count (rough estimate based on file size)
-      const estimatedRowCount = Math.floor(file.size / 100); // Rough estimate
+      // Check row count limit
+      if (rows.length > MAX_ROWS) {
+        return createErrorResponse(
+          new ApiError(
+            ErrorCodes.VALIDATION_ERROR,
+            `Too many rows. Maximum is ${MAX_ROWS} rows per import.`,
+            400
+          )
+        );
+      }
 
       const response = CsvUploadResponseSchema.parse({
         columns,
-        fileInfo: {
-          fileName: file.name,
-          fileSize: file.size,
-          estimatedRowCount,
-        },
+        rows,
       });
 
       return json(response, { status: 200 });
@@ -104,4 +104,3 @@ export async function POST({ request }: { request: Request }) {
     return createErrorResponse(error);
   }
 }
-

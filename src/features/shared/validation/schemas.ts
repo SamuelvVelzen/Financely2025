@@ -349,12 +349,7 @@ export const BulkCreateTransactionResponseSchema = z.object({
 
 export const CsvUploadResponseSchema = z.object({
   columns: z.array(z.string()),
-  sampleRows: z.array(z.record(z.string(), z.string())).optional(),
-  fileInfo: z.object({
-    fileName: z.string(),
-    fileSize: z.number(),
-    estimatedRowCount: z.number().optional(),
-  }),
+  rows: z.array(z.record(z.string(), z.string())),
 });
 
 export const CsvFieldMappingSchema = z.record(
@@ -365,14 +360,6 @@ export const CsvFieldMappingSchema = z.record(
 export const CsvMappingValidationSchema = z.object({
   valid: z.boolean(),
   missingFields: z.array(z.string()),
-});
-
-export const CsvParseRequestSchema = z.object({
-  mapping: CsvFieldMappingSchema,
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(50),
-  typeDetectionStrategy: z.string().optional(),
-  bank: z.string().optional(),
 });
 
 export const CsvCandidateTransactionErrorSchema = z.object({
@@ -388,14 +375,19 @@ export const CsvCandidateTransactionSchema = z.object({
   errors: z.array(CsvCandidateTransactionErrorSchema),
 });
 
-export const CsvParseResponseSchema = z.object({
+export const CsvTransformRequestSchema = z.object({
+  rows: z.array(z.record(z.string(), z.string())),
+  mapping: CsvFieldMappingSchema,
+  typeDetectionStrategy: z.string().optional(),
+  defaultCurrency: CurrencySchema.optional(),
+  bank: z.string().optional(),
+});
+
+export const CsvTransformResponseSchema = z.object({
   candidates: z.array(CsvCandidateTransactionSchema),
-  page: z.number().int().min(1),
-  limit: z.number().int().min(1),
   total: z.number().int().min(0),
   totalValid: z.number().int().min(0),
   totalInvalid: z.number().int().min(0),
-  hasNext: z.boolean(),
 });
 
 export const CsvImportRequestSchema = z.object({
@@ -573,11 +565,11 @@ export type IErrorResponse = z.infer<typeof ErrorResponseSchema>;
 export type ICsvUploadResponse = z.infer<typeof CsvUploadResponseSchema>;
 export type ICsvFieldMapping = z.infer<typeof CsvFieldMappingSchema>;
 export type ICsvMappingValidation = z.infer<typeof CsvMappingValidationSchema>;
-export type ICsvParseRequest = z.infer<typeof CsvParseRequestSchema>;
 export type ICsvCandidateTransaction = z.infer<
   typeof CsvCandidateTransactionSchema
 >;
-export type ICsvParseResponse = z.infer<typeof CsvParseResponseSchema>;
+export type ICsvTransformRequest = z.infer<typeof CsvTransformRequestSchema>;
+export type ICsvTransformResponse = z.infer<typeof CsvTransformResponseSchema>;
 export type ICsvImportRequest = z.infer<typeof CsvImportRequestSchema>;
 export type ICsvImportResponse = z.infer<typeof CsvImportResponseSchema>;
 export type ITagCsvUploadResponse = z.infer<typeof TagCsvUploadResponseSchema>;
