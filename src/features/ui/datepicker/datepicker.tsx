@@ -215,6 +215,7 @@ export function Datepicker({
         onOpenChange={setIsOpen}
         expandedContent={calendarContent}
         showExpanded={showCalendar}
+        closeOnItemClick={false}
       >
         {defaultOptions.map((option) => (
           <DropdownItem
