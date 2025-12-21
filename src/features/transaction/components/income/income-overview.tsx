@@ -19,7 +19,7 @@ import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
-import { formatMonthYear } from "@/util/date/date-helpers";
+import { formatMonthYear } from "@/features/util/date/date-helpers";
 import { useMemo, useState } from "react";
 import {
   HiArrowDownTray,
@@ -211,15 +211,17 @@ export function IncomeOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
-            <Button clicked={handleCreateIncome} variant="primary" size="sm">
+            <Button
+              clicked={handleCreateIncome}
+              variant="primary"
+              size="sm">
               <HiPlus className="size-6" /> Add
             </Button>
 
             <Dropdown>
               <DropdownItem
                 icon={<HiArrowDownTray />}
-                clicked={() => setIsCsvImportDialogOpen(true)}
-              >
+                clicked={() => setIsCsvImportDialogOpen(true)}>
                 Import from CSV
               </DropdownItem>
               <DropdownDivider />
@@ -231,8 +233,7 @@ export function IncomeOverview() {
                     ["Name", "Amount", "Date", "Description", "Tags"],
                     "incomes"
                   )
-                }
-              >
+                }>
                 Export from CSV
               </DropdownItem>
             </Dropdown>
@@ -263,8 +264,7 @@ export function IncomeOverview() {
           button={{
             buttonText: "Add income",
             buttonAction: () => handleCreateIncome(),
-          }}
-        ></EmptyContainer>
+          }}></EmptyContainer>
       )}
 
       {isEmptyWithFilters && (

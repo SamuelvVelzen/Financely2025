@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren, ReactNode } from "react";
 import { Button, IButtonProps } from "../button/button";
 
@@ -30,8 +30,7 @@ export function DropdownItem({
         selected && "bg-primary/10 text-primary font-medium",
         className
       )}
-      clicked={clicked}
-    >
+      clicked={clicked}>
       {icon && <span>{icon}</span>} {content}
     </Button>
   );

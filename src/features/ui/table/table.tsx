@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React from "react";
 import {
   TableSortProvider,
@@ -69,8 +69,12 @@ export function Table<T = unknown>({
   // If data is provided, wrap in TableSortProvider
   if (data !== undefined) {
     return (
-      <TableSortProvider data={data} defaultSort={defaultSort}>
-        <TableContent className={className} headerCells={headerCells}>
+      <TableSortProvider
+        data={data}
+        defaultSort={defaultSort}>
+        <TableContent
+          className={className}
+          headerCells={headerCells}>
           {children}
         </TableContent>
       </TableSortProvider>
@@ -79,7 +83,9 @@ export function Table<T = unknown>({
 
   // Otherwise, render without sorting context (backwards compatibility)
   return (
-    <TableContent className={className} headerCells={headerCells}>
+    <TableContent
+      className={className}
+      headerCells={headerCells}>
       {children}
     </TableContent>
   );

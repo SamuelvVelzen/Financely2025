@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
   Children,
   PropsWithChildren,
@@ -109,8 +109,7 @@ export function SortableListItem({
         clicked={clicked}
         style={height ? { height: `${height}px` } : undefined}
         onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
+        onDrop={handleDrop}>
         <div className="flex items-center justify-between w-full h-full">
           <div className="flex items-center gap-3">
             <div className="shrink-0">
@@ -137,8 +136,7 @@ export function SortableListItem({
         clicked={clicked}
         style={height ? { height: `${height}px` } : undefined}
         onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
+        onDrop={handleDrop}>
         <div className="flex items-center justify-between w-full h-full opacity-60">
           {draggable ? (
             <>
@@ -169,8 +167,7 @@ export function SortableListItem({
           "opacity-50 scale-105 shadow-lg border-2 border-primary rounded-lg z-50",
         className
       )}
-      clicked={clicked}
-    >
+      clicked={clicked}>
       <div
         ref={itemRef}
         className="flex items-center justify-between w-full"
@@ -178,12 +175,13 @@ export function SortableListItem({
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        onDrop={handleDrop}
-      >
+        onDrop={handleDrop}>
         {draggable ? (
           <>
             <div className="flex items-center gap-3">
-              <div className="shrink-0" draggable={false}>
+              <div
+                className="shrink-0"
+                draggable={false}>
                 <DragHandle />
               </div>
               {hasMultipleChildren ? childrenArray[0] : children}

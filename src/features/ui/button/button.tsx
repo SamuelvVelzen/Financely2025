@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
 export type IButtonSize = "sm" | "md" | "lg";

@@ -1,5 +1,5 @@
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 
 type ITextWithTooltipProps = {
   title?: string;
@@ -14,8 +14,7 @@ export function TextWithTooltip({
   return (
     <span
       className={cn("truncate", className)}
-      title={title ?? children ?? undefined}
-    >
+      title={title ?? children ?? undefined}>
       {children}
     </span>
   );

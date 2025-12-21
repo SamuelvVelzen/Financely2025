@@ -10,7 +10,7 @@ import { Form } from "@/features/ui/form/form";
 import { RangeInput, type IPriceRange } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -87,13 +87,17 @@ export function TransactionFilters({
       className={cn(
         "flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto",
         className
-      )}
-    >
-      <Form form={filterForm} onSubmit={() => {}}>
+      )}>
+      <Form
+        form={filterForm}
+        onSubmit={() => {}}>
         <div className="flex gap-3 items-end">
           <SearchInput name="searchQuery" />
 
-          <Datepicker value={dateFilter} onChange={setDateFilter} />
+          <Datepicker
+            value={dateFilter}
+            onChange={setDateFilter}
+          />
 
           <RangeInput
             value={priceFilter}

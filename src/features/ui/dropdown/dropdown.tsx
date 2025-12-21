@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import {
   PropsWithChildren,
   ReactNode,
@@ -78,7 +78,9 @@ export function Dropdown({
   const DropdownSelector = (
     <div ref={triggerRef}>
       {dropdownSelector ? (
-        <Button clicked={toggleDropdown} className="w-full">
+        <Button
+          clicked={toggleDropdown}
+          className="w-full">
           {dropdownSelector}
         </Button>
       ) : (
@@ -134,7 +136,9 @@ export function Dropdown({
 
   return (
     <>
-      <div className="relative" ref={dropdownRef}>
+      <div
+        className="relative"
+        ref={dropdownRef}>
         {DropdownSelector}
       </div>
 
@@ -153,8 +157,7 @@ export function Dropdown({
                 left: dropdownPosition
                   ? `${dropdownPosition.left}px`
                   : "-9999px",
-              }}
-            >
+              }}>
               <div
                 ref={dropdownContentRef}
                 className={cn(
@@ -175,15 +178,13 @@ export function Dropdown({
                   if (closeOnItemClick) {
                     setDropdownState(false);
                   }
-                }}
-              >
+                }}>
                 {children}
               </div>
               {showExpanded && expandedContent && (
                 <div
                   ref={expandedContentRef}
-                  className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl"
-                >
+                  className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
                   {expandedContent}
                 </div>
               )}

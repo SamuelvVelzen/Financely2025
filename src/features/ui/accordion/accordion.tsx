@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { type ReactNode, useState } from "react";
 import { HiChevronDown } from "react-icons/hi2";
 
@@ -24,8 +24,7 @@ export function Accordion({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full py-2 text-left cursor-pointer group"
-      >
+        className="flex items-center justify-between w-full py-2 text-left cursor-pointer group">
         <span className="text-text-muted tracking-wide font-medium group-hover:text-text transition-colors">
           {title}
         </span>
@@ -41,8 +40,7 @@ export function Accordion({
         className={cn(
           "grid transition-[grid-template-rows] duration-200 ease-out",
           isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        )}
-      >
+        )}>
         <div className="overflow-hidden">
           <div className="pt-2">{children}</div>
         </div>

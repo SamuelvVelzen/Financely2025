@@ -1,6 +1,6 @@
 "use client";
 
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { ReactNode } from "react";
 import { Button } from "../button/button";
 import { Container } from "./container";
@@ -21,14 +21,15 @@ export function EmptyContainer({
     <Container
       className={
         "flex flex-col gap-6 text-text-muted items-center " + className
-      }
-    >
+      }>
       {icon && <div className="text-7xl border-4 p-2 rounded-full">{icon}</div>}
 
       <p>{emptyText}</p>
 
       {button && (
-        <Button clicked={() => button.buttonAction()} variant="primary">
+        <Button
+          clicked={() => button.buttonAction()}
+          variant="primary">
           {button.buttonText}
         </Button>
       )}

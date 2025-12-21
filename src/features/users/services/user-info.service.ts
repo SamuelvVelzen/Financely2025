@@ -1,5 +1,5 @@
 import { formatFullName } from "@/features/shared/validation/schemas";
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 
 // Re-export for convenience
 export { formatFullName };
@@ -96,4 +96,3 @@ export class UserInfoService {
     return await this.createUserInfo(userId, data ?? {});
   }
 }
-

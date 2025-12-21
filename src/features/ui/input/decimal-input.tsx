@@ -4,7 +4,7 @@ import {
   formatDecimal,
   getLocaleSeparators,
   parseLocalizedDecimal,
-} from "@/util/currency/currencyhelpers";
+} from "@/features/util/currency/currencyhelpers";
 import React, { useEffect, useMemo, useRef } from "react";
 
 import { BaseInput, type IBaseInputProps } from "./input";

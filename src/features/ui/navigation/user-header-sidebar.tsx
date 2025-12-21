@@ -1,5 +1,5 @@
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { useMemo } from "react";
 import { HiChevronRight } from "react-icons/hi2";
 import { IconButton } from "../button/icon-button";
@@ -47,7 +47,9 @@ export function UserHeaderSidebar() {
   return (
     <div className="flex w-full items-center justify-center gap-2 h-[56px]">
       {isExpanded && expandedProfileCard}
-      <IconButton clicked={toggleSidebar} aria-label="Toggle sidebar">
+      <IconButton
+        clicked={toggleSidebar}
+        aria-label="Toggle sidebar">
         <HiChevronRight
           className={cn(
             "size-7 transition-transform",

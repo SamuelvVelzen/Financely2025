@@ -2,8 +2,8 @@
 
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { HiChevronDown, HiX } from "react-icons/hi";

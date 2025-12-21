@@ -3,7 +3,7 @@ import {
   UserSchema,
   type IUserResponse,
 } from "@/features/shared/validation/schemas";
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 
 /**
  * User Service

@@ -5,8 +5,8 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { Table } from "@/features/ui/table/table";
 import { TableRow } from "@/features/ui/table/table-row";
-import { formatCurrency } from "@/util/currency/currencyhelpers";
-import { DateFormatHelpers } from "@/util/date/date-format.helpers";
+import { formatCurrency } from "@/features/util/currency/currencyhelpers";
+import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useMemo } from "react";
 import { HiPencil, HiTrash } from "react-icons/hi2";
 
@@ -48,26 +48,39 @@ export function ExpenseTable({
 
   const headerCells = useMemo(
     () => [
-      <HeaderCell key="name" sortKey="name" autoFit={false}>
+      <HeaderCell
+        key="name"
+        sortKey="name"
+        autoFit={false}>
         Name
       </HeaderCell>,
-      <HeaderCell key="amount" sortKey="amount" sortFn={sortFns.amount}>
+      <HeaderCell
+        key="amount"
+        sortKey="amount"
+        sortFn={sortFns.amount}>
         Amount
       </HeaderCell>,
       <HeaderCell
         key="occurredAt"
         sortKey="occurredAt"
-        sortFn={sortFns.occurredAt}
-      >
+        sortFn={sortFns.occurredAt}>
         Date
       </HeaderCell>,
-      <HeaderCell key="description" sortKey="description">
+      <HeaderCell
+        key="description"
+        sortKey="description">
         Description
       </HeaderCell>,
-      <HeaderCell key="tags" sortKey="tags" sortFn={sortFns.tags}>
+      <HeaderCell
+        key="tags"
+        sortKey="tags"
+        sortFn={sortFns.tags}>
         Tags
       </HeaderCell>,
-      <HeaderCell key="actions" sortable={false} align="right">
+      <HeaderCell
+        key="actions"
+        sortable={false}
+        align="right">
         Actions
       </HeaderCell>,
     ],
@@ -78,8 +91,7 @@ export function ExpenseTable({
     <Table
       data={data}
       defaultSort={{ sortKey: "occurredAt", direction: "desc" }}
-      headerCells={headerCells}
-    >
+      headerCells={headerCells}>
       {(sortedData) => {
         // Calculate sums by currency
         const sumsByCurrency = sortedData.reduce(
@@ -98,7 +110,9 @@ export function ExpenseTable({
         return (
           <>
             {sortedData.map((expense) => (
-              <TableRow key={expense.id} className="group">
+              <TableRow
+                key={expense.id}
+                className="group">
                 <BodyCell>
                   <span className="text-text font-medium">
                     {searchQuery
@@ -136,8 +150,7 @@ export function ExpenseTable({
                       {expense.tags.map((tag) => (
                         <span
                           key={tag.id}
-                          className="px-2 py-0.5 bg-surface-hover rounded text-xs"
-                        >
+                          className="px-2 py-0.5 bg-surface-hover rounded text-xs">
                           {searchQuery
                             ? highlightText(tag.name, searchQuery)
                             : tag.name}
@@ -153,8 +166,7 @@ export function ExpenseTable({
                     {onEdit && (
                       <IconButton
                         clicked={() => onEdit?.(expense)}
-                        className="text-text-muted hover:text-text p-1"
-                      >
+                        className="text-text-muted hover:text-text p-1">
                         <HiPencil className="w-5 h-5" />
                       </IconButton>
                     )}
@@ -162,8 +174,7 @@ export function ExpenseTable({
                     {onDelete && (
                       <IconButton
                         clicked={() => onDelete?.(expense)}
-                        className="text-danger hover:text-danger-hover p-1"
-                      >
+                        className="text-danger hover:text-danger-hover p-1">
                         <HiTrash className="w-5 h-5" />
                       </IconButton>
                     )}

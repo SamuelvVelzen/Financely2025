@@ -5,7 +5,7 @@ import {
   type ICsvFieldMapping,
 } from "@/features/shared/validation/schemas";
 import { TagService } from "@/features/tag/services/tag.service";
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 import type { BankEnum } from "../config/banks";
 import {
   SYSTEM_REQUIRED_FIELDS,

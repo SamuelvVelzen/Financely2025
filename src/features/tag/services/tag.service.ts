@@ -13,7 +13,7 @@ import {
   type ITagsQuery,
   type IUpdateTagInput,
 } from "@/features/shared/validation/schemas";
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 
 /**
  * Tag Service

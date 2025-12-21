@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 
 export type ITableRowProps = {
@@ -15,8 +15,7 @@ export function TableRow({ rowIndex, className, children }: ITableRowProps) {
       className={cn(
         "border-b border-border hover:bg-surface-hover motion-safe:transition-colors last:border-b-0",
         className
-      )}
-    >
+      )}>
       {children}
     </tr>
   );

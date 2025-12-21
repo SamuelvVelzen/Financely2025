@@ -6,7 +6,7 @@ import { queryKeys } from "@/features/shared/query/keys";
 import { type ITag } from "@/features/shared/validation/schemas";
 import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-create-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";

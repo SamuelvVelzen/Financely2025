@@ -1,4 +1,4 @@
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { createLink, LinkComponentProps } from "@tanstack/react-router";
 import * as React from "react";
 
@@ -9,7 +9,13 @@ interface IBasicLinkProps
 
 const BasicLinkComponent = React.forwardRef<HTMLAnchorElement, IBasicLinkProps>(
   ({ className, ...props }, ref) => {
-    return <a ref={ref} {...props} className={cn(className)} />;
+    return (
+      <a
+        ref={ref}
+        {...props}
+        className={cn(className)}
+      />
+    );
   }
 );
 

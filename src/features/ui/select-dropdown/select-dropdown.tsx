@@ -1,8 +1,8 @@
 "use client";
 
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { ReactNode, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { HiChevronDown, HiX } from "react-icons/hi";
@@ -196,8 +196,7 @@ export function SelectDropdown<
                     "p-1 rounded text-text-muted hover:text-text cursor-pointer",
                     "flex items-center justify-center"
                   )}
-                  aria-label="Clear selection"
-                >
+                  aria-label="Clear selection">
                   <HiX className="size-4" />
                 </span>
               )}
@@ -219,8 +218,7 @@ export function SelectDropdown<
               dropdownSelector={selectorButton}
               open={isOpen}
               onOpenChange={setIsOpen}
-              closeOnItemClick={!multiple}
-            >
+              closeOnItemClick={!multiple}>
               {options.map((option, index) => {
                 const optionIsSelected = isSelected(option.value, value);
                 const handleClick = () => handleOptionClick(option.value);
@@ -228,8 +226,7 @@ export function SelectDropdown<
                   <DropdownItem
                     key={option.value}
                     clicked={handleClick}
-                    selected={optionIsSelected}
-                  >
+                    selected={optionIsSelected}>
                     {
                       <div className="flex items-center gap-2 w-full">
                         {multiple && (

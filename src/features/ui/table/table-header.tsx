@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 
 export type ITableHeaderProps = IPropsWithClassName & PropsWithChildren;
@@ -13,4 +13,3 @@ export function TableHeader({ className, children }: ITableHeaderProps) {
 }
 
 TableHeader.displayName = "TableHeader";
-

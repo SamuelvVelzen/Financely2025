@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { HiQuestionMarkCircle, HiX } from "react-icons/hi";
 import {

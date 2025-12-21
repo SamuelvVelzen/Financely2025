@@ -1,4 +1,4 @@
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 
 export interface ISkeletonProps {
   className?: string;

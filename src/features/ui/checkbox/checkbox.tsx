@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useEffect, useId, useRef } from "react";
 
 export type ICheckboxProps = Omit<
@@ -59,10 +59,13 @@ export function Checkbox({
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-          strokeWidth="3"
-        >
+          strokeWidth="3">
           {indeterminate && (
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 12h14"
+            />
           )}
           {checked && !indeterminate && (
             <path
@@ -79,8 +82,7 @@ export function Checkbox({
           className={cn(
             "text-sm cursor-pointer",
             disabled && "opacity-50 cursor-not-allowed"
-          )}
-        >
+          )}>
           {label}
         </label>
       )}

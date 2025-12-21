@@ -1,8 +1,8 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
 import { Label } from "@/features/ui/typography/label";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { Controller, useFormContext } from "react-hook-form";
 
 export type ISelectOption<TData = unknown> = {
@@ -91,15 +91,18 @@ export function NativeSelect<
               } else {
                 field.onChange(e.target.value || undefined);
               }
-            }}
-          >
+            }}>
             {!multiple && (
-              <option value="" disabled>
+              <option
+                value=""
+                disabled>
                 {placeholder}
               </option>
             )}
             {options.map((option) => (
-              <option key={option.value} value={option.value}>
+              <option
+                key={option.value}
+                value={option.value}>
                 {option.label}
               </option>
             ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { Button, IButtonProps, IVariant } from "./button";
 
 type ILinkButton = {

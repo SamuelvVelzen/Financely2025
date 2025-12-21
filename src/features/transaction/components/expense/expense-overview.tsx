@@ -19,7 +19,7 @@ import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
-import { formatMonthYear } from "@/util/date/date-helpers";
+import { formatMonthYear } from "@/features/util/date/date-helpers";
 import { useMemo, useState } from "react";
 import {
   HiArrowDownTray,
@@ -207,15 +207,17 @@ export function ExpenseOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
-            <Button clicked={handleCreateExpense} variant="primary" size="sm">
+            <Button
+              clicked={handleCreateExpense}
+              variant="primary"
+              size="sm">
               <HiPlus className="size-6" /> Add
             </Button>
 
             <Dropdown>
               <DropdownItem
                 icon={<HiArrowDownTray />}
-                clicked={() => setIsCsvImportDialogOpen(true)}
-              >
+                clicked={() => setIsCsvImportDialogOpen(true)}>
                 Import from CSV
               </DropdownItem>
 
@@ -228,8 +230,7 @@ export function ExpenseOverview() {
                     ["Name", "Amount", "Date", "Description", "Tags"],
                     "expenses"
                   )
-                }
-              >
+                }>
                 Export from CSV
               </DropdownItem>
             </Dropdown>
@@ -258,8 +259,7 @@ export function ExpenseOverview() {
           button={{
             buttonText: "Add expense",
             buttonAction: () => handleCreateExpense(),
-          }}
-        ></EmptyContainer>
+          }}></EmptyContainer>
       )}
 
       {isEmptyWithFilters && (
@@ -288,8 +288,7 @@ export function ExpenseOverview() {
             data={expenses}
             searchQuery={searchQuery}
             onDelete={handleDeleteClick}
-            onEdit={handleEditExpense}
-          ></ExpenseTable>
+            onEdit={handleEditExpense}></ExpenseTable>
         </Container>
       )}
 

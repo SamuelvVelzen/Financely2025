@@ -1,7 +1,7 @@
 import { requireAuth } from "@/features/auth/server";
 import { createErrorResponse, ErrorCodes } from "@/features/shared/api/errors";
 import { ConnectedAccountsResponseSchema } from "@/features/shared/validation/schemas";
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 import { json } from "@tanstack/react-start";
 
 /**
@@ -107,4 +107,3 @@ export async function DELETE({ request }: { request: Request }) {
     return createErrorResponse(error);
   }
 }
-

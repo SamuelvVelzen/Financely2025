@@ -1,4 +1,4 @@
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 import { requireAuth as requireAuthFromRequest } from "./server";
 
 /**

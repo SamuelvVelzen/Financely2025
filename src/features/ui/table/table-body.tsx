@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 
 export type ITableBodyProps = IPropsWithClassName & PropsWithChildren;
@@ -11,4 +11,3 @@ export function TableBody({ className, children }: ITableBodyProps) {
 }
 
 TableBody.displayName = "TableBody";
-

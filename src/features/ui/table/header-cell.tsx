@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren, useEffect, useRef } from "react";
 import { HiArrowDown, HiArrowUp, HiArrowsUpDown } from "react-icons/hi2";
 import { useTableSortContext } from "./context/table-sort-context";
@@ -109,8 +109,7 @@ export function HeaderCell<T = unknown>({
             : sortable && sortKey
               ? "none"
               : undefined
-      }
-    >
+      }>
       <div className={`flex items-center gap-2 ${alignClasses[align]}`}>
         {children}
         {getSortIcon()}

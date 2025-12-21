@@ -1,8 +1,8 @@
 "use client";
 
 import { IconButton } from "@/features/ui/button/icon-button";
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { HiX } from "react-icons/hi";
@@ -73,8 +73,7 @@ export function SearchInput({
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+      onMouseLeave={() => setIsHovered(false)}>
       {shouldExpand ? (
         <TextInput
           name={name}
@@ -87,8 +86,7 @@ export function SearchInput({
               <IconButton
                 clicked={handleClear}
                 aria-label="Clear search"
-                className="p-0"
-              >
+                className="p-0">
                 <HiX className="w-5 h-5" />
               </IconButton>
             ) : undefined
@@ -98,8 +96,7 @@ export function SearchInput({
         <IconButton
           clicked={handleIconClick}
           className="w-10 h-10 my-0"
-          aria-label="Search"
-        >
+          aria-label="Search">
           <HiMagnifyingGlass className="w-5 h-5" />
         </IconButton>
       )}

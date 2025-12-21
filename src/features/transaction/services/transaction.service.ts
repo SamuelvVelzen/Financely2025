@@ -13,7 +13,7 @@ import {
   type ITransactionsQuery,
   type IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 import { Prisma } from "@prisma/client";
 
 /**
