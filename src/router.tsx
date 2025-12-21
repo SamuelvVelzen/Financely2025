@@ -5,6 +5,7 @@ export function getRouter() {
   const router = createRouter({
     routeTree,
     scrollRestoration: true,
+    defaultHashScrollIntoView: { behavior: "smooth" },
   });
 
   return router;

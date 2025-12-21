@@ -6,6 +6,7 @@ import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialo
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { useToast } from "@/features/ui/toast";
+import { ScrollableHeader } from "@/features/ui/typography/scrollable-header";
 import { useChangePassword } from "@/features/users/hooks/useChangePassword";
 import { useConnectedAccounts } from "@/features/users/hooks/useConnectedAccounts";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -65,9 +66,9 @@ export function ChangePassword() {
   return (
     <>
       <Container>
-        <h2 className="text-lg font-semibold text-text mb-4">
+        <ScrollableHeader id="change-password" className="mb-4">
           Change Password
-        </h2>
+        </ScrollableHeader>
         <Form
           form={passwordForm}
           onSubmit={handlePasswordSubmit}

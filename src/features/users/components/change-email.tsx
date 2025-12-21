@@ -7,6 +7,7 @@ import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { useToast } from "@/features/ui/toast";
 import { Label } from "@/features/ui/typography/label";
+import { ScrollableHeader } from "@/features/ui/typography/scrollable-header";
 import { useChangeEmail } from "@/features/users/hooks/useChangeEmail";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,7 +60,9 @@ export function ChangeEmail() {
   return (
     <>
       <Container className="mb-4">
-        <h2 className="text-lg font-semibold text-text mb-4">Change Email</h2>
+        <ScrollableHeader id="change-email" className="mb-4">
+          Change Email
+        </ScrollableHeader>
         <div className="grid gap-4 sm:grid-cols-2 mb-4">
           <div>
             <Label>Current Email</Label>

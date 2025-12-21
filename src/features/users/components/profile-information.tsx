@@ -8,6 +8,7 @@ import { Form } from "@/features/ui/form/form";
 import { TextInput } from "@/features/ui/input/text-input";
 import { useToast } from "@/features/ui/toast";
 import { Label } from "@/features/ui/typography/label";
+import { ScrollableHeader } from "@/features/ui/typography/scrollable-header";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { useUpdateProfile } from "@/features/users/hooks/useUpdateProfile";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -89,9 +90,9 @@ export function ProfileInformation() {
     <>
       <Container className="mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-text">
+          <ScrollableHeader id="profile-information">
             Profile Information
-          </h2>
+          </ScrollableHeader>
           <IconButton
             clicked={
               isEditingProfile

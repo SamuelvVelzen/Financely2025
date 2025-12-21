@@ -8,6 +8,7 @@ import { ProfileInformation } from "@/features/users/components/profile-informat
 import { useConnectedAccounts } from "@/features/users/hooks/useConnectedAccounts";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/(app)/account")({
   component: AccountPage,
@@ -25,6 +26,19 @@ function AccountPage() {
   const { isLoading: accountsLoading } = useConnectedAccounts();
 
   const isLoading = profileLoading || accountsLoading;
+
+  // Scroll to hash after content loads
+  useEffect(() => {
+    if (!isLoading && profile && window.location.hash) {
+      requestAnimationFrame(() => {
+        const hash = window.location.hash.slice(1); // Remove the #
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    }
+  }, [isLoading, profile]);
 
   return (
     <>
