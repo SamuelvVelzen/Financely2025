@@ -17,10 +17,11 @@ import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { Pagination } from "@/features/ui/pagination";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { formatMonthYear } from "@/util/date/date-helpers";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   HiArrowDownTray,
   HiArrowTrendingUp,
@@ -31,7 +32,10 @@ import { exportTransactionsToCsv } from "../../utils/export-csv";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
 import { IncomeTable } from "./income-table";
 
+const PAGE_SIZE = 20;
+
 export function IncomeOverview() {
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<ITransactionFilterValues>({
     dateFilter: defaultDateFilter,
     priceFilter: defaultPriceFilter,
@@ -41,17 +45,34 @@ export function IncomeOverview() {
 
   const { dateFilter, priceFilter, searchQuery, tagFilter } = filters;
 
-  // Fetch incomes with date filter (backend filtering)
-  // Only pass date filters if not "allTime"
-  const { data, isLoading, error } = useIncomes(
-    dateFilter.type !== "allTime" && (dateFilter.from || dateFilter.to)
-      ? ({
-          from: dateFilter.from,
-          to: dateFilter.to,
-        } as Parameters<typeof useIncomes>[0])
-      : undefined
-  );
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dateFilter, priceFilter, searchQuery, tagFilter]);
+
+  // Build query with pagination and date filters
+  const query = useMemo(() => {
+    const baseQuery: Parameters<typeof useIncomes>[0] = {
+      page: currentPage,
+      limit: PAGE_SIZE,
+    };
+
+    if (dateFilter.type !== "allTime" && (dateFilter.from || dateFilter.to)) {
+      return {
+        ...baseQuery,
+        from: dateFilter.from,
+        to: dateFilter.to,
+      };
+    }
+
+    return baseQuery;
+  }, [currentPage, dateFilter]);
+
+  // Fetch incomes with pagination and date filter (backend filtering)
+  const { data, isLoading, error } = useIncomes(query);
   const allIncomes = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const { mutate: deleteIncome } = useDeleteIncome();
   const toast = useToast();
@@ -175,26 +196,24 @@ export function IncomeOverview() {
       !isLoading &&
       !error &&
       incomes.length === 0 &&
-      allIncomes.length === 0 &&
+      total === 0 &&
       isDefaultDateFilter
     );
-  }, [incomes, allIncomes, isLoading, error]);
+  }, [incomes, total, isLoading, error, isDefaultDateFilter]);
 
   const isEmptyWithFilters = useMemo(() => {
     return (
       !isLoading &&
       !error &&
       incomes.length === 0 &&
-      allIncomes.length > 0 &&
+      total > 0 &&
       !isDefaultDateFilter
     );
   }, [
     incomes,
-    allIncomes,
+    total,
     isLoading,
     error,
-    searchQuery,
-    tagFilter,
     isDefaultDateFilter,
   ]);
 
@@ -294,6 +313,12 @@ export function IncomeOverview() {
             searchQuery={searchQuery}
             onDelete={handleDeleteClick}
             onEdit={handleEditIncome}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            className="mt-4"
           />
         </Container>
       )}

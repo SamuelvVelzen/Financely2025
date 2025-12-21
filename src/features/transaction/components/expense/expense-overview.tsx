@@ -17,10 +17,11 @@ import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { Pagination } from "@/features/ui/pagination";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { formatMonthYear } from "@/util/date/date-helpers";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   HiArrowDownTray,
   HiArrowTrendingDown,
@@ -31,7 +32,10 @@ import { exportTransactionsToCsv } from "../../utils/export-csv";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
 import { ExpenseTable } from "./expense-table";
 
+const PAGE_SIZE = 20;
+
 export function ExpenseOverview() {
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<ITransactionFilterValues>({
     dateFilter: defaultDateFilter,
     priceFilter: defaultPriceFilter,
@@ -41,17 +45,34 @@ export function ExpenseOverview() {
 
   const { dateFilter, priceFilter, searchQuery, tagFilter } = filters;
 
-  // Fetch expenses with date filter (backend filtering)
-  // Only pass date filters if not "allTime"
-  const { data, isLoading, error } = useExpenses(
-    dateFilter.type !== "allTime" && (dateFilter.from || dateFilter.to)
-      ? ({
-          from: dateFilter.from,
-          to: dateFilter.to,
-        } as Parameters<typeof useExpenses>[0])
-      : undefined
-  );
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dateFilter, priceFilter, searchQuery, tagFilter]);
+
+  // Build query with pagination and date filters
+  const query = useMemo(() => {
+    const baseQuery: Parameters<typeof useExpenses>[0] = {
+      page: currentPage,
+      limit: PAGE_SIZE,
+    };
+
+    if (dateFilter.type !== "allTime" && (dateFilter.from || dateFilter.to)) {
+      return {
+        ...baseQuery,
+        from: dateFilter.from,
+        to: dateFilter.to,
+      };
+    }
+
+    return baseQuery;
+  }, [currentPage, dateFilter]);
+
+  // Fetch expenses with pagination and date filter (backend filtering)
+  const { data, isLoading, error } = useExpenses(query);
   const allExpenses = data?.data ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const { mutate: deleteExpense } = useDeleteExpense();
   const toast = useToast();
@@ -171,26 +192,24 @@ export function ExpenseOverview() {
       !isLoading &&
       !error &&
       expenses.length === 0 &&
-      allExpenses.length === 0 &&
+      total === 0 &&
       isDefaultDateFilter
     );
-  }, [expenses, allExpenses, isLoading, error, isDefaultDateFilter]);
+  }, [expenses, total, isLoading, error, isDefaultDateFilter]);
 
   const isEmptyWithFilters = useMemo(() => {
     return (
       !isLoading &&
       !error &&
       expenses.length === 0 &&
-      allExpenses.length > 0 &&
+      total > 0 &&
       !isDefaultDateFilter
     );
   }, [
     expenses,
-    allExpenses,
+    total,
     isLoading,
     error,
-    searchQuery,
-    tagFilter,
     isDefaultDateFilter,
   ]);
 
@@ -290,6 +309,12 @@ export function ExpenseOverview() {
             onDelete={handleDeleteClick}
             onEdit={handleEditExpense}
           ></ExpenseTable>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            className="mt-4"
+          />
         </Container>
       )}
 

@@ -3,6 +3,7 @@ import type {
   IStepConfig,
   IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
+import { Pagination, usePagination } from "@/features/ui/pagination";
 import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
@@ -37,6 +38,16 @@ function ReviewStepContent({
     handleExcludeAllInvalid,
   } = useTransactionImportContext();
 
+  // Use the pagination hook for client-side pagination
+  const pagination = usePagination({
+    totalItems: candidates.length,
+    pageSize: 20,
+    initialPage: currentPage,
+  });
+
+  // Sync pagination state with context (context manages the currentPage state)
+  const paginatedCandidates = pagination.paginate(candidates);
+
   if (transformMutation.isPending) {
     return <div className="text-center py-8">Processing CSV...</div>;
   }
@@ -59,14 +70,6 @@ function ReviewStepContent({
     errorDialogRowIndex !== null
       ? candidates.find((c) => c.rowIndex === errorDialogRowIndex)
       : null;
-
-  // Pagination for display (client-side)
-  const pageSize = 20;
-  const totalPages = Math.ceil(candidates.length / pageSize);
-  const paginatedCandidates = candidates.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
 
   return (
     <div className="space-y-4">
@@ -195,39 +198,11 @@ function ReviewStepContent({
         }}
       />
 
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <Button
-            clicked={() => {
-              if (currentPage > 1) {
-                setCurrentPage((p) => p - 1);
-              }
-            }}
-            buttonContent="Previous"
-            disabled={currentPage === 1}
-            className={cn(
-              "px-4 py-2",
-              currentPage === 1 && "opacity-50 cursor-not-allowed"
-            )}
-          />
-          <span className="px-4 py-2 text-sm">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            clicked={() => {
-              if (currentPage < totalPages) {
-                setCurrentPage((p) => p + 1);
-              }
-            }}
-            buttonContent="Next"
-            disabled={currentPage >= totalPages}
-            className={cn(
-              "px-4 py-2",
-              currentPage >= totalPages && "opacity-50 cursor-not-allowed"
-            )}
-          />
-        </div>
-      )}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={pagination.totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
