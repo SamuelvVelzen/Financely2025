@@ -1,6 +1,11 @@
 import { z } from "zod";
+// Import currency config (single source of truth)
+import {
+  getCurrencyOptions as getCurrencyOptionsFromConfig,
+  SUPPORTED_CURRENCIES,
+  type ICurrency,
+} from "@/features/currency/config/currencies";
 // Import enums from generated schemas (auto-generated from Prisma schema)
-import { CurrencySchema as GeneratedCurrencySchema } from "./generated.ts/schemas/enums/Currency.schema";
 import { TransactionTypeSchema as GeneratedTransactionTypeSchema } from "./generated.ts/schemas/enums/TransactionType.schema";
 
 /**
@@ -17,42 +22,28 @@ import { TransactionTypeSchema as GeneratedTransactionTypeSchema } from "./gener
  */
 
 // ============================================================================
-// Enums (re-export from generated, auto-updates with Prisma schema)
+// Enums
 // ============================================================================
 
-export const CurrencySchema = GeneratedCurrencySchema;
+/**
+ * Currency schema - created from currency config (single source of truth)
+ * No longer generated from Prisma enum, so we can add currencies without migrations
+ */
+export const CurrencySchema = z.enum([...SUPPORTED_CURRENCIES] as [
+  string,
+  ...string[],
+]);
 export const TransactionTypeSchema = GeneratedTransactionTypeSchema;
 
 // Re-export enum types for convenience
-export type ICurrency = z.infer<typeof CurrencySchema>;
+export type { ICurrency };
 export type ITransactionType = z.infer<typeof TransactionTypeSchema>;
 
 /**
- * Currency options for select inputs
- * Type-safe array that matches CurrencySchema enum values
- */
-const CURRENCY_VALUES: readonly ICurrency[] = [
-  "USD",
-  "EUR",
-  "GBP",
-  "CAD",
-  "AUD",
-  "JPY",
-] as const;
-
-/**
  * Get currency options for select inputs
- * Returns formatted options array for UI components
+ * Re-exported from currency config for convenience
  */
-export function getCurrencyOptions(): Array<{
-  value: ICurrency;
-  label: string;
-}> {
-  return CURRENCY_VALUES.map((value) => ({
-    value,
-    label: value,
-  }));
-}
+export { getCurrencyOptionsFromConfig as getCurrencyOptions };
 
 // ============================================================================
 // Date handling (ISO strings)

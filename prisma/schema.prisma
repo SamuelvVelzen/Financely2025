@@ -28,15 +28,6 @@ enum TransactionType {
   INCOME
 }
 
-enum Currency {
-  USD
-  EUR
-  GBP
-  CAD
-  AUD
-  JPY
-}
-
 // ----------
 // Models
 // ----------
@@ -144,7 +135,7 @@ model Transaction {
 
   type          TransactionType
   amount        Decimal
-  currency      Currency
+  currency      String
   occurredAt    DateTime
 
   name          String

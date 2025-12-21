@@ -5,7 +5,7 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { Table } from "@/features/ui/table/table";
 import { TableRow } from "@/features/ui/table/table-row";
-import { formatCurrency } from "@/features/util/currency/currencyhelpers";
+import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useMemo } from "react";
 import { HiPencil, HiTrash } from "react-icons/hi2";

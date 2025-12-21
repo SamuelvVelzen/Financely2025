@@ -9,7 +9,7 @@ import {
   useCreateExpense,
   useUpdateExpense,
 } from "@/features/transaction/hooks/useTransactions";
-import { CurrencySelect } from "@/features/ui/currency-select/currency-select";
+import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";

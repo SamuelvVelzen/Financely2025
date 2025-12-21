@@ -1,5 +1,5 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
-import { formatCurrency } from "@/features/util/currency/currencyhelpers";
+import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 
 /**
