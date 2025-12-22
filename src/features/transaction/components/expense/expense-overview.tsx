@@ -25,7 +25,12 @@ import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { cn } from "@/features/util/cn";
-import { formatMonthYear } from "@/features/util/date/date-helpers";
+import {
+  formatMonthYear,
+  getCurrentMonthEnd,
+  getCurrentMonthStart,
+} from "@/features/util/date/date-helpers";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -36,14 +41,14 @@ import {
 } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../../utils/export-csv";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
-import { ExpenseTable } from "./expense-table";
+import { ExpenseList } from "./expense-list";
 
 const PAGE_SIZE = 20;
 
 const defaultDateFilter: IDateFilter = {
   type: "thisMonth",
-  from: undefined,
-  to: undefined,
+  from: getCurrentMonthStart(),
+  to: getCurrentMonthEnd(),
 };
 
 const defaultPriceFilter: IPriceRange = {
@@ -115,8 +120,11 @@ export function ExpenseOverview() {
     };
   }, [currentPage, dateFilter, tagFilter, searchQuery, priceFilter]);
 
+  // Debounce query to reduce API calls during rapid filter changes
+  const debouncedQuery = useDebouncedValue(query, 300);
+
   // Fetch expenses with all filters applied by backend
-  const { data, isLoading, error } = useExpenses(query);
+  const { data, isLoading, error } = useExpenses(debouncedQuery);
   const expenses = data?.data ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -340,12 +348,12 @@ export function ExpenseOverview() {
             </Form>
           </div>
 
-          <ExpenseTable
+          <ExpenseList
             data={expenses}
             searchQuery={searchQuery}
             onDelete={handleDeleteClick}
             onEdit={handleEditExpense}
-          ></ExpenseTable>
+          />
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
