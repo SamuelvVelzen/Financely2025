@@ -205,8 +205,10 @@ export function ExpenseOverview() {
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       return formatMonthYear(lastMonth);
     }
-    if (dateFilter.type === "custom" && dateFilter.from) {
-      return formatMonthYear(dateFilter.from);
+    if (dateFilter.type === "custom" && dateFilter.from && dateFilter.to) {
+      const from = formatMonthYear(dateFilter.from);
+      const to = formatMonthYear(dateFilter.to);
+      return `${from} - ${to}`;
     }
     return formatMonthYear(new Date());
   };
