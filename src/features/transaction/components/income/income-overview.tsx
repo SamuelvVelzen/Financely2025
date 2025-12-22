@@ -8,7 +8,7 @@ import {
 } from "@/features/transaction/hooks/useTransactions";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
-import { EmptyContainer } from "@/features/ui/container/empty-container";
+import { EmptyPage } from "@/features/ui/container/empty-container";
 import {
   Datepicker,
   type IDateFilter,
@@ -282,33 +282,7 @@ export function IncomeOverview() {
         </Container>
       )}
 
-      {isEmpty && (
-        <EmptyContainer
-          icon={<HiArrowTrendingUp />}
-          emptyText={
-            "No income entries yet. Start by adding your first income source."
-          }
-          button={{
-            buttonText: "Add income",
-            buttonAction: () => handleCreateIncome(),
-          }}
-        ></EmptyContainer>
-      )}
-
-      {isEmptyWithFilters && (
-        <EmptyContainer
-          icon={<HiArrowTrendingUp />}
-          emptyText={
-            "No incomes match your filters. Try adjusting your search criteria or clearing your filters."
-          }
-          button={{
-            buttonText: "Clear filters",
-            buttonAction: clearFilters,
-          }}
-        />
-      )}
-
-      {!isLoading && !error && incomes.length > 0 && (
+      {!isLoading && !error && (
         <Container>
           {/* Inline Filters */}
           <div
@@ -341,7 +315,7 @@ export function IncomeOverview() {
                           style={{ backgroundColor: option.data.color }}
                         />
                       )}
-                      <span className="flex-1">{option.label}</span>
+                      <span>{option.label}</span>
                     </>
                   )}
                 />
@@ -349,18 +323,49 @@ export function IncomeOverview() {
             </Form>
           </div>
 
-          <IncomeTable
-            data={incomes}
-            searchQuery={searchQuery}
-            onDelete={handleDeleteClick}
-            onEdit={handleEditIncome}
-          />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            className="mt-4"
-          />
+          {isEmpty && (
+            <EmptyPage
+              icon={<HiArrowTrendingUp />}
+              emptyText={
+                "No income entries yet. Start by adding your first income source."
+              }
+              button={{
+                buttonContent: "Add income",
+                clicked: handleCreateIncome,
+              }}
+            ></EmptyPage>
+          )}
+
+          {isEmptyWithFilters && (
+            <EmptyPage
+              icon={<HiArrowTrendingUp />}
+              emptyText={
+                "No incomes match your filters. Try adjusting your search criteria or clearing your filters."
+              }
+              button={{
+                buttonContent: "Clear filters",
+                clicked: clearFilters,
+              }}
+            />
+          )}
+
+          {!isEmpty && !isEmptyWithFilters && (
+            <>
+              {" "}
+              <IncomeTable
+                data={incomes}
+                searchQuery={searchQuery}
+                onDelete={handleDeleteClick}
+                onEdit={handleEditIncome}
+              />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                className="mt-4"
+              />
+            </>
+          )}
         </Container>
       )}
 

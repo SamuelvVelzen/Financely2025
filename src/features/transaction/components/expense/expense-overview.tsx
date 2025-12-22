@@ -8,7 +8,7 @@ import {
 } from "@/features/transaction/hooks/useTransactions";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
-import { EmptyContainer } from "@/features/ui/container/empty-container";
+import { EmptyPage } from "@/features/ui/container/empty-container";
 import {
   Datepicker,
   type IDateFilter,
@@ -273,97 +273,87 @@ export function ExpenseOverview() {
             </Dropdown>
           </div>
         </Title>
+
+        {/* Inline Filters */}
+        <div
+          className={cn("flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto")}
+        >
+          <Form form={filterForm} onSubmit={() => {}}>
+            <div className="flex gap-3 items-end">
+              <SearchInput name="searchQuery" />
+
+              <Datepicker value={dateFilter} onChange={setDateFilter} />
+
+              <RangeInput
+                value={priceFilter}
+                onChange={setPriceFilter}
+                className="w-[400px]"
+              />
+
+              <SelectDropdown
+                name="tagFilter"
+                options={tagOptions}
+                multiple
+                placeholder="Filter by tags"
+                children={(option) => (
+                  <>
+                    {option.data?.color && (
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: option.data.color }}
+                      />
+                    )}
+                    <span>{option.label}</span>
+                  </>
+                )}
+              />
+            </div>
+          </Form>
+        </div>
       </Container>
 
-      {isEmpty && (
-        <EmptyContainer
-          icon={<HiArrowTrendingDown />}
-          emptyText={"No expenses yet. Start by adding your first expense."}
-          button={{
-            buttonText: "Add expense",
-            buttonAction: () => handleCreateExpense(),
-          }}
-        ></EmptyContainer>
-      )}
+      <Container>
+        {isEmpty && (
+          <EmptyPage
+            icon={<HiArrowTrendingDown />}
+            emptyText={"No expenses yet. Start by adding your first expense."}
+            button={{
+              buttonContent: "Add expense",
+              clicked: handleCreateExpense,
+            }}
+          ></EmptyPage>
+        )}
 
-      {isEmptyWithFilters && (
-        <EmptyContainer
-          icon={<HiArrowTrendingDown />}
-          emptyText={
-            "No expenses match your filters. Try adjusting your search criteria or clearing your filters."
-          }
-          button={{
-            buttonText: "Clear filters",
-            buttonAction: clearFilters,
-          }}
-        />
-      )}
-
-      {expenses.length > 0 && (
-        <Container>
-          {isLoading && (
-            <p className="text-text-muted text-center">Loading expenses...</p>
-          )}
-
-          {error && (
-            <p className="text-red-500 text-center">
-              Error loading expenses: {error.message}
-            </p>
-          )}
-
-          {/* Inline Filters */}
-          <div
-            className={cn(
-              "flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto"
-            )}
-          >
-            <Form form={filterForm} onSubmit={() => {}}>
-              <div className="flex gap-3 items-end">
-                <SearchInput name="searchQuery" />
-
-                <Datepicker value={dateFilter} onChange={setDateFilter} />
-
-                <RangeInput
-                  value={priceFilter}
-                  onChange={setPriceFilter}
-                  className="w-[400px]"
-                />
-
-                <SelectDropdown
-                  name="tagFilter"
-                  options={tagOptions}
-                  multiple
-                  placeholder="Filter by tags"
-                  children={(option) => (
-                    <>
-                      {option.data?.color && (
-                        <div
-                          className="w-3 h-3 rounded-full shrink-0"
-                          style={{ backgroundColor: option.data.color }}
-                        />
-                      )}
-                      <span className="flex-1">{option.label}</span>
-                    </>
-                  )}
-                />
-              </div>
-            </Form>
-          </div>
-
-          <ExpenseList
-            data={expenses}
-            searchQuery={searchQuery}
-            onDelete={handleDeleteClick}
-            onEdit={handleEditExpense}
+        {isEmptyWithFilters && (
+          <EmptyPage
+            icon={<HiArrowTrendingDown />}
+            emptyText={
+              "No expenses match your filters. Try adjusting your search criteria or clearing your filters."
+            }
+            button={{
+              buttonContent: "Clear filters",
+              clicked: clearFilters,
+            }}
           />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            className="mt-4"
-          />
-        </Container>
-      )}
+        )}
+
+        {!isEmpty && !isEmptyWithFilters && (
+          <>
+            <ExpenseList
+              data={expenses}
+              searchQuery={searchQuery}
+              onDelete={handleDeleteClick}
+              onEdit={handleEditExpense}
+            />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              className="mt-4"
+            />
+          </>
+        )}
+      </Container>
 
       <AddOrCreateExpenseDialog
         open={isExpenseDialogOpen}

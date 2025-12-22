@@ -8,7 +8,7 @@ import {
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
-import { EmptyContainer } from "@/features/ui/container/empty-container";
+import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
@@ -116,77 +116,79 @@ export function TagOverview() {
         </Container>
       )}
 
-      {!isLoading && !error && sortedTags.length === 0 && (
-        <EmptyContainer
-          icon={<HiOutlineTag />}
-          emptyText={
-            "No tags yet. Create your first tag to organize your finances."
-          }
-          button={{
-            buttonText: "Add tag",
-            buttonAction: () => handleCreateTag(),
-          }}
-        ></EmptyContainer>
-      )}
-
-      {!isLoading && !error && sortedTags.length > 0 && (
+      {!isLoading && !error && (
         <Container>
-          <SortableList
-            data={sortedTags}
-            getItemId={(tag) => tag.id}
-            onOrderChange={(orderedIds) => {
-              reorderTags(
-                { tagIds: orderedIds as string[] },
-                {
-                  onError: (error) => {
-                    console.error("Failed to reorder tags:", error);
-                    // Error is already handled by the hook (rollback)
-                  },
-                }
-              );
-            }}
-          >
-            {(tag, index, dragProps) => (
-              <SortableListItem
-                className="group"
-                draggable={true}
-                isDragging={dragProps.isDragging}
-                isDragOver={dragProps.isDragOver}
-                isOriginalPosition={dragProps.isOriginalPosition}
-                draggedItemHeight={dragProps.draggedItemHeight}
-                onDragStart={dragProps.onDragStart}
-                onDragOver={dragProps.onDragOver}
-                onDragEnd={dragProps.onDragEnd}
-                onDrop={dragProps.onDrop}
-              >
-                <div className="flex items-center gap-3">
-                  {tag.color && (
-                    <div
-                      className="w-4 h-4 rounded"
-                      style={{ backgroundColor: tag.color }}
-                    />
-                  )}
-                  <span className="text-text">{tag.name}</span>
-                  {tag.description && (
-                    <span className="text-sm text-text-muted">
-                      {tag.description}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
-                  <IconButton clicked={() => handleEditTag(tag)}>
-                    <HiPencil className="w-5 h-5" />
-                  </IconButton>
-                  <IconButton
-                    clicked={() => handleDeleteClick(tag.id)}
-                    className="text-danger hover:text-danger-hover"
-                  >
-                    <HiTrash className="w-5 h-5" />
-                  </IconButton>
-                </div>
-              </SortableListItem>
-            )}
-          </SortableList>
+          {sortedTags.length === 0 && (
+            <EmptyPage
+              icon={<HiOutlineTag />}
+              emptyText={
+                "No tags yet. Create your first tag to organize your finances."
+              }
+              button={{
+                buttonContent: "Add tag",
+                clicked: handleCreateTag,
+              }}
+            ></EmptyPage>
+          )}
+
+          {sortedTags.length > 0 && (
+            <SortableList
+              data={sortedTags}
+              getItemId={(tag) => tag.id}
+              onOrderChange={(orderedIds) => {
+                reorderTags(
+                  { tagIds: orderedIds as string[] },
+                  {
+                    onError: (error) => {
+                      console.error("Failed to reorder tags:", error);
+                      // Error is already handled by the hook (rollback)
+                    },
+                  }
+                );
+              }}
+            >
+              {(tag, index, dragProps) => (
+                <SortableListItem
+                  className="group"
+                  draggable={true}
+                  isDragging={dragProps.isDragging}
+                  isDragOver={dragProps.isDragOver}
+                  isOriginalPosition={dragProps.isOriginalPosition}
+                  draggedItemHeight={dragProps.draggedItemHeight}
+                  onDragStart={dragProps.onDragStart}
+                  onDragOver={dragProps.onDragOver}
+                  onDragEnd={dragProps.onDragEnd}
+                  onDrop={dragProps.onDrop}
+                >
+                  <div className="flex items-center gap-3">
+                    {tag.color && (
+                      <div
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: tag.color }}
+                      />
+                    )}
+                    <span className="text-text">{tag.name}</span>
+                    {tag.description && (
+                      <span className="text-sm text-text-muted">
+                        {tag.description}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
+                    <IconButton clicked={() => handleEditTag(tag)}>
+                      <HiPencil className="w-5 h-5" />
+                    </IconButton>
+                    <IconButton
+                      clicked={() => handleDeleteClick(tag.id)}
+                      className="text-danger hover:text-danger-hover"
+                    >
+                      <HiTrash className="w-5 h-5" />
+                    </IconButton>
+                  </div>
+                </SortableListItem>
+              )}
+            </SortableList>
+          )}
         </Container>
       )}
 

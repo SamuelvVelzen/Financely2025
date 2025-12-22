@@ -2,37 +2,42 @@
 
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { ReactNode } from "react";
-import { Button } from "../button/button";
-import { Container } from "./container";
+import { Button, IButtonProps } from "../button/button";
 
 type IEmptyPageProps = {
   emptyText: string;
   icon?: ReactNode;
-  button?: { buttonText: string; buttonAction: () => void };
+  button?: Omit<IButtonProps, "variant" | "type" | "clicked"> & {
+    clicked: NonNullable<IButtonProps["clicked"]>;
+  };
 } & IPropsWithClassName;
 
-export function EmptyContainer({
+export function EmptyPage({
   className = "",
   emptyText,
   button,
   icon,
 }: IEmptyPageProps) {
   return (
-    <Container
+    <div
       className={
         "flex flex-col gap-6 text-text-muted items-center " + className
-      }>
+      }
+    >
       {icon && <div className="text-7xl border-4 p-2 rounded-full">{icon}</div>}
 
       <p>{emptyText}</p>
 
       {button && (
         <Button
-          clicked={() => button.buttonAction()}
-          variant="primary">
-          {button.buttonText}
+          {...button}
+          type="button"
+          clicked={button.clicked}
+          variant="primary"
+        >
+          {button.buttonContent}
         </Button>
       )}
-    </Container>
+    </div>
   );
 }
