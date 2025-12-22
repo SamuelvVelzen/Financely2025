@@ -25,7 +25,11 @@ import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { cn } from "@/features/util/cn";
-import { formatMonthYear } from "@/features/util/date/date-helpers";
+import {
+  formatMonthYear,
+  getCurrentMonthEnd,
+  getCurrentMonthStart,
+} from "@/features/util/date/date-helpers";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -37,14 +41,14 @@ import {
 } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../../utils/export-csv";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
-import { IncomeTable } from "./income-table";
+import { IncomeList } from "./income-list";
 
 const PAGE_SIZE = 20;
 
 const defaultDateFilter: IDateFilter = {
   type: "thisMonth",
-  from: undefined,
-  to: undefined,
+  from: getCurrentMonthStart(),
+  to: getCurrentMonthEnd(),
 };
 
 const defaultPriceFilter: IPriceRange = {
@@ -203,8 +207,10 @@ export function IncomeOverview() {
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       return formatMonthYear(lastMonth);
     }
-    if (dateFilter.type === "custom" && dateFilter.from) {
-      return formatMonthYear(dateFilter.from);
+    if (dateFilter.type === "custom" && dateFilter.from && dateFilter.to) {
+      const from = formatMonthYear(dateFilter.from);
+      const to = formatMonthYear(dateFilter.to);
+      return `${from} - ${to}`;
     }
     return formatMonthYear(new Date());
   };
@@ -230,8 +236,8 @@ export function IncomeOverview() {
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface mb-4">
-        <Title className="flex items-center justify-between">
+      <Container className="sticky top-0 z-10 bg-surface pb-0 mb-4">
+        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
           <div className="flex gap-2 items-center">
             <HiArrowTrendingUp />
             <span>Incomes</span>
@@ -241,17 +247,20 @@ export function IncomeOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
-            <Button clicked={handleCreateIncome} variant="primary" size="sm">
+            <Button
+              clicked={handleCreateIncome}
+              variant="primary"
+              size="sm">
               <HiPlus className="size-6" /> Add
             </Button>
 
             <Dropdown>
               <DropdownItem
                 icon={<HiArrowDownTray />}
-                clicked={() => setIsCsvImportDialogOpen(true)}
-              >
+                clicked={() => setIsCsvImportDialogOpen(true)}>
                 Import from CSV
               </DropdownItem>
+
               <DropdownDivider />
               <DropdownItem
                 icon={<HiArrowUpTray />}
@@ -261,115 +270,96 @@ export function IncomeOverview() {
                     ["Name", "Amount", "Date", "Description", "Tags"],
                     "incomes"
                   )
-                }
-              >
+                }>
                 Export from CSV
               </DropdownItem>
             </Dropdown>
           </div>
         </Title>
+
+        {/* Inline Filters */}
+        <div
+          className={cn("flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto")}>
+          <Form
+            form={filterForm}
+            onSubmit={() => {}}>
+            <div className="flex gap-3 items-end">
+              <SearchInput name="searchQuery" />
+
+              <Datepicker
+                value={dateFilter}
+                onChange={setDateFilter}
+              />
+
+              <RangeInput
+                value={priceFilter}
+                onChange={setPriceFilter}
+                className="w-[400px]"
+              />
+
+              <SelectDropdown
+                name="tagFilter"
+                options={tagOptions}
+                multiple
+                placeholder="Filter by tags"
+                children={(option) => (
+                  <>
+                    {option.data?.color && (
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: option.data.color }}
+                      />
+                    )}
+                    <span>{option.label}</span>
+                  </>
+                )}
+              />
+            </div>
+          </Form>
+        </div>
       </Container>
 
-      {isLoading && (
-        <Container>
-          <p className="text-text-muted text-center">Loading incomes...</p>
-        </Container>
-      )}
+      <Container>
+        {isEmpty && (
+          <EmptyPage
+            icon={<HiArrowTrendingUp />}
+            emptyText={"No income entries yet. Start by adding your first income source."}
+            button={{
+              buttonContent: "Add income",
+              clicked: handleCreateIncome,
+            }}></EmptyPage>
+        )}
 
-      {error && (
-        <Container>
-          <p className="text-red-500 text-center">
-            Error loading incomes: {error.message}
-          </p>
-        </Container>
-      )}
+        {isEmptyWithFilters && (
+          <EmptyPage
+            icon={<HiArrowTrendingUp />}
+            emptyText={
+              "No incomes match your filters. Try adjusting your search criteria or clearing your filters."
+            }
+            button={{
+              buttonContent: "Clear filters",
+              clicked: clearFilters,
+            }}
+          />
+        )}
 
-      {!isLoading && !error && (
-        <Container>
-          {/* Inline Filters */}
-          <div
-            className={cn(
-              "flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto"
-            )}
-          >
-            <Form form={filterForm} onSubmit={() => {}}>
-              <div className="flex gap-3 items-end">
-                <SearchInput name="searchQuery" />
-
-                <Datepicker value={dateFilter} onChange={setDateFilter} />
-
-                <RangeInput
-                  value={priceFilter}
-                  onChange={setPriceFilter}
-                  className="w-[400px]"
-                />
-
-                <SelectDropdown
-                  name="tagFilter"
-                  options={tagOptions}
-                  multiple
-                  placeholder="Filter by tags"
-                  children={(option) => (
-                    <>
-                      {option.data?.color && (
-                        <div
-                          className="w-3 h-3 rounded-full shrink-0"
-                          style={{ backgroundColor: option.data.color }}
-                        />
-                      )}
-                      <span>{option.label}</span>
-                    </>
-                  )}
-                />
-              </div>
-            </Form>
-          </div>
-
-          {isEmpty && (
-            <EmptyPage
-              icon={<HiArrowTrendingUp />}
-              emptyText={
-                "No income entries yet. Start by adding your first income source."
-              }
-              button={{
-                buttonContent: "Add income",
-                clicked: handleCreateIncome,
-              }}
-            ></EmptyPage>
-          )}
-
-          {isEmptyWithFilters && (
-            <EmptyPage
-              icon={<HiArrowTrendingUp />}
-              emptyText={
-                "No incomes match your filters. Try adjusting your search criteria or clearing your filters."
-              }
-              button={{
-                buttonContent: "Clear filters",
-                clicked: clearFilters,
-              }}
+        {!isEmpty && !isEmptyWithFilters && (
+          <>
+            <IncomeList
+              data={incomes}
+              searchQuery={searchQuery}
+              onDelete={handleDeleteClick}
+              onEdit={handleEditIncome}
             />
-          )}
-
-          {!isEmpty && !isEmptyWithFilters && (
-            <>
-              {" "}
-              <IncomeTable
-                data={incomes}
-                searchQuery={searchQuery}
-                onDelete={handleDeleteClick}
-                onEdit={handleEditIncome}
-              />
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                className="mt-4"
-              />
-            </>
-          )}
-        </Container>
-      )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              className="mt-4"
+            />
+          </>
+        )}
+      </Container>
 
       <AddOrCreateIncomeDialog
         open={isIncomeDialogOpen}
