@@ -261,9 +261,14 @@ export const TagCsvImportResponseSchema = z.object({
 // Transaction schemas
 // ============================================================================
 
+/**
+ * Tag data embedded in transaction responses
+ * Only includes fields needed for transaction display
+ */
 export const TransactionTagSchema = z.object({
   id: z.string(),
   name: z.string(),
+  color: z.string().nullable(),
 });
 
 export const TransactionSchema = z.object({

@@ -29,7 +29,18 @@ export class TransactionService {
     query: ITransactionsQuery
   ): Promise<IPaginatedTransactionsResponse> {
     const validated = TransactionsQuerySchema.parse(query);
-    const { page, limit, from, to, type, tagIds, q, sort, minAmount, maxAmount } = validated;
+    const {
+      page,
+      limit,
+      from,
+      to,
+      type,
+      tagIds,
+      q,
+      sort,
+      minAmount,
+      maxAmount,
+    } = validated;
 
     // Build where clause
     const where: Prisma.TransactionWhereInput = {
@@ -97,6 +108,7 @@ export class TransactionService {
           select: {
             id: true,
             name: true,
+            color: true,
           },
         },
       },
@@ -116,6 +128,7 @@ export class TransactionService {
         tags: tx.tags.map((tag) => ({
           id: tag.id,
           name: tag.name,
+          color: tag.color,
         })),
         createdAt: tx.createdAt.toISOString(),
         updatedAt: tx.updatedAt.toISOString(),
@@ -148,6 +161,7 @@ export class TransactionService {
           select: {
             id: true,
             name: true,
+            color: true,
           },
         },
       },
@@ -169,6 +183,7 @@ export class TransactionService {
       tags: transaction.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
+        color: tag.color,
       })),
       createdAt: transaction.createdAt.toISOString(),
       updatedAt: transaction.updatedAt.toISOString(),
@@ -220,6 +235,7 @@ export class TransactionService {
           select: {
             id: true,
             name: true,
+            color: true,
           },
         },
       },
@@ -237,6 +253,7 @@ export class TransactionService {
       tags: transaction.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
+        color: tag.color,
       })),
       createdAt: transaction.createdAt.toISOString(),
       updatedAt: transaction.updatedAt.toISOString(),
@@ -305,6 +322,7 @@ export class TransactionService {
               select: {
                 id: true,
                 name: true,
+                color: true,
               },
             },
           },
@@ -322,6 +340,7 @@ export class TransactionService {
           tags: transaction.tags.map((tag) => ({
             id: tag.id,
             name: tag.name,
+            color: tag.color,
           })),
           createdAt: transaction.createdAt.toISOString(),
           updatedAt: transaction.updatedAt.toISOString(),
@@ -405,6 +424,7 @@ export class TransactionService {
           select: {
             id: true,
             name: true,
+            color: true,
           },
         },
       },
@@ -422,6 +442,7 @@ export class TransactionService {
       tags: transaction.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
+        color: tag.color,
       })),
       createdAt: transaction.createdAt.toISOString(),
       updatedAt: transaction.updatedAt.toISOString(),
@@ -490,6 +511,7 @@ export class TransactionService {
           select: {
             id: true,
             name: true,
+            color: true,
           },
         },
       },
@@ -507,6 +529,7 @@ export class TransactionService {
       tags: updated.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
+        color: tag.color,
       })),
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
@@ -545,6 +568,7 @@ export class TransactionService {
           select: {
             id: true,
             name: true,
+            color: true,
           },
         },
       },
@@ -562,6 +586,7 @@ export class TransactionService {
       tags: updated.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
+        color: tag.color,
       })),
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
