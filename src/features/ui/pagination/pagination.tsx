@@ -1,4 +1,4 @@
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { Button } from "../button/button";
 
 export interface IPaginationProps {
@@ -47,12 +47,8 @@ export function Pagination({
         }}
         buttonContent="Next"
         disabled={!hasNext}
-        className={cn(
-          "px-4 py-2",
-          !hasNext && "opacity-50 cursor-not-allowed"
-        )}
+        className={cn("px-4 py-2", !hasNext && "opacity-50 cursor-not-allowed")}
       />
     </div>
   );
 }
-
