@@ -97,28 +97,27 @@ export function ExpenseOverview() {
   }
   prevFilterKey.current = filterKey;
 
-  // Build query with pagination and date filters
+  // Build query with pagination and all filters (backend filtering)
   const query = useMemo((): Parameters<typeof useExpenses>[0] => {
-    if (dateFilter.type !== "allTime" && (dateFilter.from || dateFilter.to)) {
-      return {
-        page: currentPage,
-        limit: PAGE_SIZE,
-        from: dateFilter.from,
-        to: dateFilter.to,
-        tagIds: undefined,
-      };
-    }
-
     return {
       page: currentPage,
       limit: PAGE_SIZE,
-      tagIds: undefined,
+      // Date filter
+      from: dateFilter.type !== "allTime" ? dateFilter.from : undefined,
+      to: dateFilter.type !== "allTime" ? dateFilter.to : undefined,
+      // Tag filter
+      tagIds: tagFilter.length > 0 ? tagFilter : undefined,
+      // Search filter
+      q: searchQuery.trim() || undefined,
+      // Amount filter
+      minAmount: priceFilter.min?.toString(),
+      maxAmount: priceFilter.max?.toString(),
     };
-  }, [currentPage, dateFilter]);
+  }, [currentPage, dateFilter, tagFilter, searchQuery, priceFilter]);
 
-  // Fetch expenses with pagination and date filter (backend filtering)
+  // Fetch expenses with all filters applied by backend
   const { data, isLoading, error } = useExpenses(query);
-  const allExpenses = data?.data ?? [];
+  const expenses = data?.data ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -143,50 +142,6 @@ export function ExpenseOverview() {
       data: tag,
     }));
   }, [orderedTags]);
-
-  // Client-side filtering for price, tags, and search
-  const expenses = useMemo(() => {
-    return allExpenses.filter((expense) => {
-      // Price filter
-      if (priceFilter.min !== undefined || priceFilter.max !== undefined) {
-        const amount = parseFloat(expense.amount);
-        if (priceFilter.min !== undefined && amount < priceFilter.min) {
-          return false;
-        }
-        if (priceFilter.max !== undefined && amount > priceFilter.max) {
-          return false;
-        }
-      }
-
-      // Tag filter
-      if (tagFilter.length > 0) {
-        const expenseTagIds = expense.tags.map((tag) => tag.id);
-        const hasMatchingTag = tagFilter.some((tagId) =>
-          expenseTagIds.includes(tagId)
-        );
-        if (!hasMatchingTag) {
-          return false;
-        }
-      }
-
-      // Search filter
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const nameMatch = expense.name.toLowerCase().includes(q);
-        const descriptionMatch = expense.description?.toLowerCase().includes(q);
-        const tagMatch = expense.tags.some((tag) =>
-          tag.name.toLowerCase().includes(q)
-        );
-        const amountMatch = expense.amount.includes(q);
-
-        if (!nameMatch && !descriptionMatch && !tagMatch && !amountMatch) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [allExpenses, priceFilter, tagFilter, searchQuery]);
 
   const handleCreateExpense = () => {
     setSelectedExpense(undefined);
@@ -248,29 +203,24 @@ export function ExpenseOverview() {
     return formatMonthYear(new Date());
   };
 
-  const isDefaultDateFilter = useMemo(() => {
-    return dateFilter.type === defaultDateFilter.type;
-  }, [dateFilter]);
+  // Check if any filter is active (non-default)
+  const hasActiveFilters = useMemo(() => {
+    return (
+      dateFilter.type !== defaultDateFilter.type ||
+      priceFilter.min !== undefined ||
+      priceFilter.max !== undefined ||
+      searchQuery.trim() !== "" ||
+      tagFilter.length > 0
+    );
+  }, [dateFilter, priceFilter, searchQuery, tagFilter]);
 
   const isEmpty = useMemo(() => {
-    return (
-      !isLoading &&
-      !error &&
-      expenses.length === 0 &&
-      total === 0 &&
-      isDefaultDateFilter
-    );
-  }, [expenses, total, isLoading, error, isDefaultDateFilter]);
+    return !isLoading && !error && expenses.length === 0 && !hasActiveFilters;
+  }, [expenses, isLoading, error, hasActiveFilters]);
 
   const isEmptyWithFilters = useMemo(() => {
-    return (
-      !isLoading &&
-      !error &&
-      expenses.length === 0 &&
-      total > 0 &&
-      !isDefaultDateFilter
-    );
-  }, [expenses, total, isLoading, error, isDefaultDateFilter]);
+    return !isLoading && !error && expenses.length === 0 && hasActiveFilters;
+  }, [expenses, isLoading, error, hasActiveFilters]);
 
   return (
     <>
@@ -315,20 +265,6 @@ export function ExpenseOverview() {
         </Title>
       </Container>
 
-      {isLoading && (
-        <Container>
-          <p className="text-text-muted text-center">Loading expenses...</p>
-        </Container>
-      )}
-
-      {error && (
-        <Container>
-          <p className="text-red-500 text-center">
-            Error loading expenses: {error.message}
-          </p>
-        </Container>
-      )}
-
       {isEmpty && (
         <EmptyContainer
           icon={<HiArrowTrendingDown />}
@@ -353,8 +289,18 @@ export function ExpenseOverview() {
         />
       )}
 
-      {!isLoading && !error && expenses.length > 0 && (
+      {expenses.length > 0 && (
         <Container>
+          {isLoading && (
+            <p className="text-text-muted text-center">Loading expenses...</p>
+          )}
+
+          {error && (
+            <p className="text-red-500 text-center">
+              Error loading expenses: {error.message}
+            </p>
+          )}
+
           {/* Inline Filters */}
           <div
             className={cn(

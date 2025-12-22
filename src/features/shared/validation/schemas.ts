@@ -309,6 +309,8 @@ export const TransactionsQuerySchema = PaginationQuerySchema.merge(
       return Array.isArray(val) ? val : [val];
     }),
   q: z.string().optional(),
+  minAmount: DecimalStringSchema.optional(),
+  maxAmount: DecimalStringSchema.optional(),
 });
 
 export const PaginatedTransactionsResponseSchema = z.object({

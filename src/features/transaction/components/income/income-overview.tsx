@@ -26,6 +26,7 @@ import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { cn } from "@/features/util/cn";
 import { formatMonthYear } from "@/features/util/date/date-helpers";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -97,28 +98,30 @@ export function IncomeOverview() {
   }
   prevFilterKey.current = filterKey;
 
-  // Build query with pagination and date filters
+  // Build query with pagination and all filters (backend filtering)
   const query = useMemo((): Parameters<typeof useIncomes>[0] => {
-    if (dateFilter.type !== "allTime" && (dateFilter.from || dateFilter.to)) {
-      return {
-        page: currentPage,
-        limit: PAGE_SIZE,
-        from: dateFilter.from,
-        to: dateFilter.to,
-        tagIds: undefined,
-      };
-    }
-
     return {
       page: currentPage,
       limit: PAGE_SIZE,
-      tagIds: undefined,
+      // Date filter
+      from: dateFilter.type !== "allTime" ? dateFilter.from : undefined,
+      to: dateFilter.type !== "allTime" ? dateFilter.to : undefined,
+      // Tag filter
+      tagIds: tagFilter.length > 0 ? tagFilter : undefined,
+      // Search filter
+      q: searchQuery.trim() || undefined,
+      // Amount filter
+      minAmount: priceFilter.min?.toString(),
+      maxAmount: priceFilter.max?.toString(),
     };
-  }, [currentPage, dateFilter]);
+  }, [currentPage, dateFilter, tagFilter, searchQuery, priceFilter]);
 
-  // Fetch incomes with pagination and date filter (backend filtering)
-  const { data, isLoading, error } = useIncomes(query);
-  const allIncomes = data?.data ?? [];
+  // Debounce query to reduce API calls during rapid filter changes
+  const debouncedQuery = useDebouncedValue(query, 300);
+
+  // Fetch incomes with all filters applied by backend
+  const { data, isLoading, error } = useIncomes(debouncedQuery);
+  const incomes = data?.data ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -143,50 +146,6 @@ export function IncomeOverview() {
       data: tag,
     }));
   }, [orderedTags]);
-
-  // Client-side filtering for price, tags, and search
-  const incomes = useMemo(() => {
-    return allIncomes.filter((income) => {
-      // Price filter
-      if (priceFilter.min !== undefined || priceFilter.max !== undefined) {
-        const amount = parseFloat(income.amount);
-        if (priceFilter.min !== undefined && amount < priceFilter.min) {
-          return false;
-        }
-        if (priceFilter.max !== undefined && amount > priceFilter.max) {
-          return false;
-        }
-      }
-
-      // Tag filter
-      if (tagFilter.length > 0) {
-        const incomeTagIds = income.tags.map((tag) => tag.id);
-        const hasMatchingTag = tagFilter.some((tagId) =>
-          incomeTagIds.includes(tagId)
-        );
-        if (!hasMatchingTag) {
-          return false;
-        }
-      }
-
-      // Search filter
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const nameMatch = income.name.toLowerCase().includes(q);
-        const descriptionMatch = income.description?.toLowerCase().includes(q);
-        const tagMatch = income.tags.some((tag) =>
-          tag.name.toLowerCase().includes(q)
-        );
-        const amountMatch = income.amount.includes(q);
-
-        if (!nameMatch && !descriptionMatch && !tagMatch && !amountMatch) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [allIncomes, priceFilter, tagFilter, searchQuery]);
 
   const handleCreateIncome = () => {
     setSelectedIncome(undefined);
@@ -248,33 +207,24 @@ export function IncomeOverview() {
     return formatMonthYear(new Date());
   };
 
-  const isDefaultDateFilter = useMemo(() => {
+  // Check if any filter is active (non-default)
+  const hasActiveFilters = useMemo(() => {
     return (
-      dateFilter.type === defaultDateFilter.type &&
-      dateFilter.from === defaultDateFilter.from &&
-      dateFilter.to === defaultDateFilter.to
+      dateFilter.type !== defaultDateFilter.type ||
+      priceFilter.min !== undefined ||
+      priceFilter.max !== undefined ||
+      searchQuery.trim() !== "" ||
+      tagFilter.length > 0
     );
-  }, [dateFilter]);
+  }, [dateFilter, priceFilter, searchQuery, tagFilter]);
 
   const isEmpty = useMemo(() => {
-    return (
-      !isLoading &&
-      !error &&
-      incomes.length === 0 &&
-      total === 0 &&
-      isDefaultDateFilter
-    );
-  }, [incomes, total, isLoading, error, isDefaultDateFilter]);
+    return !isLoading && !error && incomes.length === 0 && !hasActiveFilters;
+  }, [incomes, isLoading, error, hasActiveFilters]);
 
   const isEmptyWithFilters = useMemo(() => {
-    return (
-      !isLoading &&
-      !error &&
-      incomes.length === 0 &&
-      total > 0 &&
-      !isDefaultDateFilter
-    );
-  }, [incomes, total, isLoading, error, isDefaultDateFilter]);
+    return !isLoading && !error && incomes.length === 0 && hasActiveFilters;
+  }, [incomes, isLoading, error, hasActiveFilters]);
 
   return (
     <>

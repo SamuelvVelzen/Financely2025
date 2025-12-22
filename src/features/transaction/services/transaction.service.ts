@@ -29,7 +29,7 @@ export class TransactionService {
     query: ITransactionsQuery
   ): Promise<IPaginatedTransactionsResponse> {
     const validated = TransactionsQuerySchema.parse(query);
-    const { page, limit, from, to, type, tagIds, q, sort } = validated;
+    const { page, limit, from, to, type, tagIds, q, sort, minAmount, maxAmount } = validated;
 
     // Build where clause
     const where: Prisma.TransactionWhereInput = {
@@ -55,6 +55,14 @@ export class TransactionService {
       ...(q
         ? {
             OR: [{ name: { contains: q } }, { description: { contains: q } }],
+          }
+        : {}),
+      ...(minAmount || maxAmount
+        ? {
+            amount: {
+              ...(minAmount ? { gte: new Prisma.Decimal(minAmount) } : {}),
+              ...(maxAmount ? { lte: new Prisma.Decimal(maxAmount) } : {}),
+            },
           }
         : {}),
     };
