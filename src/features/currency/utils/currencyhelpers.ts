@@ -3,7 +3,6 @@
  * Utility functions for formatting currency values using browser locale
  */
 
-import type { ICurrency } from "@/features/currency/config/currencies";
 import { LocaleHelpers } from "@/features/util/locale.helpers";
 
 const DEFAULT_FRACTION_DIGITS = 2;
@@ -66,7 +65,7 @@ export function getDecimalSeparator(locale?: string): string {
  * @param currency - Currency code (e.g., "USD", "EUR")
  * @returns Formatted currency string (e.g., "$1,234.56" or "1.234,56 €" depending on locale)
  */
-export function formatCurrency(amount: string, currency: ICurrency): string {
+export function formatCurrency(amount: string, currency: string): string {
   try {
     const numAmount = parseFloat(amount);
 
@@ -164,4 +163,3 @@ export function parseLocalizedDecimal(
 
   return numericValue.toFixed(fractionDigits);
 }
-
