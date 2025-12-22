@@ -186,10 +186,8 @@ export function Toast({ toast, onRemove }: IToastProps) {
       <Icon className={cn("w-5 h-5 shrink-0 mt-0.5", config.text)} />
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          {title && (
-            <p className={cn("font-semibold text-sm", config.text)}>{title}</p>
-          )}
+        <div className="flex items-start justify-between gap-2 mb-1 w-full">
+          <p className={cn("font-semibold text-sm", config.text)}>{title}</p>
           {showCloseButton && (
             <IconButton
               clicked={handleClose}

@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useToastContext } from "./toast-context";
 import type { IToastOptions } from "./types";
 
-type IToastMethodOptions = Omit<IToastOptions, "message" | "variant">;
+type IToastMethodOptions = Omit<IToastOptions, "message" | "variant" | "title">;
 
 /**
  * Hook for showing toast notifications
@@ -15,8 +15,8 @@ type IToastMethodOptions = Omit<IToastOptions, "message" | "variant">;
  *
  * toast.success("Transaction saved!");
  * toast.error("Failed to delete", { duration: 5000 });
- * toast.info("Processing...", { duration: 0 }); // manual dismiss only
- * toast.warning("Low balance");
+ * toast.info("Info", "Processing...", { duration: 0 }); // manual dismiss only
+ * toast.warning("Warning", "Low balance");
  * ```
  */
 export function useToast() {
@@ -24,28 +24,38 @@ export function useToast() {
 
   const success = useCallback(
     (message: string, options?: IToastMethodOptions) => {
-      return addToast({ message, variant: "success", ...options });
+      return addToast({
+        title: "Success",
+        message,
+        variant: "success",
+        ...options,
+      });
     },
     [addToast]
   );
 
   const error = useCallback(
     (message: string, options?: IToastMethodOptions) => {
-      return addToast({ message, variant: "danger", ...options });
+      return addToast({
+        title: "Error",
+        message,
+        variant: "danger",
+        ...options,
+      });
     },
     [addToast]
   );
 
   const info = useCallback(
-    (message: string, options?: IToastMethodOptions) => {
-      return addToast({ message, variant: "info", ...options });
+    (title: string, message: string, options?: IToastMethodOptions) => {
+      return addToast({ title, message, variant: "info", ...options });
     },
     [addToast]
   );
 
   const warning = useCallback(
-    (message: string, options?: IToastMethodOptions) => {
-      return addToast({ message, variant: "warning", ...options });
+    (title: string, message: string, options?: IToastMethodOptions) => {
+      return addToast({ title, message, variant: "warning", ...options });
     },
     [addToast]
   );
@@ -74,4 +84,3 @@ export function useToast() {
     clearAll,
   };
 }
-

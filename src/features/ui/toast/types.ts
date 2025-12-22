@@ -13,7 +13,7 @@ export interface IToast {
   message: string;
   variant: IVariant;
   duration: number;
-  title?: string;
+  title: string;
   showCloseButton: boolean;
   isExiting: boolean;
   position: IToastPosition;
@@ -24,7 +24,7 @@ export interface IToastOptions {
   variant?: IVariant;
   /** Duration in ms. Default: 3000. Set to 0 for no auto-dismiss. */
   duration?: number;
-  title?: string;
+  title: string;
   /** Whether to show close button. Default: true */
   showCloseButton?: boolean;
   /** Position of the toast. Default: uses container's default position */

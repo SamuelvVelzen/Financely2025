@@ -450,11 +450,7 @@ function ToastExample() {
 
         <Button
           variant="danger"
-          clicked={() =>
-            toast.error("Failed to delete item", {
-              title: "Error",
-            })
-          }
+          clicked={() => toast.error("Failed to delete item")}
         >
           Error Toast
         </Button>
@@ -462,8 +458,7 @@ function ToastExample() {
         <Button
           variant="info"
           clicked={() =>
-            toast.info("Your data is being synced", {
-              title: "Info",
+            toast.info("Info", "Your data is being synced", {
               duration: 5000,
             })
           }
@@ -473,11 +468,7 @@ function ToastExample() {
 
         <Button
           variant="warning"
-          clicked={() =>
-            toast.warning("Your session will expire soon", {
-              title: "Warning",
-            })
-          }
+          clicked={() => toast.warning("Warning", "Your session will expire soon")}
         >
           Warning Toast
         </Button>
@@ -487,8 +478,7 @@ function ToastExample() {
       <div className="flex flex-wrap gap-2">
         <Button
           clicked={() =>
-            toast.info("This toast won't auto-dismiss. Click X to close.", {
-              title: "Persistent Toast",
+            toast.info("Persistent Toast", "This toast won't auto-dismiss. Click X to close.", {
               duration: 0,
             })
           }
@@ -515,14 +505,14 @@ function ToastExample() {
       <h4 className="font-medium text-sm">Positions</h4>
       <div className="flex flex-wrap gap-2">
         <Button
-          clicked={() => toast.info("Top left toast", { position: "top-left" })}
+          clicked={() => toast.info("Info", "Top left toast", { position: "top-left" })}
         >
           Top Left
         </Button>
 
         <Button
           clicked={() =>
-            toast.info("Top center toast", { position: "top-center" })
+            toast.info("Info", "Top center toast", { position: "top-center" })
           }
         >
           Top Center
@@ -530,7 +520,7 @@ function ToastExample() {
 
         <Button
           clicked={() =>
-            toast.info("Top right toast", { position: "top-right" })
+            toast.info("Info", "Top right toast", { position: "top-right" })
           }
         >
           Top Right
@@ -538,7 +528,7 @@ function ToastExample() {
 
         <Button
           clicked={() =>
-            toast.info("Bottom left toast", { position: "bottom-left" })
+            toast.info("Info", "Bottom left toast", { position: "bottom-left" })
           }
         >
           Bottom Left
@@ -546,7 +536,7 @@ function ToastExample() {
 
         <Button
           clicked={() =>
-            toast.info("Bottom center toast", { position: "bottom-center" })
+            toast.info("Info", "Bottom center toast", { position: "bottom-center" })
           }
         >
           Bottom Center
@@ -554,7 +544,7 @@ function ToastExample() {
 
         <Button
           clicked={() =>
-            toast.info("Bottom right toast (default)", {
+            toast.info("Info", "Bottom right toast (default)", {
               position: "bottom-right",
             })
           }
