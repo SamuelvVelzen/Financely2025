@@ -23,9 +23,9 @@ export function IconButton({
 
   const sizeClasses: { [key in IButtonSize]: string } = {
     xs: "p-0.5 -my-0.5",
-    sm: "p-2 -my-2.",
-    md: "p-4 -my-4",
-    lg: "p-6 -my-6",
+    sm: "p-1 -my-1.",
+    md: "p-2 -my-2",
+    lg: "p-4 -my-4",
   };
 
   return (
