@@ -5,6 +5,11 @@ import {
   SUPPORTED_CURRENCIES,
   type ICurrency,
 } from "@/features/currency/config/currencies";
+// Import payment method config (single source of truth)
+import {
+  PAYMENT_METHOD_VALUES,
+  type IPaymentMethod,
+} from "@/features/transaction/config/payment-methods";
 // Import enums from generated schemas (auto-generated from Prisma schema)
 import { TransactionTypeSchema as GeneratedTransactionTypeSchema } from "./generated.ts/schemas/enums/TransactionType.schema";
 
@@ -33,10 +38,18 @@ export const CurrencySchema = z.enum([...SUPPORTED_CURRENCIES] as [
   string,
   ...string[],
 ]);
+/**
+ * Payment method schema - created from payment method config (single source of truth)
+ * No longer generated from Prisma enum, so we can add payment methods without migrations
+ */
+export const PaymentMethodSchema = z.enum([...PAYMENT_METHOD_VALUES] as [
+  string,
+  ...string[],
+]);
 export const TransactionTypeSchema = GeneratedTransactionTypeSchema;
 
 // Re-export enum types for convenience
-export type { ICurrency };
+export type { ICurrency, IPaymentMethod };
 export type ITransactionType = z.infer<typeof TransactionTypeSchema>;
 
 /**
@@ -280,6 +293,7 @@ export const TransactionSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   externalId: z.string().nullable(),
+  paymentMethod: PaymentMethodSchema,
   tags: z.array(TransactionTagSchema),
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
@@ -294,6 +308,7 @@ export const CreateTransactionInputSchema = z.object({
   description: z.string().max(1000).nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),
   externalId: z.string().max(200).nullable().optional(),
+  paymentMethod: PaymentMethodSchema,
   tagIds: z.array(z.string()).optional().default([]),
 });
 

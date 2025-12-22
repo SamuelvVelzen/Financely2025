@@ -125,6 +125,7 @@ export class TransactionService {
         name: tx.name,
         description: tx.description,
         externalId: tx.externalId,
+        paymentMethod: tx.paymentMethod,
         tags: tx.tags.map((tag) => ({
           id: tag.id,
           name: tag.name,
@@ -180,6 +181,7 @@ export class TransactionService {
       name: transaction.name,
       description: transaction.description,
       externalId: transaction.externalId,
+      paymentMethod: transaction.paymentMethod,
       tags: transaction.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
@@ -224,6 +226,7 @@ export class TransactionService {
         description: validated.description ?? null,
         notes: validated.notes ?? null,
         externalId: validated.externalId ?? null,
+        paymentMethod: validated.paymentMethod,
         tags: validated.tagIds
           ? {
               connect: validated.tagIds.map((id) => ({ id })),
@@ -250,6 +253,7 @@ export class TransactionService {
       name: transaction.name,
       description: transaction.description,
       externalId: transaction.externalId,
+      paymentMethod: transaction.paymentMethod,
       tags: transaction.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
@@ -311,6 +315,7 @@ export class TransactionService {
             description: validatedItem.description ?? null,
             notes: validatedItem.notes ?? null,
             externalId: validatedItem.externalId ?? null,
+            paymentMethod: validatedItem.paymentMethod,
             tags: validatedItem.tagIds
               ? {
                   connect: validatedItem.tagIds.map((id) => ({ id })),
@@ -337,6 +342,7 @@ export class TransactionService {
           name: transaction.name,
           description: transaction.description,
           externalId: transaction.externalId,
+          paymentMethod: transaction.paymentMethod,
           tags: transaction.tags.map((tag) => ({
             id: tag.id,
             name: tag.name,
@@ -413,6 +419,9 @@ export class TransactionService {
         ...(validated.externalId !== undefined && {
           externalId: validated.externalId,
         }),
+        ...(validated.paymentMethod !== undefined && {
+          paymentMethod: validated.paymentMethod,
+        }),
         ...(validated.tagIds !== undefined && {
           tags: {
             set: validated.tagIds.map((id) => ({ id })),
@@ -439,6 +448,7 @@ export class TransactionService {
       name: transaction.name,
       description: transaction.description,
       externalId: transaction.externalId,
+      paymentMethod: transaction.paymentMethod,
       tags: transaction.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
@@ -526,6 +536,7 @@ export class TransactionService {
       name: updated.name,
       description: updated.description,
       externalId: updated.externalId,
+      paymentMethod: updated.paymentMethod,
       tags: updated.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
@@ -583,6 +594,7 @@ export class TransactionService {
       name: updated.name,
       description: updated.description,
       externalId: updated.externalId,
+      paymentMethod: updated.paymentMethod,
       tags: updated.tags.map((tag) => ({
         id: tag.id,
         name: tag.name,

@@ -87,8 +87,7 @@ function DefaultDialogExample() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors"
-      >
+        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
         Open Default Dialog
       </button>
       <Dialog
@@ -152,8 +151,7 @@ function CustomDialogExample() {
       <button
         type="button"
         onClick={dialog.open}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors"
-      >
+        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
         Open Custom Dialog
       </button>
       <Dialog
@@ -268,15 +266,23 @@ function FormDialogExample() {
       <h3 className="font-medium text-sm">
         Form Dialog (With React Hook Form)
       </h3>
-      <DialogTrigger open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        open={open}
+        onOpenChange={setOpen}>
         Open Form Dialog
       </DialogTrigger>
       <Dialog
         title="Create New Item"
         content={
-          <Form<FormData> form={form} onSubmit={handleSubmit}>
+          <Form<FormData>
+            form={form}
+            onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <TextInput name="name" label="Name" disabled={pending} />
+              <TextInput
+                name="name"
+                label="Name"
+                disabled={pending}
+              />
               <TextInput
                 name="email"
                 label="Email"
@@ -291,7 +297,11 @@ function FormDialogExample() {
                 max={150}
                 required
               />
-              <ColorInput name="color" label="Color" disabled={pending} />
+              <ColorInput
+                name="color"
+                label="Color"
+                disabled={pending}
+              />
               {pending && (
                 <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                   <p className="text-sm text-blue-600 dark:text-blue-400">
@@ -371,7 +381,9 @@ function SelectDropdownExample() {
           onChange={() => setIsSelected((prev) => !prev)}
         />
 
-        <Form form={form} onSubmit={() => {}}>
+        <Form
+          form={form}
+          onSubmit={() => {}}>
           <SelectDropdown
             name="singleValue"
             options={options}
@@ -396,7 +408,9 @@ function SelectDropdownExample() {
           Select multiple options. The dropdown stays open for multiple
           selections.
         </p>
-        <Form form={form} onSubmit={() => {}}>
+        <Form
+          form={form}
+          onSubmit={() => {}}>
           <SelectDropdown
             name="multipleValue"
             options={options}
@@ -443,15 +457,13 @@ function ToastExample() {
       <div className="flex flex-wrap gap-2">
         <Button
           variant="success"
-          clicked={() => toast.success("Transaction saved successfully!")}
-        >
+          clicked={() => toast.success("Transaction saved successfully!")}>
           Success Toast
         </Button>
 
         <Button
           variant="danger"
-          clicked={() => toast.error("Failed to delete item")}
-        >
+          clicked={() => toast.error("Failed to delete item")}>
           Error Toast
         </Button>
 
@@ -461,15 +473,15 @@ function ToastExample() {
             toast.info("Info", "Your data is being synced", {
               duration: 5000,
             })
-          }
-        >
+          }>
           Info Toast (5s)
         </Button>
 
         <Button
           variant="warning"
-          clicked={() => toast.warning("Warning", "Your session will expire soon")}
-        >
+          clicked={() =>
+            toast.warning("Warning", "Your session will expire soon")
+          }>
           Warning Toast
         </Button>
       </div>
@@ -478,11 +490,14 @@ function ToastExample() {
       <div className="flex flex-wrap gap-2">
         <Button
           clicked={() =>
-            toast.info("Persistent Toast", "This toast won't auto-dismiss. Click X to close.", {
-              duration: 0,
-            })
-          }
-        >
+            toast.info(
+              "Persistent Toast",
+              "This toast won't auto-dismiss. Click X to close.",
+              {
+                duration: 0,
+              }
+            )
+          }>
           No Auto-Dismiss
         </Button>
 
@@ -492,12 +507,13 @@ function ToastExample() {
               showCloseButton: false,
               duration: 2000,
             })
-          }
-        >
+          }>
           No Close Button (2s)
         </Button>
 
-        <Button variant="danger" clicked={() => toast.clearAll()}>
+        <Button
+          variant="danger"
+          clicked={() => toast.clearAll()}>
           Clear All Toasts
         </Button>
       </div>
@@ -505,40 +521,39 @@ function ToastExample() {
       <h4 className="font-medium text-sm">Positions</h4>
       <div className="flex flex-wrap gap-2">
         <Button
-          clicked={() => toast.info("Info", "Top left toast", { position: "top-left" })}
-        >
+          clicked={() =>
+            toast.info("Info", "Top left toast", { position: "top-left" })
+          }>
           Top Left
         </Button>
 
         <Button
           clicked={() =>
             toast.info("Info", "Top center toast", { position: "top-center" })
-          }
-        >
+          }>
           Top Center
         </Button>
 
         <Button
           clicked={() =>
             toast.info("Info", "Top right toast", { position: "top-right" })
-          }
-        >
+          }>
           Top Right
         </Button>
 
         <Button
           clicked={() =>
             toast.info("Info", "Bottom left toast", { position: "bottom-left" })
-          }
-        >
+          }>
           Bottom Left
         </Button>
 
         <Button
           clicked={() =>
-            toast.info("Info", "Bottom center toast", { position: "bottom-center" })
-          }
-        >
+            toast.info("Info", "Bottom center toast", {
+              position: "bottom-center",
+            })
+          }>
           Bottom Center
         </Button>
 
@@ -547,8 +562,7 @@ function ToastExample() {
             toast.info("Info", "Bottom right toast (default)", {
               position: "bottom-right",
             })
-          }
-        >
+          }>
           Bottom Right
         </Button>
       </div>

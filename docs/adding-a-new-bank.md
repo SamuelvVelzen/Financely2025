@@ -57,6 +57,11 @@ export const yourNewBankProfile: BankProfile = {
     externalId: ["Reference Number", "Transaction ID"],
     tags: ["Tags", "Categories"],
   },
+  // Required fields: fields that MUST be mapped (cannot be auto-detected)
+  requiredFields: [], // e.g., ["type"] if bank requires explicit type column
+  // Default payment method: REQUIRED - used when paymentMethod is not mapped in CSV
+  // If no bank is selected, falls back to "DEBIT_CARD"
+  defaultPaymentMethod: "DEBIT_CARD", // or "CREDIT_CARD", "CASH", etc.
 };
 ```
 
@@ -67,10 +72,31 @@ export const yourNewBankProfile: BankProfile = {
 - `amount` - Transaction amount (required)
 - `currency` - Currency code (required)
 - `type` - Transaction type: EXPENSE or INCOME (required for column-based strategies)
+- `paymentMethod` - Payment method (optional, will use bank default if not mapped)
 - `description` - Additional description (optional)
 - `notes` - Notes (optional)
 - `externalId` - External reference ID (optional)
 - `tags` - Comma-separated tags (optional)
+
+**Default Payment Method:**
+
+The `defaultPaymentMethod` field is **REQUIRED** and specifies which payment method to use when importing CSV transactions if the `paymentMethod` field is not mapped or not provided in the CSV. This provides a better user experience by automatically setting a sensible default based on the bank type.
+
+**Available Payment Methods:**
+- `"CASH"` - Physical cash
+- `"CREDIT_CARD"` - Credit card payment
+- `"DEBIT_CARD"` - Debit card payment (typical for most banks, also used as fallback)
+- `"BANK_TRANSFER"` - Bank transfer/wire transfer
+- `"CHECK"` - Check payment
+- `"DIGITAL_WALLET"` - Digital wallets (PayPal, Venmo, etc.)
+- `"CRYPTOCURRENCY"` - Cryptocurrency payment
+- `"GIFT_CARD"` - Gift card payment
+- `"OTHER"` - Other payment methods
+
+**Examples:**
+- Credit card companies (like American Express): `defaultPaymentMethod: "CREDIT_CARD"`
+- Traditional banks (like ING, N26): `defaultPaymentMethod: "DEBIT_CARD"`
+- **Fallback**: If no bank is selected or bank profile is missing, defaults to `"DEBIT_CARD"`
 
 **Tips:**
 

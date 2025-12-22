@@ -10,6 +10,10 @@ import { TagService } from "@/features/tag/services/tag.service";
 import { prisma } from "@/features/util/prisma";
 import type { BankEnum } from "../config/banks";
 import {
+  PAYMENT_METHOD_VALUES,
+  type IPaymentMethod,
+} from "../config/payment-methods";
+import {
   SYSTEM_REQUIRED_FIELDS,
   type ITransactionFieldName,
 } from "../config/transaction-fields";
@@ -54,6 +58,16 @@ const FIELD_NAME_PATTERNS: Record<string, string[]> = {
   description: ["description", "desc", "details", "note", "memo"],
   notes: ["notes", "note", "remarks", "comments"],
   externalId: ["external_id", "externalid", "id", "reference", "ref"],
+  paymentMethod: [
+    "payment_method",
+    "paymentmethod",
+    "payment",
+    "method",
+    "payment_type",
+    "paymenttype",
+    "pay_method",
+    "paymethod",
+  ],
   tags: ["tags", "tag", "categories", "category"],
 };
 
@@ -493,12 +507,21 @@ export async function convertRowToTransaction(
       case "externalId":
         transaction.externalId = rawValue || null;
         break;
+      case "paymentMethod":
+        transaction.paymentMethod = parsePaymentMethod(rawValue);
+        break;
       case "tags":
         if (rawValue) {
           transaction.tagIds = await parseTags(rawValue, userId);
         }
         break;
     }
+  }
+
+  // Set default payment method from bank if not already set from CSV mapping
+  if (!transaction.paymentMethod) {
+    transaction.paymentMethod =
+      BankProfileFactory.getDefaultPaymentMethod(bank);
   }
 
   return transaction;
@@ -555,6 +578,56 @@ function parseCurrency(value: string): ICurrency {
     return normalized as ICurrency;
   }
   return "USD"; // Default
+}
+
+/**
+ * Parse payment method
+ * Normalizes common variations to valid payment method values
+ */
+function parsePaymentMethod(value: string): IPaymentMethod {
+  if (!value) return "OTHER";
+
+  const normalized = value
+    .toUpperCase()
+    .trim()
+    .replace(/[_\s-]+/g, "_");
+
+  // Check for exact match first
+  if (PAYMENT_METHOD_VALUES.includes(normalized as IPaymentMethod)) {
+    return normalized as IPaymentMethod;
+  }
+
+  // Handle common variations
+  const variations: Record<string, IPaymentMethod> = {
+    CASH: "CASH",
+    CREDIT: "CREDIT_CARD",
+    CREDITCARD: "CREDIT_CARD",
+    DEBIT: "DEBIT_CARD",
+    DEBITCARD: "DEBIT_CARD",
+    BANK_TRANSFER: "BANK_TRANSFER",
+    TRANSFER: "BANK_TRANSFER",
+    WIRE: "BANK_TRANSFER",
+    CHECK: "CHECK",
+    CHEQUE: "CHECK",
+    DIGITAL_WALLET: "DIGITAL_WALLET",
+    WALLET: "DIGITAL_WALLET",
+    PAYPAL: "DIGITAL_WALLET",
+    VENMO: "DIGITAL_WALLET",
+    APPLE_PAY: "DIGITAL_WALLET",
+    GOOGLE_PAY: "DIGITAL_WALLET",
+    CRYPTO: "CRYPTOCURRENCY",
+    CRYPTOCURRENCY: "CRYPTOCURRENCY",
+    GIFT_CARD: "GIFT_CARD",
+    GIFTCARD: "GIFT_CARD",
+  };
+
+  const variation = variations[normalized];
+  if (variation) {
+    return variation;
+  }
+
+  // Default to OTHER if no match found
+  return "OTHER";
 }
 
 /**
@@ -713,6 +786,7 @@ export async function convertRowsToCandidates(
           currency: "EUR",
           occurredAt: new Date().toISOString(),
           name: "Invalid transaction",
+          paymentMethod: "OTHER",
           tagIds: [],
         } as ICreateTransactionInput,
         rawValues: row,

@@ -9,6 +9,7 @@ export const SYSTEM_REQUIRED_FIELDS = [
   "currency",
   "occurredAt",
   "name",
+  "paymentMethod",
 ] as const;
 
 export type ITransactionFieldName =
@@ -20,6 +21,7 @@ export type ITransactionFieldName =
   | "description"
   | "notes"
   | "externalId"
+  | "paymentMethod"
   | "tags";
 
 export interface ITransactionFieldMetadata {
@@ -58,6 +60,13 @@ export const TRANSACTION_FIELDS: ITransactionFieldMetadata[] = [
     required: true,
     type: "string",
     description: "Transaction name/title",
+  },
+  {
+    name: "paymentMethod",
+    label: "Payment Method",
+    required: true,
+    type: "enum",
+    description: "Payment method (Cash, Credit Card, Debit Card, etc.)",
   },
   {
     name: "description",

@@ -10,6 +10,7 @@ import {
   useCreateIncome,
   useUpdateIncome,
 } from "@/features/transaction/hooks/useTransactions";
+import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
@@ -17,6 +18,7 @@ import { Form } from "@/features/ui/form/form";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import { useToast } from "@/features/ui/toast";
 import {
@@ -61,6 +63,7 @@ const getEmptyFormValues = (): FormData => ({
   amount: "",
   currency: "EUR",
   occurredAt: "",
+  paymentMethod: "OTHER",
   description: "",
   tagIds: [],
 });
@@ -120,6 +123,7 @@ export function AddOrCreateIncomeDialog({
           amount: transaction.amount,
           currency: transaction.currency,
           occurredAt: isoToDatetimeLocal(transaction.occurredAt),
+          paymentMethod: transaction.paymentMethod,
           description: transaction.description ?? "",
           tagIds: transaction.tags.map((tag) => tag.id),
         });
@@ -131,6 +135,7 @@ export function AddOrCreateIncomeDialog({
           amount: "",
           currency: "EUR",
           occurredAt: isoToDatetimeLocal(now.toISOString()),
+          paymentMethod: "OTHER",
           description: "",
           tagIds: [],
         });
@@ -150,6 +155,7 @@ export function AddOrCreateIncomeDialog({
       amount: data.amount.trim(),
       currency: CurrencySchema.parse(data.currency),
       occurredAt: datetimeLocalToIso(data.occurredAt),
+      paymentMethod: data.paymentMethod,
       description:
         data.description && data.description.trim() !== ""
           ? data.description.trim()
@@ -234,6 +240,13 @@ export function AddOrCreateIncomeDialog({
                 type="datetime-local"
                 disabled={pending}
                 required
+              />
+              <SelectDropdown
+                name="paymentMethod"
+                label="Payment Method"
+                options={PAYMENT_METHOD_OPTIONS}
+                placeholder="Select payment method..."
+                disabled={pending}
               />
               <TextInput
                 name="description"

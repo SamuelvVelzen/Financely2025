@@ -1,4 +1,5 @@
 import type { BankEnum } from "../config/banks";
+import type { IPaymentMethod } from "../config/payment-methods";
 import type { ITransactionFieldName } from "../config/transaction-fields";
 import { americanExpressProfile } from "./banks/american-express.profile";
 import { ingProfile } from "./banks/ing.profile";
@@ -10,6 +11,8 @@ export interface BankProfile {
   columnHints: BankColumnHints;
   /** Fields that MUST be mapped for this bank (cannot be auto-detected) */
   requiredFields: ITransactionFieldName[];
+  /** Default payment method to use when importing CSV if paymentMethod is not mapped */
+  defaultPaymentMethod: IPaymentMethod;
 }
 
 const BANK_REGISTRY: Record<BankEnum, BankProfile> = {
@@ -36,5 +39,11 @@ export class BankProfileFactory {
     bank: BankEnum | null | undefined
   ): ITransactionFieldName[] {
     return this.getProfile(bank)?.requiredFields ?? [];
+  }
+
+  static getDefaultPaymentMethod(
+    bank: BankEnum | null | undefined
+  ): IPaymentMethod {
+    return this.getProfile(bank)?.defaultPaymentMethod ?? "DEBIT_CARD";
   }
 }

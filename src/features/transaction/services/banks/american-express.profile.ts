@@ -11,4 +11,6 @@ export const americanExpressProfile: BankProfile = {
   },
   // AMEX can auto-detect type from amount sign
   requiredFields: [],
+  // American Express is a credit card company
+  defaultPaymentMethod: "CREDIT_CARD",
 };

@@ -11,4 +11,6 @@ export const n26Profile: BankProfile = {
   },
   // N26 can auto-detect type from amount sign
   requiredFields: [],
+  // N26 is a digital bank, typically uses debit cards
+  defaultPaymentMethod: "DEBIT_CARD",
 };

@@ -142,6 +142,7 @@ model Transaction {
   description   String?
   notes         String?
   externalId    String?
+  paymentMethod String
 
   // many-to-many relation to tags
   tags          Tag[] 

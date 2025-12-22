@@ -1,6 +1,7 @@
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
+import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { Badge } from "@/features/ui/badge/badge";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { List } from "@/features/ui/list/list";
@@ -41,6 +42,10 @@ export function IncomeList({
               <span className="text-sm text-text-muted whitespace-nowrap">
                 {DateFormatHelpers.formatIsoStringToString(income.occurredAt)}
               </span>
+              <span className="text-text-muted">|</span>
+              <Badge variant="outline" className="text-xs">
+                {PAYMENT_METHOD_LABELS[income.paymentMethod]}
+              </Badge>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">

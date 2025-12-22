@@ -44,4 +44,6 @@ export const ingProfile: BankProfile = {
   },
   // ING requires explicit type column mapping (cannot auto-detect from amount sign)
   requiredFields: ["type"],
+  // ING is a Dutch bank, typically uses debit cards
+  defaultPaymentMethod: "DEBIT_CARD",
 };

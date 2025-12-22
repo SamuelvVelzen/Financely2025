@@ -1,5 +1,6 @@
-import type { ITransaction } from "@/features/shared/validation/schemas";
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
+import type { ITransaction } from "@/features/shared/validation/schemas";
+import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 
 /**
@@ -26,6 +27,8 @@ function getColumnValue(transaction: ITransaction, column: string): string {
       return formatCurrency(transaction.amount, transaction.currency);
     case "Date":
       return DateFormatHelpers.formatIsoStringToString(transaction.occurredAt);
+    case "Payment Method":
+      return PAYMENT_METHOD_LABELS[transaction.paymentMethod];
     case "Description":
       return transaction.description ?? "";
     case "Tags":
