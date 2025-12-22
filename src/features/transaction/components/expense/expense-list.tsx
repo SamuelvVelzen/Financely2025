@@ -24,7 +24,9 @@ export function ExpenseList({
   const { highlightText } = useHighlightText();
 
   return (
-    <List data={data} getItemKey={(expense) => expense.id}>
+    <List
+      data={data}
+      getItemKey={(expense) => expense.id}>
       {(expense) => (
         <ListItem className="group flex-col items-stretch gap-1 py-4">
           {/* Top row: Name, Date, Actions, Amount */}
@@ -45,8 +47,10 @@ export function ExpenseList({
               {/* Action buttons - visible on hover */}
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
                 {onEdit && (
-                  <IconButton clicked={() => onEdit(expense)}>
-                    <HiPencil className="w-5 h-5" />
+                  <IconButton
+                    clicked={() => onEdit(expense)}
+                    size="sm">
+                    <HiPencil className="size-4" />
                   </IconButton>
                 )}
 
@@ -54,8 +58,8 @@ export function ExpenseList({
                   <IconButton
                     clicked={() => onDelete(expense)}
                     variant="danger"
-                  >
-                    <HiTrash className="w-5 h-5" />
+                    size="sm">
+                    <HiTrash className="size-4" />
                   </IconButton>
                 )}
               </div>
@@ -76,7 +80,9 @@ export function ExpenseList({
           {expense.tags.length > 0 && (
             <div className="flex gap-1.5 flex-wrap">
               {expense.tags.map((tag) => (
-                <Badge key={tag.id} backgroundColor={tag.color ?? undefined}>
+                <Badge
+                  key={tag.id}
+                  backgroundColor={tag.color ?? undefined}>
                   {searchQuery
                     ? highlightText(tag.name, searchQuery)
                     : tag.name}
