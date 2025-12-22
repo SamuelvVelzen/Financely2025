@@ -61,6 +61,7 @@ export const yourNewBankProfile: BankProfile = {
 ```
 
 **Available Transaction Fields:**
+
 - `occurredAt` - Transaction date (required)
 - `name` - Transaction name/description (required)
 - `amount` - Transaction amount (required)
@@ -72,6 +73,7 @@ export const yourNewBankProfile: BankProfile = {
 - `tags` - Comma-separated tags (optional)
 
 **Tips:**
+
 - Include common variations of column names (e.g., "Date", "Transaction Date", "Booking Date")
 - Include translations if the bank uses non-English column names
 - Order hints by likelihood (most common first)
@@ -102,6 +104,7 @@ You only need to create a custom strategy if the bank doesn't use the default de
 #### Option A: Use Default Strategy
 
 If your bank uses standard conventions:
+
 - **Negative amounts** = EXPENSE
 - **Positive amounts** = INCOME
 
@@ -110,6 +113,7 @@ No additional code needed! Skip to Step 5.
 #### Option B: Create Inverted Strategy
 
 If your bank inverts the signs (like Amex):
+
 - **Negative amounts** = INCOME
 - **Positive amounts** = EXPENSE
 
@@ -170,6 +174,7 @@ export class YourNewBankTypeDetection implements ITypeDetectionStrategy {
 ```
 
 **Important Notes for Column-Based Strategies:**
+
 - The `type` field **must** be mapped in the bank profile's `columnHints.type`
 - The strategy will throw an error if the type column is not mapped
 - Make sure to handle case-insensitive matching
@@ -199,9 +204,7 @@ export class TypeDetectionFactory {
 Update the `getDefaultStrategyForBank()` function:
 
 ```typescript
-export function getDefaultStrategyForBank(
-  bank?: BankEnum | null
-): string {
+export function getDefaultStrategyForBank(bank?: BankEnum | null): string {
   if (bank === "AMERICAN_EXPRESS") {
     return "amex";
   }
@@ -215,15 +218,175 @@ export function getDefaultStrategyForBank(
 }
 ```
 
+### Step 7: Create Description Extraction Strategy (Optional)
+
+**File**: `src/features/transaction/services/csv-description-extraction.ts`
+
+You only need to create a custom description extraction strategy if your bank has complex metadata fields that need parsing (like ING's Notifications field).
+
+#### Option A: Use Default Strategy
+
+If your bank's CSV has straightforward name and description fields that can be used as-is, no additional code is needed! The default strategy will pass through the mapped fields directly.
+
+#### Option B: Create Custom Strategy
+
+If your bank stores important metadata in a single field (like ING's Notifications field), you can create a custom extraction strategy:
+
+```typescript
+export class YourNewBankDescriptionExtraction
+  implements IDescriptionExtractionStrategy
+{
+  extractDescription(
+    context: IDescriptionExtractionContext
+  ): IExtractedDescription {
+    const nameColumn = context.mapping.name;
+    const descriptionColumn = context.mapping.description;
+
+    const name = nameColumn ? context.row[nameColumn]?.trim() || "" : "";
+    const metadataField = descriptionColumn
+      ? context.row[descriptionColumn]?.trim() || ""
+      : "";
+
+    // Extract description from metadata field using regex patterns
+    const extractedDescription = this.extractFromMetadata(metadataField);
+
+    // Optionally enhance the name field
+    const enhancedName = this.enhanceName(name, extractedDescription);
+
+    // Extract date/time from metadata if available (optional)
+    const { dateTime, valueDate } =
+      this.extractDateTimeFromMetadata(metadataField);
+
+    return {
+      name: enhancedName,
+      description: extractedDescription || null,
+      dateTime: dateTime || null,
+      valueDate: valueDate || null,
+    };
+  }
+
+  private extractFromMetadata(metadata: string): string | null {
+    // Your custom extraction logic here
+    // Example: Look for "Description: ..." pattern
+    const match = metadata.match(/Description:\s*([^\n]+)/i);
+    return match ? match[1].trim() : null;
+  }
+
+  private enhanceName(name: string, description: string | null): string {
+    // Optionally combine name and description
+    if (description && this.isGenericName(name)) {
+      return `${name} | ${description.substring(0, 50)}`;
+    }
+    return name;
+  }
+
+  private isGenericName(name: string): boolean {
+    // Detect if name is generic (e.g., person name)
+    return /^(Mr|Mrs|Ms|Dr)\.?\s+/.test(name);
+  }
+
+  private extractDateTimeFromMetadata(metadata: string): {
+    dateTime: string | null;
+    valueDate: string | null;
+  } {
+    // Optional: Extract date/time if your bank includes it in metadata
+    // Example patterns:
+    // - "Date/time: DD-MM-YYYY HH:MM:SS"
+    // - "Value date: DD/MM/YYYY"
+    return { dateTime: null, valueDate: null };
+  }
+
+  getName(): string {
+    return "Your New Bank Format";
+  }
+
+  getDescription(): string {
+    return "Extracts descriptions from metadata field";
+  }
+}
+```
+
+**Register the strategy:**
+
+```typescript
+export class DescriptionExtractionFactory {
+  private static strategies: Map<string, IDescriptionExtractionStrategy> =
+    new Map([
+      ["default", new DefaultDescriptionExtraction()],
+      ["ing", new IngDescriptionExtraction()],
+      ["your-new-bank", new YourNewBankDescriptionExtraction()], // Add here
+    ]);
+}
+```
+
+**Map bank to strategy:**
+
+```typescript
+export function getDefaultDescriptionExtractionForBank(
+  bank?: BankEnum | null
+): string {
+  if (bank === "ING") {
+    return "ing";
+  }
+  if (bank === "YOUR_NEW_BANK") {
+    return "your-new-bank"; // Add here (or "default" if using default)
+  }
+  return "default";
+}
+```
+
+**Example: ING Strategy**
+
+The ING strategy extracts descriptions from the Notifications field using multiple patterns:
+
+1. **Explicit Description**: `"Description: Apple icloud 17th"` → extracts `"Apple icloud 17th"`
+2. **Name + Description**: `"Name: Hr SIH van Velzen Description: Apple icloud 17th"` → extracts description
+3. **Card Transactions**: Extracts merchant/service info from card sequence patterns
+4. **SEPA Direct Debits**: Extracts description before IBAN field
+5. **Transfers**: Handles "To ... Afronding" patterns
+
+It also enhances person names by combining them with descriptions:
+
+- Input: Name = `"Hr SIH van Velzen"`, Notifications = `"Description: Apple icloud 17th"`
+- Output: Name = `"Hr SIH van Velzen | Apple icloud 17th"`, Description = `"Apple icloud 17th"`
+
+**Date/Time Extraction:**
+
+The ING strategy also extracts date/time information from notifications:
+
+1. **Date/time pattern**: `"Date/time: 14-12-2025 12:28:57"` → extracts and parses to ISO format
+   - Format: `DD-MM-YYYY HH:MM:SS`
+   - Most precise (includes time)
+   - Overrides the main `occurredAt` field when found
+
+2. **Value date pattern**: `"Value date: 14/12/2025"` → extracts and parses to ISO format
+   - Format: `DD/MM/YYYY`
+   - Less precise (date only, defaults to midnight)
+   - Used as fallback if Date/time is not found
+
+**Priority order for dates:**
+
+1. `Date/time` from notifications (most precise)
+2. `Value date` from notifications (fallback)
+3. Mapped `occurredAt` field from CSV (existing behavior)
+
+**Example:**
+
+- CSV Date field: `20251221`
+- Notifications: `"Date/time: 14-12-2025 12:28:57 Value date: 14/12/2025"`
+- Result: `occurredAt` = `"2025-12-14T12:28:57.000Z"` (uses Date/time, overriding CSV date)
+
 ## Examples
 
 ### Example 1: Simple Bank (Default Strategy)
 
 **Bank**: SimpleBank
+
 - Uses standard default detection
 - CSV columns: "Date", "Description", "Amount", "Currency"
 
 **Steps:**
+
 1. Add `"SIMPLE_BANK"` to `banks.ts`
 2. Create `simple-bank.profile.ts` with column hints
 3. Register profile in `bank.factory.ts`
@@ -232,10 +395,12 @@ export function getDefaultStrategyForBank(
 ### Example 2: Bank with Inverted Signs
 
 **Bank**: InvertedBank
+
 - Negative amounts = INCOME
 - Positive amounts = EXPENSE
 
 **Steps:**
+
 1. Add bank enum
 2. Create profile
 3. Create `InvertedBankTypeDetection` strategy class
@@ -245,10 +410,12 @@ export function getDefaultStrategyForBank(
 ### Example 3: Bank with Debit/Credit Column
 
 **Bank**: ColumnBank
+
 - Uses "Transaction Type" column with values "Debit" or "Credit"
 - "Debit" = EXPENSE, "Credit" = INCOME
 
 **Steps:**
+
 1. Add bank enum
 2. Create profile with `type: ["Transaction Type", "Type"]` in columnHints
 3. Create `ColumnBankTypeDetection` strategy that reads the column
@@ -268,7 +435,13 @@ export function getDefaultStrategyForBank(
    - For column-based: Test with different debit/credit values
    - Verify transactions show correct EXPENSE/INCOME types in review step
 
-3. **Test Validation:**
+3. **Test Description Extraction:**
+   - For custom strategies: Test with various notification/metadata formats
+   - Verify descriptions are extracted correctly
+   - Check name enhancement works as expected
+   - Test fallback behavior when extraction returns null
+
+4. **Test Validation:**
    - For column-based strategies: Ensure type field is required
    - Verify error messages are clear if type column is missing
 
@@ -280,7 +453,8 @@ src/features/transaction/
 │   └── banks.ts                          # Step 1: Add bank enum
 ├── services/
 │   ├── bank.factory.ts                   # Step 3: Register profile
-│   ├── csv-type-detection.ts             # Steps 4-6: Strategy & mapping
+│   ├── csv-type-detection.ts             # Steps 4-6: Type detection strategy
+│   ├── csv-description-extraction.ts     # Step 7: Description extraction strategy
 │   └── banks/
 │       └── your-new-bank.profile.ts      # Step 2: Create profile
 ```
@@ -288,14 +462,17 @@ src/features/transaction/
 ## Common Patterns
 
 ### Pattern 1: Standard Bank (Most Common)
+
 - Use default `"default"` strategy
 - Only need to create profile with column hints
 
 ### Pattern 2: Inverted Signs
+
 - Create strategy that inverts sign logic
 - Common for credit card statements
 
 ### Pattern 3: Debit/Credit Column
+
 - Create column-based strategy
 - Must include `type` in columnHints
 - Must mark `type` as required in validation
@@ -303,16 +480,26 @@ src/features/transaction/
 ## Troubleshooting
 
 **Columns not auto-detecting?**
+
 - Check that column names in hints match CSV exactly (case-insensitive)
 - Add more variations to `columnHints` array
 - Check normalization logic handles your column names
 
 **Type detection not working?**
+
 - Verify strategy is registered in `TypeDetectionFactory`
 - Check bank is mapped in `getDefaultStrategyForBank()`
 - For column-based: Ensure `type` field is mapped in profile
 
+**Description extraction not working?**
+
+- Verify strategy is registered in `DescriptionExtractionFactory`
+- Check bank is mapped in `getDefaultDescriptionExtractionForBank()`
+- Test regex patterns match your bank's notification format
+- Verify description column is mapped in profile
+
 **Validation failing?**
+
 - For column-based strategies: Ensure `type` field is required
 - Check validation logic in `validateMapping()` function
 
@@ -321,5 +508,6 @@ src/features/transaction/
 - See existing implementations:
   - `src/features/transaction/services/banks/ing.profile.ts` - Column-based example
   - `src/features/transaction/services/banks/american-express.profile.ts` - Inverted sign example
-  - `src/features/transaction/services/csv-type-detection.ts` - All strategy examples
-
+  - `src/features/transaction/services/csv-type-detection.ts` - Type detection strategy examples
+  - `src/features/transaction/services/csv-description-extraction.ts` - Description extraction strategy examples (ING)
+  - `src/features/transaction/services/csv-date-parsing.ts` - Date parsing strategy examples

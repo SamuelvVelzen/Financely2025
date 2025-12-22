@@ -16,6 +16,11 @@ import {
 import { BankProfileFactory } from "./bank.factory";
 import { DateParsingFactory } from "./csv-date-parsing";
 import {
+  DescriptionExtractionFactory,
+  getDefaultDescriptionExtractionForBank,
+  type IDescriptionExtractionContext,
+} from "./csv-description-extraction";
+import {
   DEFAULT_TYPE_DETECTION_STRATEGY,
   TypeDetectionFactory,
   type ITypeDetectionContext,
@@ -429,6 +434,18 @@ export async function convertRowToTransaction(
     transaction.type = strategy.detectType(context);
   }
 
+  // Extract description using strategy
+  const descriptionStrategyName = getDefaultDescriptionExtractionForBank(bank);
+  const descriptionStrategy = DescriptionExtractionFactory.getStrategy(
+    descriptionStrategyName
+  );
+  const descriptionContext: IDescriptionExtractionContext = {
+    row,
+    mapping,
+    bank,
+  };
+  const extracted = descriptionStrategy.extractDescription(descriptionContext);
+
   // Map each field
   for (const [field, column] of Object.entries(mapping)) {
     if (!column) continue;
@@ -449,14 +466,26 @@ export async function convertRowToTransaction(
         }
         break;
       case "occurredAt":
-        const dateStrategy = DateParsingFactory.getStrategy(bank);
-        transaction.occurredAt = dateStrategy.parseDate(rawValue);
+        // Priority: Use extracted date/time from notifications if available
+        // 1. Use dateTime (most precise, includes time)
+        // 2. Fallback to valueDate (date only)
+        // 3. Fallback to mapped date field (existing behavior)
+        if (extracted.dateTime) {
+          transaction.occurredAt = extracted.dateTime;
+        } else if (extracted.valueDate) {
+          transaction.occurredAt = extracted.valueDate;
+        } else {
+          const dateStrategy = DateParsingFactory.getStrategy(bank);
+          transaction.occurredAt = dateStrategy.parseDate(rawValue);
+        }
         break;
       case "name":
-        transaction.name = rawValue;
+        // Use enhanced name from description extraction
+        transaction.name = extracted.name || rawValue;
         break;
       case "description":
-        transaction.description = rawValue || null;
+        // Use extracted description
+        transaction.description = extracted.description || null;
         break;
       case "notes":
         transaction.notes = rawValue || null;
