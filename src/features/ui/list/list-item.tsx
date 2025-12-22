@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { forwardRef, PropsWithChildren } from "react";
 
 type IListItemProps = {
@@ -13,17 +13,7 @@ type IListItemProps = {
   IPropsWithClassName;
 
 export const ListItem = forwardRef<HTMLDivElement, IListItemProps>(
-  (
-    {
-      children,
-      className = "",
-      clicked,
-      style,
-      onDragOver,
-      onDrop,
-    },
-    ref
-  ) => {
+  ({ children, className = "", clicked, style, onDragOver, onDrop }, ref) => {
     return (
       <div
         ref={ref}

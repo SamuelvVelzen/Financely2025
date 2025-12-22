@@ -19,7 +19,7 @@ import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { Label } from "@/features/ui/typography/label";
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import {

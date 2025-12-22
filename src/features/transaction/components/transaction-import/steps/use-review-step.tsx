@@ -8,8 +8,8 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
-import { cn } from "@/util/cn";
-import { DateFormatHelpers } from "@/util/date/date-format.helpers";
+import { cn } from "@/features/util/cn";
+import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useState } from "react";
 import { HiExclamationCircle } from "react-icons/hi";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
@@ -110,8 +110,7 @@ function ReviewStepContent({
           <HeaderCell key="currency">Currency</HeaderCell>,
           <HeaderCell key="type">Type</HeaderCell>,
           <HeaderCell key="errors">Errors</HeaderCell>,
-        ]}
-      >
+        ]}>
         {paginatedCandidates.map((candidate) => {
           return (
             <TableRow
@@ -120,8 +119,7 @@ function ReviewStepContent({
               className={cn(
                 "border-t border-border",
                 candidate.status === "invalid" && "bg-danger/5"
-              )}
-            >
+              )}>
               <BodyCell>
                 <span
                   className={cn(
@@ -129,8 +127,7 @@ function ReviewStepContent({
                     candidate.status === "valid" &&
                       "bg-success/20 text-success",
                     candidate.status === "invalid" && "bg-danger/20 text-danger"
-                  )}
-                >
+                  )}>
                   {candidate.status}
                 </span>
               </BodyCell>

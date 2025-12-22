@@ -2,8 +2,8 @@
 
 import { IconButton } from "@/features/ui/button/icon-button";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { HiX } from "react-icons/hi";
@@ -176,11 +176,12 @@ export function RangeInput({
             />
           </div>
 
-          <div className="flex-1 relative" ref={sliderRef}>
+          <div
+            className="flex-1 relative"
+            ref={sliderRef}>
             <div
               className="relative h-8 flex items-center cursor-pointer"
-              onClick={handleSliderClick}
-            >
+              onClick={handleSliderClick}>
               {/* Track */}
               <div className="absolute w-full h-2 bg-surface-hover rounded-lg"></div>
 
@@ -190,8 +191,7 @@ export function RangeInput({
                 style={{
                   left: `${minPercentage}%`,
                   width: `${maxPercentage - minPercentage}%`,
-                }}
-              ></div>
+                }}></div>
 
               {/* Min handle */}
               <div
@@ -200,8 +200,7 @@ export function RangeInput({
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   handleMouseDown("min");
-                }}
-              ></div>
+                }}></div>
 
               {/* Max handle */}
               <div
@@ -210,8 +209,7 @@ export function RangeInput({
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   handleMouseDown("max");
-                }}
-              ></div>
+                }}></div>
             </div>
           </div>
 
@@ -227,8 +225,7 @@ export function RangeInput({
             <IconButton
               clicked={handleClear}
               className="text-text-muted hover:text-text p-1"
-              aria-label="Clear range"
-            >
+              aria-label="Clear range">
               <HiX className="w-4 h-4" />
             </IconButton>
           )}

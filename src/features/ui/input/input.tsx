@@ -1,8 +1,8 @@
 "use client";
 
 import { Label } from "@/features/ui/typography/label";
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useId } from "react";
 import {
   Controller,

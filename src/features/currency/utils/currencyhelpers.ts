@@ -3,8 +3,8 @@
  * Utility functions for formatting currency values using browser locale
  */
 
-import type { ICurrency } from "@/features/shared/validation/schemas";
-import { LocaleHelpers } from "../locale.helpers";
+import type { ICurrency } from "@/features/currency/config/currencies";
+import { LocaleHelpers } from "@/features/util/locale.helpers";
 
 const DEFAULT_FRACTION_DIGITS = 2;
 
@@ -164,3 +164,4 @@ export function parseLocalizedDecimal(
 
   return numericValue.toFixed(fractionDigits);
 }
+

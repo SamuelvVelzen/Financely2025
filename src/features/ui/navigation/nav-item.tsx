@@ -1,5 +1,5 @@
-import { cn } from "@/util/cn";
-import { IPropsWithClassName, Never } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName, Never } from "@/features/util/type-helpers/props";
 import React from "react";
 import { BaseLink, IBaseLinkProps } from "./base-link";
 import { useSidebar } from "./useSidebar";
@@ -41,8 +41,7 @@ export function NavItem({
         className={cn(
           "whitespace-nowrap text-base overflow-hidden",
           isExpanded ? "ml-4" : "hidden"
-        )}
-      >
+        )}>
         {label}
       </span>
     </>
@@ -68,8 +67,7 @@ export function NavItem({
           className
         )}
         title={isExpanded ? label : label}
-        onClick={clicked}
-      >
+        onClick={clicked}>
         {content}
       </button>
     );
@@ -85,8 +83,7 @@ export function NavItem({
       title={isExpanded ? label : label}
       inactiveProps={{ className: inactiveClasses }}
       activeProps={{ className: combinedActiveClasses }}
-      {...props}
-    >
+      {...props}>
       {content}
     </BaseLink>
   );

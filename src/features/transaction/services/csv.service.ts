@@ -1,11 +1,13 @@
+import { SUPPORTED_CURRENCIES } from "@/features/currency/config/currencies";
 import {
   CreateTransactionInputSchema,
   ICreateTransactionInput,
   type ICsvCandidateTransaction,
   type ICsvFieldMapping,
+  type ICurrency,
 } from "@/features/shared/validation/schemas";
 import { TagService } from "@/features/tag/services/tag.service";
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 import type { BankEnum } from "../config/banks";
 import {
   SYSTEM_REQUIRED_FIELDS,
@@ -381,7 +383,7 @@ export async function convertRowToTransaction(
   mapping: ICsvFieldMapping,
   userId: string,
   typeDetectionStrategy: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
+  defaultCurrency?: ICurrency,
   bank?: BankEnum | null
 ): Promise<Partial<ICreateTransactionInput>> {
   const transaction: Partial<ICreateTransactionInput> = {};
@@ -518,13 +520,10 @@ function parseAmount(value: string): string {
 /**
  * Parse currency
  */
-function parseCurrency(
-  value: string
-): "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY" {
+function parseCurrency(value: string): ICurrency {
   const normalized = value.toUpperCase().trim();
-  const validCurrencies = ["USD", "EUR", "GBP", "CAD", "AUD", "JPY"];
-  if (validCurrencies.includes(normalized)) {
-    return normalized as any;
+  if (SUPPORTED_CURRENCIES.includes(normalized as ICurrency)) {
+    return normalized as ICurrency;
   }
   return "USD"; // Default
 }

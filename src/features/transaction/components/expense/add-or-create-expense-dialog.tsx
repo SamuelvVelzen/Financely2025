@@ -9,7 +9,7 @@ import {
   useCreateExpense,
   useUpdateExpense,
 } from "@/features/transaction/hooks/useTransactions";
-import { CurrencySelect } from "@/features/ui/currency-select/currency-select";
+import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -21,7 +21,7 @@ import { useToast } from "@/features/ui/toast";
 import {
   datetimeLocalToIso,
   isoToDatetimeLocal,
-} from "@/util/date/dateisohelpers";
+} from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
@@ -201,9 +201,16 @@ export function AddOrCreateExpenseDialog({
       <Dialog
         title={isEditMode ? "Edit Expense" : "Create Expense"}
         content={
-          <Form<FormData> form={form} onSubmit={handleSubmit}>
+          <Form<FormData>
+            form={form}
+            onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <TextInput name="name" label="Name" disabled={pending} required />
+              <TextInput
+                name="name"
+                label="Name"
+                disabled={pending}
+                required
+              />
               <div className="grid grid-cols-2 gap-4">
                 <DecimalInput
                   name="amount"

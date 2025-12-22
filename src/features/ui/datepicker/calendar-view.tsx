@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import {
   addMonths,
   eachDayOfInterval,
@@ -14,7 +14,7 @@ import {
   startOfWeek,
   subMonths,
 } from "date-fns";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 
 export type ICalendarViewProps = {
@@ -48,12 +48,12 @@ export function CalendarView({
 
   const handleDateClick = (date: Date) => {
     const normalizedDate = startOfDay(date);
-    
+
     if (startDate && endDate) {
       // Both dates set
       const normalizedStart = startOfDay(startDate);
       const normalizedEnd = startOfDay(endDate);
-      
+
       // If clicked date is before start date, reset and make it the new start
       if (normalizedDate < normalizedStart) {
         onDateSelect(normalizedDate, null);
@@ -64,7 +64,7 @@ export function CalendarView({
     } else if (startDate) {
       // Only start set
       const normalizedStart = startOfDay(startDate);
-      
+
       // If clicked date is before start date, reset and make it the new start
       if (normalizedDate < normalizedStart) {
         onDateSelect(normalizedDate, null);
@@ -172,7 +172,7 @@ export function CalendarView({
           // Check if weekend (Saturday = 6, Sunday = 0)
           const dayOfWeek = day.getDay();
           const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-          
+
           // Check if only start date is selected (no end date)
           const onlyStartSelected = startDate && !endDate && isStart;
 
@@ -182,23 +182,35 @@ export function CalendarView({
             const normalizedDate = startOfDay(day);
             const normalizedStart = startOfDay(startDate);
             const normalizedEnd = startOfDay(endDate);
-            
-            if (normalizedDate < normalizedStart || normalizedDate > normalizedEnd) {
+
+            if (
+              normalizedDate < normalizedStart ||
+              normalizedDate > normalizedEnd
+            ) {
               return null;
             }
-            
+
             // Check if previous/next day is in range (for continuous line)
             const prevDay = new Date(day);
             prevDay.setDate(prevDay.getDate() - 1);
             const nextDay = new Date(day);
             nextDay.setDate(nextDay.getDate() + 1);
-            const prevInRange = normalizedStart <= startOfDay(prevDay) && startOfDay(prevDay) <= normalizedEnd;
-            const nextInRange = normalizedStart <= startOfDay(nextDay) && startOfDay(nextDay) <= normalizedEnd;
-            
+            const prevInRange =
+              normalizedStart <= startOfDay(prevDay) &&
+              startOfDay(prevDay) <= normalizedEnd;
+            const nextInRange =
+              normalizedStart <= startOfDay(nextDay) &&
+              startOfDay(nextDay) <= normalizedEnd;
+
             if (isStart && isEnd) return { type: "single" };
             if (isStart) return { type: "start", hasNext: nextInRange };
             if (isEnd) return { type: "end", hasPrev: prevInRange };
-            if (inRange) return { type: "middle", hasPrev: prevInRange, hasNext: nextInRange };
+            if (inRange)
+              return {
+                type: "middle",
+                hasPrev: prevInRange,
+                hasNext: nextInRange,
+              };
             return null;
           };
 
@@ -215,28 +227,56 @@ export function CalendarView({
                 !isCurrentMonthDay && "text-text-muted opacity-50",
                 isCurrentMonthDay && "text-text",
                 // Weekend background (only when not in range and not selected)
-                isWeekend && !inFullRange && !isStart && !isEnd && !onlyStartSelected && "bg-surface-hover/50",
+                isWeekend &&
+                  !inFullRange &&
+                  !isStart &&
+                  !isEnd &&
+                  !onlyStartSelected &&
+                  "bg-surface-hover/50",
                 // Today styling - more distinct
-                isToday && !inFullRange && !isStart && !isEnd && !onlyStartSelected && "font-bold ring-2 ring-primary/50",
+                isToday &&
+                  !inFullRange &&
+                  !isStart &&
+                  !isEnd &&
+                  !onlyStartSelected &&
+                  "font-bold ring-2 ring-primary/50",
                 // Today styling when in selected range - add ring on top of selected style
-                isToday && (inFullRange || isStart || isEnd || onlyStartSelected) && "ring-2 ring-white/80",
+                isToday &&
+                  (inFullRange || isStart || isEnd || onlyStartSelected) &&
+                  "ring-2 ring-white/80",
                 // Selected start date (when only start is selected, no end) - same style as range
-                onlyStartSelected && "bg-primary text-white hover:bg-primary/90 rounded-lg",
+                onlyStartSelected &&
+                  "bg-primary text-white hover:bg-primary/90 rounded-lg",
                 // Continuous range background
-                rangePosition?.type === "single" && "bg-primary text-white hover:bg-primary/90 rounded-lg",
-                rangePosition?.type === "start" && "bg-primary text-white hover:bg-primary/90",
-                rangePosition?.type === "end" && "bg-primary text-white hover:bg-primary/90",
+                rangePosition?.type === "single" &&
+                  "bg-primary text-white hover:bg-primary/90 rounded-lg",
+                rangePosition?.type === "start" &&
+                  "bg-primary text-white hover:bg-primary/90",
+                rangePosition?.type === "end" &&
+                  "bg-primary text-white hover:bg-primary/90",
                 rangePosition?.type === "middle" && "bg-primary/20",
                 // Round left corner only on start date or first day of week in range
                 rangePosition?.type === "start" && "rounded-l-lg",
-                rangePosition?.type === "middle" && "hasPrev" in rangePosition && rangePosition.hasPrev === false && (day.getDay() === 1 || day.getDay() === 0) && "rounded-l-lg",
+                rangePosition?.type === "middle" &&
+                  "hasPrev" in rangePosition &&
+                  rangePosition.hasPrev === false &&
+                  (day.getDay() === 1 || day.getDay() === 0) &&
+                  "rounded-l-lg",
                 // Round right corner only on end date or last day of week in range
                 rangePosition?.type === "end" && "rounded-r-lg",
-                rangePosition?.type === "middle" && "hasNext" in rangePosition && rangePosition.hasNext === false && (day.getDay() === 0 || day.getDay() === 6) && "rounded-r-lg",
+                rangePosition?.type === "middle" &&
+                  "hasNext" in rangePosition &&
+                  rangePosition.hasNext === false &&
+                  (day.getDay() === 0 || day.getDay() === 6) &&
+                  "rounded-r-lg",
                 // Fallback for dates in range but not styled above
                 inFullRange && !rangePosition && "bg-primary/20",
                 // Default styling when not in range and not selected
-                !inFullRange && !isStart && !isEnd && !onlyStartSelected && "rounded-lg"
+                !inFullRange &&
+                  !isStart &&
+                  !isEnd &&
+                  !onlyStartSelected &&
+                  "rounded-lg"
               )}>
               <span className="relative z-10">{format(day, "d")}</span>
             </button>
@@ -246,4 +286,3 @@ export function CalendarView({
     </div>
   );
 }
-

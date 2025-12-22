@@ -1,7 +1,7 @@
 "use client";
 
 import { Checkbox } from "@/features/ui/checkbox/checkbox";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useMemo } from "react";
 import { BodyCell } from "./body-cell";
 import { HeaderCell } from "./header-cell";
@@ -99,7 +99,9 @@ export function SelectableTable<T = unknown>({
   // Add checkbox to header (prepend to headerCells)
   // Preserve HeaderCell components as-is, they'll be handled by Table component
   const headerCellsWithCheckbox = [
-    <HeaderCell key="select-all-checkbox" sortable={false}>
+    <HeaderCell
+      key="select-all-checkbox"
+      sortable={false}>
       <Checkbox
         checked={allSelected}
         indeterminate={someSelected}
@@ -113,8 +115,7 @@ export function SelectableTable<T = unknown>({
     <Table
       className={className}
       headerCells={headerCellsWithCheckbox}
-      data={data}
-    >
+      data={data}>
       {rowsWithCheckboxes}
     </Table>
   );

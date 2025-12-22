@@ -2,7 +2,7 @@
 
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Label } from "@/features/ui/typography/label";
-import { cn } from "@/util/cn";
+import { cn } from "@/features/util/cn";
 import { useId, useMemo, useRef, useState } from "react";
 import { HiX } from "react-icons/hi";
 
@@ -140,8 +140,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
           {formattedFiles.map((file, index) => (
             <div
               key={`${file.name}-${index}`}
-              className="p-4 bg-surface-hover rounded-lg grid grid-cols-[1fr_auto] gap-2"
-            >
+              className="p-4 bg-surface-hover rounded-lg grid grid-cols-[1fr_auto] gap-2">
               <div>
                 <p className="text-sm">
                   <span className="font-medium">File:</span> {file.name}
@@ -155,8 +154,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
                   className="self-center justify-self-end"
                   clicked={() => handleRemoveFile(index)}
                   disabled={disabled}
-                  aria-label={`Remove ${file.name}`}
-                >
+                  aria-label={`Remove ${file.name}`}>
                   <HiX className="h-5 w-5" />
                 </IconButton>
               )}

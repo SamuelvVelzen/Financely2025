@@ -1,4 +1,4 @@
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 import type { IButtonProps } from "../../button/button";
 

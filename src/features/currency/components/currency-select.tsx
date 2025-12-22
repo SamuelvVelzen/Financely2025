@@ -3,9 +3,9 @@
 import {
   getCurrencyOptions,
   type ICurrency,
-} from "@/features/shared/validation/schemas";
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+} from "@/features/currency/config/currencies";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type IconType } from "react-icons";
 import {
   PiCurrencyCircleDollarDuotone,
@@ -18,7 +18,7 @@ import {
 import {
   SelectDropdown,
   type ISelectDropdownProps,
-} from "../select-dropdown/select-dropdown";
+} from "@/features/ui/select-dropdown/select-dropdown";
 
 const CURRENCY_ICONS: Partial<Record<ICurrency, IconType>> = {
   USD: PiCurrencyDollarDuotone,
@@ -73,3 +73,4 @@ export function CurrencySelect({
     </div>
   );
 }
+

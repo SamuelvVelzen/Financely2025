@@ -1,7 +1,7 @@
 import { requireAuth } from "@/features/auth/server";
 import { createErrorResponse, ErrorCodes } from "@/features/shared/api/errors";
 import { UserProfileSchema } from "@/features/shared/validation/schemas";
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 import { json } from "@tanstack/react-start";
 
 /**

@@ -1,6 +1,7 @@
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { useToast } from "@/features/ui/toast";
+import { ScrollableHeader } from "@/features/ui/typography/scrollable-header";
 import {
   useConnectedAccounts,
   useLinkSocialAccount,
@@ -151,9 +152,11 @@ export function ConnectedAccounts() {
 
   return (
     <Container className="mb-4">
-      <h2 className="text-lg font-semibold text-text mb-4">
+      <ScrollableHeader
+        id="connected-accounts"
+        className="mb-4">
         Connected Accounts
-      </h2>
+      </ScrollableHeader>
       <p className="text-sm text-text-muted mb-4">
         Manage your connected login methods. You must keep at least one method
         to sign in.

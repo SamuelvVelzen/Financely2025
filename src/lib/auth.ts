@@ -5,7 +5,7 @@
  * Supports email/password, magic links, and social OAuth providers.
  */
 
-import { prisma } from "@/util/prisma";
+import { prisma } from "@/features/util/prisma";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { magicLink } from "better-auth/plugins";

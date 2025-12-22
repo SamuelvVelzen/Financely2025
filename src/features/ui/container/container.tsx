@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren, createElement, type ElementType } from "react";
 
 type IContainerProps = {

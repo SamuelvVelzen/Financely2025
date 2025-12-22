@@ -6,9 +6,9 @@ import { queryKeys } from "@/features/shared/query/keys";
 import { type ITag } from "@/features/shared/validation/schemas";
 import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-create-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
-import { ReactNode, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Select, type ISelectOption } from "../select/select";
 
@@ -19,16 +19,6 @@ export type ITagSelectProps = IPropsWithClassName & {
   label?: string;
   searchPlaceholder?: string;
   disabled?: boolean;
-  children?: (
-    option: ISelectOption<ITag>,
-    index: number,
-    context: {
-      isSelected: boolean;
-      handleClick: () => void;
-      multiple: boolean;
-      searchQuery: string;
-    }
-  ) => ReactNode;
 };
 
 export function TagSelect({
@@ -39,7 +29,6 @@ export function TagSelect({
   label,
   searchPlaceholder = "Type to search tags...",
   disabled = false,
-  children,
 }: ITagSelectProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
@@ -91,7 +80,7 @@ export function TagSelect({
   };
 
   // Default rendering for tags (with color indicator)
-  const defaultChildren = (
+  const children = (
     option: ISelectOption<ITag>,
     index: number,
     context: {
@@ -109,9 +98,7 @@ export function TagSelect({
             style={{ backgroundColor: option.data.color }}
           />
         )}
-        <span className="flex-1">
-          {highlightText(option.label, context.searchQuery)}
-        </span>
+        <span>{highlightText(option.label, context.searchQuery)}</span>
       </>
     );
   };
@@ -130,7 +117,7 @@ export function TagSelect({
         onCreateNew={handleCreateNew}
         createNewLabel={(query) => `Create tag "${query}"`}
         forcePlacement={["bottom"]}
-        children={children || defaultChildren}
+        children={children}
       />
       <AddOrCreateTagDialog
         open={isCreateDialogOpen}

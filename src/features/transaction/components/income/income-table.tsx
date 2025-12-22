@@ -5,8 +5,8 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { Table } from "@/features/ui/table/table";
 import { TableRow } from "@/features/ui/table/table-row";
-import { formatCurrency } from "@/util/currency/currencyhelpers";
-import { DateFormatHelpers } from "@/util/date/date-format.helpers";
+import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
+import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useMemo } from "react";
 import { HiPencil, HiTrash } from "react-icons/hi2";
 
@@ -47,26 +47,39 @@ export function IncomeTable({
 
   const headerCells = useMemo(
     () => [
-      <HeaderCell key="name" sortKey="name" autoFit={false}>
+      <HeaderCell
+        key="name"
+        sortKey="name"
+        autoFit={false}>
         Name
       </HeaderCell>,
-      <HeaderCell key="amount" sortKey="amount" sortFn={sortFns.amount}>
+      <HeaderCell
+        key="amount"
+        sortKey="amount"
+        sortFn={sortFns.amount}>
         Amount
       </HeaderCell>,
       <HeaderCell
         key="occurredAt"
         sortKey="occurredAt"
-        sortFn={sortFns.occurredAt}
-      >
+        sortFn={sortFns.occurredAt}>
         Date
       </HeaderCell>,
-      <HeaderCell key="description" sortKey="description">
+      <HeaderCell
+        key="description"
+        sortKey="description">
         Description
       </HeaderCell>,
-      <HeaderCell key="tags" sortKey="tags" sortFn={sortFns.tags}>
+      <HeaderCell
+        key="tags"
+        sortKey="tags"
+        sortFn={sortFns.tags}>
         Tags
       </HeaderCell>,
-      <HeaderCell key="actions" sortable={false} align="right">
+      <HeaderCell
+        key="actions"
+        sortable={false}
+        align="right">
         Actions
       </HeaderCell>,
     ],
@@ -77,8 +90,7 @@ export function IncomeTable({
     <Table
       data={data}
       defaultSort={{ sortKey: "occurredAt", direction: "desc" }}
-      headerCells={headerCells}
-    >
+      headerCells={headerCells}>
       {(sortedData) => {
         // Calculate sums by currency
         const sumsByCurrency = sortedData.reduce(
@@ -97,7 +109,9 @@ export function IncomeTable({
         return (
           <>
             {sortedData.map((income) => (
-              <TableRow key={income.id} className="group">
+              <TableRow
+                key={income.id}
+                className="group">
                 <BodyCell>
                   <span className="text-text font-medium">
                     {searchQuery
@@ -135,8 +149,7 @@ export function IncomeTable({
                       {income.tags.map((tag) => (
                         <span
                           key={tag.id}
-                          className="px-2 py-0.5 bg-surface-hover rounded text-xs"
-                        >
+                          className="px-2 py-0.5 bg-surface-hover rounded text-xs">
                           {searchQuery
                             ? highlightText(tag.name, searchQuery)
                             : tag.name}
@@ -152,16 +165,14 @@ export function IncomeTable({
                     {onEdit && (
                       <IconButton
                         clicked={() => onEdit?.(income)}
-                        className="text-text-muted hover:text-text p-1"
-                      >
+                        className="text-text-muted hover:text-text p-1">
                         <HiPencil className="w-5 h-5" />
                       </IconButton>
                     )}
                     {onDelete && (
                       <IconButton
                         clicked={() => onDelete?.(income)}
-                        className="text-danger hover:text-danger-hover p-1"
-                      >
+                        className="text-danger hover:text-danger-hover p-1">
                         <HiTrash className="w-5 h-5" />
                       </IconButton>
                     )}

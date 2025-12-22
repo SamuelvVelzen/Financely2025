@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useId, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -125,8 +125,7 @@ export function ColorInput({
             {label && (
               <label
                 htmlFor={colorPickerId}
-                className="block text-sm font-medium"
-              >
+                className="block text-sm font-medium">
                 {label}
               </label>
             )}
@@ -135,8 +134,7 @@ export function ColorInput({
               <div
                 className={cn(
                   "rounded-lg overflow-hidden shrink-0 w-16 h-[2.47rem]"
-                )}
-              >
+                )}>
                 <input
                   type="color"
                   id={colorPickerId}

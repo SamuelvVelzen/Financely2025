@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/util/cn";
-import { IPropsWithClassName } from "@/util/type-helpers/props";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren } from "react";
 
 export type IBodyCellProps = {
@@ -34,8 +34,7 @@ export function BodyCell({
         autoFit ? "w-auto" : "w-full min-w-0",
         !wrap && "whitespace-nowrap",
         className
-      )}
-    >
+      )}>
       {children}
     </td>
   );
