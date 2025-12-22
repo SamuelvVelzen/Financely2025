@@ -234,8 +234,8 @@ export function ExpenseOverview() {
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface mb-4">
-        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center">
+      <Container className="sticky top-0 z-10 bg-surface pb-0 mb-4">
+        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
           <div className="flex gap-2 items-center">
             <HiArrowTrendingDown />
             <span>Expenses</span>
@@ -245,15 +245,17 @@ export function ExpenseOverview() {
           </div>
 
           <div className="flex gap-2 items-center">
-            <Button clicked={handleCreateExpense} variant="primary" size="sm">
+            <Button
+              clicked={handleCreateExpense}
+              variant="primary"
+              size="sm">
               <HiPlus className="size-6" /> Add
             </Button>
 
             <Dropdown>
               <DropdownItem
                 icon={<HiArrowDownTray />}
-                clicked={() => setIsCsvImportDialogOpen(true)}
-              >
+                clicked={() => setIsCsvImportDialogOpen(true)}>
                 Import from CSV
               </DropdownItem>
 
@@ -266,8 +268,7 @@ export function ExpenseOverview() {
                     ["Name", "Amount", "Date", "Description", "Tags"],
                     "expenses"
                   )
-                }
-              >
+                }>
                 Export from CSV
               </DropdownItem>
             </Dropdown>
@@ -276,13 +277,17 @@ export function ExpenseOverview() {
 
         {/* Inline Filters */}
         <div
-          className={cn("flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto")}
-        >
-          <Form form={filterForm} onSubmit={() => {}}>
+          className={cn("flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto")}>
+          <Form
+            form={filterForm}
+            onSubmit={() => {}}>
             <div className="flex gap-3 items-end">
               <SearchInput name="searchQuery" />
 
-              <Datepicker value={dateFilter} onChange={setDateFilter} />
+              <Datepicker
+                value={dateFilter}
+                onChange={setDateFilter}
+              />
 
               <RangeInput
                 value={priceFilter}
@@ -320,8 +325,7 @@ export function ExpenseOverview() {
             button={{
               buttonContent: "Add expense",
               clicked: handleCreateExpense,
-            }}
-          ></EmptyPage>
+            }}></EmptyPage>
         )}
 
         {isEmptyWithFilters && (
