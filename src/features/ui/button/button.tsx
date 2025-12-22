@@ -3,7 +3,7 @@
 import { cn } from "@/features/util/cn";
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
-export type IButtonSize = "sm" | "md" | "lg";
+export type IButtonSize = "xs" | "sm" | "md" | "lg";
 
 export type IVariant =
   | "default"
@@ -56,6 +56,7 @@ export function Button({
   const disabledClasses =
     disabled && "opacity-50 cursor-not-allowed pointer-events-none";
   const sizeClasses: { [key in IButtonSize]: string } = {
+    xs: "px-0.5 py-0.5 text-xs",
     sm: "px-2 py-1 text-sm",
     md: "px-4 py-2 text-base",
     lg: "px-6 py-3 text-lg",

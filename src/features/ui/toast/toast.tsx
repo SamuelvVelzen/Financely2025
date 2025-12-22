@@ -183,29 +183,29 @@ export function Toast({ toast, onRemove }: IToastProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       role="alert">
-      <Icon className={cn("w-5 h-5 flex-shrink-0 mt-0.5", config.text)} />
+      <Icon className={cn("w-5 h-5 shrink-0 mt-0.5", config.text)} />
 
       <div className="flex-1 min-w-0">
-        {title && (
-          <p className={cn("font-semibold text-sm mb-1", config.text)}>
-            {title}
-          </p>
-        )}
+        <div className="flex items-start justify-between gap-2 mb-1">
+          {title && (
+            <p className={cn("font-semibold text-sm", config.text)}>{title}</p>
+          )}
+          {showCloseButton && (
+            <IconButton
+              clicked={handleClose}
+              variant={variant}
+              size="xs"
+              className={cn(
+                "shrink-0 transition-colors cursor-pointer"
+                // config.text
+              )}
+              aria-label="Close notification">
+              <HiX className="w-4 h-4" />
+            </IconButton>
+          )}
+        </div>
         <p className="text-sm text-text">{message}</p>
       </div>
-
-      {showCloseButton && (
-        <IconButton
-          clicked={handleClose}
-          variant={variant}
-          className={cn(
-            "flex-shrink-0 p-1 transition-colors cursor-pointer"
-            // config.text
-          )}
-          aria-label="Close notification">
-          <HiX className="w-4 h-4" />
-        </IconButton>
-      )}
     </div>
   );
 }
