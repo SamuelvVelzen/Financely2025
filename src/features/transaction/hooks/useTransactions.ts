@@ -11,8 +11,8 @@ import type {
   ITransactionsQuery,
   IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
-import { useQueryClient } from "@tanstack/react-query";
 import type { UseQueryOptions } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   addTagToTransaction,
   createTransaction,
@@ -151,7 +151,7 @@ export function useAddTagToTransaction() {
                   ...tx,
                   tags: [
                     ...tx.tags,
-                    { id: tagId, name: "" }, // We don't have tag name yet, will be fixed on refetch
+                    { id: tagId, name: "", color: null }, // We don't have tag name yet, will be fixed on refetch
                   ],
                 };
               }
@@ -284,15 +284,15 @@ export function useExpenses(
       IPaginatedTransactionsResponse,
       readonly unknown[]
     >,
-    "queryKey" | "queryFn"
+    "queryKey" | "queryFn" | "staleTime"
   >
 ) {
   return useFinQuery<IPaginatedTransactionsResponse, Error>({
     queryKey: queryKeys.expenses(query),
     queryFn: () =>
       getTransactions({ ...query, type: "EXPENSE" } as ITransactionsQuery),
-    staleTime: 30 * 1000, // 30 seconds
-    ...options,
+    staleTime: 30_000, // 30 seconds
+    ...(options ?? {}),
   });
 }
 
@@ -356,7 +356,7 @@ export function useIncomes(
       IPaginatedTransactionsResponse,
       readonly unknown[]
     >,
-    "queryKey" | "queryFn"
+    "queryKey" | "queryFn" | "staleTime"
   >
 ) {
   return useFinQuery<IPaginatedTransactionsResponse, Error>({
