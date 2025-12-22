@@ -5,6 +5,7 @@ import {
   useReorderTags,
   useTags,
 } from "@/features/tag/hooks/useTags";
+import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyContainer } from "@/features/ui/container/empty-container";
@@ -78,24 +79,26 @@ export function TagOverview() {
   return (
     <>
       <Container className="mb-4">
-        <Title className="flex items-center justify-between">
-          <div className="flex gap-2 items-center ">
+        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center">
+          <div className="flex gap-2 items-center">
             <HiOutlineTag />
-
-            <span>Tags</span>
+            <span>Expenses</span>
           </div>
 
-          <Dropdown>
-            <DropdownItem icon={<HiPlus />} clicked={() => handleCreateTag()}>
-              Add tag
-            </DropdownItem>
-            <DropdownItem
-              icon={<HiArrowDownTray />}
-              clicked={() => setIsCsvImportDialogOpen(true)}
-            >
-              Import from CSV
-            </DropdownItem>
-          </Dropdown>
+          <div className="flex gap-2 items-center">
+            <Button clicked={handleCreateTag} variant="primary" size="sm">
+              <HiPlus className="size-6" /> Add
+            </Button>
+
+            <Dropdown>
+              <DropdownItem
+                icon={<HiArrowDownTray />}
+                clicked={() => setIsCsvImportDialogOpen(true)}
+              >
+                Import from CSV
+              </DropdownItem>
+            </Dropdown>
+          </div>
         </Title>
       </Container>
 
