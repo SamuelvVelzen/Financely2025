@@ -120,7 +120,9 @@ export function IncomeOverview() {
   const debouncedQuery = useDebouncedValue(query, 300);
 
   // Fetch incomes with all filters applied by backend
-  const { data, isLoading, error } = useIncomes(debouncedQuery);
+  const { data, isLoading, error } = useIncomes(debouncedQuery, {
+    placeholderData: (previousData) => previousData,
+  });
   const incomes = data?.data ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);

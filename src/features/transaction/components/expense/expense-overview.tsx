@@ -124,7 +124,9 @@ export function ExpenseOverview() {
   const debouncedQuery = useDebouncedValue(query, 300);
 
   // Fetch expenses with all filters applied by backend
-  const { data, isLoading, error } = useExpenses(debouncedQuery);
+  const { data, isLoading, error } = useExpenses(debouncedQuery, {
+    placeholderData: (previousData) => previousData,
+  });
   const expenses = data?.data ?? [];
   const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / PAGE_SIZE);

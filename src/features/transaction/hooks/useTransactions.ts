@@ -12,6 +12,7 @@ import type {
   IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
 import { useQueryClient } from "@tanstack/react-query";
+import type { UseQueryOptions } from "@tanstack/react-query";
 import {
   addTagToTransaction,
   createTransaction,
@@ -274,12 +275,24 @@ export function useRemoveTagFromTransaction() {
  * - staleTime: 30 seconds (short, transactions change frequently)
  * - Supports pagination, filtering, sorting
  */
-export function useExpenses(query?: Omit<ITransactionsQuery, "type">) {
+export function useExpenses(
+  query?: Omit<ITransactionsQuery, "type">,
+  options?: Omit<
+    UseQueryOptions<
+      IPaginatedTransactionsResponse,
+      Error,
+      IPaginatedTransactionsResponse,
+      readonly unknown[]
+    >,
+    "queryKey" | "queryFn"
+  >
+) {
   return useFinQuery<IPaginatedTransactionsResponse, Error>({
     queryKey: queryKeys.expenses(query),
     queryFn: () =>
       getTransactions({ ...query, type: "EXPENSE" } as ITransactionsQuery),
     staleTime: 30 * 1000, // 30 seconds
+    ...options,
   });
 }
 
@@ -334,12 +347,24 @@ export function useDeleteExpense() {
  * - staleTime: 30 seconds (short, transactions change frequently)
  * - Supports pagination, filtering, sorting
  */
-export function useIncomes(query?: Omit<ITransactionsQuery, "type">) {
+export function useIncomes(
+  query?: Omit<ITransactionsQuery, "type">,
+  options?: Omit<
+    UseQueryOptions<
+      IPaginatedTransactionsResponse,
+      Error,
+      IPaginatedTransactionsResponse,
+      readonly unknown[]
+    >,
+    "queryKey" | "queryFn"
+  >
+) {
   return useFinQuery<IPaginatedTransactionsResponse, Error>({
     queryKey: queryKeys.incomes(query),
     queryFn: () =>
       getTransactions({ ...query, type: "INCOME" } as ITransactionsQuery),
     staleTime: 30 * 1000, // 30 seconds
+    ...options,
   });
 }
 
