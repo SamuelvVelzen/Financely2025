@@ -39,6 +39,11 @@ export interface IDescriptionExtractionStrategy {
    * Description of how the strategy works
    */
   getDescription(): string;
+
+  /**
+   * Check if this strategy supports date/time extraction
+   */
+  supportsDateTimeExtraction(): boolean;
 }
 
 /**
@@ -70,6 +75,10 @@ export class DefaultDescriptionExtraction
 
   getDescription(): string {
     return "Uses name and description fields as-is";
+  }
+
+  supportsDateTimeExtraction(): boolean {
+    return false;
   }
 }
 
@@ -286,6 +295,10 @@ export class IngDescriptionExtraction
   getDescription(): string {
     return "Extracts descriptions from Notifications field and enhances names";
   }
+
+  supportsDateTimeExtraction(): boolean {
+    return true;
+  }
 }
 
 /**
@@ -348,4 +361,21 @@ export function getDefaultDescriptionExtractionForBank(
     return "ing";
   }
   return "default";
+}
+
+/**
+ * Check if a bank's description extraction strategy supports date/time extraction
+ */
+export function supportsDateTimeExtraction(bank?: BankEnum | null): boolean {
+  const strategyName = getDefaultDescriptionExtractionForBank(bank);
+  const strategy = DescriptionExtractionFactory.getStrategy(strategyName);
+  return strategy.supportsDateTimeExtraction();
+}
+
+/**
+ * Check if a bank has custom description extraction (not default)
+ */
+export function hasDescriptionExtraction(bank?: BankEnum | null): boolean {
+  const strategyName = getDefaultDescriptionExtractionForBank(bank);
+  return strategyName !== "default";
 }

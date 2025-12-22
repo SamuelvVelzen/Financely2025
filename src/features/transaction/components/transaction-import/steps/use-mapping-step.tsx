@@ -13,6 +13,10 @@ import {
   TRANSACTION_FIELDS,
   type ITransactionFieldMetadata,
 } from "../../../config/transaction-fields";
+import {
+  hasDescriptionExtraction,
+  supportsDateTimeExtraction,
+} from "../../../services/csv-description-extraction";
 import { BankSelect } from "../../bank-select";
 import {
   useTransactionImportContext,
@@ -51,7 +55,9 @@ function FieldMappingCard({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <Label required={isRequired} className="text-sm">
+        <Label
+          required={isRequired}
+          className="text-sm">
           {field.label}
         </Label>
         {hasSuggestedMapping && isDifferentFromSuggested && (
@@ -62,7 +68,9 @@ function FieldMappingCard({
           />
         )}
       </div>
-      <Form form={mappingForm} onSubmit={() => {}}>
+      <Form
+        form={mappingForm}
+        onSubmit={() => {}}>
         <SelectDropdown
           name={`mappings.${field.name}`}
           options={columnOptions}
@@ -115,9 +123,13 @@ function MappingStepContent() {
           onChange={setSelectedBank}
           helperText="Auto-detects columns and type strategy"
         />
-        <Form form={mappingForm} onSubmit={() => {}}>
+        <Form
+          form={mappingForm}
+          onSubmit={() => {}}>
           <div className="space-y-1.5">
-            <Label required className="text-sm">
+            <Label
+              required
+              className="text-sm">
               Currency
             </Label>
             <SelectDropdown
@@ -136,16 +148,58 @@ function MappingStepContent() {
           Using{" "}
           <span className="text-primary font-medium">{bankDisplayName}</span>{" "}
           detection strategy
-          {selectedBank === "ING" && (
+          {requiredMappingFields.includes("type") && (
             <> — requires Type column (debit/credit)</>
           )}
         </Alert>
       )}
 
+      {/* Data Enhancement Strategies Notification */}
+      {(() => {
+        const hasDescriptionExtractionStrategy =
+          hasDescriptionExtraction(selectedBank);
+        const hasDateTimeExtractionStrategy =
+          supportsDateTimeExtraction(selectedBank);
+
+        if (
+          !hasDescriptionExtractionStrategy &&
+          !hasDateTimeExtractionStrategy
+        ) {
+          return null;
+        }
+
+        return (
+          <Alert
+            variant="primary"
+            title="Automatic Data Enhancement">
+            <div className="space-y-1.5">
+              {hasDescriptionExtractionStrategy && (
+                <p>
+                  <strong>Description extraction:</strong> Descriptions are
+                  being automatically extracted and enhanced from your CSV data.
+                  Transaction names may be combined with descriptions when
+                  available.
+                </p>
+              )}
+              {hasDateTimeExtractionStrategy && (
+                <p>
+                  <strong>Date/time extraction:</strong> More precise
+                  transaction dates and times are being extracted from
+                  notification fields when available. These will override the
+                  main date field for better accuracy.
+                </p>
+              )}
+            </div>
+          </Alert>
+        );
+      })()}
+
       {/* Field Mappings */}
       <div className="space-y-4">
         {/* Required Fields */}
-        <Accordion title="Required Fields" defaultOpen>
+        <Accordion
+          title="Required Fields"
+          defaultOpen>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {requiredFields.map((field) => (
               <FieldMappingCard
@@ -160,7 +214,9 @@ function MappingStepContent() {
 
         {/* Optional Fields */}
         {optionalFields.length > 0 && (
-          <Accordion title="Optional Fields" defaultOpen={false}>
+          <Accordion
+            title="Optional Fields"
+            defaultOpen={false}>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
               {optionalFields.map((field) => (
                 <FieldMappingCard
