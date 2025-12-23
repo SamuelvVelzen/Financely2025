@@ -16,12 +16,17 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
  */
 export const getServerSession = createServerFn({ method: "GET" }).handler(
   async () => {
-    const headers = getRequestHeaders();
-    const session = await auth.api.getSession({
-      headers,
-    });
+    try {
+      const headers = getRequestHeaders();
+      const session = await auth.api.getSession({
+        headers,
+      });
 
-    return session;
+      return session;
+    } catch (error) {
+      console.error("Error getting server session", error);
+      return null;
+    }
   }
 );
 
