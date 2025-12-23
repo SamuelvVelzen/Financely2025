@@ -454,7 +454,13 @@ export const UserSchema = z.object({
   updatedAt: ISODateStringSchema,
 });
 
-export const UserResponseSchema = UserSchema;
+/**
+ * User Response schema (includes email and name from UserInfo)
+ */
+export const UserResponseSchema = UserSchema.extend({
+  email: z.string().email(),
+  name: z.string(),
+});
 
 /**
  * User Profile schema (UserInfo table - auth/profile data)
