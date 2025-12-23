@@ -82,19 +82,21 @@ export function TagOverview() {
         <Title className="grid grid-cols-[1fr_auto] gap-2 items-center">
           <div className="flex gap-2 items-center">
             <HiOutlineTag />
-            <span>Expenses</span>
+            <span>Tags</span>
           </div>
 
           <div className="flex gap-2 items-center">
-            <Button clicked={handleCreateTag} variant="primary" size="sm">
+            <Button
+              clicked={handleCreateTag}
+              variant="primary"
+              size="sm">
               <HiPlus className="size-6" /> Add
             </Button>
 
             <Dropdown>
               <DropdownItem
                 icon={<HiArrowDownTray />}
-                clicked={() => setIsCsvImportDialogOpen(true)}
-              >
+                clicked={() => setIsCsvImportDialogOpen(true)}>
                 Import from CSV
               </DropdownItem>
             </Dropdown>
@@ -127,8 +129,7 @@ export function TagOverview() {
               button={{
                 buttonContent: "Add tag",
                 clicked: handleCreateTag,
-              }}
-            ></EmptyPage>
+              }}></EmptyPage>
           )}
 
           {sortedTags.length > 0 && (
@@ -145,8 +146,7 @@ export function TagOverview() {
                     },
                   }
                 );
-              }}
-            >
+              }}>
               {(tag, index, dragProps) => (
                 <SortableListItem
                   className="group"
@@ -158,8 +158,7 @@ export function TagOverview() {
                   onDragStart={dragProps.onDragStart}
                   onDragOver={dragProps.onDragOver}
                   onDragEnd={dragProps.onDragEnd}
-                  onDrop={dragProps.onDrop}
-                >
+                  onDrop={dragProps.onDrop}>
                   <div className="flex items-center gap-3">
                     {tag.color && (
                       <div
@@ -180,8 +179,7 @@ export function TagOverview() {
                     </IconButton>
                     <IconButton
                       clicked={() => handleDeleteClick(tag.id)}
-                      className="text-danger hover:text-danger-hover"
-                    >
+                      className="text-danger hover:text-danger-hover">
                       <HiTrash className="w-5 h-5" />
                     </IconButton>
                   </div>
