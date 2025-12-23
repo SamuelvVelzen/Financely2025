@@ -31,7 +31,7 @@ export function LinkButton({
   return (
     <Button
       className={cn(
-        "hover:underline p-0 border-none hover:bg-transparent",
+        "hover:underline p-0 border-none hover:bg-transparent text-sm font-normal",
         variantClasses[variant],
         className
       )}

@@ -7,6 +7,7 @@
 
 import { ROUTES } from "@/config/routes";
 import { Button } from "@/features/ui/button/button";
+import { LinkButton } from "@/features/ui/button/link-button";
 import { Container } from "@/features/ui/container/container";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
@@ -199,8 +200,7 @@ function ResetPasswordPage() {
           <Form
             form={requestForm}
             onSubmit={handleRequestReset}
-            className="space-y-4"
-          >
+            className="space-y-4">
             <BaseInput
               name="email"
               type="email"
@@ -213,8 +213,7 @@ function ResetPasswordPage() {
               type="submit"
               variant="primary"
               disabled={loading}
-              className="w-full"
-            >
+              className="w-full">
               {loading ? "Processing..." : "Send Reset Link"}
             </Button>
           </Form>
@@ -222,8 +221,7 @@ function ResetPasswordPage() {
           <Form
             form={resetForm}
             onSubmit={handleResetPassword}
-            className="space-y-4"
-          >
+            className="space-y-4">
             <BaseInput
               name="password"
               type="password"
@@ -244,24 +242,20 @@ function ResetPasswordPage() {
               type="submit"
               variant="primary"
               disabled={loading}
-              className="w-full"
-            >
+              className="w-full">
               {loading ? "Processing..." : "Reset Password"}
             </Button>
           </Form>
         )}
 
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() =>
-              navigate({ to: ROUTES.LOGIN, search: { redirect: "" } })
-            }
-            className="text-sm text-primary hover:underline"
-          >
-            Back to login
-          </button>
-        </div>
+        <LinkButton
+          clicked={() =>
+            navigate({ to: ROUTES.LOGIN, search: { redirect: "" } })
+          }
+          variant="primary"
+          className="mx-auto mt-4">
+          Back to login
+        </LinkButton>
       </Container>
     </div>
   );

@@ -4,6 +4,7 @@ import { Button } from "@/features/ui/button/button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
+import { PasswordInput } from "@/features/ui/input/password-input";
 import { NavLink } from "@/features/ui/navigation/nav-link";
 import { useToast } from "@/features/ui/toast";
 import { authClient } from "@/lib/auth-client";
@@ -240,9 +241,8 @@ export function LoginForm() {
             placeholder="you@example.com"
             disabled={loading}
           />
-          <BaseInput
+          <PasswordInput
             name="password"
-            type="password"
             label="Password"
             placeholder="••••••••"
             disabled={loading}

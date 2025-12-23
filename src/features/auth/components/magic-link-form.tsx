@@ -6,6 +6,7 @@
  */
 
 import { Button } from "@/features/ui/button/button";
+import { LinkButton } from "@/features/ui/button/link-button";
 import { Form } from "@/features/ui/form/form";
 import { BaseInput } from "@/features/ui/input/input";
 import { type UseFormReturn } from "react-hook-form";
@@ -44,7 +45,10 @@ export function MagicLinkForm({
 
   return (
     <div className="space-y-4">
-      <Form form={form} onSubmit={onSubmit} className="space-y-4">
+      <Form
+        form={form}
+        onSubmit={onSubmit}
+        className="space-y-4">
         <BaseInput
           name="email"
           type="email"
@@ -56,22 +60,18 @@ export function MagicLinkForm({
           type="submit"
           variant="primary"
           disabled={loading}
-          className="w-full"
-        >
+          className="w-full">
           {loading ? "Sending..." : "Send Magic Link"}
         </Button>
       </Form>
 
       {showPasswordToggle && (
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={onSwitchToPassword}
-            className="text-sm text-primary hover:underline"
-          >
-            Use password instead
-          </button>
-        </div>
+        <LinkButton
+          clicked={onSwitchToPassword}
+          variant="primary"
+          className="mx-auto">
+          Use password instead
+        </LinkButton>
       )}
     </div>
   );
