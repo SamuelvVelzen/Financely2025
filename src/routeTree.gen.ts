@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as appIndexRouteImport } from './routes/(app)/index'
 import { Route as appTagsRouteImport } from './routes/(app)/tags'
+import { Route as appMessagesRouteImport } from './routes/(app)/messages'
 import { Route as appIncomesRouteImport } from './routes/(app)/incomes'
 import { Route as appExpensesRouteImport } from './routes/(app)/expenses'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
@@ -68,6 +69,11 @@ const appIndexRoute = appIndexRouteImport.update({
 const appTagsRoute = appTagsRouteImport.update({
   id: '/tags',
   path: '/tags',
+  getParentRoute: () => appRouteRoute,
+} as any)
+const appMessagesRoute = appMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
   getParentRoute: () => appRouteRoute,
 } as any)
 const appIncomesRoute = appIncomesRouteImport.update({
@@ -211,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
+  '/messages': typeof appMessagesRoute
   '/tags': typeof appTagsRoute
   '/': typeof appIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/account': typeof appAccountRoute
   '/expenses': typeof appExpensesRoute
   '/incomes': typeof appIncomesRoute
+  '/messages': typeof appMessagesRoute
   '/tags': typeof appTagsRoute
   '/': typeof appIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/(app)/account': typeof appAccountRoute
   '/(app)/expenses': typeof appExpensesRoute
   '/(app)/incomes': typeof appIncomesRoute
+  '/(app)/messages': typeof appMessagesRoute
   '/(app)/tags': typeof appTagsRoute
   '/(app)/': typeof appIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/expenses'
     | '/incomes'
+    | '/messages'
     | '/tags'
     | '/'
     | '/api/auth/$'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/expenses'
     | '/incomes'
+    | '/messages'
     | '/tags'
     | '/'
     | '/api/auth/$'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '/(app)/account'
     | '/(app)/expenses'
     | '/(app)/incomes'
+    | '/(app)/messages'
     | '/(app)/tags'
     | '/(app)/'
     | '/api/auth/$'
@@ -455,6 +467,13 @@ declare module '@tanstack/react-router' {
       path: '/tags'
       fullPath: '/tags'
       preLoaderRoute: typeof appTagsRouteImport
+      parentRoute: typeof appRouteRoute
+    }
+    '/(app)/messages': {
+      id: '/(app)/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof appMessagesRouteImport
       parentRoute: typeof appRouteRoute
     }
     '/(app)/incomes': {
@@ -639,6 +658,7 @@ interface appRouteRouteChildren {
   appAccountRoute: typeof appAccountRoute
   appExpensesRoute: typeof appExpensesRoute
   appIncomesRoute: typeof appIncomesRoute
+  appMessagesRoute: typeof appMessagesRoute
   appTagsRoute: typeof appTagsRoute
   appIndexRoute: typeof appIndexRoute
 }
@@ -647,6 +667,7 @@ const appRouteRouteChildren: appRouteRouteChildren = {
   appAccountRoute: appAccountRoute,
   appExpensesRoute: appExpensesRoute,
   appIncomesRoute: appIncomesRoute,
+  appMessagesRoute: appMessagesRoute,
   appTagsRoute: appTagsRoute,
   appIndexRoute: appIndexRoute,
 }

@@ -6,6 +6,7 @@ export const ROUTES = {
   EXPENSES: "/expenses",
   TAGS: "/tags",
   ACCOUNT: "/account",
+  MESSAGES: "/messages",
   LOGOUT: "/logout",
 } as const;
 

@@ -6,6 +6,7 @@ import {
   HiArrowTrendingDown,
   HiArrowTrendingUp,
   HiChartBar,
+  HiOutlineBell,
   HiOutlineTag,
   HiUser,
 } from "react-icons/hi2";
@@ -80,6 +81,11 @@ export function Sidebar() {
         {/* Bottom Actions */}
         <div>
           <ThemeToggle />
+          <NavItem
+            to={ROUTES.MESSAGES}
+            label="Messages"
+            icon={HiOutlineBell}
+          />
           <NavItem
             to={ROUTES.ACCOUNT}
             label="Account"
