@@ -3,7 +3,7 @@
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
@@ -45,6 +45,7 @@ export type ISelectDropdownProps<
       multiple: boolean;
     }
   ) => ReactNode;
+  disabled?: boolean;
 };
 
 export function SelectDropdown<
@@ -62,11 +63,19 @@ export function SelectDropdown<
   maxDisplayItems = 2,
   showClearButton = true,
   children,
+  disabled = false,
 }: ISelectDropdownProps<TOptions, TData>) {
   const { isMobile } = useResponsive();
   const form = useFormContext();
   const [isOpen, setIsOpen] = useState(false);
   const error = form.formState.errors[name];
+
+  // Close dropdown when disabled becomes true
+  useEffect(() => {
+    if (disabled && isOpen) {
+      setIsOpen(false);
+    }
+  }, [disabled, isOpen]);
 
   // On mobile, use native select
   if (isMobile) {
@@ -78,6 +87,7 @@ export function SelectDropdown<
         multiple={multiple}
         placeholder={placeholder}
         label={label}
+        disabled={disabled}
       />
     );
   }
@@ -143,6 +153,7 @@ export function SelectDropdown<
 
         // Handle option selection
         const handleOptionClick = (optionValue: string) => {
+          if (disabled) return;
           if (multiple) {
             // Multiple select: toggle the option
             const currentValues = Array.isArray(value) ? value : [];
@@ -167,6 +178,7 @@ export function SelectDropdown<
         // Handle clear button click
         const handleClear = (e: React.MouseEvent) => {
           e.stopPropagation(); // Prevent dropdown from opening
+          if (disabled) return;
           if (multiple) {
             field.onChange([]);
           } else {
@@ -187,14 +199,17 @@ export function SelectDropdown<
                   role="button"
                   onClick={handleClear}
                   onKeyDown={(e) => {
+                    if (disabled) return;
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       handleClear(e as unknown as React.MouseEvent);
                     }
                   }}
                   className={cn(
-                    "p-1 rounded text-text-muted hover:text-text cursor-pointer",
-                    "flex items-center justify-center"
+                    "p-1 rounded text-text-muted flex items-center justify-center",
+                    disabled
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:text-text cursor-pointer"
                   )}
                   aria-label="Clear selection">
                   <HiX className="size-4" />
@@ -203,7 +218,8 @@ export function SelectDropdown<
 
               <HiChevronDown
                 className={cn(
-                  "size-5 transition-transform duration-200 text-text-muted hover:text-text",
+                  "size-5 transition-transform duration-200 text-text-muted",
+                  disabled ? "opacity-50" : "hover:text-text",
                   isOpen && "rotate-180"
                 )}
               />
@@ -217,8 +233,12 @@ export function SelectDropdown<
             <Dropdown
               dropdownSelector={selectorButton}
               open={isOpen}
-              onOpenChange={setIsOpen}
-              closeOnItemClick={!multiple}>
+              onOpenChange={(open) => {
+                if (disabled && open) return; // Prevent opening when disabled
+                setIsOpen(open);
+              }}
+              closeOnItemClick={!multiple}
+              disabled={disabled}>
               {options.map((option, index) => {
                 const optionIsSelected = isSelected(option.value, value);
                 const handleClick = () => handleOptionClick(option.value);
@@ -228,11 +248,16 @@ export function SelectDropdown<
                     clicked={handleClick}
                     selected={optionIsSelected}>
                     {
-                      <div className="flex items-center gap-2 w-full">
+                      <div
+                        className={cn(
+                          "flex items-center gap-2 w-full",
+                          disabled && "opacity-50 cursor-not-allowed"
+                        )}>
                         {multiple && (
                           <Checkbox
                             checked={optionIsSelected}
                             onChange={handleClick}
+                            disabled={disabled}
                             className="pointer-events-none"
                           />
                         )}

@@ -56,8 +56,7 @@ export function Button({
 
   const baseClasses =
     "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface focus:outline-none focus:ring-2 focus:ring-primary";
-  const disabledClasses =
-    disabled && "opacity-50 cursor-not-allowed pointer-events-none";
+  const disabledClasses = disabled && "pointer-events-none";
   const sizeClasses: { [key in IButtonSize]: string } = {
     xs: "px-0.5 py-0.5 text-xs",
     sm: "px-2 py-1 text-sm",
@@ -65,22 +64,24 @@ export function Button({
     lg: "px-6 py-3 text-lg",
   };
   return (
-    <button
-      type={type}
-      className={cn(
-        baseClasses,
-        variantClasses[variant],
-        sizeClasses[size],
-        className,
-        disabledClasses
-      )}
-      disabled={disabled}
-      onClick={(event) => {
-        onClick?.(event);
-        clicked?.(event);
-      }}
-      {...rest}>
-      {buttonContent ?? children}
-    </button>
+    <div className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
+      <button
+        type={type}
+        className={cn(
+          baseClasses,
+          variantClasses[variant],
+          sizeClasses[size],
+          className,
+          disabledClasses
+        )}
+        disabled={disabled}
+        onClick={(event) => {
+          onClick?.(event);
+          clicked?.(event);
+        }}
+        {...rest}>
+        {buttonContent ?? children}
+      </button>
+    </div>
   );
 }

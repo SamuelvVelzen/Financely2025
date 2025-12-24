@@ -4,7 +4,10 @@ import {
   getCurrencyOptions,
   type ICurrency,
 } from "@/features/currency/config/currencies";
-import { cn } from "@/features/util/cn";
+import {
+  SelectDropdown,
+  type ISelectDropdownProps,
+} from "@/features/ui/select-dropdown/select-dropdown";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type IconType } from "react-icons";
 import {
@@ -15,10 +18,6 @@ import {
   PiCurrencyEurDuotone,
   PiCurrencyGbpDuotone,
 } from "react-icons/pi";
-import {
-  SelectDropdown,
-  type ISelectDropdownProps,
-} from "@/features/ui/select-dropdown/select-dropdown";
 
 const CURRENCY_ICONS: Partial<Record<ICurrency, IconType>> = {
   USD: PiCurrencyDollarDuotone,
@@ -35,42 +34,34 @@ type ICurrencySelectProps = Omit<
   ISelectDropdownProps<typeof currencyOptions>,
   "options" | "children" | "placeholder"
 > &
-  IPropsWithClassName & {
-    disabled?: boolean;
-  };
+  IPropsWithClassName;
 
 export function CurrencySelect({
   className,
-  disabled = false,
+
   ...props
 }: ICurrencySelectProps) {
   return (
-    <div
-      className={cn(disabled && "opacity-60 pointer-events-none")}
-      aria-disabled={disabled}>
-      <SelectDropdown
-        {...props}
-        className={className}
-        options={currencyOptions}
-        placeholder="Select currency"
-        showClearButton={false}>
-        {(option) => {
-          const Icon =
-            CURRENCY_ICONS[option.value as ICurrency] ??
-            PiCurrencyDollarDuotone;
+    <SelectDropdown
+      {...props}
+      className={className}
+      options={currencyOptions}
+      placeholder="Select currency"
+      showClearButton={false}>
+      {(option) => {
+        const Icon =
+          CURRENCY_ICONS[option.value as ICurrency] ?? PiCurrencyDollarDuotone;
 
-          return (
-            <span className="flex items-center gap-2 w-full">
-              <Icon
-                className="w-4 h-4"
-                aria-hidden="true"
-              />
-              <span className="">{option.label}</span>
-            </span>
-          );
-        }}
-      </SelectDropdown>
-    </div>
+        return (
+          <span className="flex items-center gap-2 w-full">
+            <Icon
+              className="w-4 h-4"
+              aria-hidden="true"
+            />
+            <span className="">{option.label}</span>
+          </span>
+        );
+      }}
+    </SelectDropdown>
   );
 }
-

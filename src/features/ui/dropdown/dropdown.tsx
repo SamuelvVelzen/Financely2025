@@ -27,6 +27,7 @@ type IDropdownProps = {
   placement?: IPlacementOption | IPlacementOption[];
   /** Whether to close the dropdown when an item is clicked. Defaults to true. */
   closeOnItemClick?: boolean;
+  disabled?: boolean;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -38,6 +39,7 @@ export function Dropdown({
   showExpanded = false,
   placement,
   closeOnItemClick = true,
+  disabled = false,
 }: IDropdownProps) {
   const dialogContext = useDialogContext();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -59,6 +61,7 @@ export function Dropdown({
   };
 
   const toggleDropdown = () => {
+    if (disabled) return;
     setDropdownState(!dropdownIsOpen);
   };
 
@@ -80,11 +83,12 @@ export function Dropdown({
       {dropdownSelector ? (
         <Button
           clicked={toggleDropdown}
+          disabled={disabled}
           className="w-full">
           {dropdownSelector}
         </Button>
       ) : (
-        <IconButton clicked={toggleDropdown}>
+        <IconButton clicked={toggleDropdown} disabled={disabled}>
           <HiDotsVertical className="w-5 h-5" />
         </IconButton>
       )}
