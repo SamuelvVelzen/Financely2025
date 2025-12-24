@@ -38,9 +38,9 @@ export function ExpenseTable({
         );
       },
       tags: (a: ITransaction, b: ITransaction) => {
-        const aTags = a.tags.map((t) => t.name).join(", ");
-        const bTags = b.tags.map((t) => t.name).join(", ");
-        return aTags.localeCompare(bTags);
+        const aTag = a.primaryTag?.name ?? "";
+        const bTag = b.primaryTag?.name ?? "";
+        return aTag.localeCompare(bTag);
       },
     }),
     []
@@ -145,18 +145,12 @@ export function ExpenseTable({
                   </span>
                 </BodyCell>
                 <BodyCell>
-                  {expense.tags.length > 0 ? (
-                    <div className="flex gap-1">
-                      {expense.tags.map((tag) => (
-                        <span
-                          key={tag.id}
-                          className="px-2 py-0.5 bg-surface-hover rounded text-xs">
-                          {searchQuery
-                            ? highlightText(tag.name, searchQuery)
-                            : tag.name}
-                        </span>
-                      ))}
-                    </div>
+                  {expense.primaryTag ? (
+                    <span className="px-2 py-0.5 bg-surface-hover rounded text-xs">
+                      {searchQuery
+                        ? highlightText(expense.primaryTag.name, searchQuery)
+                        : expense.primaryTag.name}
+                    </span>
                   ) : (
                     <span className="text-sm text-text-muted">—</span>
                   )}

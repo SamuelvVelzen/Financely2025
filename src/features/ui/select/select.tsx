@@ -6,7 +6,7 @@ import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { HiChevronDown, HiX } from "react-icons/hi";
+import { HiChevronDown, HiInformationCircle, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
@@ -38,6 +38,7 @@ export type ISelectProps<
   label?: string;
   searchPlaceholder?: string;
   disabled?: boolean;
+  hint?: string;
   children?: (
     option: ISelectOption<TData>,
     index: number,
@@ -68,6 +69,7 @@ export function Select<
   label,
   searchPlaceholder = "Type to search...",
   disabled = false,
+  hint,
   children,
   onCreateNew,
   createNewLabel = "Create new",
@@ -366,6 +368,12 @@ export function Select<
             {error && (
               <p className="text-sm text-danger mt-1">
                 {(error as { message?: string })?.message || String(error)}
+              </p>
+            )}
+            {!error && hint && (
+              <p className="text-xs text-text-muted/60 mt-1 flex items-center gap-1">
+                <HiInformationCircle className="size-4" />
+                <span>{hint}</span>
               </p>
             )}
           </div>

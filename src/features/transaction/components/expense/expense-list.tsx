@@ -81,18 +81,14 @@ export function ExpenseList({
             </div>
           </div>
 
-          {/* Tag badges row */}
-          {expense.tags.length > 0 && (
+          {/* Primary tag badge */}
+          {expense.primaryTag && (
             <div className="flex gap-1.5 flex-wrap">
-              {expense.tags.map((tag) => (
-                <Badge
-                  key={tag.id}
-                  backgroundColor={tag.color ?? undefined}>
-                  {searchQuery
-                    ? highlightText(tag.name, searchQuery)
-                    : tag.name}
-                </Badge>
-              ))}
+              <Badge backgroundColor={expense.primaryTag.color ?? undefined}>
+                {searchQuery
+                  ? highlightText(expense.primaryTag.name, searchQuery)
+                  : expense.primaryTag.name}
+              </Badge>
             </div>
           )}
 

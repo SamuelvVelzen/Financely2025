@@ -1,17 +1,17 @@
 "use client";
 
+import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
   CreateTransactionInputSchema,
   CurrencySchema,
   getCurrencyOptions,
   type ITransaction,
 } from "@/features/shared/validation/schemas";
+import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import {
   useCreateIncome,
   useUpdateIncome,
 } from "@/features/transaction/hooks/useTransactions";
-import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
-import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -52,6 +52,7 @@ const IncomeFormSchema = CreateTransactionInputSchema.omit({
     }, "Amount must be positive"),
   occurredAt: z.string().min(1, "Date is required"),
   tagIds: z.array(z.string()).optional().default([]),
+  primaryTagId: z.string().nullable().optional(),
 });
 
 type FormData = z.infer<typeof IncomeFormSchema>;
@@ -66,6 +67,7 @@ const getEmptyFormValues = (): FormData => ({
   paymentMethod: "OTHER",
   description: "",
   tagIds: [],
+  primaryTagId: null,
 });
 
 export function AddOrCreateIncomeDialog({
@@ -126,6 +128,7 @@ export function AddOrCreateIncomeDialog({
           paymentMethod: transaction.paymentMethod,
           description: transaction.description ?? "",
           tagIds: transaction.tags.map((tag) => tag.id),
+          primaryTagId: transaction.primaryTag?.id ?? null,
         });
       } else {
         // Create mode: reset to defaults with current date/time
@@ -138,6 +141,7 @@ export function AddOrCreateIncomeDialog({
           paymentMethod: "OTHER",
           description: "",
           tagIds: [],
+          primaryTagId: null,
         });
       }
     } else {
@@ -161,6 +165,7 @@ export function AddOrCreateIncomeDialog({
           ? data.description.trim()
           : null,
       tagIds: data.tagIds || [],
+      primaryTagId: data.primaryTagId || null,
     };
 
     try {
@@ -252,6 +257,15 @@ export function AddOrCreateIncomeDialog({
                 name="description"
                 label="Description"
                 disabled={pending}
+              />
+              <TagSelect
+                name="primaryTagId"
+                label="Primary Tag"
+                multiple={false}
+                placeholder="Select primary tag..."
+                disabled={pending}
+                transactionType="INCOME"
+                hint="Used for budget, sorting and display"
               />
               <TagSelect
                 name="tagIds"

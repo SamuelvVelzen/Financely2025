@@ -309,6 +309,7 @@ export const TransactionSchema = z.object({
   externalId: z.string().nullable(),
   paymentMethod: PaymentMethodSchema,
   tags: z.array(TransactionTagSchema),
+  primaryTag: TransactionTagSchema.nullable().optional(),
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
 });

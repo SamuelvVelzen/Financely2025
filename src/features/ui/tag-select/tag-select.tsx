@@ -23,6 +23,7 @@ export type ITagSelectProps = IPropsWithClassName & {
   searchPlaceholder?: string;
   disabled?: boolean;
   transactionType?: ITransactionType;
+  hint?: string;
 };
 
 export function TagSelect({
@@ -34,6 +35,7 @@ export function TagSelect({
   searchPlaceholder = "Type to search tags...",
   disabled = false,
   transactionType,
+  hint,
 }: ITagSelectProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
@@ -53,7 +55,8 @@ export function TagSelect({
       return orderedTags;
     }
     return orderedTags.filter(
-      (tag) => tag.transactionType === null || tag.transactionType === transactionType
+      (tag) =>
+        tag.transactionType === null || tag.transactionType === transactionType
     );
   }, [orderedTags, transactionType]);
 
@@ -130,6 +133,7 @@ export function TagSelect({
         label={label}
         searchPlaceholder={searchPlaceholder}
         disabled={disabled}
+        hint={hint}
         onCreateNew={handleCreateNew}
         createNewLabel={(query) => `Create tag "${query}"`}
         forcePlacement={["bottom"]}

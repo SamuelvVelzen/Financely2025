@@ -155,6 +155,10 @@ model Transaction {
   // many-to-many relation to tags
   tags          Tag[] 
 
+  // primary tag for budget sorting and display
+  primaryTagId  String?
+  primaryTag    Tag?             @relation("PrimaryTag", fields: [primaryTagId], references: [id])
+
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
@@ -174,6 +178,7 @@ model Tag {
   transactionType TransactionType? // null = works with both, EXPENSE = expense only, INCOME = income only
 
   transactions  Transaction[]
+  primaryTransactions Transaction[] @relation("PrimaryTag")
 
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt

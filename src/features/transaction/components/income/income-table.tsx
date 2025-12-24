@@ -37,9 +37,9 @@ export function IncomeTable({
         );
       },
       tags: (a: ITransaction, b: ITransaction) => {
-        const aTags = a.tags.map((t) => t.name).join(", ");
-        const bTags = b.tags.map((t) => t.name).join(", ");
-        return aTags.localeCompare(bTags);
+        const aTag = a.primaryTag?.name ?? "";
+        const bTag = b.primaryTag?.name ?? "";
+        return aTag.localeCompare(bTag);
       },
     }),
     []
@@ -144,18 +144,12 @@ export function IncomeTable({
                   </span>
                 </BodyCell>
                 <BodyCell>
-                  {income.tags.length > 0 ? (
-                    <div className="flex gap-1">
-                      {income.tags.map((tag) => (
-                        <span
-                          key={tag.id}
-                          className="px-2 py-0.5 bg-surface-hover rounded text-xs">
-                          {searchQuery
-                            ? highlightText(tag.name, searchQuery)
-                            : tag.name}
-                        </span>
-                      ))}
-                    </div>
+                  {income.primaryTag ? (
+                    <span className="px-2 py-0.5 bg-surface-hover rounded text-xs">
+                      {searchQuery
+                        ? highlightText(income.primaryTag.name, searchQuery)
+                        : income.primaryTag.name}
+                    </span>
                   ) : (
                     <span className="text-sm text-text-muted">—</span>
                   )}

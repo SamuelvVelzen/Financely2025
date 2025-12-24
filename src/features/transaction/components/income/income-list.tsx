@@ -81,18 +81,14 @@ export function IncomeList({
             </div>
           </div>
 
-          {/* Tag badges row */}
-          {income.tags.length > 0 && (
+          {/* Primary tag badge */}
+          {income.primaryTag && (
             <div className="flex gap-1.5 flex-wrap">
-              {income.tags.map((tag) => (
-                <Badge
-                  key={tag.id}
-                  backgroundColor={tag.color ?? undefined}>
-                  {searchQuery
-                    ? highlightText(tag.name, searchQuery)
-                    : tag.name}
-                </Badge>
-              ))}
+              <Badge backgroundColor={income.primaryTag.color ?? undefined}>
+                {searchQuery
+                  ? highlightText(income.primaryTag.name, searchQuery)
+                  : income.primaryTag.name}
+              </Badge>
             </div>
           )}
 
