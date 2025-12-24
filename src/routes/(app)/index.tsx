@@ -1,6 +1,9 @@
 "use client";
 
+import { useCreateMessage } from "@/features/message/hooks/useMessages";
+import type { IMessageAction } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
+import { ToggleButton } from "@/features/ui/button/toggle-button";
 import { Checkbox } from "@/features/ui/checkbox/checkbox";
 import { Container } from "@/features/ui/container/container";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -19,9 +22,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { HiMoon, HiSun } from "react-icons/hi2";
 import { z } from "zod";
-import { useCreateMessage } from "@/features/message/hooks/useMessages";
-import type { IMessageAction } from "@/features/shared/validation/schemas";
 
 export const Route = createFileRoute("/(app)/")({
   component: Home,
@@ -74,6 +76,11 @@ function Home() {
           <DropdownItem text="Option 2" />
           <DropdownItem text="Option 3" />
         </Dropdown>
+      </Container>
+
+      <Container className="mb-4">
+        <h2 className="text-lg font-semibold mb-4">Toggle Button Examples</h2>
+        <ToggleButtonExample />
       </Container>
     </>
   );
@@ -801,6 +808,205 @@ function MessageTestingExample() {
           disabled={createMessage.isPending}>
           Transaction Import Success
         </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Toggle Button Example
+ *
+ * Demonstrates:
+ * - Basic toggle usage (controlled)
+ * - Toggle with label
+ * - Icon support (iconOn/iconOff props)
+ * - Dark mode toggle with sun/moon icons
+ * - Disabled toggle states
+ * - Different sizes
+ * - Multiple toggles showing different states
+ * - Integration with form state
+ */
+function ToggleButtonExample() {
+  const [basicToggle, setBasicToggle] = useState(false);
+  const [toggleWithLabel, setToggleWithLabel] = useState(true);
+  const [smallToggle, setSmallToggle] = useState(false);
+  const [mediumToggle, setMediumToggle] = useState(true);
+  const [largeToggle, setLargeToggle] = useState(false);
+
+  const form = useForm<{ notifications: boolean; darkMode: boolean }>({
+    defaultValues: {
+      notifications: true,
+      darkMode: false,
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-text-muted">
+        iOS-style toggle switches with smooth animations. Click to toggle or use
+        keyboard (Space/Enter) when focused.
+      </p>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">Basic Usage</h4>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <ToggleButton
+              checked={basicToggle}
+              onChange={setBasicToggle}
+            />
+            <span className="text-sm text-text-muted">
+              Basic toggle (currently {basicToggle ? "on" : "off"})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <ToggleButton
+              checked={toggleWithLabel}
+              onChange={setToggleWithLabel}
+              label="Toggle with label"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">Sizes</h4>
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col gap-2">
+            <ToggleButton
+              size="sm"
+              checked={smallToggle}
+              onChange={setSmallToggle}
+            />
+            <span className="text-xs text-text-muted">Small</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <ToggleButton
+              size="md"
+              checked={mediumToggle}
+              onChange={setMediumToggle}
+            />
+            <span className="text-xs text-text-muted">Medium (default)</span>
+          </div>
+          <div className="flex flex-col gap-2">
+            <ToggleButton
+              size="lg"
+              checked={largeToggle}
+              onChange={setLargeToggle}
+            />
+            <span className="text-xs text-text-muted">Large</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">With Icons</h4>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <ToggleButton
+              checked={form.watch("darkMode")}
+              onChange={(checked) => form.setValue("darkMode", checked)}
+              icon={{
+                on: {
+                  icon: <HiMoon className="w-full h-full" />,
+                  className: "text-dark",
+                },
+                off: {
+                  icon: <HiSun className="w-full h-full" />,
+                  className: "text-warning",
+                },
+              }}
+              label="Dark mode"
+            />
+          </div>
+          <p className="text-xs text-text-muted">
+            Icons are displayed inside the toggle thumb. Perfect for dark mode
+            toggles with sun/moon icons. Each icon can have its own className.
+          </p>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">States</h4>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <ToggleButton
+              checked={true}
+              disabled
+            />
+            <span className="text-sm text-text-muted">Disabled (on)</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <ToggleButton
+              checked={false}
+              disabled
+            />
+            <span className="text-sm text-text-muted">Disabled (off)</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <ToggleButton
+              checked={true}
+              disabled
+              icon={{
+                on: { icon: <HiMoon className="w-full h-full" /> },
+                off: { icon: <HiSun className="w-full h-full" /> },
+              }}
+            />
+            <span className="text-sm text-text-muted">
+              Disabled with icons (on)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">Form Integration</h4>
+        <Form
+          form={form}
+          onSubmit={(data) => {
+            alert(
+              `Form submitted: Notifications: ${data.notifications}, Dark Mode: ${data.darkMode}`
+            );
+          }}>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <ToggleButton
+                checked={form.watch("notifications")}
+                onChange={(checked) => form.setValue("notifications", checked)}
+                label="Enable notifications"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <ToggleButton
+                checked={form.watch("darkMode")}
+                onChange={(checked) => form.setValue("darkMode", checked)}
+                icon={{
+                  on: { icon: <HiMoon className="w-full h-full" /> },
+                  off: { icon: <HiSun className="w-full h-full" /> },
+                }}
+                label="Dark mode"
+              />
+            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              clicked={() =>
+                form.handleSubmit((data) => {
+                  alert(
+                    `Form submitted: Notifications: ${data.notifications}, Dark Mode: ${data.darkMode}`
+                  );
+                })()
+              }>
+              Submit Form
+            </Button>
+            <p className="text-xs text-text-muted">
+              Current values: Notifications:{" "}
+              {form.watch("notifications") ? "on" : "off"}, Dark Mode:{" "}
+              {form.watch("darkMode") ? "on" : "off"}
+            </p>
+          </div>
+        </Form>
       </div>
     </div>
   );
