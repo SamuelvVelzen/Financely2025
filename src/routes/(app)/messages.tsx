@@ -1,13 +1,16 @@
 "use client";
 
-import { Container } from "@/features/ui/container/container";
-import { Title } from "@/features/ui/typography/title";
-import { Button } from "@/features/ui/button/button";
 import { MessageList } from "@/features/message/components/message-list";
-import { useMessages, useMarkAllAsRead } from "@/features/message/hooks/useMessages";
+import {
+  useMarkAllAsRead,
+  useMessages,
+} from "@/features/message/hooks/useMessages";
+import { Button } from "@/features/ui/button/button";
+import { Container } from "@/features/ui/container/container";
+import { useToast } from "@/features/ui/toast";
+import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useToast } from "@/features/ui/toast";
 
 export const Route = createFileRoute("/(app)/messages")({
   component: MessagesPage,
@@ -22,7 +25,9 @@ export const Route = createFileRoute("/(app)/messages")({
 
 function MessagesPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
-  const [typeFilter, setTypeFilter] = useState<"INFO" | "SUCCESS" | "WARNING" | "ERROR" | undefined>(undefined);
+  const [typeFilter, setTypeFilter] = useState<
+    "INFO" | "SUCCESS" | "WARNING" | "ERROR" | undefined
+  >(undefined);
   const toast = useToast();
   const markAllAsRead = useMarkAllAsRead();
 
@@ -48,17 +53,16 @@ function MessagesPage() {
         <div className="flex items-center justify-between">
           <div>
             <Title>Messages</Title>
-            <p className="text-text-muted">
-              View and manage your messages.
-            </p>
+            <p className="text-text-muted">View and manage your messages.</p>
           </div>
           {data && data.data.length > 0 && (
             <Button
-              variant="secondary"
               size="sm"
               clicked={handleMarkAllAsRead}
               disabled={markAllAsRead.isPending}
-              buttonContent={markAllAsRead.isPending ? "Marking..." : "Mark All as Read"}
+              buttonContent={
+                markAllAsRead.isPending ? "Marking..." : "Mark All as Read"
+              }
             />
           )}
         </div>
@@ -116,8 +120,11 @@ function MessagesPage() {
           messages={data?.data || []}
           isLoading={isLoading}
         />
+        <MessageList
+          messages={data?.data || []}
+          isLoading={isLoading}
+        />
       </Container>
     </>
   );
 }
-
