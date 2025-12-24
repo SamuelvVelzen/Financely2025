@@ -5,6 +5,7 @@ import {
   type ICsvCandidateTransaction,
   type ICsvFieldMapping,
   type ICurrency,
+  type ITransactionType,
 } from "@/features/shared/validation/schemas";
 import { TagService } from "@/features/tag/services/tag.service";
 import { prisma } from "@/features/util/prisma";
@@ -68,7 +69,19 @@ const FIELD_NAME_PATTERNS: Record<string, string[]> = {
     "pay_method",
     "paymethod",
   ],
-  tags: ["tags", "tag", "categories", "category"],
+  tags: ["tags", "categories"],
+  primaryTagId: [
+    "tag",
+    "category",
+    "primary_tag",
+    "primary tag",
+    "primarytag",
+    "budget_tag",
+    "budget tag",
+    "budgettag",
+    "main_tag",
+    "main tag",
+  ],
 };
 
 /**
@@ -515,6 +528,15 @@ export async function convertRowToTransaction(
           transaction.tagIds = await parseTags(rawValue, userId);
         }
         break;
+      case "primaryTagId":
+        if (rawValue && transaction.type) {
+          transaction.primaryTagId = await parsePrimaryTag(
+            rawValue,
+            userId,
+            transaction.type
+          );
+        }
+        break;
     }
   }
 
@@ -681,6 +703,60 @@ async function parseTags(value: string, userId: string): Promise<string[]> {
   }
 
   return tagIds;
+}
+
+/**
+ * Parse a single primary tag name and resolve to tagId
+ * Creates tag if it doesn't exist
+ */
+async function parsePrimaryTag(
+  value: string,
+  userId: string,
+  transactionType: ITransactionType
+): Promise<string | null> {
+  if (!value || !value.trim()) return null;
+
+  const tagName = value.trim();
+
+  // Try to find existing tag matching name and transaction type (or null type for universal tags)
+  const existingTags = await prisma.tag.findMany({
+    where: {
+      userId,
+      name: tagName,
+      OR: [
+        { transactionType: null }, // Works with both
+        { transactionType }, // Matches transaction type
+      ],
+    },
+    take: 1,
+  });
+
+  if (existingTags.length > 0) {
+    return existingTags[0].id;
+  }
+
+  // Create new tag with matching transaction type
+  try {
+    const newTag = await TagService.createTag(userId, {
+      name: tagName,
+      transactionType,
+    });
+    return newTag.id;
+  } catch (error) {
+    // If tag creation fails (e.g., duplicate), try to find it again
+    const retryTags = await prisma.tag.findMany({
+      where: {
+        userId,
+        name: tagName,
+      },
+      take: 1,
+    });
+    if (retryTags.length > 0) {
+      return retryTags[0].id;
+    }
+    // Otherwise, return null (don't fail the import)
+    return null;
+  }
 }
 
 /**

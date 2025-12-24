@@ -325,6 +325,7 @@ export const CreateTransactionInputSchema = z.object({
   externalId: z.string().max(200).nullable().optional(),
   paymentMethod: PaymentMethodSchema,
   tagIds: z.array(z.string()).optional().default([]),
+  primaryTagId: z.string().nullable().optional(),
 });
 
 export const UpdateTransactionInputSchema =
