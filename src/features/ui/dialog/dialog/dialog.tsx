@@ -219,15 +219,29 @@ export function Dialog({
     if (!open || !dialogRef.current || typeof window === "undefined") return;
 
     const focusableElements = getFocusableElements();
-    if (focusableElements.length > 0) {
-      // Small delay to ensure dialog is visible
-      setTimeout(() => {
-        focusableElements[0].focus();
-      }, 100);
-    } else {
+
+    if (focusableElements.length === 0) {
       // Focus dialog container if no focusable elements
       dialogRef.current.focus();
+      return;
     }
+
+    // Filter out buttons in the header (close button)
+    const header = dialogRef.current.querySelector("header");
+    const elementsOutsideHeader = focusableElements.filter((el) => {
+      return !header?.contains(el);
+    });
+
+    // Focus first element outside header, or first element if none found
+    const elementToFocus =
+      elementsOutsideHeader.length > 0
+        ? elementsOutsideHeader[0]
+        : focusableElements[0];
+
+    // Small delay to ensure dialog is visible
+    setTimeout(() => {
+      elementToFocus.focus();
+    }, 100);
   }, [open, getFocusableElements]);
 
   const handleClose = useCallback(() => {
