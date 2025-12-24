@@ -17,15 +17,13 @@ export function LinkButton({
   ...props
 }: ILinkButton) {
   const variantClasses: { [key in IVariant]: string } = {
-    default: "hover:underline p-0 border-none hover:bg-transparent",
-    primary:
-      "hover:underline p-0 border-none hover:bg-transparent text-primary",
-    danger: "hover:underline p-0 border-none hover:bg-transparent text-danger",
-    info: "hover:underline p-0 border-none hover:bg-transparent text-info",
-    warning:
-      "hover:underline p-0 border-none hover:bg-transparent text-warning",
-    success:
-      "hover:underline p-0 border-none hover:bg-transparent text-success",
+    default: "hover:bg-transparent",
+    primary: "hover:bg-transparent text-primary",
+    danger: "hover:bg-transparent text-danger",
+    info: "hover:bg-transparent text-info",
+    warning: "hover:bg-transparent text-warning",
+    success: "hover:bg-transparent text-success",
+    secondary: "hover:bg-transparent text-secondary",
   };
 
   return (
