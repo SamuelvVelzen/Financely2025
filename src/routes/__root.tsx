@@ -1,3 +1,4 @@
+import { OnlineStatusNotifier } from "@/features/shared/components/online-status-notifier";
 import { QueryProvider } from "@/features/shared/query/client";
 import { ToastContainer, ToastProvider } from "@/features/ui/toast";
 import {
@@ -55,6 +56,7 @@ function RootLayout() {
       <body>
         <QueryProvider>
           <ToastProvider>
+            <OnlineStatusNotifier />
             <Outlet />
             <ToastContainer />
           </ToastProvider>
