@@ -11,7 +11,8 @@ export type IVariant =
   | "info"
   | "warning"
   | "success"
-  | "primary";
+  | "primary"
+  | "secondary";
 
 export type IButtonProps = {
   buttonContent?: string | ReactNode;
@@ -49,6 +50,8 @@ export function Button({
     warning: "bg-warning hover:bg-warning-hover text-white border-warning",
     success: "bg-success hover:bg-success-hover text-white border-success",
     primary: "bg-primary hover:bg-primary-hover text-white border-primary",
+    secondary:
+      "bg-secondary hover:bg-secondary-hover text-white border-secondary",
   };
 
   const baseClasses =
