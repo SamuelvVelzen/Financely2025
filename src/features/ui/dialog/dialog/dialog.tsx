@@ -162,6 +162,8 @@ export function Dialog({
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLDivElement>) => {
       if (e.key === "Escape" && dismissible) {
+        e.preventDefault();
+        e.stopPropagation();
         handleOpenChange(false);
         return;
       }
