@@ -17,10 +17,13 @@ import { BaseLink } from "./base-link";
 import { NavItem } from "./nav-item";
 import { UserHeaderSidebar } from "./user-header-sidebar";
 import { useSidebar } from "./useSidebar";
+import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 
 export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
   const navigate = useNavigate();
+  const { data: unreadCountData } = useUnreadCount();
+  const unreadCount = unreadCountData?.count || 0;
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
   const containerClasses = `h-screen flex-shrink-0 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
 
@@ -85,6 +88,7 @@ export function Sidebar() {
             to={ROUTES.MESSAGES}
             label="Messages"
             icon={HiOutlineBell}
+            badge={unreadCount > 0 ? unreadCount : undefined}
           />
           <NavItem
             to={ROUTES.ACCOUNT}

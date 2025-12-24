@@ -51,4 +51,14 @@ export const queryKeys = {
     q?: string;
     sort?: string; // e.g., "occurredAt:desc"
   }) => ["incomes", params] as const,
+
+  // Message queries
+  messages: (params?: {
+    page?: number;
+    limit?: number;
+    read?: boolean;
+    type?: "INFO" | "SUCCESS" | "WARNING" | "ERROR";
+  }) => ["messages", params] as const,
+  message: (messageId: string) => ["messages", messageId] as const,
+  unreadCount: () => ["messages", "unread-count"] as const,
 } as const;

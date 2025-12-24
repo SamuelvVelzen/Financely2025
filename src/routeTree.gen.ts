@@ -21,6 +21,7 @@ import { Route as appExpensesRouteImport } from './routes/(app)/expenses'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
 import { Route as ApiV1TransactionsRouteImport } from './routes/api/v1/transactions'
 import { Route as ApiV1TagsRouteImport } from './routes/api/v1/tags'
+import { Route as ApiV1MessagesRouteImport } from './routes/api/v1/messages'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiV1TransactionsCsvUploadRouteImport } from './routes/api/v1/transactions.csv-upload'
@@ -36,6 +37,9 @@ import { Route as ApiV1TagsCsvMappingRouteImport } from './routes/api/v1/tags.cs
 import { Route as ApiV1TagsCsvImportRouteImport } from './routes/api/v1/tags.csv-import'
 import { Route as ApiV1TagsBulkRouteImport } from './routes/api/v1/tags.bulk'
 import { Route as ApiV1TagsTagIdRouteImport } from './routes/api/v1/tags.$tagId'
+import { Route as ApiV1MessagesReadAllRouteImport } from './routes/api/v1/messages.read-all'
+import { Route as ApiV1MessagesCountRouteImport } from './routes/api/v1/messages.count'
+import { Route as ApiV1MessagesMessageIdRouteImport } from './routes/api/v1/messages.$messageId'
 import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
 import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
@@ -99,6 +103,11 @@ const ApiV1TransactionsRoute = ApiV1TransactionsRouteImport.update({
 const ApiV1TagsRoute = ApiV1TagsRouteImport.update({
   id: '/api/v1/tags',
   path: '/api/v1/tags',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1MessagesRoute = ApiV1MessagesRouteImport.update({
+  id: '/api/v1/messages',
+  path: '/api/v1/messages',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1MeRoute = ApiV1MeRouteImport.update({
@@ -181,6 +190,21 @@ const ApiV1TagsTagIdRoute = ApiV1TagsTagIdRouteImport.update({
   path: '/$tagId',
   getParentRoute: () => ApiV1TagsRoute,
 } as any)
+const ApiV1MessagesReadAllRoute = ApiV1MessagesReadAllRouteImport.update({
+  id: '/read-all',
+  path: '/read-all',
+  getParentRoute: () => ApiV1MessagesRoute,
+} as any)
+const ApiV1MessagesCountRoute = ApiV1MessagesCountRouteImport.update({
+  id: '/count',
+  path: '/count',
+  getParentRoute: () => ApiV1MessagesRoute,
+} as any)
+const ApiV1MessagesMessageIdRoute = ApiV1MessagesMessageIdRouteImport.update({
+  id: '/$messageId',
+  path: '/$messageId',
+  getParentRoute: () => ApiV1MessagesRoute,
+} as any)
 const ApiV1MeProfileRoute = ApiV1MeProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -222,10 +246,14 @@ export interface FileRoutesByFullPath {
   '/': typeof appIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
+  '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
+  '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
+  '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
+  '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
   '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
@@ -255,10 +283,14 @@ export interface FileRoutesByTo {
   '/': typeof appIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
+  '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
+  '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
+  '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
+  '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
   '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
@@ -290,10 +322,14 @@ export interface FileRoutesById {
   '/(app)/': typeof appIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
+  '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
+  '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
+  '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
+  '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
   '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
@@ -325,10 +361,14 @@ export interface FileRouteTypes {
     | '/'
     | '/api/auth/$'
     | '/api/v1/me'
+    | '/api/v1/messages'
     | '/api/v1/tags'
     | '/api/v1/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
+    | '/api/v1/messages/$messageId'
+    | '/api/v1/messages/count'
+    | '/api/v1/messages/read-all'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
     | '/api/v1/tags/csv-import'
@@ -358,10 +398,14 @@ export interface FileRouteTypes {
     | '/'
     | '/api/auth/$'
     | '/api/v1/me'
+    | '/api/v1/messages'
     | '/api/v1/tags'
     | '/api/v1/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
+    | '/api/v1/messages/$messageId'
+    | '/api/v1/messages/count'
+    | '/api/v1/messages/read-all'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
     | '/api/v1/tags/csv-import'
@@ -392,10 +436,14 @@ export interface FileRouteTypes {
     | '/(app)/'
     | '/api/auth/$'
     | '/api/v1/me'
+    | '/api/v1/messages'
     | '/api/v1/tags'
     | '/api/v1/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
+    | '/api/v1/messages/$messageId'
+    | '/api/v1/messages/count'
+    | '/api/v1/messages/read-all'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
     | '/api/v1/tags/csv-import'
@@ -421,6 +469,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiV1MeRoute: typeof ApiV1MeRouteWithChildren
+  ApiV1MessagesRoute: typeof ApiV1MessagesRouteWithChildren
   ApiV1TagsRoute: typeof ApiV1TagsRouteWithChildren
   ApiV1TransactionsRoute: typeof ApiV1TransactionsRouteWithChildren
 }
@@ -509,6 +558,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/tags'
       fullPath: '/api/v1/tags'
       preLoaderRoute: typeof ApiV1TagsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/messages': {
+      id: '/api/v1/messages'
+      path: '/api/v1/messages'
+      fullPath: '/api/v1/messages'
+      preLoaderRoute: typeof ApiV1MessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/me': {
@@ -616,6 +672,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1TagsTagIdRouteImport
       parentRoute: typeof ApiV1TagsRoute
     }
+    '/api/v1/messages/read-all': {
+      id: '/api/v1/messages/read-all'
+      path: '/read-all'
+      fullPath: '/api/v1/messages/read-all'
+      preLoaderRoute: typeof ApiV1MessagesReadAllRouteImport
+      parentRoute: typeof ApiV1MessagesRoute
+    }
+    '/api/v1/messages/count': {
+      id: '/api/v1/messages/count'
+      path: '/count'
+      fullPath: '/api/v1/messages/count'
+      preLoaderRoute: typeof ApiV1MessagesCountRouteImport
+      parentRoute: typeof ApiV1MessagesRoute
+    }
+    '/api/v1/messages/$messageId': {
+      id: '/api/v1/messages/$messageId'
+      path: '/$messageId'
+      fullPath: '/api/v1/messages/$messageId'
+      preLoaderRoute: typeof ApiV1MessagesMessageIdRouteImport
+      parentRoute: typeof ApiV1MessagesRoute
+    }
     '/api/v1/me/profile': {
       id: '/api/v1/me/profile'
       path: '/profile'
@@ -701,6 +778,22 @@ const ApiV1MeRouteChildren: ApiV1MeRouteChildren = {
 const ApiV1MeRouteWithChildren =
   ApiV1MeRoute._addFileChildren(ApiV1MeRouteChildren)
 
+interface ApiV1MessagesRouteChildren {
+  ApiV1MessagesMessageIdRoute: typeof ApiV1MessagesMessageIdRoute
+  ApiV1MessagesCountRoute: typeof ApiV1MessagesCountRoute
+  ApiV1MessagesReadAllRoute: typeof ApiV1MessagesReadAllRoute
+}
+
+const ApiV1MessagesRouteChildren: ApiV1MessagesRouteChildren = {
+  ApiV1MessagesMessageIdRoute: ApiV1MessagesMessageIdRoute,
+  ApiV1MessagesCountRoute: ApiV1MessagesCountRoute,
+  ApiV1MessagesReadAllRoute: ApiV1MessagesReadAllRoute,
+}
+
+const ApiV1MessagesRouteWithChildren = ApiV1MessagesRoute._addFileChildren(
+  ApiV1MessagesRouteChildren,
+)
+
 interface ApiV1TagsCsvMappingRouteChildren {
   ApiV1TagsCsvMappingValidateRoute: typeof ApiV1TagsCsvMappingValidateRoute
 }
@@ -780,6 +873,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiV1MeRoute: ApiV1MeRouteWithChildren,
+  ApiV1MessagesRoute: ApiV1MessagesRouteWithChildren,
   ApiV1TagsRoute: ApiV1TagsRouteWithChildren,
   ApiV1TransactionsRoute: ApiV1TransactionsRouteWithChildren,
 }

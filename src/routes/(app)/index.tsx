@@ -20,6 +20,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useCreateMessage } from "@/features/message/hooks/useMessages";
+import type { IMessageAction } from "@/features/shared/validation/schemas";
 
 export const Route = createFileRoute("/(app)/")({
   component: Home,
@@ -45,6 +47,11 @@ function Home() {
       <Container className="mb-4">
         <h2 className="text-lg font-semibold mb-4">Toast Examples</h2>
         <ToastExample />
+      </Container>
+
+      <Container className="mb-4">
+        <h2 className="text-lg font-semibold mb-4">Message Testing</h2>
+        <MessageTestingExample />
       </Container>
 
       <Container className="mb-4">
@@ -564,6 +571,235 @@ function ToastExample() {
             })
           }>
           Bottom Right
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Message Testing Example
+ *
+ * Demonstrates:
+ * - Creating different types of messages (info, success, warning, error)
+ * - Messages with navigation actions
+ * - Messages with multiple actions
+ * - Subscription detection example
+ * - Expense alert example
+ * - Transaction import success example
+ */
+function MessageTestingExample() {
+  const toast = useToast();
+  const createMessage = useCreateMessage();
+
+  const handleCreateMessage = async (
+    title: string,
+    content: string,
+    type: "INFO" | "SUCCESS" | "WARNING" | "ERROR",
+    actions?: IMessageAction[]
+  ) => {
+    try {
+      await createMessage.mutateAsync({
+        title,
+        content,
+        type,
+        actions,
+      });
+      toast.success("Message created successfully!");
+    } catch (error) {
+      toast.error("Failed to create message");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-text-muted">
+        Click the buttons below to create test messages. Check the Messages page
+        to see them.
+      </p>
+
+      <h4 className="font-medium text-sm">Message Types</h4>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="info"
+          clicked={() =>
+            handleCreateMessage(
+              "Info Message",
+              "This is an informational message with a navigation action.",
+              "INFO",
+              [
+                {
+                  label: "View Expenses",
+                  type: "navigate",
+                  path: "/expenses",
+                  variant: "primary",
+                },
+                {
+                  label: "Dismiss",
+                  type: "dismiss",
+                  variant: "secondary",
+                },
+              ]
+            )
+          }
+          disabled={createMessage.isPending}>
+          Create Info Message
+        </Button>
+
+        <Button
+          variant="success"
+          clicked={() =>
+            handleCreateMessage(
+              "Success Message",
+              "This is a success message with multiple actions.",
+              "SUCCESS",
+              [
+                {
+                  label: "View Transactions",
+                  type: "navigate",
+                  path: "/expenses",
+                  variant: "primary",
+                },
+                {
+                  label: "View Tags",
+                  type: "navigate",
+                  path: "/tags",
+                  variant: "secondary",
+                },
+                {
+                  label: "Dismiss",
+                  type: "dismiss",
+                  variant: "secondary",
+                },
+              ]
+            )
+          }
+          disabled={createMessage.isPending}>
+          Create Success Message
+        </Button>
+
+        <Button
+          variant="warning"
+          clicked={() =>
+            handleCreateMessage(
+              "Warning Message",
+              "This is a warning message example.",
+              "WARNING",
+              [
+                {
+                  label: "View Details",
+                  type: "navigate",
+                  path: "/expenses",
+                  variant: "primary",
+                },
+                {
+                  label: "Dismiss",
+                  type: "dismiss",
+                  variant: "secondary",
+                },
+              ]
+            )
+          }
+          disabled={createMessage.isPending}>
+          Create Warning Message
+        </Button>
+
+        <Button
+          variant="danger"
+          clicked={() =>
+            handleCreateMessage(
+              "Error Message",
+              "This is an error message example.",
+              "ERROR",
+              [
+                {
+                  label: "Dismiss",
+                  type: "dismiss",
+                  variant: "secondary",
+                },
+              ]
+            )
+          }
+          disabled={createMessage.isPending}>
+          Create Error Message
+        </Button>
+      </div>
+
+      <h4 className="font-medium text-sm">Example Scenarios</h4>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          clicked={() =>
+            handleCreateMessage(
+              "Subscriptions Found",
+              "We found 3 potential subscriptions in your transactions.",
+              "INFO",
+              [
+                {
+                  label: "View Subscriptions",
+                  type: "navigate",
+                  path: "/subscriptions",
+                  variant: "primary",
+                },
+                {
+                  label: "Dismiss",
+                  type: "dismiss",
+                  variant: "secondary",
+                },
+              ]
+            )
+          }
+          disabled={createMessage.isPending}>
+          Subscription Detection
+        </Button>
+
+        <Button
+          clicked={() =>
+            handleCreateMessage(
+              "High Monthly Expenses",
+              "Your expenses this month ($2,500) are 25% higher than last month ($2,000).",
+              "WARNING",
+              [
+                {
+                  label: "View Expenses",
+                  type: "navigate",
+                  path: "/expenses",
+                  variant: "primary",
+                },
+                {
+                  label: "Dismiss",
+                  type: "dismiss",
+                  variant: "secondary",
+                },
+              ]
+            )
+          }
+          disabled={createMessage.isPending}>
+          Expense Alert
+        </Button>
+
+        <Button
+          clicked={() =>
+            handleCreateMessage(
+              "Import Complete",
+              "Successfully imported 15 transactions. 2 transactions failed to import.",
+              "SUCCESS",
+              [
+                {
+                  label: "View Transactions",
+                  type: "navigate",
+                  path: "/expenses",
+                  variant: "primary",
+                },
+                {
+                  label: "Dismiss",
+                  type: "dismiss",
+                  variant: "secondary",
+                },
+              ]
+            )
+          }
+          disabled={createMessage.isPending}>
+          Transaction Import Success
         </Button>
       </div>
     </div>

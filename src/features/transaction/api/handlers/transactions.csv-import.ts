@@ -10,6 +10,7 @@ import {
 } from "@/features/shared/validation/schemas";
 import { json } from "@tanstack/react-start";
 import { TransactionService } from "../../services/transaction.service";
+import { MessageFactory } from "@/features/message/services/message.factory";
 
 /**
  * POST /api/v1/transactions/csv/import
@@ -33,6 +34,18 @@ export async function POST({ request }: { request: Request }) {
         failureCount: result.errors.length,
         errors: result.errors,
       });
+
+      // Create message for import result (don't await, fire and forget)
+      if (result.created.length > 0) {
+        MessageFactory.createTransactionImportMessage(
+          userId,
+          result.created.length,
+          result.errors.length
+        ).catch((error) => {
+          // Log error but don't fail the request
+          console.error("Failed to create import message:", error);
+        });
+      }
 
       // Determine status code
       if (result.errors.length === 0) {

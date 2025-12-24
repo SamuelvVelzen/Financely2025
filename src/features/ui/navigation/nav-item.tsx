@@ -3,11 +3,13 @@ import { IPropsWithClassName, Never } from "@/features/util/type-helpers/props";
 import React from "react";
 import { BaseLink, IBaseLinkProps } from "./base-link";
 import { useSidebar } from "./useSidebar";
+import { Badge } from "../badge/badge";
 
 type INavItemProps = {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
   customIcon?: React.ReactNode;
+  badge?: number | string | null;
 } & IPropsWithClassName &
   (
     | ({
@@ -28,6 +30,7 @@ export function NavItem({
   icon: Icon,
   isAction = false,
   customIcon,
+  badge,
   clicked,
   to,
   ...props
@@ -36,7 +39,17 @@ export function NavItem({
 
   const content = (
     <>
-      {customIcon || (Icon && <Icon className="w-6 h-6 flex-shrink-0" />)}
+      <div className="relative flex-shrink-0">
+        {customIcon || (Icon && <Icon className="w-6 h-6 flex-shrink-0" />)}
+        {badge !== undefined && badge !== null && badge !== 0 && (
+          <Badge
+            backgroundColor="#dc2626"
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold"
+          >
+            {badge}
+          </Badge>
+        )}
+      </div>
       <span
         className={cn(
           "whitespace-nowrap text-base overflow-hidden",
