@@ -55,7 +55,7 @@ export function Button({
   };
 
   const baseClasses =
-    "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface";
+    "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface focus:outline-none focus:ring-2 focus:ring-primary";
   const disabledClasses =
     disabled && "opacity-50 cursor-not-allowed pointer-events-none";
   const sizeClasses: { [key in IButtonSize]: string } = {
