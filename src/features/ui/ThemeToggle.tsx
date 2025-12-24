@@ -1,73 +1,37 @@
-import { HiComputerDesktop, HiMoon, HiSun } from "react-icons/hi2";
+import { useEffect, useState } from "react";
+import { HiMoon, HiSun } from "react-icons/hi2";
 import { useTheme } from "./ThemeProvider";
-import { useSidebar } from "./navigation/useSidebar";
+import { ToggleButton } from "./button/toggle-button";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const { isExpanded } = useSidebar();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
-  const handleClick = (newTheme: typeof theme) => {
-    setTheme(newTheme);
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const themes = [
-    { value: "light" as const, icon: HiSun, label: "Light" },
-    { value: "dark" as const, icon: HiMoon, label: "Dark" },
-    { value: "system" as const, icon: HiComputerDesktop, label: "System" },
-  ];
-
-  if (!isExpanded) {
-    return (
-      <div className="flex flex-col gap-2">
-        {themes.map((t) => {
-          const ThemeIcon = t.icon;
-          const isActive = theme === t.value;
-
-          return (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => handleClick(t.value)}
-              className={`flex items-center justify-center w-full py-2 rounded-2xl cursor-pointer ${
-                isActive
-                  ? "bg-background text-text"
-                  : "text-text-muted hover:bg-background hover:text-text"
-              }`}
-              title={t.label}
-              aria-label={`Switch to ${t.label} theme`}>
-              <ThemeIcon className="w-5 h-5" />
-            </button>
-          );
-        })}
-      </div>
-    );
+  if (!mounted) {
+    // Return a placeholder that matches the expected size to prevent layout shift
+    return <div className="w-11 h-6" />;
   }
 
-  // Expanded view - show all options
+  const isDark = resolvedTheme === "dark";
   return (
-    <div className="space-y-2">
-      <div className="flex gap-3">
-        {themes.map((t) => {
-          const Icon = t.icon;
-          const isActive = theme === t.value;
-
-          return (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => handleClick(t.value)}
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 px-2 rounded-2xl cursor-pointer ${
-                isActive
-                  ? "bg-background text-text font-semibold"
-                  : "text-text-muted hover:bg-background hover:text-text"
-              }`}
-              aria-label={`Switch to ${t.label} theme`}>
-              <Icon className="w-5 h-5" />
-              <span className="text-xs">{t.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <ToggleButton
+      size="sm"
+      checked={isDark}
+      onChange={(checked) => setTheme(checked ? "dark" : "light")}
+      icon={{
+        on: {
+          icon: <HiMoon className="w-full h-full" />,
+          className: "text-dark",
+        },
+        off: {
+          icon: <HiSun className="w-full h-full" />,
+          className: "text-warning",
+        },
+      }}
+    />
   );
 }

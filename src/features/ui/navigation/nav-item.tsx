@@ -1,15 +1,16 @@
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName, Never } from "@/features/util/type-helpers/props";
 import React from "react";
+import { Badge } from "../badge/badge";
 import { BaseLink, IBaseLinkProps } from "./base-link";
 import { useSidebar } from "./useSidebar";
-import { Badge } from "../badge/badge";
 
 type INavItemProps = {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
   customIcon?: React.ReactNode;
   badge?: number | string | null;
+  postfixContent?: React.ReactNode;
 } & IPropsWithClassName &
   (
     | ({
@@ -33,6 +34,7 @@ export function NavItem({
   badge,
   clicked,
   to,
+  postfixContent,
   ...props
 }: INavItemProps) {
   const { isExpanded } = useSidebar();
@@ -44,25 +46,25 @@ export function NavItem({
         {badge !== undefined && badge !== null && badge !== 0 && (
           <Badge
             backgroundColor="#dc2626"
-            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold"
-          >
+            className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold">
             {badge}
           </Badge>
         )}
       </div>
       <span
         className={cn(
-          "whitespace-nowrap text-base overflow-hidden",
+          "whitespace-nowrap text-base overflow-hidden flex-1 text-left",
           isExpanded ? "ml-4" : "hidden"
         )}>
         {label}
       </span>
+      <div className={cn(isExpanded ? "ml-4" : "hidden")}>{postfixContent}</div>
     </>
   );
 
   const baseClasses = cn(
     "flex items-center py-3.5 rounded-3xl overflow-hidden",
-    isExpanded ? "px-3 -mx-3" : "justify-center px-0"
+    isExpanded ? "px-3 -mx-3 justify-start" : "justify-center px-0"
   );
 
   const activeClasses = "bg-background text-text font-semibold";
@@ -86,13 +88,13 @@ export function NavItem({
     );
   }
 
-  const combinedClasses = cn(className, baseClasses);
+  const combinedClasses = cn(baseClasses, className);
   const combinedActiveClasses = cn(combinedClasses, activeClasses);
 
   return (
     <BaseLink
       to={to}
-      className={combinedClasses}
+      className={cn("w-full", combinedClasses)}
       title={isExpanded ? label : label}
       inactiveProps={{ className: inactiveClasses }}
       activeProps={{ className: combinedActiveClasses }}

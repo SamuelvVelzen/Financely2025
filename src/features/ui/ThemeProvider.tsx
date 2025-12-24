@@ -10,99 +10,94 @@ type Theme = "light" | "dark" | "system";
 
 interface ThemeContextType {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
+  setTheme: (theme: "light" | "dark") => void;
   resolvedTheme: "light" | "dark";
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const THEME_STORAGE_KEY = "theme";
+
+function getSystemTheme(): "light" | "dark" {
+  if (typeof window === "undefined") return "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") return "system";
+  const saved = localStorage.getItem(THEME_STORAGE_KEY);
+  if (saved === "light" || saved === "dark") {
+    return saved;
+  }
+  return "system";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Initialize with safe defaults that work on both server and client
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("theme");
-      if (saved === "light" || saved === "dark" || saved === "system") {
-        return saved;
-      }
-    }
-    return "system";
-  });
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [mounted, setMounted] = useState(false);
+  const [systemTheme, setSystemTheme] = useState<"light" | "dark">(() =>
+    typeof window !== "undefined" ? getSystemTheme() : "light"
+  );
 
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
-  });
+  // Compute resolved theme - always accurate
+  const resolvedTheme: "light" | "dark" =
+    theme === "system" ? systemTheme : theme;
 
-  // Apply theme to HTML element whenever theme changes
+  // Initialize on mount
   useEffect(() => {
+    setMounted(true);
     if (typeof window === "undefined") return;
 
+    // Update systemTheme to ensure it's correct
+    const currentSystemTheme = getSystemTheme();
+    setSystemTheme(currentSystemTheme);
+
+    const resolved = theme === "system" ? currentSystemTheme : theme;
     const root = document.documentElement;
+    if (resolved === "dark") {
+      root.classList.add("dark");
+    } else {
+      root.classList.remove("dark");
+    }
+  }, [theme]);
 
-    // Get system preference
-    const getSystemTheme = (): "light" | "dark" => {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    };
+  // Apply theme to HTML element whenever theme or systemTheme changes
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
 
-    const resolved = theme === "system" ? getSystemTheme() : theme;
+    const root = document.documentElement;
+    const resolved = theme === "system" ? systemTheme : theme;
 
     if (resolved === "dark") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
     }
+  }, [theme, systemTheme, mounted]);
 
-    setResolvedTheme(resolved);
-  }, [theme]);
-
-  // Set theme and save to localStorage
-  const setTheme = useCallback((newTheme: Theme) => {
+  // Set theme and save to localStorage (only accepts light/dark)
+  const setTheme = useCallback((newTheme: "light" | "dark") => {
     setThemeState(newTheme);
     if (typeof window !== "undefined") {
-      localStorage.setItem("theme", newTheme);
-    }
-  }, []);
-
-  // Initialize theme on mount - read from localStorage
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const savedTheme = (localStorage.getItem("theme") as Theme) || "system";
-    if (savedTheme !== theme) {
-      setThemeState(savedTheme);
+      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
     }
   }, []);
 
   // Listen for system preference changes when theme is "system"
   useEffect(() => {
-    if (theme !== "system" || typeof window === "undefined") return;
-
-    const getSystemTheme = (): "light" | "dark" => {
-      return window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    };
+    if (!mounted || theme !== "system" || typeof window === "undefined") return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
-      // Reapply system theme when preference changes
-      const resolved = getSystemTheme();
-      const root = document.documentElement;
-      if (resolved === "dark") {
-        root.classList.add("dark");
-      } else {
-        root.classList.remove("dark");
-      }
-      setResolvedTheme(resolved);
+      const newSystemTheme = getSystemTheme();
+      setSystemTheme(newSystemTheme);
     };
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme]);
+  }, [theme, mounted]);
 
   // Always provide the context, even during SSR
   return (

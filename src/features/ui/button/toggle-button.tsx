@@ -2,8 +2,8 @@
 
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import React, { useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import React, { useId, useRef, useState } from "react";
 
 export type IToggleButtonSize = "sm" | "md" | "lg";
 
@@ -72,8 +72,12 @@ export function ToggleButton({
   const checked = isControlled ? controlledChecked : internalChecked;
   const toggleRef = useRef<HTMLButtonElement>(null);
 
-  const handleToggle = () => {
+  const handleToggle = (
+    e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
+  ) => {
     if (disabled) return;
+    e.stopPropagation();
+    e.preventDefault();
 
     const newChecked = !checked;
     if (!isControlled) {
@@ -86,15 +90,32 @@ export function ToggleButton({
     if (disabled) return;
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      handleToggle();
+      handleToggle(e);
     }
   };
 
   const config = sizeConfig[size];
 
+  const buttonClassName = cn(
+    "relative inline-flex items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+    config.trackWidth,
+    config.trackHeight,
+    checked ? "bg-success" : "bg-border",
+    disabled && "opacity-50 cursor-not-allowed",
+    !disabled && "cursor-pointer",
+    className
+  );
+
+  const thumbClassName = cn(
+    "absolute left-0.5 top-1/2 -translate-y-1/2 rounded-full bg-white shadow-sm transition-transform duration-300 ease-in-out flex items-center justify-center",
+    config.thumbSize,
+    checked && config.thumbTranslate
+  );
+
   return (
     <div className="flex items-center gap-2">
       <button
+        {...props}
         ref={toggleRef}
         type="button"
         role="switch"
@@ -105,22 +126,9 @@ export function ToggleButton({
         disabled={disabled}
         onClick={handleToggle}
         onKeyDown={handleKeyDown}
-        className={cn(
-          "relative inline-flex items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
-          config.trackWidth,
-          config.trackHeight,
-          checked ? "bg-success" : "bg-border",
-          disabled && "opacity-50 cursor-not-allowed",
-          !disabled && "cursor-pointer",
-          className
-        )}
-        {...props}>
-        <span
-          className={cn(
-            "absolute left-0.5 top-1/2 -translate-y-1/2 rounded-full bg-white shadow-sm transition-transform duration-300 ease-in-out flex items-center justify-center",
-            config.thumbSize,
-            checked && config.thumbTranslate
-          )}>
+        className={buttonClassName}
+        data-checked={checked}>
+        <span className={thumbClassName}>
           {icon && (
             <span
               className={cn(
@@ -141,11 +149,10 @@ export function ToggleButton({
             "text-sm cursor-pointer select-none",
             disabled && "opacity-50 cursor-not-allowed"
           )}
-          onClick={() => !disabled && handleToggle()}>
+          onClick={(e) => !disabled && handleToggle(e)}>
           {label}
         </label>
       )}
     </div>
   );
 }
-
