@@ -109,6 +109,7 @@ export const TagSchema = z.object({
   color: z.string().nullable(),
   description: z.string().nullable(),
   order: z.number().int(),
+  transactionType: TransactionTypeSchema.nullable().or(z.undefined()).transform(val => val ?? null),
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
 });
@@ -175,6 +176,10 @@ export const CreateTagInputSchema = z.object({
     .optional(),
   description: z.string().max(500).nullable().optional(),
   order: z.number().int().optional(),
+  transactionType: z.preprocess(
+    (val) => (val === "" || val === undefined ? null : val),
+    TransactionTypeSchema.nullable().optional()
+  ),
 });
 
 export const UpdateTagInputSchema = CreateTagInputSchema.partial();

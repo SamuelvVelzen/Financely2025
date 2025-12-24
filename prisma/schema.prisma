@@ -155,19 +155,20 @@ model Transaction {
 }
 
 model Tag {
-  id            String         @id @default(cuid())
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String           @id @default(cuid())
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
 
   name          String
-  color         String?         // optional color like #FF6600
+  color         String?           // optional color like #FF6600
   description   String?
   order         Int
+  transactionType TransactionType? // null = works with both, EXPENSE = expense only, INCOME = income only
 
   transactions  Transaction[]
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 
   @@unique([userId, name])
 }

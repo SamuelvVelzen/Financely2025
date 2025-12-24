@@ -2,7 +2,9 @@
 
 import {
   CreateTagInputSchema,
+  TransactionTypeSchema,
   type ITag,
+  type ITransactionType,
 } from "@/features/shared/validation/schemas";
 import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -10,6 +12,7 @@ import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialo
 import { Form } from "@/features/ui/form/form";
 import { ColorInput } from "@/features/ui/input/color-input";
 import { TextInput } from "@/features/ui/input/text-input";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
@@ -25,10 +28,18 @@ type IAddOrCreateTagDialog = {
 };
 
 type FormData = z.infer<typeof CreateTagInputSchema>;
+
+const TRANSACTION_TYPE_OPTIONS = [
+  { value: "EXPENSE", label: "Expense Only" },
+  { value: "INCOME", label: "Income Only" },
+  { value: "", label: "Both" },
+] as const;
+
 const getEmptyFormValues = (): FormData => ({
   name: "",
   color: "",
   description: "",
+  transactionType: undefined,
 });
 
 export function AddOrCreateTagDialog({
@@ -86,6 +97,7 @@ export function AddOrCreateTagDialog({
           name: tag.name,
           color: tag.color ?? "",
           description: tag.description ?? "",
+          transactionType: tag.transactionType ?? undefined,
         });
       } else {
         // Create mode: reset to defaults or use initial name
@@ -93,6 +105,7 @@ export function AddOrCreateTagDialog({
           name: initialName || "",
           color: "",
           description: "",
+          transactionType: undefined,
         });
       }
     } else {
@@ -116,6 +129,10 @@ export function AddOrCreateTagDialog({
       description:
         data.description && data.description.trim() !== ""
           ? data.description.trim()
+          : null,
+      transactionType:
+        data.transactionType && data.transactionType !== ""
+          ? (data.transactionType as ITransactionType)
           : null,
     };
 
@@ -174,6 +191,13 @@ export function AddOrCreateTagDialog({
               <TextInput
                 name="description"
                 label="Description"
+                disabled={pending}
+              />
+              <SelectDropdown
+                name="transactionType"
+                label="Transaction Type"
+                options={TRANSACTION_TYPE_OPTIONS}
+                placeholder="Select transaction type..."
                 disabled={pending}
               />
             </div>

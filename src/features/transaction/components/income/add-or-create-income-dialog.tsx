@@ -259,6 +259,7 @@ export function AddOrCreateIncomeDialog({
                 multiple={true}
                 placeholder="Select tags..."
                 disabled={pending}
+                transactionType="INCOME"
               />
             </div>
           </Form>

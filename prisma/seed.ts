@@ -18,54 +18,63 @@ const defaultTags = [
     color: "#FF6B6B",
     description: "Restaurants, groceries, and food-related expenses",
     order: 0,
+    transactionType: "EXPENSE",
   },
   {
     name: "Transportation",
     color: "#4ECDC4",
     description: "Gas, public transit, car maintenance, and travel",
     order: 1,
+    transactionType: "EXPENSE",
   },
   {
     name: "Shopping",
     color: "#9B59B6",
     description: "General shopping and retail purchases",
     order: 2,
+    transactionType: "EXPENSE",
   },
   {
     name: "Entertainment",
     color: "#E91E63",
     description: "Movies, concerts, hobbies, and leisure activities",
     order: 3,
+    transactionType: "EXPENSE",
   },
   {
     name: "Bills & Utilities",
     color: "#F39C12",
     description: "Electricity, water, internet, phone, and other bills",
     order: 4,
+    transactionType: "EXPENSE",
   },
   {
     name: "Healthcare",
     color: "#2ECC71",
     description: "Medical expenses, prescriptions, and health services",
     order: 5,
+    transactionType: "EXPENSE",
   },
   {
     name: "Income",
     color: "#27AE60",
     description: "Salary, freelance income, and other earnings",
     order: 6,
+    transactionType: "INCOME",
   },
   {
     name: "Savings",
     color: "#3498DB",
     description: "Savings transfers and investment contributions",
     order: 7,
+    transactionType: null,
   },
   {
     name: "Other",
     color: "#95A5A6",
     description: "Miscellaneous expenses that don't fit other categories",
     order: 8,
+    transactionType: "EXPENSE",
   },
 ];
 
@@ -139,31 +148,56 @@ async function main() {
   }
 
   // Create tags for the user (tags reference the app User)
-  console.log(`\n📋 Creating ${defaultTags.length} default tags...`);
+  console.log(`\n📋 Creating/updating ${defaultTags.length} default tags...`);
 
   let createdCount = 0;
+  let updatedCount = 0;
   let skippedCount = 0;
 
   for (const tag of defaultTags) {
     try {
-      await prisma.tag.create({
-        data: {
-          userId: appUser.id, // This is the app User ID
-          name: tag.name,
-          color: tag.color,
-          description: tag.description,
-          order: tag.order,
+      // Try to find existing tag
+      const existingTag = await prisma.tag.findUnique({
+        where: {
+          userId_name: {
+            userId: appUser.id,
+            name: tag.name,
+          },
         },
       });
-      console.log(`  ✅ Created tag: ${tag.name}`);
-      createdCount++;
+
+      if (existingTag) {
+        // Update existing tag with transactionType
+        await prisma.tag.update({
+          where: { id: existingTag.id },
+          data: {
+            transactionType: tag.transactionType,
+          },
+        });
+        console.log(`  🔄 Updated tag: ${tag.name}`);
+        updatedCount++;
+      } else {
+        // Create new tag
+        await prisma.tag.create({
+          data: {
+            userId: appUser.id, // This is the app User ID
+            name: tag.name,
+            color: tag.color,
+            description: tag.description,
+            order: tag.order,
+            transactionType: tag.transactionType,
+          },
+        });
+        console.log(`  ✅ Created tag: ${tag.name}`);
+        createdCount++;
+      }
     } catch (error: any) {
-      // Handle unique constraint violation (tag already exists)
+      // Handle unique constraint violation (shouldn't happen with upsert logic above)
       if (error.code === "P2002") {
         console.log(`  ⏭️  Tag already exists: ${tag.name}`);
         skippedCount++;
       } else {
-        console.error(`  ❌ Error creating tag ${tag.name}:`, error);
+        console.error(`  ❌ Error processing tag ${tag.name}:`, error);
         throw error;
       }
     }
@@ -171,7 +205,8 @@ async function main() {
 
   console.log(`\n🎉 Seed completed!`);
   console.log(`   Created: ${createdCount} tags`);
-  console.log(`   Skipped: ${skippedCount} tags (already exist)`);
+  console.log(`   Updated: ${updatedCount} tags`);
+  console.log(`   Skipped: ${skippedCount} tags`);
   console.log(`\n📧 Seed User Credentials:`);
   console.log(`   Email: ${SEED_USER_EMAIL}`);
   console.log(`   Password: ${SEED_USER_PASSWORD}`);

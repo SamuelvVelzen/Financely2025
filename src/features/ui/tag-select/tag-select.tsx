@@ -3,7 +3,10 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { queryKeys } from "@/features/shared/query/keys";
-import { type ITag } from "@/features/shared/validation/schemas";
+import {
+  type ITag,
+  type ITransactionType,
+} from "@/features/shared/validation/schemas";
 import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-create-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
@@ -19,6 +22,7 @@ export type ITagSelectProps = IPropsWithClassName & {
   label?: string;
   searchPlaceholder?: string;
   disabled?: boolean;
+  transactionType?: ITransactionType;
 };
 
 export function TagSelect({
@@ -29,10 +33,11 @@ export function TagSelect({
   label,
   searchPlaceholder = "Type to search tags...",
   disabled = false,
+  transactionType,
 }: ITagSelectProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
-  const orderedTags = useOrderedData(tags);
+  const orderedTags = useOrderedData(tags) as ITag[];
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [pendingTagName, setPendingTagName] = useState<string>("");
 
@@ -41,14 +46,25 @@ export function TagSelect({
 
   const { highlightText } = useHighlightText();
 
+  // Filter tags based on transactionType
+  // Show tags where: transactionType === null (works with both) OR transactionType === provided type
+  const filteredTags = useMemo(() => {
+    if (!transactionType) {
+      return orderedTags;
+    }
+    return orderedTags.filter(
+      (tag) => tag.transactionType === null || tag.transactionType === transactionType
+    );
+  }, [orderedTags, transactionType]);
+
   // Convert tags to SelectOption format
   const tagOptions: ISelectOption<ITag>[] = useMemo(() => {
-    return orderedTags.map((tag) => ({
+    return filteredTags.map((tag) => ({
       value: tag.id,
       label: tag.name,
       data: tag,
     }));
-  }, [orderedTags]);
+  }, [filteredTags]);
 
   // Handle create new tag
   const handleCreateNew = (searchQuery: string) => {

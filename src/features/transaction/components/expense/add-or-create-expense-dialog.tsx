@@ -255,6 +255,7 @@ export function AddOrCreateExpenseDialog({
                 multiple={true}
                 placeholder="Select tags..."
                 disabled={pending}
+                transactionType="EXPENSE"
               />
             </div>
           </Form>
