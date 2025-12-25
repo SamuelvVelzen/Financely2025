@@ -223,7 +223,7 @@ export function CalendarView({
               onClick={() => handleDateClick(day)}
               className={cn(
                 "relative h-10 text-sm transition-colors",
-                "hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-primary",
+                "hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 !isCurrentMonthDay && "text-text-muted opacity-50",
                 isCurrentMonthDay && "text-text",
                 // Weekend background (only when not in range and not selected)

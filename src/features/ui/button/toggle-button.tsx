@@ -97,7 +97,7 @@ export function ToggleButton({
   const config = sizeConfig[size];
 
   const buttonClassName = cn(
-    "relative inline-flex items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+    "relative inline-flex items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:ring-offset-2",
     config.trackWidth,
     config.trackHeight,
     checked ? "bg-success" : "bg-border",

@@ -55,7 +55,7 @@ export function Button({
   };
 
   const baseClasses =
-    "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface focus:outline-none focus:ring-2 focus:ring-primary";
+    "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
   const disabledClasses = disabled && "pointer-events-none";
   const sizeClasses: { [key in IButtonSize]: string } = {
     xs: "px-0.5 py-0.5 text-xs",

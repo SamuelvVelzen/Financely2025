@@ -17,9 +17,8 @@ type ExtractDataFromOptions<
 > = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
 
 export type ISelectInputProps<
-  TOptions extends
-    | ISelectOption<any>[]
-    | readonly ISelectOption<any>[] = ISelectOption[],
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
+    ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 > = IPropsWithClassName & {
   name: string;
@@ -31,9 +30,8 @@ export type ISelectInputProps<
 };
 
 export function NativeSelect<
-  TOptions extends
-    | ISelectOption<any>[]
-    | readonly ISelectOption<any>[] = ISelectOption[],
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
+    ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 >({
   className = "",
@@ -48,7 +46,7 @@ export function NativeSelect<
   const error = form.formState.errors[name];
 
   const baseClasses =
-    "border rounded-2xl bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
+    "border rounded-2xl bg-surface text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
   const borderClass = error ? "border-danger" : "border-border";
   const widthBaseClasses = `h-[22px] box-content`;
 
