@@ -8,6 +8,7 @@ import {
   HiArrowTrendingUp,
   HiChartBar,
   HiOutlineBell,
+  HiOutlineCurrencyDollar,
   HiOutlineTag,
 } from "react-icons/hi2";
 import { Container } from "../container/container";
@@ -64,6 +65,13 @@ export function Sidebar() {
           </li>
           <li>
             <NavItem
+              to={ROUTES.BUDGETS}
+              label="Budgets"
+              icon={HiOutlineCurrencyDollar}
+            />
+          </li>
+          <li>
+            <NavItem
               to={ROUTES.INCOMES}
               label="Income"
               icon={HiArrowTrendingUp}
@@ -100,7 +108,7 @@ export function Sidebar() {
             to={ROUTES.ACCOUNT}
             label="Account"
             customIcon={
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shrink-0">
                 <span className="text-white text-xs font-semibold">SV</span>
               </div>
             }

@@ -19,11 +19,15 @@ import { Route as appMessagesRouteImport } from './routes/(app)/messages'
 import { Route as appIncomesRouteImport } from './routes/(app)/incomes'
 import { Route as appExpensesRouteImport } from './routes/(app)/expenses'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
+import { Route as appBudgetsIndexRouteImport } from './routes/(app)/budgets.index'
 import { Route as ApiV1TransactionsRouteImport } from './routes/api/v1/transactions'
 import { Route as ApiV1TagsRouteImport } from './routes/api/v1/tags'
 import { Route as ApiV1MessagesRouteImport } from './routes/api/v1/messages'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
+import { Route as ApiV1BudgetsRouteImport } from './routes/api/v1/budgets'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as appBudgetsNewRouteImport } from './routes/(app)/budgets.new'
+import { Route as appBudgetsBudgetIdIndexRouteImport } from './routes/(app)/budgets.$budgetId.index'
 import { Route as ApiV1TransactionsCsvUploadRouteImport } from './routes/api/v1/transactions.csv-upload'
 import { Route as ApiV1TransactionsCsvTransformRouteImport } from './routes/api/v1/transactions.csv-transform'
 import { Route as ApiV1TransactionsCsvMappingRouteImport } from './routes/api/v1/transactions.csv-mapping'
@@ -42,8 +46,11 @@ import { Route as ApiV1MessagesCountRouteImport } from './routes/api/v1/messages
 import { Route as ApiV1MessagesMessageIdRouteImport } from './routes/api/v1/messages.$messageId'
 import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
 import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
+import { Route as ApiV1BudgetsBudgetIdRouteImport } from './routes/api/v1/budgets.$budgetId'
+import { Route as appBudgetsBudgetIdEditRouteImport } from './routes/(app)/budgets.$budgetId.edit'
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
 import { Route as ApiV1MeAccountsAccountIdRouteImport } from './routes/api/v1/me.accounts.$accountId'
+import { Route as ApiV1BudgetsBudgetIdComparisonRouteImport } from './routes/api/v1/budgets.$budgetId.comparison'
 import { Route as ApiV1TransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/transactions.$transactionId.tags.$tagId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -95,6 +102,11 @@ const appAccountRoute = appAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => appRouteRoute,
 } as any)
+const appBudgetsIndexRoute = appBudgetsIndexRouteImport.update({
+  id: '/budgets/',
+  path: '/budgets/',
+  getParentRoute: () => appRouteRoute,
+} as any)
 const ApiV1TransactionsRoute = ApiV1TransactionsRouteImport.update({
   id: '/api/v1/transactions',
   path: '/api/v1/transactions',
@@ -115,10 +127,25 @@ const ApiV1MeRoute = ApiV1MeRouteImport.update({
   path: '/api/v1/me',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1BudgetsRoute = ApiV1BudgetsRouteImport.update({
+  id: '/api/v1/budgets',
+  path: '/api/v1/budgets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const appBudgetsNewRoute = appBudgetsNewRouteImport.update({
+  id: '/budgets/new',
+  path: '/budgets/new',
+  getParentRoute: () => appRouteRoute,
+} as any)
+const appBudgetsBudgetIdIndexRoute = appBudgetsBudgetIdIndexRouteImport.update({
+  id: '/budgets/$budgetId/',
+  path: '/budgets/$budgetId/',
+  getParentRoute: () => appRouteRoute,
 } as any)
 const ApiV1TransactionsCsvUploadRoute =
   ApiV1TransactionsCsvUploadRouteImport.update({
@@ -215,6 +242,16 @@ const ApiV1MeAccountsRoute = ApiV1MeAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => ApiV1MeRoute,
 } as any)
+const ApiV1BudgetsBudgetIdRoute = ApiV1BudgetsBudgetIdRouteImport.update({
+  id: '/$budgetId',
+  path: '/$budgetId',
+  getParentRoute: () => ApiV1BudgetsRoute,
+} as any)
+const appBudgetsBudgetIdEditRoute = appBudgetsBudgetIdEditRouteImport.update({
+  id: '/budgets/$budgetId/edit',
+  path: '/budgets/$budgetId/edit',
+  getParentRoute: () => appRouteRoute,
+} as any)
 const ApiV1TagsCsvMappingValidateRoute =
   ApiV1TagsCsvMappingValidateRouteImport.update({
     id: '/validate',
@@ -226,6 +263,12 @@ const ApiV1MeAccountsAccountIdRoute =
     id: '/$accountId',
     path: '/$accountId',
     getParentRoute: () => ApiV1MeAccountsRoute,
+  } as any)
+const ApiV1BudgetsBudgetIdComparisonRoute =
+  ApiV1BudgetsBudgetIdComparisonRouteImport.update({
+    id: '/comparison',
+    path: '/comparison',
+    getParentRoute: () => ApiV1BudgetsBudgetIdRoute,
   } as any)
 const ApiV1TransactionsTransactionIdTagsTagIdRoute =
   ApiV1TransactionsTransactionIdTagsTagIdRouteImport.update({
@@ -244,11 +287,16 @@ export interface FileRoutesByFullPath {
   '/messages': typeof appMessagesRoute
   '/tags': typeof appTagsRoute
   '/': typeof appIndexRoute
+  '/budgets/new': typeof appBudgetsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/budgets': typeof appBudgetsIndexRoute
+  '/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
+  '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
@@ -267,6 +315,8 @@ export interface FileRoutesByFullPath {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/budgets/$budgetId': typeof appBudgetsBudgetIdIndexRoute
+  '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
@@ -281,11 +331,16 @@ export interface FileRoutesByTo {
   '/messages': typeof appMessagesRoute
   '/tags': typeof appTagsRoute
   '/': typeof appIndexRoute
+  '/budgets/new': typeof appBudgetsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/budgets': typeof appBudgetsIndexRoute
+  '/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
+  '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
@@ -304,6 +359,8 @@ export interface FileRoutesByTo {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/budgets/$budgetId': typeof appBudgetsBudgetIdIndexRoute
+  '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
@@ -320,11 +377,16 @@ export interface FileRoutesById {
   '/(app)/messages': typeof appMessagesRoute
   '/(app)/tags': typeof appTagsRoute
   '/(app)/': typeof appIndexRoute
+  '/(app)/budgets/new': typeof appBudgetsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
+  '/(app)/budgets/': typeof appBudgetsIndexRoute
+  '/(app)/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
+  '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
@@ -343,6 +405,8 @@ export interface FileRoutesById {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/(app)/budgets/$budgetId/': typeof appBudgetsBudgetIdIndexRoute
+  '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
@@ -359,11 +423,16 @@ export interface FileRouteTypes {
     | '/messages'
     | '/tags'
     | '/'
+    | '/budgets/new'
     | '/api/auth/$'
+    | '/api/v1/budgets'
     | '/api/v1/me'
     | '/api/v1/messages'
     | '/api/v1/tags'
     | '/api/v1/transactions'
+    | '/budgets'
+    | '/budgets/$budgetId/edit'
+    | '/api/v1/budgets/$budgetId'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/messages/$messageId'
@@ -382,6 +451,8 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
+    | '/budgets/$budgetId'
+    | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
@@ -396,11 +467,16 @@ export interface FileRouteTypes {
     | '/messages'
     | '/tags'
     | '/'
+    | '/budgets/new'
     | '/api/auth/$'
+    | '/api/v1/budgets'
     | '/api/v1/me'
     | '/api/v1/messages'
     | '/api/v1/tags'
     | '/api/v1/transactions'
+    | '/budgets'
+    | '/budgets/$budgetId/edit'
+    | '/api/v1/budgets/$budgetId'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/messages/$messageId'
@@ -419,6 +495,8 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
+    | '/budgets/$budgetId'
+    | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
@@ -434,11 +512,16 @@ export interface FileRouteTypes {
     | '/(app)/messages'
     | '/(app)/tags'
     | '/(app)/'
+    | '/(app)/budgets/new'
     | '/api/auth/$'
+    | '/api/v1/budgets'
     | '/api/v1/me'
     | '/api/v1/messages'
     | '/api/v1/tags'
     | '/api/v1/transactions'
+    | '/(app)/budgets/'
+    | '/(app)/budgets/$budgetId/edit'
+    | '/api/v1/budgets/$budgetId'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/messages/$messageId'
@@ -457,6 +540,8 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
+    | '/(app)/budgets/$budgetId/'
+    | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
@@ -468,6 +553,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiV1BudgetsRoute: typeof ApiV1BudgetsRouteWithChildren
   ApiV1MeRoute: typeof ApiV1MeRouteWithChildren
   ApiV1MessagesRoute: typeof ApiV1MessagesRouteWithChildren
   ApiV1TagsRoute: typeof ApiV1TagsRouteWithChildren
@@ -546,6 +632,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAccountRouteImport
       parentRoute: typeof appRouteRoute
     }
+    '/(app)/budgets/': {
+      id: '/(app)/budgets/'
+      path: '/budgets'
+      fullPath: '/budgets'
+      preLoaderRoute: typeof appBudgetsIndexRouteImport
+      parentRoute: typeof appRouteRoute
+    }
     '/api/v1/transactions': {
       id: '/api/v1/transactions'
       path: '/api/v1/transactions'
@@ -574,12 +667,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/budgets': {
+      id: '/api/v1/budgets'
+      path: '/api/v1/budgets'
+      fullPath: '/api/v1/budgets'
+      preLoaderRoute: typeof ApiV1BudgetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(app)/budgets/new': {
+      id: '/(app)/budgets/new'
+      path: '/budgets/new'
+      fullPath: '/budgets/new'
+      preLoaderRoute: typeof appBudgetsNewRouteImport
+      parentRoute: typeof appRouteRoute
+    }
+    '/(app)/budgets/$budgetId/': {
+      id: '/(app)/budgets/$budgetId/'
+      path: '/budgets/$budgetId'
+      fullPath: '/budgets/$budgetId'
+      preLoaderRoute: typeof appBudgetsBudgetIdIndexRouteImport
+      parentRoute: typeof appRouteRoute
     }
     '/api/v1/transactions/csv-upload': {
       id: '/api/v1/transactions/csv-upload'
@@ -707,6 +821,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeAccountsRouteImport
       parentRoute: typeof ApiV1MeRoute
     }
+    '/api/v1/budgets/$budgetId': {
+      id: '/api/v1/budgets/$budgetId'
+      path: '/$budgetId'
+      fullPath: '/api/v1/budgets/$budgetId'
+      preLoaderRoute: typeof ApiV1BudgetsBudgetIdRouteImport
+      parentRoute: typeof ApiV1BudgetsRoute
+    }
+    '/(app)/budgets/$budgetId/edit': {
+      id: '/(app)/budgets/$budgetId/edit'
+      path: '/budgets/$budgetId/edit'
+      fullPath: '/budgets/$budgetId/edit'
+      preLoaderRoute: typeof appBudgetsBudgetIdEditRouteImport
+      parentRoute: typeof appRouteRoute
+    }
     '/api/v1/tags/csv-mapping/validate': {
       id: '/api/v1/tags/csv-mapping/validate'
       path: '/validate'
@@ -720,6 +848,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/me/accounts/$accountId'
       preLoaderRoute: typeof ApiV1MeAccountsAccountIdRouteImport
       parentRoute: typeof ApiV1MeAccountsRoute
+    }
+    '/api/v1/budgets/$budgetId/comparison': {
+      id: '/api/v1/budgets/$budgetId/comparison'
+      path: '/comparison'
+      fullPath: '/api/v1/budgets/$budgetId/comparison'
+      preLoaderRoute: typeof ApiV1BudgetsBudgetIdComparisonRouteImport
+      parentRoute: typeof ApiV1BudgetsBudgetIdRoute
     }
     '/api/v1/transactions/$transactionId/tags/$tagId': {
       id: '/api/v1/transactions/$transactionId/tags/$tagId'
@@ -738,6 +873,10 @@ interface appRouteRouteChildren {
   appMessagesRoute: typeof appMessagesRoute
   appTagsRoute: typeof appTagsRoute
   appIndexRoute: typeof appIndexRoute
+  appBudgetsNewRoute: typeof appBudgetsNewRoute
+  appBudgetsIndexRoute: typeof appBudgetsIndexRoute
+  appBudgetsBudgetIdEditRoute: typeof appBudgetsBudgetIdEditRoute
+  appBudgetsBudgetIdIndexRoute: typeof appBudgetsBudgetIdIndexRoute
 }
 
 const appRouteRouteChildren: appRouteRouteChildren = {
@@ -747,10 +886,37 @@ const appRouteRouteChildren: appRouteRouteChildren = {
   appMessagesRoute: appMessagesRoute,
   appTagsRoute: appTagsRoute,
   appIndexRoute: appIndexRoute,
+  appBudgetsNewRoute: appBudgetsNewRoute,
+  appBudgetsIndexRoute: appBudgetsIndexRoute,
+  appBudgetsBudgetIdEditRoute: appBudgetsBudgetIdEditRoute,
+  appBudgetsBudgetIdIndexRoute: appBudgetsBudgetIdIndexRoute,
 }
 
 const appRouteRouteWithChildren = appRouteRoute._addFileChildren(
   appRouteRouteChildren,
+)
+
+interface ApiV1BudgetsBudgetIdRouteChildren {
+  ApiV1BudgetsBudgetIdComparisonRoute: typeof ApiV1BudgetsBudgetIdComparisonRoute
+}
+
+const ApiV1BudgetsBudgetIdRouteChildren: ApiV1BudgetsBudgetIdRouteChildren = {
+  ApiV1BudgetsBudgetIdComparisonRoute: ApiV1BudgetsBudgetIdComparisonRoute,
+}
+
+const ApiV1BudgetsBudgetIdRouteWithChildren =
+  ApiV1BudgetsBudgetIdRoute._addFileChildren(ApiV1BudgetsBudgetIdRouteChildren)
+
+interface ApiV1BudgetsRouteChildren {
+  ApiV1BudgetsBudgetIdRoute: typeof ApiV1BudgetsBudgetIdRouteWithChildren
+}
+
+const ApiV1BudgetsRouteChildren: ApiV1BudgetsRouteChildren = {
+  ApiV1BudgetsBudgetIdRoute: ApiV1BudgetsBudgetIdRouteWithChildren,
+}
+
+const ApiV1BudgetsRouteWithChildren = ApiV1BudgetsRoute._addFileChildren(
+  ApiV1BudgetsRouteChildren,
 )
 
 interface ApiV1MeAccountsRouteChildren {
@@ -872,6 +1038,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiV1BudgetsRoute: ApiV1BudgetsRouteWithChildren,
   ApiV1MeRoute: ApiV1MeRouteWithChildren,
   ApiV1MessagesRoute: ApiV1MessagesRouteWithChildren,
   ApiV1TagsRoute: ApiV1TagsRouteWithChildren,
