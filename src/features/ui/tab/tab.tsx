@@ -4,14 +4,16 @@ import { Button } from "@/features/ui/button/button";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren, useEffect, type KeyboardEvent } from "react";
+import { HiExclamationTriangle } from "react-icons/hi2";
 import { useTabContext } from "./tab-context";
 
 type ITabProps = IPropsWithClassName &
   PropsWithChildren & {
     value: string;
+    showWarning?: boolean;
   };
 
-export function Tab({ value, children, className = "" }: ITabProps) {
+export function Tab({ value, children, className = "", showWarning = false }: ITabProps) {
   const {
     value: activeValue,
     setValue,
@@ -92,7 +94,12 @@ export function Tab({ value, children, className = "" }: ITabProps) {
 
           className
         )}>
-        {children}
+        <div className="flex items-center gap-2">
+          {children}
+          {showWarning && (
+            <HiExclamationTriangle className="w-4 h-4 text-warning" />
+          )}
+        </div>
       </Button>
     </div>
   );

@@ -14,7 +14,7 @@ type IBudgetTagSelectorProps = {
 };
 
 export function BudgetTagSelector({
-  name = "selectedTagIds",
+  name = "tags.selectedTagIds",
   transactionType,
 }: IBudgetTagSelectorProps) {
   const { data: tagsData } = useTags();
@@ -34,7 +34,7 @@ export function BudgetTagSelector({
   }, [orderedTags, transactionType]);
 
   const selectedTagIds = form.watch(name) as string[] | undefined;
-  const includeMisc = form.watch("includeMisc") as boolean | undefined;
+  const includeMisc = form.watch("tags.includeMisc") as boolean | undefined;
 
   const handleTagToggle = (tagId: string) => {
     const current = selectedTagIds ?? [];
@@ -59,7 +59,7 @@ export function BudgetTagSelector({
   };
 
   const handleMiscToggle = (checked: boolean) => {
-    form.setValue("includeMisc", checked, { shouldValidate: true });
+    form.setValue("tags.includeMisc", checked, { shouldValidate: true });
   };
 
   const selectedCount = (selectedTagIds?.length ?? 0) + (includeMisc ? 1 : 0);

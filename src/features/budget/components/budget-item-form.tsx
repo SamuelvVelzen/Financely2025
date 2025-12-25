@@ -3,11 +3,11 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITag } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
+import { IconButton } from "@/features/ui/button/icon-button";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { Label } from "@/features/ui/typography/label";
-import { IconButton } from "@/features/ui/button/icon-button";
-import { useMemo, useEffect } from "react";
-import { useFormContext, useFieldArray } from "react-hook-form";
+import { useEffect, useMemo } from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { HiTrash } from "react-icons/hi2";
 
 type IBudgetItemFormProps = {
@@ -31,14 +31,18 @@ export function BudgetItemForm({
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "items",
+    name: "budget.items",
   });
 
   // Sync fields with selected tags
   useEffect(() => {
-    const currentItems = form.getValues("items") ?? [];
-    const currentTagIds = currentItems.map((item: any) => item.tagId).filter((id): id is string => id !== null);
-    const currentHasMisc = currentItems.some((item: any) => item.tagId === null);
+    const currentItems = form.getValues("budget.items") ?? [];
+    const currentTagIds = currentItems
+      .map((item: any) => item.tagId)
+      .filter((id: string | null): id is string => id !== null);
+    const currentHasMisc = currentItems.some(
+      (item: any) => item.tagId === null
+    );
 
     // Remove items for tags that are no longer selected
     const itemsToKeep = currentItems.filter((item: any) => {
@@ -47,7 +51,9 @@ export function BudgetItemForm({
     });
 
     // Add items for newly selected tags
-    const newTagIds = selectedTagIds.filter((id) => !currentTagIds.includes(id));
+    const newTagIds = selectedTagIds.filter(
+      (id) => !currentTagIds.includes(id)
+    );
     newTagIds.forEach((tagId) => {
       itemsToKeep.push({ tagId, expectedAmount: "0" });
     });
@@ -56,13 +62,15 @@ export function BudgetItemForm({
     if (includeMisc && !currentHasMisc) {
       itemsToKeep.push({ tagId: null, expectedAmount: "0" });
     } else if (!includeMisc && currentHasMisc) {
-      const miscIndex = itemsToKeep.findIndex((item: any) => item.tagId === null);
+      const miscIndex = itemsToKeep.findIndex(
+        (item: any) => item.tagId === null
+      );
       if (miscIndex !== -1) {
         itemsToKeep.splice(miscIndex, 1);
       }
     }
 
-    form.setValue("items", itemsToKeep, { shouldValidate: false });
+    form.setValue("budget.items", itemsToKeep, { shouldValidate: false });
   }, [selectedTagIds, includeMisc, form]);
 
   const getTagName = (tagId: string | null) => {
@@ -90,7 +98,9 @@ export function BudgetItemForm({
       <Label>Set Expected Amounts</Label>
       <div className="space-y-3">
         {fields.map((field, index) => {
-          const tagId = form.watch(`items.${index}.tagId`) as string | null;
+          const tagId = form.watch(`budget.items.${index}.tagId`) as
+            | string
+            | null;
           const tagName = getTagName(tagId);
           const tagColor = getTagColor(tagId);
 
@@ -109,15 +119,13 @@ export function BudgetItemForm({
               </div>
               <div className="w-32">
                 <DecimalInput
-                  name={`items.${index}.expectedAmount`}
+                  name={`budget.items.${index}.expectedAmount`}
                   placeholder={0}
                 />
               </div>
               <IconButton
-                type="button"
-                variant="ghost"
                 size="sm"
-                onClick={() => remove(index)}
+                clicked={() => remove(index)}
                 aria-label="Remove">
                 <HiTrash />
               </IconButton>
@@ -128,4 +136,3 @@ export function BudgetItemForm({
     </div>
   );
 }
-

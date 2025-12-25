@@ -25,12 +25,12 @@ export function BudgetPresetSelector({
   onNameChange,
 }: IBudgetPresetSelectorProps) {
   const form = useFormContext();
-  const preset = form.watch("preset") as IBudgetPreset | undefined;
-  const startDate = form.watch("startDate");
-  const endDate = form.watch("endDate");
+  const preset = form.watch("general.preset") as IBudgetPreset | undefined;
+  const startDate = form.watch("general.startDate");
+  const endDate = form.watch("general.endDate");
 
   const handlePresetChange = (newPreset: IBudgetPreset) => {
-    form.setValue("preset", newPreset);
+    form.setValue("general.preset", newPreset);
 
     let dates: IBudgetDateRange;
     switch (newPreset) {
@@ -49,31 +49,31 @@ export function BudgetPresetSelector({
         break;
     }
 
-    form.setValue("startDate", dates.start.toISOString().split("T")[0]);
-    form.setValue("endDate", dates.end.toISOString().split("T")[0]);
+    form.setValue("general.startDate", dates.start.toISOString().split("T")[0]);
+    form.setValue("general.endDate", dates.end.toISOString().split("T")[0]);
 
     const name = formatBudgetName(newPreset, dates);
-    form.setValue("name", name);
+    form.setValue("general.name", name);
     onNameChange?.(name);
     onPresetChange?.(newPreset, dates);
   };
 
   const handleMonthChange = (year: number, month: number) => {
     const dates = getMonthlyPreset(year, month);
-    form.setValue("startDate", dates.start.toISOString().split("T")[0]);
-    form.setValue("endDate", dates.end.toISOString().split("T")[0]);
+    form.setValue("general.startDate", dates.start.toISOString().split("T")[0]);
+    form.setValue("general.endDate", dates.end.toISOString().split("T")[0]);
     const name = formatBudgetName("monthly", dates);
-    form.setValue("name", name);
+    form.setValue("general.name", name);
     onNameChange?.(name);
     onPresetChange?.("monthly", dates);
   };
 
   const handleYearChange = (year: number) => {
     const dates = getYearlyPreset(year);
-    form.setValue("startDate", dates.start.toISOString().split("T")[0]);
-    form.setValue("endDate", dates.end.toISOString().split("T")[0]);
+    form.setValue("general.startDate", dates.start.toISOString().split("T")[0]);
+    form.setValue("general.endDate", dates.end.toISOString().split("T")[0]);
     const name = formatBudgetName("yearly", dates);
-    form.setValue("name", name);
+    form.setValue("general.name", name);
     onNameChange?.(name);
     onPresetChange?.("yearly", dates);
   };
@@ -130,7 +130,7 @@ export function BudgetPresetSelector({
           <div>
             <Label>Year</Label>
             <Controller
-              name="year"
+              name="general.year"
               control={form.control}
               render={({ field }) => (
                 <select
@@ -158,7 +158,7 @@ export function BudgetPresetSelector({
           <div>
             <Label>Month</Label>
             <Controller
-              name="month"
+              name="general.month"
               control={form.control}
               render={({ field }) => (
                 <select
@@ -193,7 +193,7 @@ export function BudgetPresetSelector({
         <div>
           <Label>Year</Label>
           <Controller
-            name="year"
+            name="general.year"
             control={form.control}
             render={({ field }) => (
               <select
@@ -222,11 +222,11 @@ export function BudgetPresetSelector({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label>Start Date</Label>
-            <DateInput name="startDate" />
+            <DateInput name="general.startDate" />
           </div>
           <div>
             <Label>End Date</Label>
-            <DateInput name="endDate" />
+            <DateInput name="general.endDate" />
           </div>
         </div>
       )}
