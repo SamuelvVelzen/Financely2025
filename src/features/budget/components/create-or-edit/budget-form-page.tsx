@@ -350,7 +350,8 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
   return (
     <Form
       form={form}
-      onSubmit={handleSubmit}>
+      onSubmit={handleSubmit}
+      className="flex flex-col min-h-full">
       <Container className="sticky top-0 z-10 bg-surface mb-4">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -371,7 +372,7 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
         </div>
       </Container>
 
-      <Container>
+      <Container className="mb-4">
         <Tabs defaultValue="general">
           <TabList>
             <Tab
@@ -459,7 +460,7 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
         </Tabs>
       </Container>
 
-      <Container className="sticky bottom-0 bg-surface flex gap-2 justify-end mt-4">
+      <Container className="sticky bottom-0 bg-surface flex gap-2 justify-end mt-auto">
         <Button
           type="button"
           clicked={handleBack}
