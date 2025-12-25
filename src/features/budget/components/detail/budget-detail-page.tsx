@@ -14,7 +14,7 @@ import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { HiArrowLeft, HiPencil, HiTrash } from "react-icons/hi2";
-import { BudgetComparisonView } from "../budget-comparison-view";
+import { BudgetComparisonView } from "./budget-comparison-view";
 
 type IBudgetDetailPageProps = {
   budgetId: string;

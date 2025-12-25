@@ -30,9 +30,9 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiArrowLeft } from "react-icons/hi2";
 import { z } from "zod";
-import { BudgetItemForm } from "../budget-item-form";
-import { BudgetPresetSelector } from "../budget-preset-selector";
-import { BudgetTagSelector } from "../budget-tag-selector";
+import { BudgetItemForm } from "./budget-item-form";
+import { BudgetPresetSelector } from "./budget-preset-selector";
+import { BudgetTagSelector } from "./budget-tag-selector";
 
 type IBudgetFormPageProps = {
   budgetId?: string;
