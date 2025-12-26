@@ -322,7 +322,7 @@ export function ExpenseOverview() {
       <Container>
         {isEmpty && (
           <EmptyPage
-            icon={<HiArrowTrendingDown />}
+            icon={HiArrowTrendingDown}
             emptyText={"No expenses yet. Start by adding your first expense."}
             button={{
               buttonContent: "Add expense",
@@ -332,7 +332,7 @@ export function ExpenseOverview() {
 
         {isEmptyWithFilters && (
           <EmptyPage
-            icon={<HiArrowTrendingDown />}
+            icon={HiArrowTrendingDown}
             emptyText={
               "No expenses match your filters. Try adjusting your search criteria or clearing your filters."
             }

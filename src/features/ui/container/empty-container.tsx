@@ -1,12 +1,12 @@
 "use client";
 
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { ReactNode } from "react";
+import { IconType } from "react-icons";
 import { Button, IButtonProps } from "../button/button";
 
 type IEmptyPageProps = {
   emptyText: string;
-  icon?: ReactNode;
+  icon: IconType;
   button?: Omit<IButtonProps, "variant" | "type" | "clicked"> & {
     clicked: NonNullable<IButtonProps["clicked"]>;
   };
@@ -16,15 +16,18 @@ export function EmptyPage({
   className = "",
   emptyText,
   button,
-  icon,
+  icon: Icon,
 }: IEmptyPageProps) {
   return (
     <div
       className={
         "flex flex-col gap-6 text-text-muted items-center " + className
-      }
-    >
-      {icon && <div className="text-7xl border-4 p-2 rounded-full">{icon}</div>}
+      }>
+      {Icon && (
+        <div className="text-7xl border-4 p-2 rounded-full">
+          <Icon className="size-10" />
+        </div>
+      )}
 
       <p>{emptyText}</p>
 
@@ -33,8 +36,7 @@ export function EmptyPage({
           {...button}
           type="button"
           clicked={button.clicked}
-          variant="primary"
-        >
+          variant="primary">
           {button.buttonContent}
         </Button>
       )}
