@@ -30,7 +30,7 @@ export function Accordion({
         </span>
         <HiChevronDown
           className={cn(
-            "w-4 h-4 text-text-muted transition-transform group-hover:text-text",
+            "size-4 text-text-muted transition-transform group-hover:text-text",
             isOpen && "rotate-180"
           )}
         />

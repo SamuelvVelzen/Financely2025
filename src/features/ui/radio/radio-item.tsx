@@ -108,7 +108,7 @@ export function RadioItem({
 
         {isChecked && (
           <div className="absolute top-2 right-2">
-            <div className="w-2 h-2 bg-primary rounded-full" />
+            <div className="size-2 bg-primary rounded-full" />
           </div>
         )}
       </label>

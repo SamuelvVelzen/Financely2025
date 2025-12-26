@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { IconButton } from "@/features/ui/button/icon-button";
@@ -5,7 +6,6 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { Table } from "@/features/ui/table/table";
 import { TableRow } from "@/features/ui/table/table-row";
-import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useMemo } from "react";
 import { HiPencil, HiTrash } from "react-icons/hi2";
@@ -161,7 +161,7 @@ export function ExpenseTable({
                       <IconButton
                         clicked={() => onEdit?.(expense)}
                         className="text-text-muted hover:text-text p-1">
-                        <HiPencil className="w-5 h-5" />
+                        <HiPencil className="size-5" />
                       </IconButton>
                     )}
 
@@ -169,7 +169,7 @@ export function ExpenseTable({
                       <IconButton
                         clicked={() => onDelete?.(expense)}
                         className="text-danger hover:text-danger-hover p-1">
-                        <HiTrash className="w-5 h-5" />
+                        <HiTrash className="size-5" />
                       </IconButton>
                     )}
                   </div>

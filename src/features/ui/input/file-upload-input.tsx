@@ -155,7 +155,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
                   clicked={() => handleRemoveFile(index)}
                   disabled={disabled}
                   aria-label={`Remove ${file.name}`}>
-                  <HiX className="h-5 w-5" />
+                  <HiX className="size-5" />
                 </IconButton>
               )}
             </div>

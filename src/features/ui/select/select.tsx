@@ -228,7 +228,7 @@ export function Select<
                       onClick={(e) => handleRemoveChip(e, option.value)}
                       className="hover:text-text-muted focus:outline-none cursor-pointer"
                       aria-label={`Remove ${option.label}`}>
-                      <HiX className="w-3 h-3" />
+                      <HiX className="size-3" />
                     </button>
                   </span>
                 ))}
@@ -282,7 +282,7 @@ export function Select<
             </div>
             <HiChevronDown
               className={cn(
-                "w-4 h-4 text-text-muted shrink-0 transition-transform duration-200",
+                "size-4 text-text-muted shrink-0 transition-transform duration-200",
                 isOpen && "rotate-180"
               )}
             />

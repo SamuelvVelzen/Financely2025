@@ -92,7 +92,7 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
               size="sm"
               clicked={handleBack}
               aria-label="Back to budgets">
-              <HiArrowLeft className="w-4 h-4" />
+              <HiArrowLeft className="size-4" />
             </Button>
             <Title>{budget.name}</Title>
           </div>
@@ -100,13 +100,13 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
             <Button
               variant="secondary"
               clicked={handleEdit}>
-              <HiPencil className="w-4 h-4 mr-2" />
+              <HiPencil className="size-4 mr-2" />
               Edit
             </Button>
             <Button
               variant="danger"
               clicked={handleDeleteClick}>
-              <HiTrash className="w-4 h-4 mr-2" />
+              <HiTrash className="size-4 mr-2" />
               Delete
             </Button>
           </div>

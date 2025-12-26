@@ -185,14 +185,14 @@ export function Datepicker({
   const selectorButton = (
     <>
       <div className="flex items-center gap-2 min-w-0">
-        <HiCalendar className="w-4 h-4 text-text-muted shrink-0" />
+        <HiCalendar className="size-4 text-text-muted shrink-0" />
         <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis">
           {getDisplayText()}
         </span>
       </div>
       <HiChevronDown
         className={cn(
-          "w-4 h-4 text-text-muted transition-transform duration-200",
+          "size-4 text-text-muted transition-transform duration-200",
           isOpen && "rotate-180"
         )}
       />
@@ -215,14 +215,12 @@ export function Datepicker({
         onOpenChange={setIsOpen}
         expandedContent={calendarContent}
         showExpanded={showCalendar}
-        closeOnItemClick={false}
-      >
+        closeOnItemClick={false}>
         {defaultOptions.map((option) => (
           <DropdownItem
             key={option.type}
             clicked={() => handleDefaultOption(option)}
-            selected={value.type === option.type}
-          >
+            selected={value.type === option.type}>
             {option.label}
           </DropdownItem>
         ))}
@@ -231,8 +229,7 @@ export function Datepicker({
 
         <DropdownItem
           clicked={handleCustomClick}
-          selected={value.type === "custom"}
-        >
+          selected={value.type === "custom"}>
           Custom Date Range
         </DropdownItem>
       </Dropdown>

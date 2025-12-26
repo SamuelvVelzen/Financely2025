@@ -102,7 +102,7 @@ export function ProfileInformation() {
             aria-label={isEditingProfile ? "Cancel editing" : "Edit profile"}>
             {isEditingProfile ? (
               <svg
-                className="w-5 h-5"
+                className="size-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24">
@@ -115,7 +115,7 @@ export function ProfileInformation() {
               </svg>
             ) : (
               <svg
-                className="w-5 h-5"
+                className="size-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24">

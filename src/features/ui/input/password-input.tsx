@@ -1,8 +1,8 @@
 "use client";
 
-import { BaseInput, type IBaseInputProps } from "./input";
 import { useState } from "react";
 import { HiEye, HiEyeSlash } from "react-icons/hi2";
+import { BaseInput, type IBaseInputProps } from "./input";
 
 export type IPasswordInputProps = Omit<IBaseInputProps, "type">;
 
@@ -24,13 +24,12 @@ export function PasswordInput(props: IPasswordInputProps) {
           className="cursor-pointer hover:opacity-70 transition-opacity"
           aria-label={showPassword ? "Hide password" : "Show password"}>
           {showPassword ? (
-            <HiEyeSlash className="w-5 h-5" />
+            <HiEyeSlash className="size-5" />
           ) : (
-            <HiEye className="w-5 h-5" />
+            <HiEye className="size-5" />
           )}
         </button>
       }
     />
   );
 }
-

@@ -22,7 +22,7 @@ export function BudgetAlerts({ alerts, onAddBudgetItem }: IBudgetAlertsProps) {
         variant="warning"
         className="border-warning">
         <div className="flex items-start gap-3">
-          <HiExclamationTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+          <HiExclamationTriangle className="size-5 text-warning shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="font-semibold mb-2">
               Transactions without budget entries
@@ -35,7 +35,7 @@ export function BudgetAlerts({ alerts, onAddBudgetItem }: IBudgetAlertsProps) {
                   <div className="flex items-center gap-2">
                     {alert.tagColor && (
                       <div
-                        className="w-3 h-3 rounded-full"
+                        className="size-3 rounded-full"
                         style={{ backgroundColor: alert.tagColor }}
                       />
                     )}

@@ -181,7 +181,7 @@ export function BudgetComparisonView({
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     {tagColor && (
                       <div
-                        className="w-4 h-4 rounded-full shrink-0"
+                        className="size-4 rounded-full shrink-0"
                         style={{ backgroundColor: tagColor }}
                       />
                     )}
@@ -261,9 +261,9 @@ export function BudgetComparisonView({
                     </div>
                     {getStatusBadge(percentage)}
                     {isExpanded ? (
-                      <HiChevronUp className="w-5 h-5 text-text-muted" />
+                      <HiChevronUp className="size-5 text-text-muted" />
                     ) : (
-                      <HiChevronDown className="w-5 h-5 text-text-muted" />
+                      <HiChevronDown className="size-5 text-text-muted" />
                     )}
                   </div>
                 </div>

@@ -166,7 +166,7 @@ function ReviewStepContent({
                     clicked={() => setErrorDialogRowIndex(candidate.rowIndex)}
                     buttonContent={
                       <div className="flex items-center gap-2">
-                        <HiExclamationCircle className="w-4 h-4 text-danger" />
+                        <HiExclamationCircle className="size-4 text-danger" />
                         <span className="text-sm text-danger">
                           {candidate.errors.length} error
                           {candidate.errors.length !== 1 ? "s" : ""}

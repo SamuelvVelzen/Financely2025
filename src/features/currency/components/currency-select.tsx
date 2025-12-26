@@ -55,7 +55,7 @@ export function CurrencySelect({
         return (
           <span className="flex items-center gap-2 w-full">
             <Icon
-              className="w-4 h-4"
+              className="size-4"
               aria-hidden="true"
             />
             <span className="">{option.label}</span>

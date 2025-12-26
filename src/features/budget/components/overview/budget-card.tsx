@@ -119,7 +119,7 @@ export function BudgetCard({
             size="sm"
             clicked={() => onView(budget)}
             className="flex-1">
-            <HiEye className="w-4 h-4 mr-2" />
+            <HiEye className="size-4 mr-2" />
             View
           </Button>
         )}

@@ -13,7 +13,12 @@ type ITabProps = IPropsWithClassName &
     showWarning?: boolean;
   };
 
-export function Tab({ value, children, className = "", showWarning = false }: ITabProps) {
+export function Tab({
+  value,
+  children,
+  className = "",
+  showWarning = false,
+}: ITabProps) {
   const {
     value: activeValue,
     setValue,
@@ -97,7 +102,7 @@ export function Tab({ value, children, className = "", showWarning = false }: IT
         <div className="flex items-center gap-2">
           {children}
           {showWarning && (
-            <HiExclamationTriangle className="w-4 h-4 text-warning" />
+            <HiExclamationTriangle className="size-4 text-warning" />
           )}
         </div>
       </Button>

@@ -80,14 +80,14 @@ export function SearchInput({
           label={label}
           placeholder={placeholder}
           className="truncate"
-          prefixIcon={<HiMagnifyingGlass className="w-5 h-5" />}
+          prefixIcon={<HiMagnifyingGlass className="size-5" />}
           suffixIcon={
             value ? (
               <IconButton
                 clicked={handleClear}
                 aria-label="Clear search"
                 className="p-0">
-                <HiX className="w-5 h-5" />
+                <HiX className="size-5" />
               </IconButton>
             ) : undefined
           }
@@ -95,9 +95,9 @@ export function SearchInput({
       ) : (
         <IconButton
           clicked={handleIconClick}
-          className="w-10 h-10 my-0"
+          className="size-10 my-0"
           aria-label="Search">
-          <HiMagnifyingGlass className="w-5 h-5" />
+          <HiMagnifyingGlass className="size-5" />
         </IconButton>
       )}
     </div>

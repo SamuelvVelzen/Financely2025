@@ -108,7 +108,7 @@ export function Sidebar() {
             to={ROUTES.ACCOUNT}
             label="Account"
             customIcon={
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shrink-0">
+              <div className="size-6 bg-primary rounded-full flex items-center justify-center shrink-0">
                 <span className="text-white text-xs font-semibold">SV</span>
               </div>
             }

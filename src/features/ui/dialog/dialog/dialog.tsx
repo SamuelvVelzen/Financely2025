@@ -353,7 +353,7 @@ export function Dialog({
           </div>
 
           <IconButton clicked={handleClose}>
-            <HiX className="w-5 h-5" />
+            <HiX className="size-5" />
           </IconButton>
         </header>
 

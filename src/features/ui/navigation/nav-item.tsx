@@ -42,7 +42,7 @@ export function NavItem({
   const content = (
     <>
       <div className="relative flex-shrink-0">
-        {customIcon || (Icon && <Icon className="w-6 h-6 flex-shrink-0" />)}
+        {customIcon || (Icon && <Icon className="size-6 flex-shrink-0" />)}
         {badge !== undefined && badge !== null && badge !== 0 && (
           <Badge
             backgroundColor="#dc2626"

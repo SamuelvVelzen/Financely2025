@@ -196,7 +196,7 @@ export function RangeInput({
 
               {/* Min handle */}
               <div
-                className="absolute w-4 h-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
+                className="absolute size-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
                 style={{ left: `calc(${minPercentage}% - 8px)` }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
@@ -205,7 +205,7 @@ export function RangeInput({
 
               {/* Max handle */}
               <div
-                className="absolute w-4 h-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
+                className="absolute size-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
                 style={{ left: `calc(${maxPercentage}% - 8px)` }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
@@ -227,7 +227,7 @@ export function RangeInput({
               clicked={handleClear}
               className="text-text-muted hover:text-text p-1"
               aria-label="Clear range">
-              <HiX className="w-4 h-4" />
+              <HiX className="size-4" />
             </IconButton>
           )}
         </div>

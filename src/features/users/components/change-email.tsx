@@ -76,7 +76,7 @@ export function ChangeEmail() {
               {profile.emailVerified ? (
                 <span className="inline-flex items-center gap-1 text-success">
                   <svg
-                    className="w-4 h-4"
+                    className="size-4"
                     fill="currentColor"
                     viewBox="0 0 20 20">
                     <path
@@ -90,7 +90,7 @@ export function ChangeEmail() {
               ) : (
                 <span className="inline-flex items-center gap-1 text-warning">
                   <svg
-                    className="w-4 h-4"
+                    className="size-4"
                     fill="currentColor"
                     viewBox="0 0 20 20">
                     <path

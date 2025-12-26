@@ -212,7 +212,7 @@ export function TagOverview() {
                         <div className="flex items-center gap-3">
                           {tag.color && (
                             <div
-                              className="w-4 h-4 rounded"
+                              className="size-4 rounded"
                               style={{ backgroundColor: tag.color }}
                             />
                           )}
@@ -225,12 +225,12 @@ export function TagOverview() {
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
                           <IconButton clicked={() => handleEditTag(tag)}>
-                            <HiPencil className="w-5 h-5" />
+                            <HiPencil className="size-5" />
                           </IconButton>
                           <IconButton
                             clicked={() => handleDeleteClick(tag.id)}
                             className="text-danger hover:text-danger-hover">
-                            <HiTrash className="w-5 h-5" />
+                            <HiTrash className="size-5" />
                           </IconButton>
                         </div>
                       </SortableListItem>
@@ -266,7 +266,7 @@ export function TagOverview() {
                         <div className="flex items-center gap-3">
                           {tag.color && (
                             <div
-                              className="w-4 h-4 rounded"
+                              className="size-4 rounded"
                               style={{ backgroundColor: tag.color }}
                             />
                           )}
@@ -279,12 +279,12 @@ export function TagOverview() {
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
                           <IconButton clicked={() => handleEditTag(tag)}>
-                            <HiPencil className="w-5 h-5" />
+                            <HiPencil className="size-5" />
                           </IconButton>
                           <IconButton
                             clicked={() => handleDeleteClick(tag.id)}
                             className="text-danger hover:text-danger-hover">
-                            <HiTrash className="w-5 h-5" />
+                            <HiTrash className="size-5" />
                           </IconButton>
                         </div>
                       </SortableListItem>
@@ -320,7 +320,7 @@ export function TagOverview() {
                         <div className="flex items-center gap-3">
                           {tag.color && (
                             <div
-                              className="w-4 h-4 rounded"
+                              className="size-4 rounded"
                               style={{ backgroundColor: tag.color }}
                             />
                           )}
@@ -333,12 +333,12 @@ export function TagOverview() {
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
                           <IconButton clicked={() => handleEditTag(tag)}>
-                            <HiPencil className="w-5 h-5" />
+                            <HiPencil className="size-5" />
                           </IconButton>
                           <IconButton
                             clicked={() => handleDeleteClick(tag.id)}
                             className="text-danger hover:text-danger-hover">
-                            <HiTrash className="w-5 h-5" />
+                            <HiTrash className="size-5" />
                           </IconButton>
                         </div>
                       </SortableListItem>

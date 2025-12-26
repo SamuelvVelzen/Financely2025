@@ -136,7 +136,7 @@ export function CalendarView({
           type="button"
           onClick={handlePreviousMonth}
           className="p-1 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text transition-colors">
-          <HiChevronLeft className="w-5 h-5" />
+          <HiChevronLeft className="size-5" />
         </button>
         <h3 className="text-lg font-semibold text-text">
           {format(currentMonth, "MMMM yyyy")}
@@ -145,7 +145,7 @@ export function CalendarView({
           type="button"
           onClick={handleNextMonth}
           className="p-1 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text transition-colors">
-          <HiChevronRight className="w-5 h-5" />
+          <HiChevronRight className="size-5" />
         </button>
       </div>
 

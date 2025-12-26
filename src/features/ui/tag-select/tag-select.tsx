@@ -113,7 +113,7 @@ export function TagSelect({
       <>
         {option.data?.color && (
           <div
-            className="w-3 h-3 rounded-full shrink-0"
+            className="size-3 rounded-full shrink-0"
             style={{ backgroundColor: option.data.color }}
           />
         )}

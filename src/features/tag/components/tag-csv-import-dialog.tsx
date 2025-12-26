@@ -392,7 +392,7 @@ export function TagCsvImportDialog({
                     </span>
                     {candidate.data.color && (
                       <span
-                        className="w-4 h-4 rounded border border-border"
+                        className="size-4 rounded border border-border"
                         style={{ backgroundColor: candidate.data.color }}
                       />
                     )}

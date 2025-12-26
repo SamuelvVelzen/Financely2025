@@ -189,7 +189,7 @@ export function Toast({ toast, onRemove }: IToastProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       role="alert">
-      <Icon className={cn("w-5 h-5 shrink-0 mt-0.5", config.text)} />
+      <Icon className={cn("size-5 shrink-0 mt-0.5", config.text)} />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1 w-full">
@@ -204,7 +204,7 @@ export function Toast({ toast, onRemove }: IToastProps) {
                 // config.text
               )}
               aria-label="Close notification">
-              <HiX className="w-4 h-4" />
+              <HiX className="size-4" />
             </IconButton>
           )}
         </div>
