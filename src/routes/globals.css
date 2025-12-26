@@ -61,6 +61,7 @@
   --color-dark: var(--dark);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --animate-spinner-rotate: spinnerRotate 1s linear infinite;
 }
 
 .dark {
@@ -216,5 +217,15 @@ html.dark {
   to {
     opacity: 0;
     transform: translateY(100%);
+  }
+}
+
+/* Loading spinner animation */
+@keyframes spinnerRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
