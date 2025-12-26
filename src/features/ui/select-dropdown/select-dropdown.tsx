@@ -13,7 +13,7 @@ import { NativeSelect } from "../select/native-select";
 import { Label } from "../typography/label";
 
 export type ISelectOption<TData = unknown> = {
-  value: string;
+  value: string | number;
   label: string;
   data?: TData;
 };
@@ -24,9 +24,8 @@ type ExtractDataFromOptions<
 > = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
 
 export type ISelectDropdownProps<
-  TOptions extends
-    | ISelectOption<any>[]
-    | readonly ISelectOption<any>[] = ISelectOption[],
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
+    ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 > = IPropsWithClassName & {
   name: string;
@@ -49,9 +48,8 @@ export type ISelectDropdownProps<
 };
 
 export function SelectDropdown<
-  TOptions extends
-    | ISelectOption<any>[]
-    | readonly ISelectOption<any>[] = ISelectOption[],
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
+    ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 >({
   className = "",
@@ -93,7 +91,9 @@ export function SelectDropdown<
   }
 
   // Get selected labels for display
-  const getDisplayText = (value: string | string[] | undefined): string => {
+  const getDisplayText = (
+    value: string | number | string[] | number[] | undefined
+  ): string => {
     if (!value || (Array.isArray(value) && value.length === 0)) {
       return placeholder;
     }
@@ -125,17 +125,20 @@ export function SelectDropdown<
 
   // Check if option is selected
   const isSelected = (
-    optionValue: string,
-    value: string | string[] | undefined
+    optionValue: string | number,
+    value: string | number | string[] | number[] | undefined
   ): boolean => {
     if (!value) return false;
 
     if (multiple && Array.isArray(value)) {
-      return value.includes(optionValue);
+      // For arrays, check if optionValue is included (handles string/number coercion)
+      return value.some((v) => String(v) === String(optionValue));
     }
 
-    if (!multiple && typeof value === "string") {
-      return value === optionValue;
+    // For single select, handle both string and number types
+    // Convert both to string for comparison to handle type mismatches
+    if (!multiple) {
+      return String(value) === String(optionValue);
     }
 
     return false;
@@ -152,7 +155,7 @@ export function SelectDropdown<
           value && (Array.isArray(value) ? value.length > 0 : value !== "");
 
         // Handle option selection
-        const handleOptionClick = (optionValue: string) => {
+        const handleOptionClick = (optionValue: string | number) => {
           if (disabled) return;
           if (multiple) {
             // Multiple select: toggle the option

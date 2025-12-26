@@ -4,12 +4,7 @@ import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { Controller, useFormContext } from "react-hook-form";
-
-export type ISelectOption<TData = unknown> = {
-  value: string;
-  label: string;
-  data?: TData;
-};
+import { ISelectOption } from "../select-dropdown/select-dropdown";
 
 // Helper type to extract data type from options array
 type ExtractDataFromOptions<

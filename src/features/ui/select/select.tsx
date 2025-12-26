@@ -26,9 +26,8 @@ type ExtractDataFromOptions<
 > = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
 
 export type ISelectProps<
-  TOptions extends
-    | ISelectOption<any>[]
-    | readonly ISelectOption<any>[] = ISelectOption[],
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
+    ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 > = IPropsWithClassName & {
   name: string;
@@ -56,9 +55,8 @@ export type ISelectProps<
 };
 
 export function Select<
-  TOptions extends
-    | ISelectOption<any>[]
-    | readonly ISelectOption<any>[] = ISelectOption[],
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
+    ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 >({
   className = "",
