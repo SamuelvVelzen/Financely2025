@@ -27,9 +27,12 @@ export function TabGroup({
   className = "",
 }: ITabGroupProps & PropsWithChildren) {
   const [value, setValue] = useState(defaultValue);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const id = useId();
   const tabsRef = useRef<string[]>([]);
   const panelsContainerRef = useRef<HTMLDivElement>(null);
+  const previousValueRef = useRef<string>(defaultValue);
+  const isTransitioningRef = useRef(false);
 
   const registerTab = (value: string) => {
     if (!tabsRef.current.includes(value)) {
@@ -38,6 +41,23 @@ export function TabGroup({
   };
 
   const getTabs = () => tabsRef.current;
+
+  // Detect tab changes and enable transition
+  useEffect(() => {
+    const isTabChange = previousValueRef.current !== value;
+    previousValueRef.current = value;
+
+    if (isTabChange) {
+      setIsTransitioning(true);
+      isTransitioningRef.current = true;
+      // Disable transition after animation completes (300ms)
+      const timeoutId = setTimeout(() => {
+        setIsTransitioning(false);
+        isTransitioningRef.current = false;
+      }, 200);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [value]);
 
   // Update container height based on active tab content
   useEffect(() => {
@@ -63,6 +83,7 @@ export function TabGroup({
     };
 
     // Initial update after a small delay to ensure DOM is updated
+    // This will animate if isTransitioning is true
     const timeoutId = setTimeout(updateHeight, 0);
 
     // Use ResizeObserver on the active panel to handle dynamic content changes
@@ -77,7 +98,11 @@ export function TabGroup({
 
       if (activePanel) {
         resizeObserver = new ResizeObserver(() => {
-          updateHeight();
+          // Only update height if we're not transitioning (content resize, not tab change)
+          // Use ref to avoid dependency on isTransitioning state
+          if (!isTransitioningRef.current) {
+            updateHeight();
+          }
         });
         resizeObserver.observe(activePanel);
       }
@@ -132,7 +157,10 @@ export function TabGroup({
         {tabContentChildren.length > 0 && (
           <div
             ref={panelsContainerRef}
-            className="relative w-full transition-[height] duration-300 ease-in-out"
+            className={cn(
+              "relative w-full",
+              isTransitioning && "transition-[height] duration-300 ease-in-out"
+            )}
             style={{ minHeight: "1px" }}>
             {tabContentChildren}
           </div>

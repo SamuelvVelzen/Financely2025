@@ -29,7 +29,7 @@ export function TabContent({
       aria-labelledby={triggerId}
       data-state={isActive ? "active" : "inactive"}
       className={cn(
-        "absolute inset-x-0 top-0 py-4 transition-opacity duration-300 ease-in-out",
+        "absolute inset-x-0 top-0 pt-4 transition-opacity duration-300 ease-in-out",
         className
       )}
       style={{
