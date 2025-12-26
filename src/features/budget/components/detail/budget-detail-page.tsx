@@ -8,12 +8,19 @@ import {
 } from "@/features/budget/hooks/useBudgets";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
+import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
+import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { HiArrowLeft, HiPencil, HiTrash } from "react-icons/hi2";
+import {
+  HiArrowLeft,
+  HiOutlineCurrencyEuro,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi2";
 import { BudgetComparisonView } from "./budget-comparison-view";
 
 type IBudgetDetailPageProps = {
@@ -65,9 +72,7 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
   if (budgetLoading || comparisonLoading) {
     return (
       <Container>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-text-muted">Loading budget details...</div>
-        </div>
+        <Loading text="Loading budget details" />
       </Container>
     );
   }
@@ -75,9 +80,14 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
   if (!budget || !comparison) {
     return (
       <Container>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-danger">Budget not found</div>
-        </div>
+        <EmptyPage
+          icon={HiOutlineCurrencyEuro}
+          emptyText="Budget not found"
+          button={{
+            buttonContent: "Back to budgets",
+            clicked: handleBack,
+          }}
+        />
       </Container>
     );
   }

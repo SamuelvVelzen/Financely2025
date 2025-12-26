@@ -14,6 +14,7 @@ import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { SortableList } from "@/features/ui/list/sortable-list";
 import { SortableListItem } from "@/features/ui/list/sortable-list-item";
+import { Loading } from "@/features/ui/loading/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useMemo, useState } from "react";
@@ -155,7 +156,7 @@ export function TagOverview() {
 
       {isLoading && (
         <Container>
-          <p className="text-text-muted text-center">Loading tags...</p>
+          <Loading text="Loading tags" />
         </Container>
       )}
 
@@ -172,7 +173,7 @@ export function TagOverview() {
           {sortedTags.length === 0 && (
             <Container>
               <EmptyPage
-                icon={<HiOutlineTag />}
+                icon={HiOutlineTag}
                 emptyText={
                   "No tags yet. Create your first tag to organize your finances."
                 }

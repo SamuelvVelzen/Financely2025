@@ -21,6 +21,7 @@ import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { type IPriceRange, RangeInput } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
+import { Loading } from "@/features/ui/loading/loading";
 import { Pagination } from "@/features/ui/pagination";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
@@ -320,6 +321,12 @@ export function ExpenseOverview() {
       </Container>
 
       <Container>
+        {isLoading && (
+          <div className="flex items-center justify-center">
+            <Loading text="Loading expenses" />
+          </div>
+        )}
+
         {isEmpty && (
           <EmptyPage
             icon={HiArrowTrendingDown}

@@ -10,6 +10,7 @@ import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { List } from "@/features/ui/list/list";
+import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
@@ -112,7 +113,7 @@ export function BudgetOverview() {
       <Container>
         {isLoading && (
           <div className="flex items-center justify-center">
-            <div className="text-text-muted">Loading budgets...</div>
+            <Loading text="Loading budgets" />
           </div>
         )}
         {error && (
