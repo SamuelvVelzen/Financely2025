@@ -58,10 +58,10 @@ export function Button({
     "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
   const disabledClasses = disabled && "pointer-events-none";
   const sizeClasses: { [key in IButtonSize]: string } = {
-    xs: "px-0.5 py-0.5 text-xs",
-    sm: "px-2 py-1 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg",
+    xs: "px-0.5 py-0.25 text-xs",
+    sm: "px-2 py-0.75 text-sm",
+    md: "px-4 py-1.25 text-base",
+    lg: "px-6 py-1.75 text-lg",
   };
   return (
     <div className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
