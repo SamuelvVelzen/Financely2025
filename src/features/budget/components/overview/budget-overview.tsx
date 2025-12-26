@@ -14,7 +14,7 @@ import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { HiPlus } from "react-icons/hi2";
+import { HiOutlineCurrencyDollar, HiPlus } from "react-icons/hi2";
 import { BudgetCard } from "./budget-card";
 
 export function BudgetOverview() {
@@ -90,96 +90,100 @@ export function BudgetOverview() {
     };
   }, [budgets]);
 
-  if (isLoading) {
-    return (
-      <Container>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-text-muted">Loading budgets...</div>
-        </div>
-      </Container>
-    );
-  }
-
-  if (error) {
-    return (
-      <Container>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-danger">Failed to load budgets</div>
-        </div>
-      </Container>
-    );
-  }
-
   return (
     <>
       <Container className="sticky top-0 z-10 bg-surface mb-4">
         <div className="flex items-center justify-between">
-          <Title>Budgets</Title>
+          <Title>
+            <div className="flex gap-2 items-center">
+              <HiOutlineCurrencyDollar />
+              <span>Budgets</span>
+            </div>
+          </Title>
           <Button
             clicked={handleCreateBudget}
             variant="primary"
             size="sm">
-            <HiPlus className="size-4" /> Create Budget
+            <HiPlus className="size-4" /> Add Budget
           </Button>
         </div>
       </Container>
 
       <Container>
-        {/* Summary Cards */}
-        {budgets.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border border-border rounded-lg bg-surface">
-              <div className="text-sm text-text-muted mb-1">Total Budgets</div>
-              <div className="text-2xl font-semibold">
-                {summaryStats.totalBudgets}
-              </div>
-            </div>
-            <div className="p-4 border border-border rounded-lg bg-surface">
-              <div className="text-sm text-text-muted mb-1">Total Expected</div>
-              <div className="text-2xl font-semibold">
-                {summaryStats.totalExpected.toLocaleString(undefined, {
-                  style: "currency",
-                  currency: "USD",
-                })}
-              </div>
-            </div>
-            <div className="p-4 border border-border rounded-lg bg-surface">
-              <div className="text-sm text-text-muted mb-1">Active Periods</div>
-              <div className="text-2xl font-semibold">
-                {
-                  budgets.filter((b: IBudget) => {
-                    const now = new Date();
-                    const start = new Date(b.startDate);
-                    const end = new Date(b.endDate);
-                    return now >= start && now <= end;
-                  }).length
-                }
-              </div>
-            </div>
+        {isLoading && (
+          <div className="flex items-center justify-center">
+            <div className="text-text-muted">Loading budgets...</div>
+          </div>
+        )}
+        {error && (
+          <div className="flex items-center justify-center">
+            <div className="text-danger">Failed to load budgets</div>
           </div>
         )}
 
-        {/* Budgets Grid */}
-        {budgets.length === 0 ? (
+        {/* Summary Cards */}
+        {!isLoading && !error && budgets.length > 0 && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 border border-border rounded-lg bg-surface">
+                <div className="text-sm text-text-muted mb-1">
+                  Total Budgets
+                </div>
+                <div className="text-2xl font-semibold">
+                  {summaryStats.totalBudgets}
+                </div>
+              </div>
+              <div className="p-4 border border-border rounded-lg bg-surface">
+                <div className="text-sm text-text-muted mb-1">
+                  Total Expected
+                </div>
+                <div className="text-2xl font-semibold">
+                  {summaryStats.totalExpected.toLocaleString(undefined, {
+                    style: "currency",
+                    currency: "USD",
+                  })}
+                </div>
+              </div>
+              <div className="p-4 border border-border rounded-lg bg-surface">
+                <div className="text-sm text-text-muted mb-1">
+                  Active Periods
+                </div>
+                <div className="text-2xl font-semibold">
+                  {
+                    budgets.filter((b: IBudget) => {
+                      const now = new Date();
+                      const start = new Date(b.startDate);
+                      const end = new Date(b.endDate);
+                      return now >= start && now <= end;
+                    }).length
+                  }
+                </div>
+              </div>
+            </div>
+
+            <List data={budgets}>
+              {(budget: IBudget) => (
+                <BudgetCard
+                  key={budget.id}
+                  budget={budget}
+                  onView={handleViewBudget}
+                  onEdit={handleEditBudget}
+                  onDelete={handleDeleteClick}
+                />
+              )}
+            </List>
+          </>
+        )}
+
+        {!isLoading && !error && budgets.length === 0 && (
           <EmptyPage
+            icon={HiOutlineCurrencyDollar}
             emptyText="Create your first budget to start tracking your expenses and income."
             button={{
               buttonContent: "Create Budget",
               clicked: handleCreateBudget,
             }}
           />
-        ) : (
-          <List data={budgets}>
-            {(budget: IBudget) => (
-              <BudgetCard
-                key={budget.id}
-                budget={budget}
-                onView={handleViewBudget}
-                onEdit={handleEditBudget}
-                onDelete={handleDeleteClick}
-              />
-            )}
-          </List>
         )}
 
         {/* Delete Dialog */}
