@@ -21,18 +21,20 @@ import { TabList } from "./tab-list";
 type ITabGroupProps = IPropsWithClassName &
   PropsWithChildren & {
     defaultValue: string;
+    tabs?: string[];
     onChangeTab?: (previousTab: string, newTab: string) => void;
   };
 
 export interface ITabGroupRef {
   goNext: () => void;
   goBack: () => void;
+  getTabs: () => string[];
 }
 
 export const TabGroup = forwardRef<
   ITabGroupRef,
   ITabGroupProps & PropsWithChildren
->(({ defaultValue, children, className = "", onChangeTab }, ref) => {
+>(({ defaultValue, children, className = "", tabs, onChangeTab }, ref) => {
   const [internalValue, setInternalValue] = useState(defaultValue);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const id = useId();
@@ -70,23 +72,29 @@ export const TabGroup = forwardRef<
     }
   };
 
-  const getTabs = () => tabsRef.current;
+  // Use provided tabs array or fall back to registered tabs
+  const getTabs = () => {
+    if (tabs && tabs.length > 0) {
+      return tabs;
+    }
+    return tabsRef.current;
+  };
 
   // Navigation functions
   const goNext = () => {
-    const tabs = tabsRef.current;
-    const currentIndex = tabs.indexOf(value);
-    if (currentIndex < tabs.length - 1) {
-      const nextTab = tabs[currentIndex + 1];
+    const tabList = getTabs();
+    const currentIndex = tabList.indexOf(value);
+    if (currentIndex < tabList.length - 1) {
+      const nextTab = tabList[currentIndex + 1];
       setValue(nextTab);
     }
   };
 
   const goBack = () => {
-    const tabs = tabsRef.current;
-    const currentIndex = tabs.indexOf(value);
+    const tabList = getTabs();
+    const currentIndex = tabList.indexOf(value);
     if (currentIndex > 0) {
-      const previousTab = tabs[currentIndex - 1];
+      const previousTab = tabList[currentIndex - 1];
       setValue(previousTab);
     }
   };
@@ -95,6 +103,7 @@ export const TabGroup = forwardRef<
   useImperativeHandle(ref, () => ({
     goNext,
     goBack,
+    getTabs,
   }));
 
   // Use internalValue as value
@@ -190,13 +199,34 @@ export const TabGroup = forwardRef<
     }
   });
 
+  // Sort tabChildren and tabContentChildren based on tabs array order if provided
+  const sortByTabsOrder = (children: React.ReactNode[]): React.ReactNode[] => {
+    if (!tabs || tabs.length === 0) return children;
+
+    return [...children].sort((a, b) => {
+      if (!isValidElement(a) || !isValidElement(b)) return 0;
+      const aValue = (a.props as any)?.value;
+      const bValue = (b.props as any)?.value;
+      const aIndex = tabs.indexOf(aValue);
+      const bIndex = tabs.indexOf(bValue);
+      // If tab not found in array, keep original order
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    });
+  };
+
+  const sortedTabChildren = sortByTabsOrder(tabChildren);
+  const sortedTabContentChildren = sortByTabsOrder(tabContentChildren);
+
   return (
     <TabContext.Provider
       value={{ value, setValue, id, registerTab, getTabs, goNext, goBack }}>
       <div className={cn("w-full", className)}>
-        {tabChildren.length > 0 && <TabList>{tabChildren}</TabList>}
+        {sortedTabChildren.length > 0 && <TabList>{sortedTabChildren}</TabList>}
         {otherChildren}
-        {tabContentChildren.length > 0 && (
+        {sortedTabContentChildren.length > 0 && (
           <div
             ref={panelsContainerRef}
             className={cn(
@@ -204,7 +234,7 @@ export const TabGroup = forwardRef<
               isTransitioning && "transition-[height] duration-300 ease-in-out"
             )}
             style={{ minHeight: "1px" }}>
-            {tabContentChildren}
+            {sortedTabContentChildren}
           </div>
         )}
       </div>
