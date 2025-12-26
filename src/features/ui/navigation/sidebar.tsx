@@ -8,7 +8,7 @@ import {
   HiArrowTrendingUp,
   HiChartBar,
   HiOutlineBell,
-  HiOutlineCurrencyDollar,
+  HiOutlineCurrencyEuro,
   HiOutlineTag,
 } from "react-icons/hi2";
 import { Container } from "../container/container";
@@ -67,7 +67,7 @@ export function Sidebar() {
             <NavItem
               to={ROUTES.BUDGETS}
               label="Budgets"
-              icon={HiOutlineCurrencyDollar}
+              icon={HiOutlineCurrencyEuro}
             />
           </li>
           <li>

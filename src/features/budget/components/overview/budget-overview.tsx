@@ -14,7 +14,7 @@ import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { HiOutlineCurrencyDollar, HiPlus } from "react-icons/hi2";
+import { HiOutlineCurrencyEuro, HiPlus } from "react-icons/hi2";
 import { BudgetCard } from "./budget-card";
 
 export function BudgetOverview() {
@@ -96,7 +96,7 @@ export function BudgetOverview() {
         <div className="flex items-center justify-between">
           <Title>
             <div className="flex gap-2 items-center">
-              <HiOutlineCurrencyDollar />
+              <HiOutlineCurrencyEuro />
               <span>Budgets</span>
             </div>
           </Title>
@@ -177,7 +177,7 @@ export function BudgetOverview() {
 
         {!isLoading && !error && budgets.length === 0 && (
           <EmptyPage
-            icon={HiOutlineCurrencyDollar}
+            icon={HiOutlineCurrencyEuro}
             emptyText="Create your first budget to start tracking your expenses and income."
             button={{
               buttonContent: "Create Budget",
