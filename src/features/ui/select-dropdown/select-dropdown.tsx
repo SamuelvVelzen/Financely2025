@@ -115,7 +115,7 @@ export function SelectDropdown<
       }
     }
 
-    if (!multiple && typeof value === "string") {
+    if (!multiple) {
       const selectedOption = options.find((opt) => opt.value === value);
       return selectedOption?.label || placeholder;
     }
