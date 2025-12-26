@@ -19,16 +19,24 @@ import { Alert } from "@/features/ui/alert/alert";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
+import { EmptyPage } from "@/features/ui/container/empty-container";
+import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { TextInput } from "@/features/ui/input/text-input";
-import { Tab, TabContent, TabList, Tabs } from "@/features/ui/tab";
+import { Loading } from "@/features/ui/loading/loading";
+import {
+  Tab,
+  TabContent,
+  TabGroup,
+  type ITabGroupRef,
+} from "@/features/ui/tab";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { HiArrowLeft } from "react-icons/hi2";
+import { useEffect, useRef, useState } from "react";
+import { HiArrowLeft, HiOutlineCurrencyEuro } from "react-icons/hi2";
 import { z } from "zod";
 import { BudgetItemForm } from "./budget-item-form";
 import { BudgetPresetSelector } from "./budget-preset-selector";
@@ -119,13 +127,24 @@ const BudgetFormSchema = z.object({
 
 type IBudgetFormData = z.infer<typeof BudgetFormSchema>;
 
+/**
+ * Format a date to YYYY-MM-DD string in local timezone
+ * This avoids timezone conversion issues when using toISOString()
+ */
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 const getEmptyFormValues = (): IBudgetFormData => {
   const preset = getCurrentMonthPreset();
   return {
     general: {
       name: formatBudgetName("monthly", preset),
-      startDate: preset.start.toISOString().split("T")[0],
-      endDate: preset.end.toISOString().split("T")[0],
+      startDate: formatLocalDate(preset.start),
+      endDate: formatLocalDate(preset.end),
       currency: "EUR",
       preset: "monthly" as const,
       year: preset.start.getFullYear(),
@@ -148,13 +167,21 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
   const { mutate: updateBudget } = useUpdateBudget();
   const toast = useToast();
   const [pending, setPending] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [currentTab, setCurrentTab] = useState("general");
 
-  const form = useForm<IBudgetFormData>({
+  const form = useFinForm<IBudgetFormData>({
     resolver: zodResolver(BudgetFormSchema) as any,
     defaultValues: getEmptyFormValues(),
   });
 
   const selectedTagIds = form.watch("tags.selectedTagIds");
+  const hasUnsavedChanges = form.formState.isDirty;
+
+  // Define tab order
+  const tabs = ["general", "tags", "budget"];
+  const isFirstTab = currentTab === tabs[0];
+  const isLastTab = currentTab === tabs[tabs.length - 1];
 
   // Helper function to extract error messages from a group
   const getGroupErrorMessages = (groupErrors: any): string[] => {
@@ -169,29 +196,6 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
         if (error) {
           if (error.message) {
             messages.push(error.message);
-          } else if (Array.isArray(error)) {
-            // Handle array errors (like items array)
-            error.forEach((itemError: any, index: number) => {
-              if (itemError) {
-                if (itemError.expectedAmount?.message) {
-                  messages.push(
-                    `Item ${index + 1}: ${itemError.expectedAmount.message}`
-                  );
-                } else if (typeof itemError === "object") {
-                  Object.keys(itemError).forEach((field) => {
-                    if (itemError[field]?.message) {
-                      messages.push(
-                        `Item ${index + 1} - ${field}: ${itemError[field].message}`
-                      );
-                    }
-                  });
-                }
-              }
-            });
-          } else if (typeof error === "object") {
-            // Recursively handle nested errors
-            const nestedMessages = getGroupErrorMessages(error);
-            messages.push(...nestedMessages);
           }
         }
       });
@@ -199,16 +203,15 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
 
     return messages;
   };
-
   // Get error messages for each group
-  const generalErrors = getGroupErrorMessages(form.formState.errors.general);
   const tagsErrors = getGroupErrorMessages(form.formState.errors.tags);
-  const budgetErrors = getGroupErrorMessages(form.formState.errors.budget);
+
+  console.log(form.formState.errors.tags);
 
   // Check if each group has errors
-  const hasGeneralErrors = generalErrors.length > 0;
+  const hasGeneralErrors = !!form.formState.errors.general;
   const hasTagsErrors = tagsErrors.length > 0;
-  const hasBudgetErrors = budgetErrors.length > 0;
+  const hasBudgetErrors = !!form.formState.errors.budget;
 
   // Initialize form with default values in create mode
   useEffect(() => {
@@ -250,6 +253,11 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
   }, [isEditMode, budget, form]);
 
   const handleBack = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedDialog(true);
+      return;
+    }
+
     if (isEditMode && budgetId) {
       navigate({
         to: "/budgets/$budgetId",
@@ -258,6 +266,65 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
     } else {
       navigate({ to: ROUTES.BUDGETS });
     }
+  };
+
+  const handleDiscardChanges = () => {
+    // Reset form to original values
+    if (isEditMode && budget) {
+      const tagIds = budget.items
+        .map((item: { tagId: string | null }) => item.tagId)
+        .filter((id: string | null): id is string => id !== null);
+
+      form.reset({
+        general: {
+          name: budget.name,
+          startDate: budget.startDate.split("T")[0],
+          endDate: budget.endDate.split("T")[0],
+          currency: budget.currency,
+          preset: "custom",
+          year: new Date(budget.startDate).getFullYear(),
+          month: new Date(budget.startDate).getMonth() + 1,
+        },
+        tags: {
+          selectedTagIds: tagIds,
+        },
+        budget: {
+          items: budget.items.map(
+            (item: { tagId: string | null; expectedAmount: string }) => ({
+              tagId: item.tagId,
+              expectedAmount: item.expectedAmount,
+            })
+          ),
+        },
+      });
+    } else {
+      form.reset(getEmptyFormValues());
+    }
+
+    setShowUnsavedDialog(false);
+
+    // Navigate after resetting
+    if (isEditMode && budgetId) {
+      navigate({
+        to: "/budgets/$budgetId",
+        params: { budgetId },
+      });
+    } else {
+      navigate({ to: ROUTES.BUDGETS });
+    }
+  };
+
+  // Ref to access TabGroup navigation methods
+  const tabGroupRef = useRef<ITabGroupRef>(null);
+
+  // Handler for Next button - navigates to next tab
+  const handleNext = () => {
+    tabGroupRef.current?.goNext();
+  };
+
+  // Handler for Back button - navigates to previous tab
+  const handleTabBack = () => {
+    tabGroupRef.current?.goBack();
   };
 
   const handleSubmit = async (data: IBudgetFormData) => {
@@ -331,9 +398,7 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
   if (isEditMode && budgetLoading) {
     return (
       <Container>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-text-muted">Loading budget...</div>
-        </div>
+        <Loading text="Loading budget" />
       </Container>
     );
   }
@@ -341,143 +406,148 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
   if (isEditMode && !budget) {
     return (
       <Container>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-danger">Budget not found</div>
-        </div>
+        <EmptyPage
+          icon={HiOutlineCurrencyEuro}
+          emptyText="Budget not found"
+          button={{
+            buttonContent: "Back to budgets",
+            clicked: handleBack,
+          }}
+        />
       </Container>
     );
   }
 
   return (
-    <Form
-      form={form}
-      onSubmit={handleSubmit}
-      className="flex flex-col min-h-full">
-      <Container className="sticky top-0 z-10 bg-surface mb-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <IconButton
-              clicked={handleBack}
-              aria-label={
-                isEditMode ? "Back to budget details" : "Back to budgets"
-              }>
-              <HiArrowLeft className="w-4 h-4" />
-            </IconButton>
-            <Title>
-              {isEditMode
-                ? `Edit ${budget?.name ?? "Budget"}`
-                : "Create Budget"}
-            </Title>
+    <>
+      <Form
+        form={form}
+        onSubmit={handleSubmit}
+        className="flex flex-col min-h-full">
+        <Container className="sticky top-0 z-10 bg-surface mb-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <IconButton
+                clicked={handleBack}
+                aria-label={
+                  isEditMode ? "Back to budget details" : "Back to budgets"
+                }>
+                <HiArrowLeft className="size-4" />
+              </IconButton>
+              <Title>
+                {isEditMode
+                  ? `Edit ${budget?.name ?? "Budget"}`
+                  : "Create Budget"}
+              </Title>
+            </div>
           </div>
-        </div>
-      </Container>
+        </Container>
 
-      <Container className="mb-4">
-        <Tabs defaultValue="general">
-          <TabList>
+        <Container className="mb-4">
+          <TabGroup
+            ref={tabGroupRef}
+            defaultValue="general"
+            tabs={tabs}
+            onChangeTab={(previousTab, newTab) => {
+              setCurrentTab(newTab);
+            }}>
             <Tab
               value="general"
               showWarning={hasGeneralErrors}>
               General
             </Tab>
+            <TabContent value="general">
+              <div className="space-y-6">
+                <BudgetPresetSelector
+                  onNameChange={(name) => form.setValue("general.name", name)}
+                />
+                <TextInput
+                  name="general.name"
+                  label="Budget Name"
+                  disabled={pending}
+                />
+                <CurrencySelect
+                  name="general.currency"
+                  label="Currency"
+                  disabled={pending}
+                />
+              </div>
+            </TabContent>
+
             <Tab
               value="tags"
               showWarning={hasTagsErrors}>
               Tags
             </Tab>
+            <TabContent value="tags">
+              <div className="space-y-6">
+                {hasTagsErrors && (
+                  <Alert
+                    variant="danger"
+                    title="Validation Errors">
+                    {tagsErrors.length === 1 && <p>{tagsErrors[0]}</p>}
+                  </Alert>
+                )}
+                <BudgetTagSelector name="tags.selectedTagIds" />
+              </div>
+            </TabContent>
+
             <Tab
               value="budget"
               showWarning={hasBudgetErrors}>
               Budget
             </Tab>
-          </TabList>
+            <TabContent value="budget">
+              <div className="space-y-6">
+                <BudgetItemForm selectedTagIds={selectedTagIds} />
+              </div>
+            </TabContent>
+          </TabGroup>
+        </Container>
 
-          <TabContent value="general">
-            <div className="space-y-6">
-              {hasGeneralErrors && (
-                <Alert
-                  variant="danger"
-                  title="Validation Errors">
-                  <ul className="list-disc list-inside space-y-1">
-                    {generalErrors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </Alert>
-              )}
-              <BudgetPresetSelector
-                onNameChange={(name) => form.setValue("general.name", name)}
-              />
-              <TextInput
-                name="general.name"
-                label="Budget Name"
-                disabled={pending}
-              />
-              <CurrencySelect
-                name="general.currency"
-                label="Currency"
-                disabled={pending}
-              />
-            </div>
-          </TabContent>
+        <Container className="sticky bottom-0 bg-surface flex gap-2 justify-between mt-auto">
+          {isFirstTab ? (
+            <Button
+              clicked={handleBack}
+              disabled={pending}>
+              Cancel
+            </Button>
+          ) : (
+            <Button
+              variant="default"
+              disabled={pending}
+              clicked={handleTabBack}>
+              Back
+            </Button>
+          )}
+          {isLastTab ? (
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={pending}
+              loading={{
+                isLoading: pending,
+                text: isEditMode ? "Updating budget" : "Creating budget",
+              }}>
+              {isEditMode ? "Update Budget" : "Create Budget"}
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              disabled={pending}
+              clicked={handleNext}>
+              Next
+            </Button>
+          )}
+        </Container>
+      </Form>
 
-          <TabContent value="tags">
-            <div className="space-y-6">
-              {hasTagsErrors && (
-                <Alert
-                  variant="danger"
-                  title="Validation Errors">
-                  <ul className="list-disc list-inside space-y-1">
-                    {tagsErrors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </Alert>
-              )}
-              <BudgetTagSelector name="tags.selectedTagIds" />
-            </div>
-          </TabContent>
-
-          <TabContent value="budget">
-            <div className="space-y-6">
-              {hasBudgetErrors && (
-                <Alert
-                  variant="danger"
-                  title="Validation Errors">
-                  <ul className="list-disc list-inside space-y-1">
-                    {budgetErrors.map((error, index) => (
-                      <li key={index}>{error}</li>
-                    ))}
-                  </ul>
-                </Alert>
-              )}
-              <BudgetItemForm selectedTagIds={selectedTagIds} />
-            </div>
-          </TabContent>
-        </Tabs>
-      </Container>
-
-      <Container className="sticky bottom-0 bg-surface flex gap-2 justify-end mt-auto">
-        <Button
-          type="button"
-          clicked={handleBack}
-          disabled={pending}>
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={pending}>
-          {pending
-            ? isEditMode
-              ? "Updating..."
-              : "Creating..."
-            : isEditMode
-              ? "Update Budget"
-              : "Create Budget"}
-        </Button>
-      </Container>
-    </Form>
+      <UnsavedChangesDialog
+        open={showUnsavedDialog}
+        onConfirm={handleDiscardChanges}
+        onCancel={() => setShowUnsavedDialog(false)}
+      />
+    </>
   );
 }

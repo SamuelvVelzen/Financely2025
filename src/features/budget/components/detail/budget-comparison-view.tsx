@@ -175,7 +175,7 @@ export function BudgetComparisonView({
               key={itemId}
               className="border border-border rounded-lg bg-surface overflow-hidden">
               <div
-                className="p-4 cursor-pointer hover:bg-surface-hover transition-colors"
+                className="p-4 cursor-pointer hover:bg-surface-hover"
                 onClick={() => toggleItem(itemId)}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1 min-w-0">

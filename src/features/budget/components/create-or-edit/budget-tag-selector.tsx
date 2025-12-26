@@ -5,9 +5,13 @@ import type { ITag } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
 import { Checkbox } from "@/features/ui/checkbox/checkbox";
+import { List } from "@/features/ui/list/list";
+import { ListItem } from "@/features/ui/list/list-item";
 import { Label } from "@/features/ui/typography/label";
+import { cn } from "@/features/util/cn";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
+import { HiInformationCircle } from "react-icons/hi2";
 
 type IBudgetTagSelectorProps = {
   name?: string;
@@ -55,20 +59,25 @@ export function BudgetTagSelector({
     if (current.includes(tagId)) {
       form.setValue(
         name,
-        current.filter((id) => id !== tagId)
+        current.filter((id) => id !== tagId),
+        { shouldValidate: form.formState.isSubmitted }
       );
     } else {
-      form.setValue(name, [...current, tagId]);
+      form.setValue(name, [...current, tagId], {
+        shouldValidate: form.formState.isSubmitted,
+      });
     }
   };
 
   const handleSelectAll = () => {
     const allTagIds = filteredTags.map((tag) => tag.id);
-    form.setValue(name, allTagIds);
+    form.setValue(name, allTagIds, {
+      shouldValidate: form.formState.isSubmitted,
+    });
   };
 
   const handleDeselectAll = () => {
-    form.setValue(name, []);
+    form.setValue(name, [], { shouldValidate: form.formState.isSubmitted });
   };
 
   const selectedCount = selectedTagIds?.length ?? 0;
@@ -77,86 +86,118 @@ export function BudgetTagSelector({
     if (tags.length === 0) return null;
 
     return (
-      <div className="space-y-2">
-        {tags.map((tag) => {
+      <List
+        data={tags}
+        className="rounded-lg">
+        {(tag) => {
           const isSelected = selectedTagIds?.includes(tag.id) ?? false;
+          const checkboxId = `tag-checkbox-${tag.id}`;
           return (
-            <div
-              key={tag.id}
-              className="flex items-center gap-3 p-2 hover:bg-surface-hover rounded">
-              <Checkbox
-                checked={isSelected}
-                onChange={() => handleTagToggle(tag.id)}
-              />
-              {tag.color && (
-                <div
-                  className="w-4 h-4 rounded-full shrink-0"
-                  style={{ backgroundColor: tag.color }}
+            <ListItem
+              className={cn(
+                "p-0 cursor-pointer",
+                "hover:bg-surface-hover/50",
+                isSelected && "bg-primary/5"
+              )}>
+              <label
+                htmlFor={checkboxId}
+                className="flex items-center gap-3 px-3 py-2.5 w-full cursor-pointer">
+                <Checkbox
+                  id={checkboxId}
+                  checked={isSelected}
+                  onChange={() => handleTagToggle(tag.id)}
                 />
-              )}
-              <span className="flex-1">{tag.name}</span>
-            </div>
+                {tag.color && (
+                  <div
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{
+                      backgroundColor: tag.color,
+                    }}
+                  />
+                )}
+                <span
+                  className={cn(
+                    "flex-1 text-sm",
+                    isSelected ? "font-medium text-text" : "text-text-muted"
+                  )}>
+                  {tag.name}
+                </span>
+              </label>
+            </ListItem>
           );
-        })}
-      </div>
+        }}
+      </List>
     );
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Label>Select Tags to Budget</Label>
-        <div className="flex gap-2">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex items-center justify-between pb-2 border-b border-border">
+        <div>
+          <Label className="text-base font-semibold">
+            Select Tags to Budget
+          </Label>
+          <div className="text-sm text-text-muted mt-1">
+            {selectedCount} tag{selectedCount !== 1 ? "s" : ""} selected
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={handleSelectAll}
-            className="text-sm text-primary hover:text-primary-hover">
+            className="text-sm font-medium text-primary hover:text-primary-hover">
             Select All
           </button>
-          <span className="text-text-muted">|</span>
+          <span className="text-text-muted/50">|</span>
           <button
             type="button"
             onClick={handleDeselectAll}
-            className="text-sm text-primary hover:text-primary-hover">
+            className="text-sm font-medium text-primary hover:text-primary-hover">
             Deselect All
           </button>
         </div>
       </div>
 
-      <div className="text-sm text-text-muted">
-        {selectedCount} tag{selectedCount !== 1 ? "s" : ""} selected
-      </div>
-
-      <div className="space-y-4">
+      {/* Tag Sections */}
+      <div className="space-y-6">
         {/* Expense Tags Section */}
         {expenseTags.length > 0 && (
-          <Accordion
-            title="Expense Tags"
-            defaultOpen={true}>
-            {renderTagList(expenseTags)}
-          </Accordion>
+          <div className="space-y-3">
+            <Accordion
+              title="Expense Tags"
+              defaultOpen={true}>
+              {renderTagList(expenseTags)}
+            </Accordion>
+          </div>
         )}
 
         {/* Income Tags Section */}
         {incomeTags.length > 0 && (
-          <Accordion
-            title="Income Tags"
-            defaultOpen={true}>
-            {renderTagList(incomeTags)}
-          </Accordion>
+          <div className="space-y-3">
+            <Accordion
+              title="Income Tags"
+              defaultOpen={true}>
+              {renderTagList(incomeTags)}
+            </Accordion>
+          </div>
         )}
 
         {/* Tags for Both Section */}
         {bothTags.length > 0 && (
-          <Accordion
-            title="Tags for Both"
-            defaultOpen={true}>
-            {renderTagList(bothTags)}
-          </Accordion>
+          <div className="space-y-3">
+            <Accordion
+              title="Tags for Both"
+              defaultOpen={true}>
+              {renderTagList(bothTags)}
+            </Accordion>
+          </div>
         )}
       </div>
 
-      <div className="border-t border-border pt-4">
+      {/* Footer Note */}
+      <div className="border-t border-border pt-4 mt-6 flex items-center gap-2">
+        <HiInformationCircle className="size-4" />
         <p className="text-sm text-text-muted">
           Transactions without tags will automatically be counted toward the
           "Miscellaneous" category

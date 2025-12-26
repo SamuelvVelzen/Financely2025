@@ -26,7 +26,7 @@ export type IButtonProps = {
         isLoading?: boolean;
         text?: string;
       };
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> &
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type" | "onClick"> &
   (
     | {
         type?: "button";
@@ -45,7 +45,6 @@ export function Button({
   children,
   disabled = false,
   loading = false,
-  onClick,
   type = "button",
   variant = "default",
   size = "md",
@@ -89,7 +88,10 @@ export function Button({
         )}
         disabled={disabled || isLoading}
         onClick={(event) => {
-          onClick?.(event);
+          // Prevent default form submission for button-type buttons
+          if (type === "button") {
+            event.preventDefault();
+          }
           clicked?.(event);
         }}
         {...rest}>

@@ -6,6 +6,8 @@ import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
+import { List } from "@/features/ui/list/list";
+import { ListItem } from "@/features/ui/list/list-item";
 import { Label } from "@/features/ui/typography/label";
 import { useEffect, useMemo } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
@@ -96,10 +98,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
     fields.forEach((field, index) => {
       const tagId = budgetItems?.[index]?.tagId ?? null;
-      if (tagId === null) {
-        // Add miscellaneous items to bothFields
-        bothFields.push({ field, index });
-      } else {
+      if (tagId !== null) {
         const transactionType = getTagTransactionType(tagId);
         if (transactionType === "EXPENSE") {
           expenseFields.push({ field, index });
@@ -108,6 +107,8 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
         } else {
           bothFields.push({ field, index });
         }
+      } else {
+        bothFields.push({ field, index });
       }
     });
 
@@ -120,12 +121,10 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     const tagColor = getTagColor(tagId);
 
     return (
-      <div
-        key={field.id}
-        className="flex items-center gap-4 p-3 border border-border rounded-md bg-surface">
+      <ListItem className="flex items-center gap-4 p-3">
         {tagColor && (
           <div
-            className="w-4 h-4 rounded-full shrink-0"
+            className="size-4 rounded-full shrink-0"
             style={{ backgroundColor: tagColor }}
           />
         )}
@@ -151,7 +150,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           disabled={tagId === null}>
           <HiTrash />
         </IconButton>
-      </div>
+      </ListItem>
     );
   };
 
@@ -172,11 +171,11 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           <Accordion
             title="Expense Tags"
             defaultOpen={true}>
-            <div className="space-y-3">
-              {groupedFields.expenseFields.map(({ field, index }) =>
-                renderBudgetItem(field, index)
-              )}
-            </div>
+            <List
+              data={groupedFields.expenseFields}
+              getItemKey={(item) => item.field.id}>
+              {({ field, index }) => renderBudgetItem(field, index)}
+            </List>
           </Accordion>
         )}
 
@@ -185,11 +184,11 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           <Accordion
             title="Income Tags"
             defaultOpen={true}>
-            <div className="space-y-3">
-              {groupedFields.incomeFields.map(({ field, index }) =>
-                renderBudgetItem(field, index)
-              )}
-            </div>
+            <List
+              data={groupedFields.incomeFields}
+              getItemKey={(item) => item.field.id}>
+              {({ field, index }) => renderBudgetItem(field, index)}
+            </List>
           </Accordion>
         )}
 
@@ -198,11 +197,11 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           <Accordion
             title="Tags for Both"
             defaultOpen={true}>
-            <div className="space-y-3">
-              {groupedFields.bothFields.map(({ field, index }) =>
-                renderBudgetItem(field, index)
-              )}
-            </div>
+            <List
+              data={groupedFields.bothFields}
+              getItemKey={(item) => item.field.id}>
+              {({ field, index }) => renderBudgetItem(field, index)}
+            </List>
           </Accordion>
         )}
       </div>

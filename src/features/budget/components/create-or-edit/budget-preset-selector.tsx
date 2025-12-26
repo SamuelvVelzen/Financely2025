@@ -9,16 +9,50 @@ import {
   type IBudgetDateRange,
   type IBudgetPreset,
 } from "@/features/budget/utils/budget-presets";
-import { Button } from "@/features/ui/button/button";
 import { DateInput } from "@/features/ui/input/date-input";
+import { RadioGroup, RadioItem } from "@/features/ui/radio";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Label } from "@/features/ui/typography/label";
-import { useMemo } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Text } from "@/features/ui/typography/text";
+import { LocaleHelpers } from "@/features/util/locale.helpers";
+import { useEffect, useMemo, useRef } from "react";
+import { useFormContext } from "react-hook-form";
+import { HiCalendar, HiCalendarDays, HiCog6Tooth } from "react-icons/hi2";
 
 type IBudgetPresetSelectorProps = {
   onPresetChange?: (preset: IBudgetPreset, dates: IBudgetDateRange) => void;
   onNameChange?: (name: string) => void;
 };
+
+/**
+ * Format a date to YYYY-MM-DD string in local timezone
+ * This avoids timezone conversion issues when using toISOString()
+ */
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Format date range for display
+ */
+function formatDateRangePreview(dates: IBudgetDateRange): string {
+  const locale = LocaleHelpers.getLocale();
+
+  // For monthly/yearly presets, use shorter format
+  const startStr = dates.start.toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+  });
+  const endStr = dates.end.toLocaleDateString(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  return `${startStr} - ${endStr}`;
+}
 
 export function BudgetPresetSelector({
   onPresetChange,
@@ -28,10 +62,10 @@ export function BudgetPresetSelector({
   const preset = form.watch("general.preset") as IBudgetPreset | undefined;
   const startDate = form.watch("general.startDate");
   const endDate = form.watch("general.endDate");
+  const watchedYear = form.watch("general.year");
+  const watchedMonth = form.watch("general.month");
 
   const handlePresetChange = (newPreset: IBudgetPreset) => {
-    form.setValue("general.preset", newPreset);
-
     let dates: IBudgetDateRange;
     switch (newPreset) {
       case "monthly":
@@ -49,8 +83,8 @@ export function BudgetPresetSelector({
         break;
     }
 
-    form.setValue("general.startDate", dates.start.toISOString().split("T")[0]);
-    form.setValue("general.endDate", dates.end.toISOString().split("T")[0]);
+    form.setValue("general.startDate", formatLocalDate(dates.start));
+    form.setValue("general.endDate", formatLocalDate(dates.end));
 
     const name = formatBudgetName(newPreset, dates);
     form.setValue("general.name", name);
@@ -58,10 +92,19 @@ export function BudgetPresetSelector({
     onPresetChange?.(newPreset, dates);
   };
 
+  // Handle preset changes from RadioGroup
+  const prevPresetRef = useRef<IBudgetPreset | undefined>(preset);
+  useEffect(() => {
+    if (preset && preset !== prevPresetRef.current) {
+      prevPresetRef.current = preset;
+      handlePresetChange(preset);
+    }
+  }, [preset, startDate, endDate]);
+
   const handleMonthChange = (year: number, month: number) => {
     const dates = getMonthlyPreset(year, month);
-    form.setValue("general.startDate", dates.start.toISOString().split("T")[0]);
-    form.setValue("general.endDate", dates.end.toISOString().split("T")[0]);
+    form.setValue("general.startDate", formatLocalDate(dates.start));
+    form.setValue("general.endDate", formatLocalDate(dates.end));
     const name = formatBudgetName("monthly", dates);
     form.setValue("general.name", name);
     onNameChange?.(name);
@@ -70,12 +113,67 @@ export function BudgetPresetSelector({
 
   const handleYearChange = (year: number) => {
     const dates = getYearlyPreset(year);
-    form.setValue("general.startDate", dates.start.toISOString().split("T")[0]);
-    form.setValue("general.endDate", dates.end.toISOString().split("T")[0]);
+    form.setValue("general.startDate", formatLocalDate(dates.start));
+    form.setValue("general.endDate", formatLocalDate(dates.end));
     const name = formatBudgetName("yearly", dates);
     form.setValue("general.name", name);
     onNameChange?.(name);
     onPresetChange?.("yearly", dates);
+  };
+
+  // Trigger handlers when year/month changes for monthly/yearly presets
+  useEffect(() => {
+    if (preset === "monthly" && watchedYear && watchedMonth) {
+      handleMonthChange(watchedYear, watchedMonth);
+    }
+  }, [preset, watchedYear, watchedMonth]);
+
+  useEffect(() => {
+    if (preset === "yearly" && watchedYear) {
+      handleYearChange(Number(watchedYear));
+    }
+  }, [preset, watchedYear]);
+
+  // Helper function to update name when custom dates change
+  const handleCustomDateChange = (
+    dateType: "start" | "end",
+    newValue: string
+  ) => {
+    if (preset !== "custom") return;
+
+    // Get the other date from form state before updating
+    const otherStartDate = form.getValues("general.startDate");
+    const otherEndDate = form.getValues("general.endDate");
+
+    // Update the form field
+    if (dateType === "start") {
+      form.setValue("general.startDate", newValue, { shouldValidate: false });
+    } else {
+      form.setValue("general.endDate", newValue, { shouldValidate: false });
+    }
+
+    // Use the new value for the changed field, existing value for the other
+    const currentStartDate = dateType === "start" ? newValue : otherStartDate;
+    const currentEndDate = dateType === "end" ? newValue : otherEndDate;
+
+    if (currentStartDate && currentEndDate) {
+      // Parse dates in local timezone to avoid timezone conversion issues
+      const parseLocalDate = (dateStr: string): Date => {
+        const datePart = dateStr.split("T")[0]; // Get YYYY-MM-DD part only
+        const [year, month, day] = datePart.split("-").map(Number);
+        return new Date(year, month - 1, day); // Create date in local timezone
+      };
+
+      const dates: IBudgetDateRange = {
+        start: parseLocalDate(currentStartDate),
+        end: parseLocalDate(currentEndDate),
+      };
+
+      const name = formatBudgetName("custom", dates);
+      form.setValue("general.name", name, { shouldValidate: false });
+      onNameChange?.(name);
+      onPresetChange?.("custom", dates);
+    }
   };
 
   const currentDate = useMemo(() => new Date(), []);
@@ -96,137 +194,148 @@ export function BudgetPresetSelector({
     ? selectedStartDate.getMonth() + 1
     : currentMonth;
 
+  // Prepare options for selects
+  const yearOptions = useMemo(
+    () =>
+      [currentYear - 1, currentYear, currentYear + 1].map((year) => ({
+        value: year,
+        label: String(year),
+      })),
+    [currentYear]
+  );
+
+  const monthOptions = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => i + 1).map((month) => ({
+        value: month,
+        label: new Date(selectedYear, month - 1, 1).toLocaleString("default", {
+          month: "long",
+        }),
+      })),
+    [selectedYear]
+  );
+
+  // Get preview dates for each preset
+  const monthlyPreview = useMemo(
+    () => getMonthlyPreset(selectedYear, selectedMonth),
+    [selectedYear, selectedMonth]
+  );
+  const yearlyPreview = useMemo(
+    () => getYearlyPreset(selectedYear),
+    [selectedYear]
+  );
+  const customPreview = useMemo(() => {
+    if (startDate && endDate) {
+      const parseLocalDate = (dateStr: string): Date => {
+        const datePart = dateStr.split("T")[0];
+        const [year, month, day] = datePart.split("-").map(Number);
+        return new Date(year, month - 1, day);
+      };
+      return {
+        start: parseLocalDate(startDate),
+        end: parseLocalDate(endDate),
+      };
+    }
+    return getCurrentMonthPreset();
+  }, [startDate, endDate]);
+
   return (
     <div className="space-y-4">
-      <div>
-        <Label>Budget Period</Label>
-        <div className="flex gap-2 mt-2">
-          <Button
-            type="button"
-            variant={preset === "monthly" ? "primary" : "secondary"}
-            clicked={() => handlePresetChange("monthly")}
-            className="flex-1">
-            Monthly
-          </Button>
-          <Button
-            type="button"
-            variant={preset === "yearly" ? "primary" : "secondary"}
-            clicked={() => handlePresetChange("yearly")}
-            className="flex-1">
-            Yearly
-          </Button>
-          <Button
-            type="button"
-            variant={preset === "custom" ? "primary" : "secondary"}
-            clicked={() => handlePresetChange("custom")}
-            className="flex-1">
-            Custom
-          </Button>
+      <RadioGroup
+        name="general.preset"
+        label="Budget Period"
+        orientation="horizontal"
+        className="mt-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+          {/* Monthly Preset Card */}
+          <RadioItem
+            value="monthly"
+            icon={HiCalendar}>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-text mb-1">Monthly</div>
+              <Text
+                size="sm"
+                isMuted>
+                {formatDateRangePreview(monthlyPreview)}
+              </Text>
+            </div>
+          </RadioItem>
+
+          {/* Yearly Preset Card */}
+          <RadioItem
+            value="yearly"
+            icon={HiCalendarDays}>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-text mb-1">Yearly</div>
+              <Text
+                size="sm"
+                isMuted>
+                {formatDateRangePreview(yearlyPreview)}
+              </Text>
+            </div>
+          </RadioItem>
+
+          {/* Custom Preset Card */}
+          <RadioItem
+            value="custom"
+            icon={HiCog6Tooth}>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-text mb-1">Custom</div>
+              <Text
+                size="sm"
+                isMuted>
+                {formatDateRangePreview(customPreview)}
+              </Text>
+            </div>
+          </RadioItem>
         </div>
-      </div>
+      </RadioGroup>
 
       {preset === "monthly" && (
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label>Year</Label>
-            <Controller
-              name="general.year"
-              control={form.control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background"
-                  onChange={(e) => {
-                    const year = parseInt(e.target.value);
-                    field.onChange(year);
-                    handleMonthChange(year, selectedMonth);
-                  }}
-                  value={selectedYear}>
-                  {[currentYear - 1, currentYear, currentYear + 1].map(
-                    (year) => (
-                      <option
-                        key={year}
-                        value={year}>
-                        {year}
-                      </option>
-                    )
-                  )}
-                </select>
-              )}
-            />
-          </div>
-          <div>
-            <Label>Month</Label>
-            <Controller
-              name="general.month"
-              control={form.control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-background"
-                  onChange={(e) => {
-                    const month = parseInt(e.target.value);
-                    field.onChange(month);
-                    handleMonthChange(selectedYear, month);
-                  }}
-                  value={selectedMonth}>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                    <option
-                      key={month}
-                      value={month}>
-                      {new Date(selectedYear, month - 1, 1).toLocaleString(
-                        "default",
-                        {
-                          month: "long",
-                        }
-                      )}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-          </div>
+          <SelectDropdown
+            name="general.year"
+            label="Year"
+            options={yearOptions}
+            placeholder="Select year"
+          />
+          <SelectDropdown
+            name="general.month"
+            label="Month"
+            options={monthOptions}
+            placeholder="Select month"
+          />
         </div>
       )}
 
       {preset === "yearly" && (
-        <div>
-          <Label>Year</Label>
-          <Controller
-            name="general.year"
-            control={form.control}
-            render={({ field }) => (
-              <select
-                {...field}
-                className="w-full px-3 py-2 border border-border rounded-md bg-background"
-                onChange={(e) => {
-                  const year = parseInt(e.target.value);
-                  field.onChange(year);
-                  handleYearChange(year);
-                }}
-                value={selectedYear}>
-                {[currentYear - 1, currentYear, currentYear + 1].map((year) => (
-                  <option
-                    key={year}
-                    value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            )}
-          />
-        </div>
+        <SelectDropdown
+          name="general.year"
+          label="Year"
+          options={yearOptions}
+          placeholder="Select year"
+        />
       )}
 
       {preset === "custom" && (
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label>Start Date</Label>
-            <DateInput name="general.startDate" />
+            <DateInput
+              name="general.startDate"
+              onChange={(e) => {
+                handleCustomDateChange("start", e.target.value);
+              }}
+            />
           </div>
           <div>
             <Label>End Date</Label>
-            <DateInput name="general.endDate" />
+            <DateInput
+              name="general.endDate"
+              onChange={(e) => {
+                handleCustomDateChange("end", e.target.value);
+              }}
+            />
           </div>
         </div>
       )}
