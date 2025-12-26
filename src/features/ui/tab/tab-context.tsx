@@ -15,7 +15,7 @@ export const TabContext = createContext<ITabContext | null>(null);
 export function useTabContext() {
   const context = useContext(TabContext);
   if (!context) {
-    throw new Error("Tab components must be used within a Tabs component");
+    throw new Error("Tab components must be used within a TabGroup component");
   }
   return context;
 }

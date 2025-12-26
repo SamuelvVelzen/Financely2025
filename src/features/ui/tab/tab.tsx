@@ -104,3 +104,5 @@ export function Tab({ value, children, className = "", showWarning = false }: IT
     </div>
   );
 }
+
+Tab.displayName = "Tab";

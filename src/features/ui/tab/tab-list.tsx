@@ -15,3 +15,5 @@ export function TabList({ children, className = "" }: ITabListProps) {
     </div>
   );
 }
+
+TabList.displayName = "TabList";
