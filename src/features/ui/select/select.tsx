@@ -10,6 +10,7 @@ import { HiChevronDown, HiInformationCircle, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
+import { DropdownItemEmpty } from "../dropdown/dropdown-item-empty";
 import type { IPlacementOption } from "../dropdown/hooks/use-dropdown-placement";
 import { Label } from "../typography/label";
 import { NativeSelect } from "./native-select";
@@ -144,8 +145,9 @@ export function Select<
 
   // Get selected options
   const getSelectedOptions = (
-    value: string | string[] | undefined
+    value: string | number | string[] | number[] | undefined
   ): ISelectOption<TData>[] => {
+    console.log("value", value);
     if (!value) return [];
     if (multiple && Array.isArray(value)) {
       // Preserve the order from the value array (FIFO)
@@ -153,7 +155,8 @@ export function Select<
         .map((val) => options.find((opt) => opt.value === val))
         .filter((opt): opt is ISelectOption<TData> => opt !== undefined);
     }
-    if (!multiple && typeof value === "string") {
+    if (!multiple) {
+      console.log("options", options);
       const option = options.find((opt) => opt.value === value);
       return option ? [option] : [];
     }
@@ -337,15 +340,11 @@ export function Select<
               {filteredOptions.length === 0 &&
                 searchQuery.trim() &&
                 !showCreateNew && (
-                  <DropdownItem className="text-text-muted cursor-default">
-                    No results found
-                  </DropdownItem>
+                  <DropdownItemEmpty>No results found</DropdownItemEmpty>
                 )}
 
               {!searchQuery.trim() && filteredOptions.length === 0 && (
-                <DropdownItem className="text-text-muted cursor-default">
-                  No options available
-                </DropdownItem>
+                <DropdownItemEmpty>No options available</DropdownItemEmpty>
               )}
 
               {showCreateNew && (
