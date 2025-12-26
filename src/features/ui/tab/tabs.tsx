@@ -16,16 +16,16 @@ import { TabContent } from "./tab-content";
 import { TabContext } from "./tab-context";
 import { TabList } from "./tab-list";
 
-type ITabGroupProps = IPropsWithClassName &
+type ITabsProps = IPropsWithClassName &
   PropsWithChildren & {
     defaultValue: string;
   };
 
-export function TabGroup({
+export function Tabs({
   defaultValue,
   children,
   className = "",
-}: ITabGroupProps & PropsWithChildren) {
+}: ITabsProps & PropsWithChildren) {
   const [value, setValue] = useState(defaultValue);
   const id = useId();
   const tabsRef = useRef<string[]>([]);
@@ -132,7 +132,7 @@ export function TabGroup({
         {tabContentChildren.length > 0 && (
           <div
             ref={panelsContainerRef}
-            className="relative w-full transition-[height] duration-300 ease-in-out"
+            className="relative w-full overflow-hidden transition-[height] duration-300 ease-in-out"
             style={{ minHeight: "1px" }}>
             {tabContentChildren}
           </div>

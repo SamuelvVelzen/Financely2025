@@ -73,7 +73,7 @@ export function RadioItem({
         htmlFor={radioId}
         className={cn(
           "relative block cursor-pointer focus:outline-none p-4 rounded-2xl border transition-all text-left hover:border-primary/50 hover:bg-surface-hover/50",
-          "peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2",
+          "peer-focus-visible:ring-2 peer-focus-visible:ring-primary",
           "border-border bg-surface",
           isDisabled && "opacity-50 cursor-not-allowed",
           isChecked && "border-primary bg-primary/5 hover:border-primary",
