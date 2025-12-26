@@ -225,13 +225,11 @@ export function AddOrCreateTagDialog({
             },
             variant: "primary",
             disabled: pending,
-            buttonContent: pending
-              ? isEditMode
-                ? "Updating..."
-                : "Creating..."
-              : isEditMode
-                ? "Update"
-                : "Create",
+            loading: {
+              isLoading: pending,
+              text: isEditMode ? "Updating tag" : "Creating tag",
+            },
+            buttonContent: isEditMode ? "Update" : "Create",
           },
         ]}
         open={open}

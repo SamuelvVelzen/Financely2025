@@ -143,8 +143,12 @@ export function RegisterForm() {
               type="button"
               clicked={handleResendVerification}
               disabled={resendLoading}
-              className="w-full">
-              {resendLoading ? "Sending..." : "Resend verification email"}
+              className="w-full"
+              loading={{
+                isLoading: resendLoading,
+                text: "Sending verification email",
+              }}>
+              Resend verification email
             </Button>
             <NavLink
               to="/login"
@@ -213,8 +217,12 @@ export function RegisterForm() {
         <Button
           type="submit"
           variant="primary"
-          className="w-full">
-          {loading ? "Creating account..." : "Sign Up"}
+          className="w-full"
+          loading={{
+            isLoading: loading,
+            text: "Creating account",
+          }}>
+          Sign Up
         </Button>
       </Form>
 

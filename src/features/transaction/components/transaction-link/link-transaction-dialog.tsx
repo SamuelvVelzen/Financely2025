@@ -307,13 +307,11 @@ export function LinkTransactionDialog({
           variant: "primary",
           disabled: pending,
           type: "submit",
-          buttonContent: pending
-            ? isEditMode
-              ? "Updating..."
-              : "Creating..."
-            : isEditMode
-              ? "Update"
-              : "Create",
+          loading: {
+            isLoading: pending,
+            text: isEditMode ? "Updating link" : "Creating link",
+          },
+          buttonContent: isEditMode ? "Update" : "Create",
         },
       ]}
       open={open}

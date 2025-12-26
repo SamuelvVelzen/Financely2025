@@ -106,7 +106,11 @@ export function MessageItem({ message }: IMessageItemProps) {
           {
             clicked: handleDeleteConfirm,
             variant: "danger",
-            buttonContent: deleteMessage.isPending ? "Deleting..." : "Delete",
+            loading: {
+              isLoading: deleteMessage.isPending,
+              text: "Deleting message",
+            },
+            buttonContent: "Delete",
             disabled: deleteMessage.isPending,
           },
         ]}

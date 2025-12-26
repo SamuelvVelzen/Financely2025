@@ -511,9 +511,11 @@ export function TagCsvImportDialog({
           },
           variant: "primary" as const,
           disabled: validateMutation.isPending,
-          buttonContent: validateMutation.isPending
-            ? "Validating..."
-            : "Continue",
+          loading: {
+            isLoading: validateMutation.isPending,
+            text: "Validating mapping",
+          },
+          buttonContent: "Continue",
         },
       ],
     },

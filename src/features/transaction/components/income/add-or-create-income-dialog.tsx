@@ -286,19 +286,14 @@ export function AddOrCreateIncomeDialog({
             buttonContent: "Cancel",
           },
           {
-            clicked: () => {
-              form.handleSubmit(handleSubmit)();
-            },
             variant: "primary",
             disabled: pending,
             type: "submit",
-            buttonContent: pending
-              ? isEditMode
-                ? "Updating..."
-                : "Creating..."
-              : isEditMode
-                ? "Update"
-                : "Create",
+            loading: {
+              isLoading: pending,
+              text: isEditMode ? "Updating income" : "Creating income",
+            },
+            buttonContent: isEditMode ? "Update" : "Create",
           },
         ]}
         open={open}

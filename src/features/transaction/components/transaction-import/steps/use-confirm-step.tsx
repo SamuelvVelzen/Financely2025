@@ -110,9 +110,11 @@ export function useConfirmStep(): IStepConfig<IStep> {
         },
         variant: "primary",
         disabled: importMutation.isPending || selectedRows.size === 0,
-        buttonContent: importMutation.isPending
-          ? "Importing..."
-          : "Confirm Import",
+        loading: {
+          isLoading: importMutation.isPending,
+          text: "Importing transactions",
+        },
+        buttonContent: "Confirm Import",
       },
     ],
   };

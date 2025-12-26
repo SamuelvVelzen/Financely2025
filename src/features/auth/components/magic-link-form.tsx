@@ -60,8 +60,12 @@ export function MagicLinkForm({
           type="submit"
           variant="primary"
           disabled={loading}
-          className="w-full">
-          {loading ? "Sending..." : "Send Magic Link"}
+          className="w-full"
+          loading={{
+            isLoading: loading,
+            text: "Sending magic link",
+          }}>
+          Send Magic Link
         </Button>
       </Form>
 

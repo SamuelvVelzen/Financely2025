@@ -284,13 +284,11 @@ export function AddOrCreateExpenseDialog({
           {
             variant: "primary",
             type: "submit",
-            buttonContent: pending
-              ? isEditMode
-                ? "Updating..."
-                : "Creating..."
-              : isEditMode
-                ? "Update"
-                : "Create",
+            loading: {
+              isLoading: pending,
+              text: isEditMode ? "Updating expense" : "Creating expense",
+            },
+            buttonContent: isEditMode ? "Update" : "Create",
           },
         ]}
         open={open}

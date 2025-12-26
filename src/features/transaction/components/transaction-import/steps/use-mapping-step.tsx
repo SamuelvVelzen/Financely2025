@@ -264,9 +264,11 @@ export function useMappingStep(): IStepConfig<IStep> {
         },
         variant: "primary",
         disabled: ctx.transformMutation.isPending,
-        buttonContent: ctx.transformMutation.isPending
-          ? "Processing..."
-          : "Continue",
+        loading: {
+          isLoading: ctx.transformMutation.isPending,
+          text: "Processing transactions",
+        },
+        buttonContent: "Continue",
       },
     ],
   };

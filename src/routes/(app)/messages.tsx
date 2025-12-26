@@ -60,9 +60,11 @@ function MessagesPage() {
               size="sm"
               clicked={handleMarkAllAsRead}
               disabled={markAllAsRead.isPending}
-              buttonContent={
-                markAllAsRead.isPending ? "Marking..." : "Mark All as Read"
-              }
+              loading={{
+                isLoading: markAllAsRead.isPending,
+                text: "Marking all messages as read",
+              }}
+              buttonContent="Mark All as Read"
             />
           )}
         </div>

@@ -214,8 +214,12 @@ export function LoginForm() {
                   variant="secondary"
                   clicked={handleResendVerification}
                   disabled={resendLoading}
-                  className="w-full">
-                  {resendLoading ? "Sending..." : "Resend verification email"}
+                  className="w-full"
+                  loading={{
+                    isLoading: resendLoading,
+                    text: "Sending verification email",
+                  }}>
+                  Resend verification email
                 </Button>
               )}
               <NavLink
@@ -251,8 +255,12 @@ export function LoginForm() {
           <Button
             type="submit"
             variant="primary"
-            className="w-full">
-            {loading ? "Signing in..." : "Sign In"}
+            className="w-full"
+            loading={{
+              isLoading: loading,
+              text: "Signing in",
+            }}>
+            Sign In
           </Button>
         </Form>
       )}
