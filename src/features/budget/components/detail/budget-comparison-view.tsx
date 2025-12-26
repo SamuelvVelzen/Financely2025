@@ -156,7 +156,7 @@ export function BudgetComparisonView({
           let displayTagName: string;
 
           if (tagId === null) {
-            displayTagName = "Misc (Untagged Transactions)";
+            displayTagName = "Miscellaneous";
           } else {
             const tagInfo = tagMap.get(tagId);
             if (tagInfo) {

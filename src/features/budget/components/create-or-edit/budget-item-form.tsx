@@ -12,13 +12,9 @@ import { HiTrash } from "react-icons/hi2";
 
 type IBudgetItemFormProps = {
   selectedTagIds?: string[];
-  includeMisc?: boolean;
 };
 
-export function BudgetItemForm({
-  selectedTagIds = [],
-  includeMisc = false,
-}: IBudgetItemFormProps) {
+export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
   const orderedTags = useOrderedData(tags) as ITag[];
@@ -44,9 +40,9 @@ export function BudgetItemForm({
       (item: any) => item.tagId === null
     );
 
-    // Remove items for tags that are no longer selected
+    // Remove items for tags that are no longer selected (but always keep misc item)
     const itemsToKeep = currentItems.filter((item: any) => {
-      if (item.tagId === null) return includeMisc;
+      if (item.tagId === null) return true; // Always keep misc item
       return selectedTagIds.includes(item.tagId);
     });
 
@@ -58,23 +54,16 @@ export function BudgetItemForm({
       itemsToKeep.push({ tagId, expectedAmount: "0" });
     });
 
-    // Add/remove Misc item
-    if (includeMisc && !currentHasMisc) {
+    // Always ensure misc item exists
+    if (!currentHasMisc) {
       itemsToKeep.push({ tagId: null, expectedAmount: "0" });
-    } else if (!includeMisc && currentHasMisc) {
-      const miscIndex = itemsToKeep.findIndex(
-        (item: any) => item.tagId === null
-      );
-      if (miscIndex !== -1) {
-        itemsToKeep.splice(miscIndex, 1);
-      }
     }
 
     form.setValue("budget.items", itemsToKeep, { shouldValidate: false });
-  }, [selectedTagIds, includeMisc, form]);
+  }, [selectedTagIds, form]);
 
   const getTagName = (tagId: string | null) => {
-    if (tagId === null) return "Misc (Untagged Transactions)";
+    if (tagId === null) return "Miscellaneous";
     const tag = selectedTags.find((t) => t.id === tagId);
     return tag?.name ?? "Unknown";
   };
@@ -125,8 +114,15 @@ export function BudgetItemForm({
               </div>
               <IconButton
                 size="sm"
-                clicked={() => remove(index)}
-                aria-label="Remove">
+                clicked={() => {
+                  // Don't allow removing the miscellaneous item
+                  if (tagId === null) {
+                    return;
+                  }
+                  remove(index);
+                }}
+                aria-label="Remove"
+                disabled={tagId === null}>
                 <HiTrash />
               </IconButton>
             </div>

@@ -95,7 +95,6 @@ const BudgetFormSchema = z.object({
     }),
   tags: z.object({
     selectedTagIds: z.array(z.string()).min(1, "At least one tag is required"),
-    includeMisc: z.boolean(),
   }),
   budget: z.object({
     items: z
@@ -125,7 +124,6 @@ const getEmptyFormValues = (): IBudgetFormData => {
     },
     tags: {
       selectedTagIds: [],
-      includeMisc: false,
     },
     budget: {
       items: [],
@@ -149,7 +147,6 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
   });
 
   const selectedTagIds = form.watch("tags.selectedTagIds");
-  const includeMisc = form.watch("tags.includeMisc");
 
   // Helper function to extract error messages from a group
   const getGroupErrorMessages = (groupErrors: any): string[] => {
@@ -218,9 +215,6 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
       const tagIds = budget.items
         .map((item: { tagId: string | null }) => item.tagId)
         .filter((id: string | null): id is string => id !== null);
-      const hasMisc = budget.items.some(
-        (item: { tagId: string | null }) => item.tagId === null
-      );
 
       form.reset({
         general: {
@@ -234,7 +228,6 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
         },
         tags: {
           selectedTagIds: tagIds,
-          includeMisc: hasMisc,
         },
         budget: {
           items: budget.items.map(
@@ -451,10 +444,7 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
                   </ul>
                 </Alert>
               )}
-              <BudgetItemForm
-                selectedTagIds={selectedTagIds}
-                includeMisc={includeMisc}
-              />
+              <BudgetItemForm selectedTagIds={selectedTagIds} />
             </div>
           </TabContent>
         </Tabs>

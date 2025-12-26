@@ -34,7 +34,6 @@ export function BudgetTagSelector({
   }, [orderedTags, transactionType]);
 
   const selectedTagIds = form.watch(name) as string[] | undefined;
-  const includeMisc = form.watch("tags.includeMisc") as boolean | undefined;
 
   const handleTagToggle = (tagId: string) => {
     const current = selectedTagIds ?? [];
@@ -58,11 +57,7 @@ export function BudgetTagSelector({
     form.setValue(name, [], { shouldValidate: true });
   };
 
-  const handleMiscToggle = (checked: boolean) => {
-    form.setValue("tags.includeMisc", checked, { shouldValidate: true });
-  };
-
-  const selectedCount = (selectedTagIds?.length ?? 0) + (includeMisc ? 1 : 0);
+  const selectedCount = selectedTagIds?.length ?? 0;
 
   return (
     <div className="space-y-4">
@@ -89,7 +84,7 @@ export function BudgetTagSelector({
         {selectedCount} tag{selectedCount !== 1 ? "s" : ""} selected
       </div>
 
-      <div className="max-h-64 overflow-y-auto border border-border rounded-md p-4 space-y-2">
+      <div className="space-y-2">
         {filteredTags.map((tag) => {
           const isSelected = selectedTagIds?.includes(tag.id) ?? false;
           return (
@@ -112,12 +107,11 @@ export function BudgetTagSelector({
         })}
       </div>
 
-      <div className="flex items-center gap-3 p-2 border-t border-border pt-4">
-        <Checkbox
-          checked={includeMisc ?? false}
-          onChange={(e) => handleMiscToggle(e.target.checked)}
-        />
-        <span className="flex-1 font-medium">Misc (Untagged Transactions)</span>
+      <div className="border-t border-border pt-4">
+        <p className="text-sm text-text-muted">
+          Transactions without tags will automatically be counted toward the
+          "Miscellaneous" category
+        </p>
       </div>
     </div>
   );
