@@ -8,6 +8,8 @@ interface ITabContext {
   id: string;
   registerTab: (value: string) => void;
   getTabs: () => string[];
+  goNext: () => void;
+  goBack: () => void;
 }
 
 export const TabContext = createContext<ITabContext | null>(null);

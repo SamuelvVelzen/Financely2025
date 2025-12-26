@@ -4,10 +4,12 @@ import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
   Children,
+  forwardRef,
   isValidElement,
   PropsWithChildren,
   useEffect,
   useId,
+  useImperativeHandle,
   useRef,
   useState,
 } from "react";
@@ -19,20 +21,48 @@ import { TabList } from "./tab-list";
 type ITabGroupProps = IPropsWithClassName &
   PropsWithChildren & {
     defaultValue: string;
+    onChangeTab?: (previousTab: string, newTab: string) => void;
   };
 
-export function TabGroup({
-  defaultValue,
-  children,
-  className = "",
-}: ITabGroupProps & PropsWithChildren) {
-  const [value, setValue] = useState(defaultValue);
+export interface ITabGroupRef {
+  goNext: () => void;
+  goBack: () => void;
+}
+
+export const TabGroup = forwardRef<
+  ITabGroupRef,
+  ITabGroupProps & PropsWithChildren
+>(({ defaultValue, children, className = "", onChangeTab }, ref) => {
+  const [internalValue, setInternalValue] = useState(defaultValue);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const id = useId();
   const tabsRef = useRef<string[]>([]);
   const panelsContainerRef = useRef<HTMLDivElement>(null);
-  const previousValueRef = useRef<string>(defaultValue);
   const isTransitioningRef = useRef(false);
+
+  // Wrapped setValue that handles onChangeTab callback and transition logic
+  const setValue = (newValue: string) => {
+    const previousValue = internalValue;
+
+    // Only proceed if value actually changed
+    if (previousValue !== newValue) {
+      // Call onChangeTab callback if provided
+      onChangeTab?.(previousValue, newValue);
+
+      // Update the value
+      setInternalValue(newValue);
+
+      // Enable transition
+      setIsTransitioning(true);
+      isTransitioningRef.current = true;
+
+      // Disable transition after animation completes
+      setTimeout(() => {
+        setIsTransitioning(false);
+        isTransitioningRef.current = false;
+      }, 200);
+    }
+  };
 
   const registerTab = (value: string) => {
     if (!tabsRef.current.includes(value)) {
@@ -42,22 +72,33 @@ export function TabGroup({
 
   const getTabs = () => tabsRef.current;
 
-  // Detect tab changes and enable transition
-  useEffect(() => {
-    const isTabChange = previousValueRef.current !== value;
-    previousValueRef.current = value;
-
-    if (isTabChange) {
-      setIsTransitioning(true);
-      isTransitioningRef.current = true;
-      // Disable transition after animation completes (300ms)
-      const timeoutId = setTimeout(() => {
-        setIsTransitioning(false);
-        isTransitioningRef.current = false;
-      }, 200);
-      return () => clearTimeout(timeoutId);
+  // Navigation functions
+  const goNext = () => {
+    const tabs = tabsRef.current;
+    const currentIndex = tabs.indexOf(value);
+    if (currentIndex < tabs.length - 1) {
+      const nextTab = tabs[currentIndex + 1];
+      setValue(nextTab);
     }
-  }, [value]);
+  };
+
+  const goBack = () => {
+    const tabs = tabsRef.current;
+    const currentIndex = tabs.indexOf(value);
+    if (currentIndex > 0) {
+      const previousTab = tabs[currentIndex - 1];
+      setValue(previousTab);
+    }
+  };
+
+  // Expose methods via ref
+  useImperativeHandle(ref, () => ({
+    goNext,
+    goBack,
+  }));
+
+  // Use internalValue as value
+  const value = internalValue;
 
   // Update container height based on active tab content
   useEffect(() => {
@@ -150,7 +191,8 @@ export function TabGroup({
   });
 
   return (
-    <TabContext.Provider value={{ value, setValue, id, registerTab, getTabs }}>
+    <TabContext.Provider
+      value={{ value, setValue, id, registerTab, getTabs, goNext, goBack }}>
       <div className={cn("w-full", className)}>
         {tabChildren.length > 0 && <TabList>{tabChildren}</TabList>}
         {otherChildren}
@@ -168,4 +210,6 @@ export function TabGroup({
       </div>
     </TabContext.Provider>
   );
-}
+});
+
+TabGroup.displayName = "TabGroup";
