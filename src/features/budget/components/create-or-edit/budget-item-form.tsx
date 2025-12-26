@@ -3,6 +3,7 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITag } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
+import { Accordion } from "@/features/ui/accordion/accordion";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { Label } from "@/features/ui/typography/label";
@@ -60,7 +61,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     }
 
     form.setValue("budget.items", itemsToKeep, { shouldValidate: false });
-  }, [selectedTagIds, form]);
+  }, [selectedTagIds]);
 
   const getTagName = (tagId: string | null) => {
     if (tagId === null) return "Miscellaneous";
@@ -74,6 +75,86 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     return tag?.color ?? null;
   };
 
+  const getTagTransactionType = (
+    tagId: string | null
+  ): "EXPENSE" | "INCOME" | null => {
+    if (tagId === null) return null;
+    const tag = selectedTags.find((t) => t.id === tagId);
+    return tag?.transactionType ?? null;
+  };
+
+  // Watch all budget items to make grouping reactive
+  const budgetItems = form.watch("budget.items") as
+    | Array<{ tagId: string | null; expectedAmount: string }>
+    | undefined;
+
+  // Group fields by transaction type
+  const groupedFields = useMemo(() => {
+    const expenseFields: Array<{ field: any; index: number }> = [];
+    const incomeFields: Array<{ field: any; index: number }> = [];
+    const bothFields: Array<{ field: any; index: number }> = [];
+
+    fields.forEach((field, index) => {
+      const tagId = budgetItems?.[index]?.tagId ?? null;
+      if (tagId === null) {
+        // Add miscellaneous items to bothFields
+        bothFields.push({ field, index });
+      } else {
+        const transactionType = getTagTransactionType(tagId);
+        if (transactionType === "EXPENSE") {
+          expenseFields.push({ field, index });
+        } else if (transactionType === "INCOME") {
+          incomeFields.push({ field, index });
+        } else {
+          bothFields.push({ field, index });
+        }
+      }
+    });
+
+    return { expenseFields, incomeFields, bothFields };
+  }, [fields, budgetItems, selectedTags]);
+
+  const renderBudgetItem = (field: any, index: number) => {
+    const tagId = form.watch(`budget.items.${index}.tagId`) as string | null;
+    const tagName = getTagName(tagId);
+    const tagColor = getTagColor(tagId);
+
+    return (
+      <div
+        key={field.id}
+        className="flex items-center gap-4 p-3 border border-border rounded-md bg-surface">
+        {tagColor && (
+          <div
+            className="w-4 h-4 rounded-full shrink-0"
+            style={{ backgroundColor: tagColor }}
+          />
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="font-medium truncate">{tagName}</div>
+        </div>
+        <div className="w-32">
+          <DecimalInput
+            name={`budget.items.${index}.expectedAmount`}
+            placeholder={0}
+          />
+        </div>
+        <IconButton
+          size="sm"
+          clicked={() => {
+            // Don't allow removing the miscellaneous item
+            if (tagId === null) {
+              return;
+            }
+            remove(index);
+          }}
+          aria-label="Remove"
+          disabled={tagId === null}>
+          <HiTrash />
+        </IconButton>
+      </div>
+    );
+  };
+
   if (fields.length === 0) {
     return (
       <div className="text-center py-8 text-text-muted">
@@ -85,49 +166,45 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   return (
     <div className="space-y-4">
       <Label>Set Expected Amounts</Label>
-      <div className="space-y-3">
-        {fields.map((field, index) => {
-          const tagId = form.watch(`budget.items.${index}.tagId`) as
-            | string
-            | null;
-          const tagName = getTagName(tagId);
-          const tagColor = getTagColor(tagId);
-
-          return (
-            <div
-              key={field.id}
-              className="flex items-center gap-4 p-3 border border-border rounded-md bg-surface">
-              {tagColor && (
-                <div
-                  className="w-4 h-4 rounded-full shrink-0"
-                  style={{ backgroundColor: tagColor }}
-                />
+      <div className="space-y-4">
+        {/* Expense Tags Section */}
+        {groupedFields.expenseFields.length > 0 && (
+          <Accordion
+            title="Expense Tags"
+            defaultOpen={true}>
+            <div className="space-y-3">
+              {groupedFields.expenseFields.map(({ field, index }) =>
+                renderBudgetItem(field, index)
               )}
-              <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{tagName}</div>
-              </div>
-              <div className="w-32">
-                <DecimalInput
-                  name={`budget.items.${index}.expectedAmount`}
-                  placeholder={0}
-                />
-              </div>
-              <IconButton
-                size="sm"
-                clicked={() => {
-                  // Don't allow removing the miscellaneous item
-                  if (tagId === null) {
-                    return;
-                  }
-                  remove(index);
-                }}
-                aria-label="Remove"
-                disabled={tagId === null}>
-                <HiTrash />
-              </IconButton>
             </div>
-          );
-        })}
+          </Accordion>
+        )}
+
+        {/* Income Tags Section */}
+        {groupedFields.incomeFields.length > 0 && (
+          <Accordion
+            title="Income Tags"
+            defaultOpen={true}>
+            <div className="space-y-3">
+              {groupedFields.incomeFields.map(({ field, index }) =>
+                renderBudgetItem(field, index)
+              )}
+            </div>
+          </Accordion>
+        )}
+
+        {/* Tags for Both Section (includes Miscellaneous) */}
+        {groupedFields.bothFields.length > 0 && (
+          <Accordion
+            title="Tags for Both"
+            defaultOpen={true}>
+            <div className="space-y-3">
+              {groupedFields.bothFields.map(({ field, index }) =>
+                renderBudgetItem(field, index)
+              )}
+            </div>
+          </Accordion>
+        )}
       </div>
     </div>
   );

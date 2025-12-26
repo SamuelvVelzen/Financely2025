@@ -101,7 +101,16 @@ const BudgetFormSchema = z.object({
       .array(
         z.object({
           tagId: z.string().nullable(),
-          expectedAmount: z.string(),
+          expectedAmount: z
+            .string()
+            .min(1, "Expected amount is required")
+            .refine(
+              (val) => {
+                const num = parseFloat(val);
+                return num > 0;
+              },
+              { message: "Expected amount must be greater than 0" }
+            ),
         })
       )
       .min(1, "At least one budget item is required"),
@@ -143,7 +152,6 @@ export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
   const form = useForm<IBudgetFormData>({
     resolver: zodResolver(BudgetFormSchema) as any,
     defaultValues: getEmptyFormValues(),
-    mode: "onBlur", // Validate on blur to show errors before submit
   });
 
   const selectedTagIds = form.watch("tags.selectedTagIds");

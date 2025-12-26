@@ -3,6 +3,7 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITag } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
+import { Accordion } from "@/features/ui/accordion/accordion";
 import { Checkbox } from "@/features/ui/checkbox/checkbox";
 import { Label } from "@/features/ui/typography/label";
 import { useMemo } from "react";
@@ -33,6 +34,20 @@ export function BudgetTagSelector({
     );
   }, [orderedTags, transactionType]);
 
+  // Separate tags into three sections
+  const expenseTags = useMemo(
+    () => filteredTags.filter((tag) => tag.transactionType === "EXPENSE"),
+    [filteredTags]
+  );
+  const incomeTags = useMemo(
+    () => filteredTags.filter((tag) => tag.transactionType === "INCOME"),
+    [filteredTags]
+  );
+  const bothTags = useMemo(
+    () => filteredTags.filter((tag) => tag.transactionType === null),
+    [filteredTags]
+  );
+
   const selectedTagIds = form.watch(name) as string[] | undefined;
 
   const handleTagToggle = (tagId: string) => {
@@ -40,24 +55,52 @@ export function BudgetTagSelector({
     if (current.includes(tagId)) {
       form.setValue(
         name,
-        current.filter((id) => id !== tagId),
-        { shouldValidate: true }
+        current.filter((id) => id !== tagId)
       );
     } else {
-      form.setValue(name, [...current, tagId], { shouldValidate: true });
+      form.setValue(name, [...current, tagId]);
     }
   };
 
   const handleSelectAll = () => {
     const allTagIds = filteredTags.map((tag) => tag.id);
-    form.setValue(name, allTagIds, { shouldValidate: true });
+    form.setValue(name, allTagIds);
   };
 
   const handleDeselectAll = () => {
-    form.setValue(name, [], { shouldValidate: true });
+    form.setValue(name, []);
   };
 
   const selectedCount = selectedTagIds?.length ?? 0;
+
+  const renderTagList = (tags: ITag[]) => {
+    if (tags.length === 0) return null;
+
+    return (
+      <div className="space-y-2">
+        {tags.map((tag) => {
+          const isSelected = selectedTagIds?.includes(tag.id) ?? false;
+          return (
+            <div
+              key={tag.id}
+              className="flex items-center gap-3 p-2 hover:bg-surface-hover rounded">
+              <Checkbox
+                checked={isSelected}
+                onChange={() => handleTagToggle(tag.id)}
+              />
+              {tag.color && (
+                <div
+                  className="w-4 h-4 rounded-full shrink-0"
+                  style={{ backgroundColor: tag.color }}
+                />
+              )}
+              <span className="flex-1">{tag.name}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -84,27 +127,33 @@ export function BudgetTagSelector({
         {selectedCount} tag{selectedCount !== 1 ? "s" : ""} selected
       </div>
 
-      <div className="space-y-2">
-        {filteredTags.map((tag) => {
-          const isSelected = selectedTagIds?.includes(tag.id) ?? false;
-          return (
-            <div
-              key={tag.id}
-              className="flex items-center gap-3 p-2 hover:bg-surface-hover rounded">
-              <Checkbox
-                checked={isSelected}
-                onChange={() => handleTagToggle(tag.id)}
-              />
-              {tag.color && (
-                <div
-                  className="w-4 h-4 rounded-full shrink-0"
-                  style={{ backgroundColor: tag.color }}
-                />
-              )}
-              <span className="flex-1">{tag.name}</span>
-            </div>
-          );
-        })}
+      <div className="space-y-4">
+        {/* Expense Tags Section */}
+        {expenseTags.length > 0 && (
+          <Accordion
+            title="Expense Tags"
+            defaultOpen={true}>
+            {renderTagList(expenseTags)}
+          </Accordion>
+        )}
+
+        {/* Income Tags Section */}
+        {incomeTags.length > 0 && (
+          <Accordion
+            title="Income Tags"
+            defaultOpen={true}>
+            {renderTagList(incomeTags)}
+          </Accordion>
+        )}
+
+        {/* Tags for Both Section */}
+        {bothTags.length > 0 && (
+          <Accordion
+            title="Tags for Both"
+            defaultOpen={true}>
+            {renderTagList(bothTags)}
+          </Accordion>
+        )}
       </div>
 
       <div className="border-t border-border pt-4">
