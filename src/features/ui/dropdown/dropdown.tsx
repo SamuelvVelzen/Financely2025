@@ -84,11 +84,13 @@ export function Dropdown({
         <Button
           clicked={toggleDropdown}
           disabled={disabled}
-          className="w-full">
+          className="w-full py-[7px]">
           {dropdownSelector}
         </Button>
       ) : (
-        <IconButton clicked={toggleDropdown} disabled={disabled}>
+        <IconButton
+          clicked={toggleDropdown}
+          disabled={disabled}>
           <HiDotsVertical className="w-5 h-5" />
         </IconButton>
       )}
