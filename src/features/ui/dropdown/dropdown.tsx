@@ -84,14 +84,18 @@ export function Dropdown({
         <Button
           clicked={toggleDropdown}
           disabled={disabled}
-          className="w-full py-[7px]">
+          className={cn(
+            "w-full py-2 h-9",
+            "focus:ring-2 focus:ring-primary",
+            dropdownIsOpen && "ring-2 ring-primary"
+          )}>
           {dropdownSelector}
         </Button>
       ) : (
         <IconButton
           clicked={toggleDropdown}
           disabled={disabled}>
-          <HiDotsVertical className="w-5 h-5" />
+          <HiDotsVertical className="size-5" />
         </IconButton>
       )}
     </div>

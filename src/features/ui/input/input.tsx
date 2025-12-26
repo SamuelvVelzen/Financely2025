@@ -41,7 +41,6 @@ export function BaseInput({
   prefixIcon,
   suffixIcon,
   renderField,
-  style,
   ...props
 }: IBaseInputProps) {
   const generatedId = useId();
@@ -49,8 +48,8 @@ export function BaseInput({
   const form = useFormContext();
 
   const baseClasses =
-    "border rounded-2xl bg-surface text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
-  const widthBaseClasses = `h-[22px] box-content`;
+    "border rounded-2xl bg-surface text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed w-full";
+  const widthBaseClasses = `h-9`;
 
   // Adjust padding based on icons
   const paddingClasses = cn(
@@ -98,10 +97,7 @@ export function BaseInput({
                       widthBaseClasses,
                       className
                     ),
-                    style: {
-                      width: `calc(100% - ${(prefixIcon ? 36 : 8) + (suffixIcon ? 36 : 8) + 2}px)`,
-                      ...(style ?? {}),
-                    },
+
                     ...props,
                   },
                 })
@@ -117,10 +113,6 @@ export function BaseInput({
                     widthBaseClasses,
                     className
                   )}
-                  style={{
-                    width: `calc(100% - ${(prefixIcon ? 36 : 8) + (suffixIcon ? 36 : 8) + 2}px)`,
-                    ...(style ?? {}),
-                  }}
                   {...field}
                   ref={field.ref}
                   {...props}
