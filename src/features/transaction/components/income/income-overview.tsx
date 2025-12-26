@@ -18,6 +18,7 @@ import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { type IPriceRange, RangeInput } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
 import { Pagination } from "@/features/ui/pagination";
@@ -32,7 +33,6 @@ import {
 } from "@/features/util/date/date-helpers";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 import {
   HiArrowDownTray,
   HiArrowTrendingUp,
@@ -70,7 +70,7 @@ export function IncomeOverview() {
     useState<IPriceRange>(defaultPriceFilter);
 
   // Form for search and tag filter (requires form context)
-  const filterForm = useForm<FilterFormData>({
+  const filterForm = useFinForm<FilterFormData>({
     defaultValues: {
       searchQuery: "",
       tagFilter: [],
@@ -323,7 +323,9 @@ export function IncomeOverview() {
         {isEmpty && (
           <EmptyPage
             icon={<HiArrowTrendingUp />}
-            emptyText={"No income entries yet. Start by adding your first income source."}
+            emptyText={
+              "No income entries yet. Start by adding your first income source."
+            }
             button={{
               buttonContent: "Add income",
               clicked: handleCreateIncome,

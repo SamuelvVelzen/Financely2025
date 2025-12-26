@@ -3,6 +3,7 @@ import { SocialProviders } from "@/features/auth/components/social-providers";
 import { Button } from "@/features/ui/button/button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { BaseInput } from "@/features/ui/input/input";
 import { PasswordInput } from "@/features/ui/input/password-input";
 import { NavLink } from "@/features/ui/navigation/nav-link";
@@ -11,7 +12,6 @@ import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 // Feature flags from environment (client-side check)
@@ -50,7 +50,7 @@ export function LoginForm() {
   const { redirect } = useSearch({ from: "/login" });
 
   // Create form instances
-  const loginForm = useForm<ILoginFormData>({
+  const loginForm = useFinForm<ILoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -58,7 +58,7 @@ export function LoginForm() {
     },
   });
 
-  const magicLinkForm = useForm<IMagicLinkFormData>({
+  const magicLinkForm = useFinForm<IMagicLinkFormData>({
     resolver: zodResolver(magicLinkSchema),
     defaultValues: {
       email: "",
@@ -212,7 +212,7 @@ export function LoginForm() {
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={handleResendVerification}
+                  clicked={handleResendVerification}
                   disabled={resendLoading}
                   className="w-full">
                   {resendLoading ? "Sending..." : "Resend verification email"}

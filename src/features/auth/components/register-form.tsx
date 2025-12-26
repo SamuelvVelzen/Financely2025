@@ -7,6 +7,7 @@
 
 import { Button } from "@/features/ui/button/button";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { BaseInput } from "@/features/ui/input/input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { NavLink } from "@/features/ui/navigation/nav-link";
@@ -15,7 +16,6 @@ import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 // Feature flags from environment (client-side check)
@@ -43,7 +43,7 @@ export function RegisterForm() {
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/register" });
 
-  const registerForm = useForm<RegisterFormData>({
+  const registerForm = useFinForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       firstname: "",

@@ -4,6 +4,7 @@ import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { BaseInput } from "@/features/ui/input/input";
 import { useToast } from "@/features/ui/toast";
 import { ScrollableHeader } from "@/features/ui/typography/scrollable-header";
@@ -11,7 +12,6 @@ import { useChangePassword } from "@/features/users/hooks/useChangePassword";
 import { useConnectedAccounts } from "@/features/users/hooks/useConnectedAccounts";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 
 export function ChangePassword() {
   const { data: accountsData } = useConnectedAccounts();
@@ -20,7 +20,7 @@ export function ChangePassword() {
   const [showPasswordUnsavedDialog, setShowPasswordUnsavedDialog] =
     useState(false);
 
-  const passwordForm = useForm<IChangePasswordInput>({
+  const passwordForm = useFinForm<IChangePasswordInput>({
     resolver: zodResolver(ChangePasswordInputSchema),
     defaultValues: {
       currentPassword: "",
@@ -66,7 +66,9 @@ export function ChangePassword() {
   return (
     <>
       <Container>
-        <ScrollableHeader id="change-password" className="mb-4">
+        <ScrollableHeader
+          id="change-password"
+          className="mb-4">
           Change Password
         </ScrollableHeader>
         <Form

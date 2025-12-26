@@ -16,12 +16,13 @@ import {
 } from "@/features/transaction/hooks/useTransactions";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { type Resolver } from "react-hook-form";
 import { z } from "zod";
 
 type ILinkTransactionDialog = {
@@ -143,7 +144,7 @@ export function LinkTransactionDialog({
     });
   }, [filteredTransactions, existingLinks, isExpense, link]);
 
-  const form = useForm<LinkFormData>({
+  const form = useFinForm<LinkFormData>({
     resolver: zodResolver(LinkFormSchema) as Resolver<LinkFormData>,
     defaultValues: {
       linkedTransactionId: "",

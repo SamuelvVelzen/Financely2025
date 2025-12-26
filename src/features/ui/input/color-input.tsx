@@ -65,18 +65,20 @@ export function ColorInput({
   const colorPickerId = id || `${generatedId}-color-picker`;
   const textInputId = `${generatedId}-text-input`;
   const form = useFormContext();
-  const error = form.formState.errors[name];
   const [textValue, setTextValue] = useState(() => form.getValues(name) || "");
 
   const baseClasses =
     "w-full px-3 py-2 border rounded-lg bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
-  const borderClass = error ? "border-danger" : "border-border";
 
   return (
     <Controller
       name={name}
       control={form.control}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
+        const error = fieldState.error;
+        // Only show error if form has been submitted
+        const shouldShowError = error && form.formState.isSubmitted;
+        const borderClass = shouldShowError ? "border-danger" : "border-border";
         const currentFieldValue = field.value || "";
 
         // Sync text value when field value changes from outside (e.g., form reset)
@@ -170,7 +172,7 @@ export function ColorInput({
                 className={cn(baseClasses, borderClass, "flex-1")}
               />
             </div>
-            {error && (
+            {shouldShowError && (
               <p className="text-sm text-danger mt-1">
                 {error.message as string}
               </p>

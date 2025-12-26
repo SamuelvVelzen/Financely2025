@@ -2,7 +2,6 @@
 
 import {
   CreateTagInputSchema,
-  TransactionTypeSchema,
   type ITag,
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
@@ -10,13 +9,13 @@ import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { ColorInput } from "@/features/ui/input/color-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 type IAddOrCreateTagDialog = {
@@ -56,7 +55,7 @@ export function AddOrCreateTagDialog({
   const { mutate: updateTag } = useUpdateTag();
   const toast = useToast();
 
-  const form = useForm<FormData>({
+  const form = useFinForm<FormData>({
     resolver: zodResolver(CreateTagInputSchema) as any,
     defaultValues: getEmptyFormValues(),
   });
@@ -184,10 +183,21 @@ export function AddOrCreateTagDialog({
       <Dialog
         title={isEditMode ? "Edit Tag" : "Create Tag"}
         content={
-          <Form<FormData> form={form} onSubmit={handleSubmit}>
+          <Form<FormData>
+            form={form}
+            onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <TextInput name="name" label="Name" disabled={pending} required />
-              <ColorInput name="color" label="Color" disabled={pending} />
+              <TextInput
+                name="name"
+                label="Name"
+                disabled={pending}
+                required
+              />
+              <ColorInput
+                name="color"
+                label="Color"
+                disabled={pending}
+              />
               <TextInput
                 name="description"
                 label="Description"

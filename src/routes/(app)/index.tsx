@@ -12,6 +12,7 @@ import { useDialog } from "@/features/ui/dialog/dialog/use-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { ColorInput } from "@/features/ui/input/color-input";
 import { NumberInput } from "@/features/ui/input/number-input";
 import { TextInput } from "@/features/ui/input/text-input";
@@ -21,7 +22,6 @@ import { Title } from "@/features/ui/typography/title";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { HiMoon, HiSun } from "react-icons/hi2";
 import { z } from "zod";
 
@@ -246,7 +246,7 @@ function FormDialogExample() {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
 
-  const form = useForm<FormData>({
+  const form = useFinForm<FormData>({
     resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
@@ -370,7 +370,7 @@ type ISelectDropdownFormData = {
 
 function SelectDropdownExample() {
   const [isSelected, setIsSelected] = useState(false);
-  const form = useForm<ISelectDropdownFormData>({
+  const form = useFinForm<ISelectDropdownFormData>({
     defaultValues: {
       singleValue: undefined,
       multipleValue: [],
@@ -833,7 +833,7 @@ function ToggleButtonExample() {
   const [mediumToggle, setMediumToggle] = useState(true);
   const [largeToggle, setLargeToggle] = useState(false);
 
-  const form = useForm<{ notifications: boolean; darkMode: boolean }>({
+  const form = useFinForm<{ notifications: boolean; darkMode: boolean }>({
     defaultValues: {
       notifications: true,
       darkMode: false,

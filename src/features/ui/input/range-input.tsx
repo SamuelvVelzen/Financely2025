@@ -5,8 +5,9 @@ import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider } from "react-hook-form";
 import { HiX } from "react-icons/hi";
+import { useFinForm } from "../form/useForm";
 
 export type IPriceRange = {
   min?: number;
@@ -29,7 +30,7 @@ export function RangeInput({
 }: IRangeInputProps) {
   const [isDragging, setIsDragging] = useState<"min" | "max" | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
-  const decimalForm = useForm<{ min: string; max: string }>({
+  const decimalForm = useFinForm<{ min: string; max: string }>({
     defaultValues: {
       min: value.min?.toString() ?? "",
       max: value.max?.toString() ?? "",

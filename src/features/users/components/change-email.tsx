@@ -4,6 +4,7 @@ import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { BaseInput } from "@/features/ui/input/input";
 import { useToast } from "@/features/ui/toast";
 import { Label } from "@/features/ui/typography/label";
@@ -12,7 +13,6 @@ import { useChangeEmail } from "@/features/users/hooks/useChangeEmail";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 
 export function ChangeEmail() {
   const { data: profile } = useMyProfile();
@@ -20,7 +20,7 @@ export function ChangeEmail() {
   const toast = useToast();
   const [showEmailUnsavedDialog, setShowEmailUnsavedDialog] = useState(false);
 
-  const emailForm = useForm<IChangeEmailInput>({
+  const emailForm = useFinForm<IChangeEmailInput>({
     resolver: zodResolver(ChangeEmailInputSchema),
     defaultValues: {
       newEmail: "",
@@ -60,7 +60,9 @@ export function ChangeEmail() {
   return (
     <>
       <Container className="mb-4">
-        <ScrollableHeader id="change-email" className="mb-4">
+        <ScrollableHeader
+          id="change-email"
+          className="mb-4">
           Change Email
         </ScrollableHeader>
         <div className="grid gap-4 sm:grid-cols-2 mb-4">

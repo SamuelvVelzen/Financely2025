@@ -1,7 +1,7 @@
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { useEffect } from "react";
 import {
   BANK_OPTIONS,
   DEFAULT_BANK_OPTION_PLACEHOLDER,
@@ -27,7 +27,7 @@ export function BankSelect({
   label = "Bank profile",
   helperText,
 }: BankSelectProps) {
-  const form = useForm<BankSelectForm>({
+  const form = useFinForm<BankSelectForm>({
     defaultValues: {
       bank: value || undefined,
     },
@@ -51,7 +51,9 @@ export function BankSelect({
 
   return (
     <div className={disabled ? "opacity-50 pointer-events-none" : ""}>
-      <Form form={form} onSubmit={async () => undefined}>
+      <Form
+        form={form}
+        onSubmit={async () => undefined}>
         <SelectDropdown
           name="bank"
           label={label}
@@ -66,4 +68,3 @@ export function BankSelect({
     </div>
   );
 }
-

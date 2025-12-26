@@ -14,6 +14,7 @@ import {
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
@@ -26,7 +27,7 @@ import {
 } from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { type Resolver } from "react-hook-form";
 import { z } from "zod";
 
 type IAddOrCreateExpenseDialog = {
@@ -79,7 +80,7 @@ export function AddOrCreateExpenseDialog({
   const { mutate: updateExpense } = useUpdateExpense();
   const toast = useToast();
 
-  const form = useForm<FormData>({
+  const form = useFinForm<FormData>({
     resolver: zodResolver(ExpenseFormSchema) as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
   });
@@ -281,9 +282,6 @@ export function AddOrCreateExpenseDialog({
             buttonContent: "Cancel",
           },
           {
-            clicked: () => {
-              form.handleSubmit(handleSubmit)();
-            },
             variant: "primary",
             type: "submit",
             buttonContent: pending
