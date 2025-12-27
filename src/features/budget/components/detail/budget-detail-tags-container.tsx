@@ -1,25 +1,23 @@
-"use client";
-
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
-import type { IBudgetComparison } from "@/features/shared/validation/schemas";
+import { IBudgetComparison } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
-import { Badge } from "@/features/ui/badge/badge";
+import { Container } from "@/features/ui/container/container";
 import { List } from "@/features/ui/list/list";
+import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
 import { useMemo, useState } from "react";
-import { HiChevronDown, HiSquares2X2 } from "react-icons/hi2";
-import { BudgetAlerts } from "./budget-alerts";
+import { HiChevronDown } from "react-icons/hi";
+import { HiSquares2X2 } from "react-icons/hi2";
+import { BudgetStatusBadge, getStatusColor } from "./budget-status-badge";
 
-type IBudgetComparisonViewProps = {
+type IBudgetDetailTagsContainerProps = {
   comparison: IBudgetComparison;
-  onAddBudgetItem?: (tagId: string) => void;
 };
 
-export function BudgetComparisonView({
+export function BudgetDetailTagsContainer({
   comparison,
-  onAddBudgetItem,
-}: IBudgetComparisonViewProps) {
+}: IBudgetDetailTagsContainerProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
@@ -102,8 +100,6 @@ export function BudgetComparisonView({
     const tagId = itemComparison.item.tagId;
     const isExpanded = expandedItems.has(itemId);
     const percentage = itemComparison.percentage;
-    const expected = parseFloat(itemComparison.expected);
-    const actual = parseFloat(itemComparison.actual);
 
     // Get tag info from tag map or transactions
     let tagColor: string | null = null;
@@ -128,13 +124,10 @@ export function BudgetComparisonView({
 
     return (
       <div className="border-b border-border last:border-b-0">
-        <div
-          className={cn(
-            "p-3",
-            hasTransactions && "cursor-pointer hover:bg-surface-hover"
-          )}
-          onClick={hasTransactions ? () => toggleItem(itemId) : undefined}>
-          <div className="flex items-center justify-between gap-4">
+        <ListItem
+          className={cn("items-stretch", hasTransactions && "cursor-pointer")}
+          clicked={hasTransactions ? () => toggleItem(itemId) : undefined}>
+          <div className="flex items-center justify-between gap-4 w-full">
             <div className="flex items-center gap-3 flex-1 min-w-0 h-10">
               {tagColor ? (
                 <div className="size-5 flex items-center justify-center">
@@ -205,7 +198,7 @@ export function BudgetComparisonView({
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
                 </div>
-                {getStatusBadge(percentage)}
+                <BudgetStatusBadge percentage={percentage} />
               </div>
               <div className="w-4 self-center">
                 {hasTransactions && (
@@ -219,7 +212,7 @@ export function BudgetComparisonView({
               </div>
             </div>
           </div>
-        </div>
+        </ListItem>
 
         {isExpanded && itemComparison.transactions.length > 0 && (
           <div className="border-t border-border px-3 py-2 bg-surface-hover">
@@ -228,19 +221,21 @@ export function BudgetComparisonView({
               getItemKey={(tx) => tx.id}
               className="border border-border">
               {(tx) => (
-                <div className="flex items-center justify-between p-2 bg-background">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">
-                      {tx.name}
+                <ListItem className="p-2">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">
+                        {tx.name}
+                      </div>
+                      <div className="text-xs text-text-muted">
+                        {new Date(tx.occurredAt).toLocaleDateString()}
+                      </div>
                     </div>
-                    <div className="text-xs text-text-muted">
-                      {new Date(tx.occurredAt).toLocaleDateString()}
+                    <div className="text-right text-sm font-medium">
+                      {formatCurrency(tx.amount, comparison.budget.currency)}
                     </div>
                   </div>
-                  <div className="text-right text-sm font-medium">
-                    {formatCurrency(tx.amount, comparison.budget.currency)}
-                  </div>
-                </div>
+                </ListItem>
               )}
             </List>
           </div>
@@ -249,93 +244,8 @@ export function BudgetComparisonView({
     );
   };
 
-  const getStatusColor = (percentage: number) => {
-    if (percentage < 80) return "text-text";
-    if (percentage <= 100) return "text-warning";
-    return "text-danger";
-  };
-
-  const getStatusBadge = (percentage: number) => {
-    if (percentage < 80) return <Badge>On Track</Badge>;
-    if (percentage <= 100) return <Badge variant="warning">Near Limit</Badge>;
-    return <Badge variant="danger">Over Budget</Badge>;
-  };
-
-  const totalExpected = parseFloat(comparison.totals.totalExpected);
-  const totalActual = parseFloat(comparison.totals.totalActual);
-  const totalPercentage =
-    totalExpected > 0 ? (totalActual / totalExpected) * 100 : 0;
-
   return (
-    <div className="space-y-6">
-      {/* Summary Card */}
-      <div className="p-4 border border-border rounded-lg bg-surface">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-base font-semibold">Budget Summary</h3>
-          {getStatusBadge(totalPercentage)}
-        </div>
-        <div className="grid grid-cols-3 gap-4 mb-3">
-          <div>
-            <div className="text-xs text-text-muted mb-0.5">Expected</div>
-            <div className="text-lg font-semibold">
-              {formatCurrency(
-                comparison.totals.totalExpected,
-                comparison.budget.currency
-              )}
-            </div>
-          </div>
-          <div>
-            <div className="text-xs text-text-muted mb-0.5">Actual</div>
-            <div
-              className={cn(
-                "text-lg font-semibold",
-                getStatusColor(totalPercentage)
-              )}>
-              {formatCurrency(
-                comparison.totals.totalActual,
-                comparison.budget.currency
-              )}
-            </div>
-          </div>
-          <div>
-            <div className="text-xs text-text-muted mb-0.5">Difference</div>
-            <div
-              className={cn(
-                "text-lg font-semibold",
-                getStatusColor(totalPercentage)
-              )}>
-              {formatCurrency(
-                comparison.totals.totalDifference,
-                comparison.budget.currency
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="w-full bg-surface-hover rounded-full h-2 overflow-hidden">
-          <div
-            className={cn(
-              "h-full transition-all",
-              totalPercentage < 80
-                ? "bg-success"
-                : totalPercentage >= 80 && totalPercentage <= 100
-                  ? "bg-warning"
-                  : "bg-danger"
-            )}
-            style={{ width: `${Math.min(totalPercentage, 100)}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Alerts */}
-      {comparison.alerts.length > 0 && (
-        <BudgetAlerts
-          alerts={comparison.alerts}
-          onAddBudgetItem={onAddBudgetItem}
-        />
-      )}
-
-      {/* Per-Tag Comparisons */}
-
+    <Container>
       <h3 className="text-lg font-semibold">Per-Tag Breakdown</h3>
 
       {/* Expense Tags Section */}
@@ -379,6 +289,6 @@ export function BudgetComparisonView({
           </List>
         </Accordion>
       )}
-    </div>
+    </Container>
   );
 }

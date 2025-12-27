@@ -4,20 +4,20 @@ import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type { IBudgetAlert } from "@/features/shared/validation/schemas";
 import { Alert } from "@/features/ui/alert/alert";
 import { Badge } from "@/features/ui/badge/badge";
-import { Button } from "@/features/ui/button/button";
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 
 type IBudgetAlertsProps = {
   alerts: IBudgetAlert[];
-  onAddBudgetItem?: (tagId: string) => void;
-};
+} & IPropsWithClassName;
 
-export function BudgetAlerts({ alerts, onAddBudgetItem }: IBudgetAlertsProps) {
+export function BudgetAlerts({ alerts, className = "" }: IBudgetAlertsProps) {
   if (alerts.length === 0) {
     return null;
   }
 
   return (
-    <div className="space-y-3">
+    <div className={cn("space-y-3", className)}>
       <Alert
         variant="warning"
         className="border-warning">
@@ -51,15 +51,6 @@ export function BudgetAlerts({ alerts, onAddBudgetItem }: IBudgetAlertsProps) {
                         alert.transactions[0].currency
                       )}
                     </span>
-                    {onAddBudgetItem && (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="sm"
-                        clicked={() => onAddBudgetItem(alert.tagId)}>
-                        Add Budget Item
-                      </Button>
-                    )}
                   </div>
                 </div>
               ))}

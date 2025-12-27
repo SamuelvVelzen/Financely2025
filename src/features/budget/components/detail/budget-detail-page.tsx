@@ -21,7 +21,8 @@ import {
   HiPencil,
   HiTrash,
 } from "react-icons/hi2";
-import { BudgetComparisonView } from "./budget-comparison-view";
+import { BudgetDetailTagsContainer } from "./budget-detail-tags-container";
+import { BudgetSummaryContainer } from "./budget-summary-container";
 
 type IBudgetDetailPageProps = {
   budgetId: string;
@@ -122,10 +123,14 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
           </div>
         </div>
       </Container>
-      <Container>
-        {/* Comparison View */}
-        <BudgetComparisonView comparison={comparison} />
-      </Container>
+
+      <BudgetSummaryContainer
+        totals={comparison.totals}
+        currency={comparison.budget.currency}
+        alerts={comparison.alerts}
+      />
+
+      <BudgetDetailTagsContainer comparison={comparison} />
 
       <DeleteDialog
         open={isDeleteDialogOpen}
