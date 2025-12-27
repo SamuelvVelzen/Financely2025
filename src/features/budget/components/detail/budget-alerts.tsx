@@ -1,10 +1,10 @@
 "use client";
 
+import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type { IBudgetAlert } from "@/features/shared/validation/schemas";
 import { Alert } from "@/features/ui/alert/alert";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
-import { HiExclamationTriangle } from "react-icons/hi2";
 
 type IBudgetAlertsProps = {
   alerts: IBudgetAlert[];
@@ -22,7 +22,6 @@ export function BudgetAlerts({ alerts, onAddBudgetItem }: IBudgetAlertsProps) {
         variant="warning"
         className="border-warning">
         <div className="flex items-start gap-3">
-          <HiExclamationTriangle className="size-5 text-warning shrink-0 mt-0.5" />
           <div className="flex-1">
             <div className="font-semibold mb-2">
               Transactions without budget entries
@@ -47,10 +46,10 @@ export function BudgetAlerts({ alerts, onAddBudgetItem }: IBudgetAlertsProps) {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium">
-                      {parseFloat(alert.totalAmount).toLocaleString(undefined, {
-                        style: "currency",
-                        currency: "USD",
-                      })}
+                      {formatCurrency(
+                        alert.totalAmount,
+                        alert.transactions[0].currency
+                      )}
                     </span>
                     {onAddBudgetItem && (
                       <Button
