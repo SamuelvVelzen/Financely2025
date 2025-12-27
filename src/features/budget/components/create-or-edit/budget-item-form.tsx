@@ -54,12 +54,12 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
       (id) => !currentTagIds.includes(id)
     );
     newTagIds.forEach((tagId) => {
-      itemsToKeep.push({ tagId, expectedAmount: "0" });
+      itemsToKeep.push({ tagId });
     });
 
     // Always ensure misc item exists
     if (!currentHasMisc) {
-      itemsToKeep.push({ tagId: null, expectedAmount: "0" });
+      itemsToKeep.push({ tagId: null });
     }
 
     form.setValue("budget.items", itemsToKeep, { shouldValidate: false });
@@ -135,10 +135,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           <div className="font-medium truncate">{tagName}</div>
         </div>
         <div className="w-32">
-          <DecimalInput
-            name={`budget.items.${index}.expectedAmount`}
-            placeholder={0}
-          />
+          <DecimalInput name={`budget.items.${index}.expectedAmount`} />
         </div>
         <IconButton
           size="sm"
