@@ -10,6 +10,7 @@ import { useFinForm } from "@/features/ui/form/useForm";
 import { useToast } from "@/features/ui/toast";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -182,7 +183,7 @@ export function TransactionImportProvider({
 
   const suggestedMapping = mappingQuery.data?.mapping;
 
-  const resetAllState = () => {
+  const resetAllState = useCallback(() => {
     setRows([]);
     setColumns([]);
     setMapping({});
@@ -195,7 +196,7 @@ export function TransactionImportProvider({
       defaultCurrency: "EUR",
       mappings: {},
     });
-  };
+  }, [mappingForm]);
 
   const hasUnsavedChanges = useMemo(() => {
     const mappingHasValues = Object.values(mapping).some(Boolean);
