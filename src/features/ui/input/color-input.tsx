@@ -68,7 +68,7 @@ export function ColorInput({
   const [textValue, setTextValue] = useState(() => form.getValues(name) || "");
 
   const baseClasses =
-    "w-full px-3 py-2 border rounded-lg bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
+    "w-full px-3 py-2 border rounded-2xl bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
     <Controller
@@ -135,7 +135,7 @@ export function ColorInput({
               {/* Color Picker */}
               <div
                 className={cn(
-                  "rounded-lg overflow-hidden shrink-0 w-16 h-[2.47rem]"
+                  "rounded-2xl overflow-hidden shrink-0 w-16 h-[2.47rem]"
                 )}>
                 <input
                   type="color"
@@ -147,9 +147,9 @@ export function ColorInput({
                     "w-full h-full cursor-pointer border-0 rounded-2xl appearance-none",
                     "[-webkit-appearance:none]",
                     "[&::-webkit-color-swatch]:border-0",
-                    "[&::-webkit-color-swatch]:rounded-lg",
+                    "[&::-webkit-color-swatch]:rounded-2xl",
                     "[&::-moz-color-swatch]:border-0",
-                    "[&::-moz-color-swatch]:rounded-lg",
+                    "[&::-moz-color-swatch]:rounded-2xl",
                     className
                   )}
                   style={{

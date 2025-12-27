@@ -101,7 +101,7 @@ function DefaultDialogExample() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
+        className="px-4 py-2 bg-primary text-white rounded-2xl hover:bg-primary-hover motion-safe:transition-colors">
         Open Default Dialog
       </button>
       <Dialog
@@ -165,7 +165,7 @@ function CustomDialogExample() {
       <button
         type="button"
         onClick={dialog.open}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
+        className="px-4 py-2 bg-primary text-white rounded-2xl hover:bg-primary-hover motion-safe:transition-colors">
         Open Custom Dialog
       </button>
       <Dialog
@@ -177,19 +177,19 @@ function CustomDialogExample() {
               It demonstrates imperative control and custom styling:
             </p>
             <div className="space-y-2">
-              <div className="p-3 bg-surface-hover rounded-lg">
+              <div className="p-3 bg-surface-hover rounded-2xl">
                 <p className="font-medium text-sm">useDialog Hook</p>
                 <p className="text-xs text-text-muted">
                   Imperative control with open(), close(), toggle()
                 </p>
               </div>
-              <div className="p-3 bg-surface-hover rounded-lg">
+              <div className="p-3 bg-surface-hover rounded-2xl">
                 <p className="font-medium text-sm">Large Modal Size</p>
                 <p className="text-xs text-text-muted">
                   Uses size="lg" for wider dialog
                 </p>
               </div>
-              <div className="p-3 bg-surface-hover rounded-lg">
+              <div className="p-3 bg-surface-hover rounded-2xl">
                 <p className="font-medium text-sm">Custom Styling</p>
                 <p className="text-xs text-text-muted">
                   Override default styles with className prop (shadow-2xl)
@@ -317,7 +317,7 @@ function FormDialogExample() {
                 disabled={pending}
               />
               {pending && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl">
                   <p className="text-sm text-blue-600 dark:text-blue-400">
                     Submitting form...
                   </p>

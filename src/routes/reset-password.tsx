@@ -191,7 +191,7 @@ function ResetPasswordPage() {
         </div>
 
         {error && (
-          <div className="p-4 bg-danger/10 border border-danger rounded-lg">
+          <div className="p-4 bg-danger/10 border border-danger rounded-2xl">
             <p className="text-danger text-sm">{error}</p>
           </div>
         )}

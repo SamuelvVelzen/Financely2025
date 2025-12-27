@@ -18,7 +18,7 @@ export function MessageList({ messages, isLoading }: IMessageListProps) {
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="p-4 rounded-lg border">
+            className="p-4 rounded-2xl border">
             <SkeletonText lines={3} />
           </div>
         ))}

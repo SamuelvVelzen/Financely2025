@@ -184,11 +184,11 @@ export function RangeInput({
               className="relative h-8 flex items-center cursor-pointer"
               onClick={handleSliderClick}>
               {/* Track */}
-              <div className="absolute w-full h-2 bg-surface-hover rounded-lg"></div>
+              <div className="absolute w-full h-2 bg-surface-hover rounded-2xl"></div>
 
               {/* Active range */}
               <div
-                className="absolute h-2 bg-primary rounded-lg"
+                className="absolute h-2 bg-primary rounded-2xl"
                 style={{
                   left: `${minPercentage}%`,
                   width: `${maxPercentage - minPercentage}%`,

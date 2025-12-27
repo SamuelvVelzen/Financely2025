@@ -129,7 +129,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
         disabled={disabled}
         onChange={handleInputChange}
         className={cn(
-          "block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover disabled:opacity-60",
+          "block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover disabled:opacity-60",
           disabled && "cursor-not-allowed opacity-60"
         )}
         {...rest}
@@ -140,7 +140,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
           {formattedFiles.map((file, index) => (
             <div
               key={`${file.name}-${index}`}
-              className="p-4 bg-surface-hover rounded-lg grid grid-cols-[1fr_auto] gap-2">
+              className="p-4 bg-surface-hover rounded-2xl grid grid-cols-[1fr_auto] gap-2">
               <div>
                 <p className="text-sm">
                   <span className="font-medium">File:</span> {file.name}

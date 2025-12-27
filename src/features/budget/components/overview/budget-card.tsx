@@ -51,7 +51,7 @@ export function BudgetCard({
   const endDate = new Date(budget.endDate);
 
   return (
-    <div className="p-6 border border-border rounded-lg bg-surface hover:shadow-md transition-shadow">
+    <div className="p-6 border border-border rounded-2xl bg-surface hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold truncate mb-1">{budget.name}</h3>

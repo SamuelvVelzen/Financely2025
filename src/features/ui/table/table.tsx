@@ -36,7 +36,7 @@ function TableContent<T>({
         : children;
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div className="border border-border rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className={cn("w-full text-sm", className)}>
           <TableHeader>

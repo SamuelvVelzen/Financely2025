@@ -135,7 +135,7 @@ export function CalendarView({
         <button
           type="button"
           onClick={handlePreviousMonth}
-          className="p-1 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text transition-colors">
+          className="p-1 rounded-2xl hover:bg-surface-hover text-text-muted hover:text-text transition-colors">
           <HiChevronLeft className="size-5" />
         </button>
         <h3 className="text-lg font-semibold text-text">
@@ -144,7 +144,7 @@ export function CalendarView({
         <button
           type="button"
           onClick={handleNextMonth}
-          className="p-1 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text transition-colors">
+          className="p-1 rounded-2xl hover:bg-surface-hover text-text-muted hover:text-text transition-colors">
           <HiChevronRight className="size-5" />
         </button>
       </div>
@@ -246,29 +246,29 @@ export function CalendarView({
                   "ring-2 ring-white/80",
                 // Selected start date (when only start is selected, no end) - same style as range
                 onlyStartSelected &&
-                  "bg-primary text-white hover:bg-primary/90 rounded-lg",
+                  "bg-primary text-white hover:bg-primary/90 rounded-2xl",
                 // Continuous range background
                 rangePosition?.type === "single" &&
-                  "bg-primary text-white hover:bg-primary/90 rounded-lg",
+                  "bg-primary text-white hover:bg-primary/90 rounded-2xl",
                 rangePosition?.type === "start" &&
                   "bg-primary text-white hover:bg-primary/90",
                 rangePosition?.type === "end" &&
                   "bg-primary text-white hover:bg-primary/90",
                 rangePosition?.type === "middle" && "bg-primary/20",
                 // Round left corner only on start date or first day of week in range
-                rangePosition?.type === "start" && "rounded-l-lg",
+                rangePosition?.type === "start" && "rounded-l-2xl",
                 rangePosition?.type === "middle" &&
                   "hasPrev" in rangePosition &&
                   rangePosition.hasPrev === false &&
                   (day.getDay() === 1 || day.getDay() === 0) &&
-                  "rounded-l-lg",
+                  "rounded-l-2xl",
                 // Round right corner only on end date or last day of week in range
-                rangePosition?.type === "end" && "rounded-r-lg",
+                rangePosition?.type === "end" && "rounded-r-2xl",
                 rangePosition?.type === "middle" &&
                   "hasNext" in rangePosition &&
                   rangePosition.hasNext === false &&
                   (day.getDay() === 0 || day.getDay() === 6) &&
-                  "rounded-r-lg",
+                  "rounded-r-2xl",
                 // Fallback for dates in range but not styled above
                 inFullRange && !rangePosition && "bg-primary/20",
                 // Default styling when not in range and not selected
@@ -276,7 +276,7 @@ export function CalendarView({
                   !isStart &&
                   !isEnd &&
                   !onlyStartSelected &&
-                  "rounded-lg"
+                  "rounded-2xl"
               )}>
               <span className="relative z-10">{format(day, "d")}</span>
             </button>

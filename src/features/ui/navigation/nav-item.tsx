@@ -63,7 +63,7 @@ export function NavItem({
   );
 
   const baseClasses = cn(
-    "flex items-center py-3.5 rounded-3xl overflow-hidden",
+    "flex items-center py-3.5 rounded-2xl overflow-hidden",
     isExpanded ? "px-3 -mx-3 justify-start" : "justify-center px-0"
   );
 

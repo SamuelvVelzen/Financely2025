@@ -120,7 +120,7 @@ export function RegisterForm() {
 
   if (!ENABLE_EMAIL_PASSWORD) {
     return (
-      <div className="p-4 bg-warning/10 border border-warning rounded-lg">
+      <div className="p-4 bg-warning/10 border border-warning rounded-2xl">
         <p className="text-warning text-sm">
           Email/password registration is currently disabled.
         </p>
@@ -131,7 +131,7 @@ export function RegisterForm() {
   if (registrationSuccess) {
     return (
       <div className="space-y-6">
-        <div className="p-4 bg-success/10 border border-success rounded-lg space-y-4">
+        <div className="p-4 bg-success/10 border border-success rounded-2xl space-y-4">
           <p className="text-success text-sm font-medium">
             Account created successfully!
           </p>
@@ -165,7 +165,7 @@ export function RegisterForm() {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-4 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-4 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-danger text-sm">{error}</p>
         </div>
       )}

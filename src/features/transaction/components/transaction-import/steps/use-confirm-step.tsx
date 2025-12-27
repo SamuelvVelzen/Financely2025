@@ -22,7 +22,7 @@ function ConfirmStepContent({ error }: IConfirmStepContentProps) {
 
   return (
     <div className="space-y-4">
-      <div className="p-4 bg-surface-hover rounded-lg">
+      <div className="p-4 bg-surface-hover rounded-2xl">
         <p className="text-sm font-medium mb-2">Import Summary</p>
         <p className="text-sm">
           You are about to import <strong>{selectedCount}</strong> of{" "}
@@ -30,7 +30,7 @@ function ConfirmStepContent({ error }: IConfirmStepContentProps) {
         </p>
       </div>
       {error && (
-        <div className="p-3 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-3 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-sm text-danger">
             {error.message || "Import failed"}
           </p>

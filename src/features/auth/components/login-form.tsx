@@ -204,7 +204,7 @@ export function LoginForm() {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-4 bg-danger/10 border border-danger rounded-lg space-y-2">
+        <div className="p-4 bg-danger/10 border border-danger rounded-2xl space-y-2">
           <p className="text-danger text-sm">{error}</p>
           {ENABLE_EMAIL_PASSWORD && mode === "login" && (
             <div className="flex flex-col gap-2 text-sm">

@@ -126,7 +126,7 @@ export function BudgetOverview() {
         {!isLoading && !error && budgets.length > 0 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border border-border rounded-lg bg-surface">
+              <div className="p-4 border border-border rounded-2xl bg-surface">
                 <div className="text-sm text-text-muted mb-1">
                   Total Budgets
                 </div>
@@ -134,7 +134,7 @@ export function BudgetOverview() {
                   {summaryStats.totalBudgets}
                 </div>
               </div>
-              <div className="p-4 border border-border rounded-lg bg-surface">
+              <div className="p-4 border border-border rounded-2xl bg-surface">
                 <div className="text-sm text-text-muted mb-1">
                   Total Expected
                 </div>
@@ -145,7 +145,7 @@ export function BudgetOverview() {
                   })}
                 </div>
               </div>
-              <div className="p-4 border border-border rounded-lg bg-surface">
+              <div className="p-4 border border-border rounded-2xl bg-surface">
                 <div className="text-sm text-text-muted mb-1">
                   Active Periods
                 </div>

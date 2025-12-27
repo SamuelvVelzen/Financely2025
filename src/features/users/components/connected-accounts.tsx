@@ -175,7 +175,7 @@ export function ConnectedAccounts() {
           return (
             <div
               key={account.id}
-              className="flex items-center justify-between p-3 bg-surface border border-border rounded-lg">
+              className="flex items-center justify-between p-3 bg-surface border border-border rounded-2xl">
               <div className="flex items-center gap-3">
                 <span className={info.color}>{info.icon}</span>
                 <div>

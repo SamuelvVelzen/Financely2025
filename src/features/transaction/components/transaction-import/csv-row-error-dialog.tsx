@@ -30,7 +30,7 @@ export function CsvRowErrorDialog({
             {candidate.errors.map((error, index) => (
               <div
                 key={index}
-                className="p-3 bg-danger/10 border border-danger/20 rounded-lg">
+                className="p-3 bg-danger/10 border border-danger/20 rounded-2xl">
                 <div className="font-medium text-sm text-danger mb-1">
                   {error.field}
                 </div>
@@ -55,4 +55,3 @@ export function CsvRowErrorDialog({
     />
   );
 }
-

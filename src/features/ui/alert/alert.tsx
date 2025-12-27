@@ -78,7 +78,7 @@ export function Alert({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 px-3 py-2 border-l-2 rounded-r",
+        "flex items-start gap-3 px-3 py-2 border-l-2 rounded-r-2xl",
         config.bg,
         config.border,
         className
