@@ -14,6 +14,7 @@ import { RadioGroup, RadioItem } from "@/features/ui/radio";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Label } from "@/features/ui/typography/label";
 import { Text } from "@/features/ui/typography/text";
+import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { LocaleHelpers } from "@/features/util/locale.helpers";
 import { useEffect, useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
@@ -42,15 +43,12 @@ function formatDateRangePreview(dates: IBudgetDateRange): string {
   const locale = LocaleHelpers.getLocale();
 
   // For monthly/yearly presets, use shorter format
-  const startStr = dates.start.toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-  });
-  const endStr = dates.end.toLocaleDateString(locale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const startStr = DateFormatHelpers.formatIsoStringToString(
+    dates.start.toISOString()
+  );
+  const endStr = DateFormatHelpers.formatIsoStringToString(
+    dates.end.toISOString()
+  );
   return `${startStr} - ${endStr}`;
 }
 
