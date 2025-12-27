@@ -4,9 +4,8 @@ import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITag } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
-import { Checkbox } from "@/features/ui/checkbox/checkbox";
-import { List } from "@/features/ui/list/list";
-import { ListItem } from "@/features/ui/list/list-item";
+import { SelectableList } from "@/features/ui/list/selectable-list";
+import { SelectableListItem } from "@/features/ui/list/selectable-list-item";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { useMemo } from "react";
@@ -52,21 +51,12 @@ export function BudgetTagSelector({
     [filteredTags]
   );
 
-  const selectedTagIds = form.watch(name) as string[] | undefined;
+  const selectedTagIds = (form.watch(name) as string[] | undefined) ?? [];
 
-  const handleTagToggle = (tagId: string) => {
-    const current = selectedTagIds ?? [];
-    if (current.includes(tagId)) {
-      form.setValue(
-        name,
-        current.filter((id) => id !== tagId),
-        { shouldValidate: form.formState.isSubmitted }
-      );
-    } else {
-      form.setValue(name, [...current, tagId], {
-        shouldValidate: form.formState.isSubmitted,
-      });
-    }
+  const handleSelectionChange = (newSelectedIds: (string | number)[]) => {
+    form.setValue(name, newSelectedIds, {
+      shouldValidate: form.formState.isSubmitted,
+    });
   };
 
   const handleSelectAll = () => {
@@ -80,53 +70,42 @@ export function BudgetTagSelector({
     form.setValue(name, [], { shouldValidate: form.formState.isSubmitted });
   };
 
-  const selectedCount = selectedTagIds?.length ?? 0;
+  const selectedCount = selectedTagIds.length;
 
   const renderTagList = (tags: ITag[]) => {
     if (tags.length === 0) return null;
 
     return (
-      <List
+      <SelectableList
         data={tags}
-        className="rounded-2xl">
-        {(tag) => {
-          const isSelected = selectedTagIds?.includes(tag.id) ?? false;
-          const checkboxId = `tag-checkbox-${tag.id}`;
+        selectedIds={selectedTagIds}
+        onSelectionChange={handleSelectionChange}
+        getItemId={(tag) => tag.id}>
+        {(tag, index, { checked, onChange, checkboxId }) => {
           return (
-            <ListItem
-              className={cn(
-                "p-0 cursor-pointer",
-                "hover:bg-surface-hover/50",
-                isSelected && "bg-primary/5"
-              )}>
-              <label
-                htmlFor={checkboxId}
-                className="flex items-center gap-3 px-3 py-2.5 w-full cursor-pointer">
-                <Checkbox
-                  id={checkboxId}
-                  checked={isSelected}
-                  onChange={() => handleTagToggle(tag.id)}
+            <SelectableListItem
+              checked={checked}
+              onChange={onChange}
+              checkboxId={checkboxId}>
+              {tag.color && (
+                <div
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{
+                    backgroundColor: tag.color,
+                  }}
                 />
-                {tag.color && (
-                  <div
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{
-                      backgroundColor: tag.color,
-                    }}
-                  />
-                )}
-                <span
-                  className={cn(
-                    "flex-1 text-sm",
-                    isSelected ? "font-medium text-text" : "text-text-muted"
-                  )}>
-                  {tag.name}
-                </span>
-              </label>
-            </ListItem>
+              )}
+              <span
+                className={cn(
+                  "flex-1 text-sm",
+                  checked ? "font-medium text-text" : "text-text-muted"
+                )}>
+                {tag.name}
+              </span>
+            </SelectableListItem>
           );
         }}
-      </List>
+      </SelectableList>
     );
   };
 
