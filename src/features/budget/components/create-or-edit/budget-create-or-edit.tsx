@@ -110,7 +110,7 @@ const BudgetFormSchema = z.object({
         z.object({
           tagId: z.string().nullable(),
           expectedAmount: z
-            .string()
+            .string({ error: "Expected amount is required" })
             .min(1, "Expected amount is required")
             .refine(
               (val) => {
