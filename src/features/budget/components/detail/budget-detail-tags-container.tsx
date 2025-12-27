@@ -218,8 +218,7 @@ export function BudgetDetailTagsContainer({
           <div className="border-t border-border px-3 py-2 bg-surface-hover">
             <List
               data={itemComparison.transactions}
-              getItemKey={(tx) => tx.id}
-              className="border border-border">
+              getItemKey={(tx) => tx.id}>
               {(tx) => (
                 <ListItem className="p-2">
                   <div className="flex items-center justify-between w-full">
@@ -255,8 +254,7 @@ export function BudgetDetailTagsContainer({
           defaultOpen={true}>
           <List
             data={groupedItems.expenseItems}
-            getItemKey={(item) => item.item.id}
-            className="border border-border">
+            getItemKey={(item) => item.item.id}>
             {(itemComparison) => renderBudgetItem(itemComparison)}
           </List>
         </Accordion>
@@ -269,8 +267,7 @@ export function BudgetDetailTagsContainer({
           defaultOpen={true}>
           <List
             data={groupedItems.incomeItems}
-            getItemKey={(item) => item.item.id}
-            className="border border-border">
+            getItemKey={(item) => item.item.id}>
             {(itemComparison) => renderBudgetItem(itemComparison)}
           </List>
         </Accordion>
@@ -283,8 +280,7 @@ export function BudgetDetailTagsContainer({
           defaultOpen={true}>
           <List
             data={groupedItems.bothItems}
-            getItemKey={(item) => item.item.id}
-            className="border border-border">
+            getItemKey={(item) => item.item.id}>
             {(itemComparison) => renderBudgetItem(itemComparison)}
           </List>
         </Accordion>

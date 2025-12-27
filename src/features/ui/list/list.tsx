@@ -39,14 +39,15 @@ export function List<T>({
   };
 
   return (
-    <div
+    <ul
       className={cn(
-        "divide-y divide-border rounded-2xl overflow-hidden",
+        "divide-y divide-border border border-border rounded-2xl overflow-hidden list-none",
         className
-      )}>
+      )}
+      role="list">
       {data.map((item, index) => (
-        <div key={getKey(item, index)}>{children(item, index)}</div>
+        <li key={getKey(item, index)}>{children(item, index)}</li>
       ))}
-    </div>
+    </ul>
   );
 }
