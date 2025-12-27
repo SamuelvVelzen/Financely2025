@@ -15,7 +15,7 @@ import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { z } from "zod";
 
 type IAddOrCreateTagDialog = {
@@ -54,6 +54,8 @@ export function AddOrCreateTagDialog({
   const { mutate: createTag } = useCreateTag();
   const { mutate: updateTag } = useUpdateTag();
   const toast = useToast();
+
+  const formId = useId();
 
   const form = useFinForm<FormData>({
     resolver: zodResolver(CreateTagInputSchema) as any,
@@ -185,7 +187,8 @@ export function AddOrCreateTagDialog({
         content={
           <Form<FormData>
             form={form}
-            onSubmit={handleSubmit}>
+            onSubmit={handleSubmit}
+            id={formId}>
             <div className="space-y-4">
               <TextInput
                 name="name"
@@ -220,9 +223,8 @@ export function AddOrCreateTagDialog({
             buttonContent: "Cancel",
           },
           {
-            clicked: () => {
-              form.handleSubmit(handleSubmit)();
-            },
+            type: "submit",
+            form: formId,
             variant: "primary",
             disabled: pending,
             loading: {

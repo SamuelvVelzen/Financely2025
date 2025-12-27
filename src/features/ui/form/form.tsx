@@ -14,9 +14,11 @@ export type IFormProps<T extends FieldValues> = IPropsWithClassName & {
   form: UseFormReturn<T>;
   onSubmit: SubmitHandler<T>;
   children: React.ReactNode;
+  id?: string;
 };
 
 export function Form<T extends FieldValues>({
+  id,
   form,
   onSubmit,
   children,
@@ -38,7 +40,8 @@ export function Form<T extends FieldValues>({
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
         className={cn(className)}
-        noValidate>
+        noValidate
+        id={id}>
         {children}
         {submitError && (
           <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mt-4">

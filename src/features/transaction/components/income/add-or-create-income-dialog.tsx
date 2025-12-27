@@ -27,7 +27,7 @@ import {
   isoToDatetimeLocal,
 } from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
 import { z } from "zod";
 
@@ -84,6 +84,7 @@ export function AddOrCreateIncomeDialog({
   const { mutate: updateIncome } = useUpdateIncome();
   const toast = useToast();
 
+  const formId = useId();
   const form = useFinForm<FormData>({
     resolver: zodResolver(IncomeFormSchema) as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
@@ -219,7 +220,8 @@ export function AddOrCreateIncomeDialog({
         content={
           <Form<FormData>
             form={form}
-            onSubmit={handleSubmit}>
+            onSubmit={handleSubmit}
+            id={formId}>
             <div className="space-y-4">
               <TextInput
                 name="name"
@@ -293,6 +295,7 @@ export function AddOrCreateIncomeDialog({
               isLoading: pending,
               text: isEditMode ? "Updating income" : "Creating income",
             },
+            form: formId,
             buttonContent: isEditMode ? "Update" : "Create",
           },
         ]}

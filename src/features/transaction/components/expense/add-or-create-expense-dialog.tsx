@@ -26,7 +26,7 @@ import {
   isoToDatetimeLocal,
 } from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
 import { z } from "zod";
 
@@ -80,6 +80,7 @@ export function AddOrCreateExpenseDialog({
   const { mutate: updateExpense } = useUpdateExpense();
   const toast = useToast();
 
+  const formId = useId();
   const form = useFinForm<FormData>({
     resolver: zodResolver(ExpenseFormSchema) as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
@@ -215,7 +216,8 @@ export function AddOrCreateExpenseDialog({
         content={
           <Form<FormData>
             form={form}
-            onSubmit={handleSubmit}>
+            onSubmit={handleSubmit}
+            id={formId}>
             <div className="space-y-4">
               <TextInput
                 name="name"
@@ -284,6 +286,7 @@ export function AddOrCreateExpenseDialog({
           {
             variant: "primary",
             type: "submit",
+            form: formId,
             loading: {
               isLoading: pending,
               text: isEditMode ? "Updating expense" : "Creating expense",
