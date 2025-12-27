@@ -68,7 +68,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "px-2.5 py-0.5 rounded-full text-xs font-medium",
+        "px-2.5 py-0.5 rounded-full text-xs font-medium inline-block max-w-full truncate",
         backgroundColorClass,
         textColorClass,
         className
