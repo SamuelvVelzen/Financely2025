@@ -1,4 +1,4 @@
-import { BudgetFormPage } from "@/features/budget/components/create-or-edit/budget-form-page";
+import { BudgetCreateOrEditPage } from "@/features/budget/components/create-or-edit/budget-create-or-edit";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/budgets/new")({
@@ -13,5 +13,5 @@ export const Route = createFileRoute("/(app)/budgets/new")({
 });
 
 function BudgetCreatePageComponent() {
-  return <BudgetFormPage />;
+  return <BudgetCreateOrEditPage />;
 }

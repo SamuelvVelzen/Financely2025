@@ -42,7 +42,7 @@ import { BudgetItemForm } from "./budget-item-form";
 import { BudgetPresetSelector } from "./budget-preset-selector";
 import { BudgetTagSelector } from "./budget-tag-selector";
 
-type IBudgetFormPageProps = {
+type IBudgetCreateOrEditPageProps = {
   budgetId?: string;
 };
 
@@ -159,7 +159,9 @@ const getEmptyFormValues = (): IBudgetFormData => {
   };
 };
 
-export function BudgetFormPage({ budgetId }: IBudgetFormPageProps) {
+export function BudgetCreateOrEditPage({
+  budgetId,
+}: IBudgetCreateOrEditPageProps) {
   const navigate = useNavigate();
   const isEditMode = !!budgetId;
   const { data: budget, isLoading: budgetLoading } = useBudget(budgetId ?? "");
