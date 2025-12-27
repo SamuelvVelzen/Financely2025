@@ -40,14 +40,12 @@ export function List<T>({
 
   return (
     <ul
-      className={cn(
-        "divide-y divide-border border border-border rounded-2xl overflow-hidden list-none",
-        className
-      )}
+      className={cn("overflow-hidden list-none", className)}
       role="list">
-      {data.map((item, index) => (
-        <li key={getKey(item, index)}>{children(item, index)}</li>
-      ))}
+      {data.map((item, index) => {
+        const child = children(item, index);
+        return <li key={getKey(item, index)}>{child}</li>;
+      })}
     </ul>
   );
 }
