@@ -88,7 +88,7 @@ export function BudgetTagSelector({
     return (
       <List
         data={tags}
-        className="rounded-lg">
+        className="rounded-2xl">
         {(tag) => {
           const isSelected = selectedTagIds?.includes(tag.id) ?? false;
           const checkboxId = `tag-checkbox-${tag.id}`;

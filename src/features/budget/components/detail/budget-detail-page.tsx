@@ -125,26 +125,25 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
       <Container>
         {/* Comparison View */}
         <BudgetComparisonView comparison={comparison} />
-
-        {/* Delete Dialog */}
-        <DeleteDialog
-          open={isDeleteDialogOpen}
-          onOpenChange={setIsDeleteDialogOpen}
-          title="Delete Budget"
-          content={`Are you sure you want to delete "${budget.name}"? This action cannot be undone.`}
-          footerButtons={[
-            {
-              buttonContent: "Cancel",
-              clicked: handleDeleteCancel,
-            },
-            {
-              buttonContent: "Delete",
-              clicked: handleDeleteConfirm,
-              variant: "danger",
-            },
-          ]}
-        />
       </Container>
+
+      <DeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Delete Budget"
+        content={`Are you sure you want to delete "${budget.name}"? This action cannot be undone.`}
+        footerButtons={[
+          {
+            buttonContent: "Cancel",
+            clicked: handleDeleteCancel,
+          },
+          {
+            buttonContent: "Delete",
+            clicked: handleDeleteConfirm,
+            variant: "danger",
+          },
+        ]}
+      />
     </>
   );
 }

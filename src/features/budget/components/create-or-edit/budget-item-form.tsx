@@ -11,7 +11,7 @@ import { ListItem } from "@/features/ui/list/list-item";
 import { Label } from "@/features/ui/typography/label";
 import { useEffect, useMemo } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { HiTrash } from "react-icons/hi2";
+import { HiSquares2X2, HiTrash } from "react-icons/hi2";
 
 type IBudgetItemFormProps = {
   selectedTagIds?: string[];
@@ -122,11 +122,14 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
     return (
       <ListItem className="flex items-center gap-4 p-3">
-        {tagColor && (
-          <div
-            className="size-4 rounded-full shrink-0"
-            style={{ backgroundColor: tagColor }}
-          />
+        {tagColor ? (
+          <div className="size-5 flex items-center justify-center">
+            <span
+              className="size-3 rounded-full block"
+              style={{ backgroundColor: tagColor }}></span>
+          </div>
+        ) : (
+          <HiSquares2X2 className="size-5 shrink-0 text-text-muted" />
         )}
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{tagName}</div>
