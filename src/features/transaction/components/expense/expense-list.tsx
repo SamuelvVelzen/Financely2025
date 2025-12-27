@@ -43,7 +43,7 @@ export function ExpenseList({
                 {DateFormatHelpers.formatIsoStringToString(expense.occurredAt)}
               </span>
               <span className="text-text-muted">|</span>
-              <Badge variant="outline" className="text-xs">
+              <Badge className="text-xs">
                 {PAYMENT_METHOD_LABELS[expense.paymentMethod]}
               </Badge>
             </div>

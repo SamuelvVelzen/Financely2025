@@ -1,13 +1,20 @@
 "use client";
 
 import { cn } from "@/features/util/cn";
-import { type ReactNode } from "react";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { PropsWithChildren } from "react";
+import { IVariant } from "../button/button";
 
-export type IBadgeProps = {
-  backgroundColor?: string;
-  children: ReactNode;
-  className?: string;
-};
+type IBadgeColorProps =
+  | {
+      backgroundColor?: string;
+      variant?: never;
+    }
+  | { variant: IVariant; backgroundColor?: never };
+
+export type IBadgeProps = IBadgeColorProps &
+  IPropsWithClassName &
+  PropsWithChildren;
 
 /**
  * Calculate whether text should be light or dark based on background color
@@ -29,22 +36,44 @@ function getContrastingTextColor(hexColor: string): string {
   return luminance > 0.5 ? "#171717" : "#ffffff";
 }
 
-export function Badge({ backgroundColor, children, className }: IBadgeProps) {
+const variantClasses: {
+  [key in IVariant]: { backgroundColor: string; textColor: string };
+} = {
+  default: { backgroundColor: "bg-surface-hover", textColor: "text-text" },
+  danger: { backgroundColor: "bg-danger", textColor: "text-white" },
+  info: { backgroundColor: "bg-info", textColor: "text-white" },
+  warning: { backgroundColor: "bg-warning", textColor: "text-white" },
+  success: { backgroundColor: "bg-success", textColor: "text-white" },
+  primary: { backgroundColor: "bg-primary", textColor: "text-white" },
+  secondary: { backgroundColor: "bg-secondary", textColor: "text-white" },
+};
+
+export function Badge({
+  backgroundColor,
+  variant,
+  children,
+  className,
+}: IBadgeProps) {
+  const backgroundColorClass = backgroundColor
+    ? backgroundColor
+    : variant
+      ? variantClasses[variant].backgroundColor
+      : "bg-surface-hover";
+  const textColorClass = backgroundColor
+    ? getContrastingTextColor(backgroundColor)
+    : variant
+      ? variantClasses[variant].textColor
+      : "text-text";
+
   return (
     <span
       className={cn(
         "px-2.5 py-0.5 rounded-full text-xs font-medium",
+        backgroundColorClass,
+        textColorClass,
         className
-      )}
-      style={{
-        backgroundColor: backgroundColor || "var(--surface-hover)",
-        color: backgroundColor
-          ? getContrastingTextColor(backgroundColor)
-          : "var(--text)",
-      }}
-    >
+      )}>
       {children}
     </span>
   );
 }
-
