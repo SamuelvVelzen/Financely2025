@@ -42,7 +42,7 @@ function AccountPage() {
 
   return (
     <>
-      <Container className="mb-4">
+      <Container>
         <Title>Account</Title>
         <p className="text-text-muted">
           Manage your account settings and preferences.

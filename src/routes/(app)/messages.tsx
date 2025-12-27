@@ -49,7 +49,7 @@ function MessagesPage() {
 
   return (
     <>
-      <Container className="mb-4">
+      <Container>
         <div className="flex items-center justify-between">
           <div>
             <Title>Messages</Title>
@@ -70,7 +70,7 @@ function MessagesPage() {
         </div>
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <div className="flex flex-wrap gap-2">
           <Button
             variant={filter === "all" ? "primary" : "default"}

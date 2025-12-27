@@ -95,7 +95,7 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface mb-4">
+      <Container className="sticky top-0 z-10 bg-surface">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">

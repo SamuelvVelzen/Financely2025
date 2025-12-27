@@ -39,24 +39,24 @@ export const Route = createFileRoute("/(app)/")({
 function Home() {
   return (
     <>
-      <Container className="mb-4">
+      <Container>
         <Title>Dashboard</Title>
         <p className="text-text-muted text-sm">
           Welcome to Financely. Manage your finances with ease.
         </p>
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Toast Examples</h2>
         <ToastExample />
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Message Testing</h2>
         <MessageTestingExample />
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Dialog Examples</h2>
         <div className="space-y-4">
           <DefaultDialogExample />
@@ -65,7 +65,7 @@ function Home() {
         </div>
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Select Dropdown Examples</h2>
         <div className="space-y-4">
           <SelectDropdownExample />
@@ -78,7 +78,7 @@ function Home() {
         </Dropdown>
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Toggle Button Examples</h2>
         <ToggleButtonExample />
       </Container>

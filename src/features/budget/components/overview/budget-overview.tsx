@@ -93,7 +93,7 @@ export function BudgetOverview() {
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface mb-4">
+      <Container className="sticky top-0 z-10 bg-surface">
         <div className="flex items-center justify-between">
           <Title>
             <div className="flex gap-2 items-center">

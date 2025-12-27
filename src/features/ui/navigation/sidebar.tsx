@@ -25,7 +25,7 @@ export function Sidebar() {
   const { data: unreadCountData } = useUnreadCount();
   const unreadCount = unreadCountData?.count || 0;
   const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
-  const containerClasses = `h-screen flex-shrink-0 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
+  const containerClasses = `h-screen flex-shrink-0 rounded-l-none py-6 flex flex-col border-r border-border mb-0 ${isExpandedContainerClasses}`;
 
   return (
     <Container

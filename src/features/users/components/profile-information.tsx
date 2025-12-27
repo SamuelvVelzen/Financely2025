@@ -88,7 +88,7 @@ export function ProfileInformation() {
 
   return (
     <>
-      <Container className="mb-4">
+      <Container>
         <div className="flex items-center justify-between mb-4">
           <ScrollableHeader id="profile-information">
             Profile Information

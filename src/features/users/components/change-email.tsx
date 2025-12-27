@@ -59,7 +59,7 @@ export function ChangeEmail() {
 
   return (
     <>
-      <Container className="mb-4">
+      <Container>
         <ScrollableHeader
           id="change-email"
           className="mb-4">

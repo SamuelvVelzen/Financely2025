@@ -237,7 +237,7 @@ export function IncomeOverview() {
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface pb-0 mb-4">
+      <Container className="sticky top-0 z-10 bg-surface pb-0">
         <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
           <div className="flex gap-2 items-center">
             <HiArrowTrendingUp />

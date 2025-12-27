@@ -151,7 +151,7 @@ export function ConnectedAccounts() {
   );
 
   return (
-    <Container className="mb-4">
+    <Container>
       <ScrollableHeader
         id="connected-accounts"
         className="mb-4">
