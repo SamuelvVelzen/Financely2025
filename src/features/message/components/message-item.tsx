@@ -50,7 +50,7 @@ export function MessageItem({ message }: IMessageItemProps) {
     <>
       <div
         className={cn(
-          "p-4 rounded-2xl border",
+          "p-4 rounded-r-2xl",
           typeStyles[message.type],
           !message.read && "font-semibold"
         )}>

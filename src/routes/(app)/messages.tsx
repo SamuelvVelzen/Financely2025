@@ -71,7 +71,7 @@ function MessagesPage() {
       </Container>
 
       <Container>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button
             variant={filter === "all" ? "primary" : "default"}
             size="sm"
@@ -115,13 +115,7 @@ function MessagesPage() {
             buttonContent="Error"
           />
         </div>
-      </Container>
 
-      <Container>
-        <MessageList
-          messages={data?.data || []}
-          isLoading={isLoading}
-        />
         <MessageList
           messages={data?.data || []}
           isLoading={isLoading}

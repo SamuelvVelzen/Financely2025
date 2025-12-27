@@ -72,7 +72,8 @@ export function Badge({
         backgroundColorClass,
         textColorClass,
         className
-      )}>
+      )}
+      style={{ backgroundColor, color: textColorClass }}>
       {children}
     </span>
   );
