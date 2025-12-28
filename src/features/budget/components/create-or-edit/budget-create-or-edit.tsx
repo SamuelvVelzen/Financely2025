@@ -508,7 +508,7 @@ export function BudgetCreateOrEditPage({
           </TabGroup>
         </Container>
 
-        <Container className="sticky bottom-0 bg-surface flex gap-2 justify-between mt-auto">
+        <Container className="sticky bottom-0 bg-surface flex gap-2 justify-between mt-auto mb-0">
           {isFirstTab ? (
             <Button
               clicked={handleBack}
