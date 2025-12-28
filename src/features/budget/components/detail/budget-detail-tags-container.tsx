@@ -12,11 +12,13 @@ import { HiSquares2X2 } from "react-icons/hi2";
 import { BudgetStatusBadge, getStatusColor } from "./budget-status-badge";
 
 type IBudgetDetailTagsContainerProps = {
-  comparison: IBudgetComparison;
+  items: IBudgetComparison["items"];
+  budget: IBudgetComparison["budget"];
 };
 
 export function BudgetDetailTagsContainer({
-  comparison,
+  items,
+  budget,
 }: IBudgetDetailTagsContainerProps) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const { data: tagsData } = useTags();
@@ -44,11 +46,11 @@ export function BudgetDetailTagsContainer({
 
   // Group items by transaction type
   const groupedItems = useMemo(() => {
-    const expenseItems: typeof comparison.items = [];
-    const incomeItems: typeof comparison.items = [];
-    const bothItems: typeof comparison.items = [];
+    const expenseItems: typeof items = [];
+    const incomeItems: typeof items = [];
+    const bothItems: typeof items = [];
 
-    comparison.items.forEach((itemComparison) => {
+    items.forEach((itemComparison) => {
       const tagId = itemComparison.item.tagId;
 
       // Misc items (tagId: null) always go in "both" section
@@ -82,7 +84,7 @@ export function BudgetDetailTagsContainer({
     });
 
     return { expenseItems, incomeItems, bothItems };
-  }, [comparison.items, tagMap]);
+  }, [items, tagMap]);
 
   const toggleItem = (itemId: string) => {
     const newExpanded = new Set(expandedItems);
@@ -95,7 +97,7 @@ export function BudgetDetailTagsContainer({
   };
 
   // Render a single budget comparison item
-  const renderBudgetItem = (itemComparison: (typeof comparison.items)[0]) => {
+  const renderBudgetItem = (itemComparison: (typeof items)[0]) => {
     const itemId = itemComparison.item.id;
     const tagId = itemComparison.item.tagId;
     const isExpanded = expandedItems.has(itemId);
@@ -152,10 +154,7 @@ export function BudgetDetailTagsContainer({
               <div className="text-right min-w-[80px]">
                 <div className="text-xs text-text-muted">Expected</div>
                 <div className="text-sm font-medium">
-                  {formatCurrency(
-                    itemComparison.expected,
-                    comparison.budget.currency
-                  )}
+                  {formatCurrency(itemComparison.expected, budget.currency)}
                 </div>
               </div>
               <div className="text-right min-w-[80px]">
@@ -165,10 +164,7 @@ export function BudgetDetailTagsContainer({
                     "text-sm font-medium",
                     getStatusColor(percentage)
                   )}>
-                  {formatCurrency(
-                    itemComparison.actual,
-                    comparison.budget.currency
-                  )}
+                  {formatCurrency(itemComparison.actual, budget.currency)}
                 </div>
               </div>
               <div className="text-right min-w-[80px]">
@@ -178,10 +174,7 @@ export function BudgetDetailTagsContainer({
                     "text-sm font-medium",
                     getStatusColor(percentage)
                   )}>
-                  {formatCurrency(
-                    itemComparison.difference,
-                    comparison.budget.currency
-                  )}
+                  {formatCurrency(itemComparison.difference, budget.currency)}
                 </div>
               </div>
               <div className="w-24 justify-between items-center flex flex-col">
@@ -231,7 +224,7 @@ export function BudgetDetailTagsContainer({
                       </div>
                     </div>
                     <div className="text-right text-sm font-medium">
-                      {formatCurrency(tx.amount, comparison.budget.currency)}
+                      {formatCurrency(tx.amount, budget.currency)}
                     </div>
                   </div>
                 </ListItem>

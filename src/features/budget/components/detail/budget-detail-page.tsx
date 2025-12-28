@@ -130,7 +130,10 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
         alerts={comparison.alerts}
       />
 
-      <BudgetDetailTagsContainer comparison={comparison} />
+      <BudgetDetailTagsContainer
+        items={comparison.items}
+        budget={comparison.budget}
+      />
 
       <DeleteDialog
         open={isDeleteDialogOpen}
