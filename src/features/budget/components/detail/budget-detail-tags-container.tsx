@@ -6,6 +6,7 @@ import { Container } from "@/features/ui/container/container";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
+import { formatDate } from "@/features/util/date/date-helpers";
 import { useMemo, useState } from "react";
 import { HiChevronDown } from "react-icons/hi";
 import { HiSquares2X2 } from "react-icons/hi2";
@@ -20,7 +21,8 @@ export function BudgetDetailTagsContainer({
   items,
   budget,
 }: IBudgetDetailTagsContainerProps) {
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
 
@@ -87,20 +89,14 @@ export function BudgetDetailTagsContainer({
   }, [items, tagMap]);
 
   const toggleItem = (itemId: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId);
-    } else {
-      newExpanded.add(itemId);
-    }
-    setExpandedItems(newExpanded);
+    setExpandedItemId((prev) => (prev === itemId ? null : itemId));
   };
 
   // Render a single budget comparison item
   const renderBudgetItem = (itemComparison: (typeof items)[0]) => {
     const itemId = itemComparison.item.id;
     const tagId = itemComparison.item.tagId;
-    const isExpanded = expandedItems.has(itemId);
+    const isExpanded = expandedItemId === itemId;
     const percentage = itemComparison.percentage;
 
     // Get tag info from tag map or transactions
@@ -127,9 +123,13 @@ export function BudgetDetailTagsContainer({
     return (
       <div className="border-b border-border last:border-b-0">
         <ListItem
-          className={cn("items-stretch", hasTransactions && "cursor-pointer")}
+          className={cn("flex-col overflow-hidden", isExpanded && "p-0")}
           clicked={hasTransactions ? () => toggleItem(itemId) : undefined}>
-          <div className="flex items-center justify-between gap-4 w-full">
+          <div
+            className={cn(
+              "flex items-center justify-between gap-4 w-full",
+              isExpanded && "p-3"
+            )}>
             <div className="flex items-center gap-3 flex-1 min-w-0 h-10">
               {tagColor ? (
                 <div className="size-5 flex items-center justify-center">
@@ -205,33 +205,35 @@ export function BudgetDetailTagsContainer({
               </div>
             </div>
           </div>
-        </ListItem>
 
-        {isExpanded && itemComparison.transactions.length > 0 && (
-          <div className="border-t border-border px-3 py-2 bg-surface-hover">
-            <List
-              data={itemComparison.transactions}
-              getItemKey={(tx) => tx.id}>
-              {(tx) => (
-                <ListItem className="p-2">
-                  <div className="flex items-center justify-between w-full">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">
-                        {tx.name}
+          {isExpanded && itemComparison.transactions.length > 0 && (
+            <div className="bg-surface-hover w-full">
+              <div className="w-full h-1 border-t border-border"></div>
+              <List
+                data={itemComparison.transactions}
+                getItemKey={(tx) => tx.id}
+                className="w-full p-3">
+                {(tx) => (
+                  <ListItem className="p-2">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">
+                          {tx.name}
+                        </div>
+                        <div className="text-xs text-text-muted">
+                          {formatDate(tx.occurredAt)}
+                        </div>
                       </div>
-                      <div className="text-xs text-text-muted">
-                        {new Date(tx.occurredAt).toLocaleDateString()}
+                      <div className="text-right text-sm font-medium">
+                        {formatCurrency(tx.amount, budget.currency)}
                       </div>
                     </div>
-                    <div className="text-right text-sm font-medium">
-                      {formatCurrency(tx.amount, budget.currency)}
-                    </div>
-                  </div>
-                </ListItem>
-              )}
-            </List>
-          </div>
-        )}
+                  </ListItem>
+                )}
+              </List>
+            </div>
+          )}
+        </ListItem>
       </div>
     );
   };
