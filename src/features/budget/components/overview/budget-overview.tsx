@@ -17,7 +17,7 @@ import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { HiOutlineCurrencyEuro, HiPlus } from "react-icons/hi2";
-import { BudgetCard } from "./budget-card";
+import { BudgetListItem } from "./budget-list-item";
 import { BudgetSummaryCards } from "./budget-summary-cards";
 
 export function BudgetOverview() {
@@ -130,7 +130,7 @@ export function BudgetOverview() {
         <Container>
           <List data={budgets}>
             {(budget: IBudget) => (
-              <BudgetCard
+              <BudgetListItem
                 key={budget.id}
                 budget={budget}
                 onView={handleViewBudget}

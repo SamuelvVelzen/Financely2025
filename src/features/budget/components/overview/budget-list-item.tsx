@@ -12,7 +12,7 @@ import { cn } from "@/features/util/cn";
 import { formatDateRange } from "@/features/util/date/date-helpers";
 import { HiEye, HiPencil, HiTrash } from "react-icons/hi2";
 
-type IBudgetCardProps = {
+type IBudgetListItemProps = {
   budget: IBudget;
   totals?: IBudgetComparison["totals"];
   onView?: (budget: IBudget) => void;
@@ -20,13 +20,13 @@ type IBudgetCardProps = {
   onDelete?: (budget: IBudget) => void;
 };
 
-export function BudgetCard({
+export function BudgetListItem({
   budget,
   totals,
   onView,
   onEdit,
   onDelete,
-}: IBudgetCardProps) {
+}: IBudgetListItemProps) {
   const percentage =
     totals && parseFloat(totals.totalExpected) > 0
       ? (parseFloat(totals.totalActual) / parseFloat(totals.totalExpected)) *
