@@ -42,10 +42,7 @@ export const CurrencySchema = z.enum([...SUPPORTED_CURRENCIES] as [
  * Payment method schema - created from payment method config (single source of truth)
  * No longer generated from Prisma enum, so we can add payment methods without migrations
  */
-export const PaymentMethodSchema = z.enum([...PAYMENT_METHOD_VALUES] as [
-  string,
-  ...string[],
-]);
+export const PaymentMethodSchema = z.enum([...PAYMENT_METHOD_VALUES]);
 export const TransactionTypeSchema = GeneratedTransactionTypeSchema;
 export const MessageTypeSchema = z.enum([
   "INFO",
