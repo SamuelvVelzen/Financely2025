@@ -4,6 +4,8 @@ import type { ITransaction } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { Badge } from "@/features/ui/badge/badge";
 import { IconButton } from "@/features/ui/button/icon-button";
+import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
@@ -49,26 +51,6 @@ export function ExpenseList({
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              {/* Action buttons - visible on hover */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
-                {onEdit && (
-                  <IconButton
-                    clicked={() => onEdit(expense)}
-                    size="sm">
-                    <HiPencil className="size-4" />
-                  </IconButton>
-                )}
-
-                {onDelete && (
-                  <IconButton
-                    clicked={() => onDelete(expense)}
-                    variant="danger"
-                    size="sm">
-                    <HiTrash className="size-4" />
-                  </IconButton>
-                )}
-              </div>
-
               {/* Amount */}
               <span className="text-text font-semibold text-lg">
                 {searchQuery
@@ -78,6 +60,29 @@ export function ExpenseList({
                     )
                   : formatCurrency(expense.amount, expense.currency)}
               </span>
+
+              {(onEdit || onDelete) && (
+                <div className="flex items-center ml-1 gap-1 opacity-20 group-hover:opacity-100 motion-safe:transition-opacity">
+                  {onEdit && (
+                    <IconButton
+                      clicked={() => onEdit(expense)}
+                      size="sm">
+                      <HiPencil className="size-4" />
+                    </IconButton>
+                  )}
+
+                  {onDelete && (
+                    <Dropdown size="sm">
+                      <DropdownItem
+                        icon={<HiTrash className="size-4" />}
+                        text="Delete"
+                        clicked={() => onDelete(expense)}
+                        className="text-danger hover:bg-danger/10"
+                      />
+                    </Dropdown>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

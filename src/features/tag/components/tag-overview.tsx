@@ -6,27 +6,19 @@ import {
   useTags,
 } from "@/features/tag/hooks/useTags";
 import { Button } from "@/features/ui/button/button";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { SortableList } from "@/features/ui/list/sortable-list";
-import { SortableListItem } from "@/features/ui/list/sortable-list-item";
 import { Loading } from "@/features/ui/loading/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useMemo, useState } from "react";
-import {
-  HiArrowDownTray,
-  HiOutlineTag,
-  HiPencil,
-  HiPlus,
-  HiTrash,
-} from "react-icons/hi2";
+import { HiArrowDownTray, HiOutlineTag, HiPlus } from "react-icons/hi2";
 import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
 import { TagCsvImportDialog } from "./tag-csv-import-dialog";
+import { TagList } from "./tag-list";
 
 export function TagOverview() {
   const { data, isLoading, error } = useTags();
@@ -124,8 +116,6 @@ export function TagOverview() {
     setSelectedTag(undefined);
   };
 
-  const tagToDeleteData = selectedTag;
-
   return (
     <>
       <Container>
@@ -192,51 +182,14 @@ export function TagOverview() {
                   <h2 className="text-lg font-semibold mb-4 text-text">
                     Expense Tags
                   </h2>
-                  <SortableList
+                  <TagList
                     data={expenseTags}
-                    getItemId={(tag) => tag.id}
+                    onEdit={handleEditTag}
+                    onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {
                       handleSectionReorder(orderedIds as string[], sortedTags);
-                    }}>
-                    {(tag: ITag, index, dragProps) => (
-                      <SortableListItem
-                        className="group"
-                        draggable={true}
-                        isDragging={dragProps.isDragging}
-                        isDragOver={dragProps.isDragOver}
-                        isOriginalPosition={dragProps.isOriginalPosition}
-                        draggedItemHeight={dragProps.draggedItemHeight}
-                        onDragStart={dragProps.onDragStart}
-                        onDragOver={dragProps.onDragOver}
-                        onDragEnd={dragProps.onDragEnd}
-                        onDrop={dragProps.onDrop}>
-                        <div className="flex items-center gap-3">
-                          {tag.color && (
-                            <div
-                              className="size-4 rounded"
-                              style={{ backgroundColor: tag.color }}
-                            />
-                          )}
-                          <span className="text-text">{tag.name}</span>
-                          {tag.description && (
-                            <span className="text-sm text-text-muted">
-                              {tag.description}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
-                          <IconButton clicked={() => handleEditTag(tag)}>
-                            <HiPencil className="size-5" />
-                          </IconButton>
-                          <IconButton
-                            clicked={() => handleDeleteClick(tag.id)}
-                            className="text-danger hover:text-danger-hover">
-                            <HiTrash className="size-5" />
-                          </IconButton>
-                        </div>
-                      </SortableListItem>
-                    )}
-                  </SortableList>
+                    }}
+                  />
                 </Container>
               )}
 
@@ -246,51 +199,14 @@ export function TagOverview() {
                   <h2 className="text-lg font-semibold mb-4 text-text">
                     Income Tags
                   </h2>
-                  <SortableList
+                  <TagList
                     data={incomeTags}
-                    getItemId={(tag) => tag.id}
+                    onEdit={handleEditTag}
+                    onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {
                       handleSectionReorder(orderedIds as string[], sortedTags);
-                    }}>
-                    {(tag: ITag, index, dragProps) => (
-                      <SortableListItem
-                        className="group"
-                        draggable={true}
-                        isDragging={dragProps.isDragging}
-                        isDragOver={dragProps.isDragOver}
-                        isOriginalPosition={dragProps.isOriginalPosition}
-                        draggedItemHeight={dragProps.draggedItemHeight}
-                        onDragStart={dragProps.onDragStart}
-                        onDragOver={dragProps.onDragOver}
-                        onDragEnd={dragProps.onDragEnd}
-                        onDrop={dragProps.onDrop}>
-                        <div className="flex items-center gap-3">
-                          {tag.color && (
-                            <div
-                              className="size-4 rounded"
-                              style={{ backgroundColor: tag.color }}
-                            />
-                          )}
-                          <span className="text-text">{tag.name}</span>
-                          {tag.description && (
-                            <span className="text-sm text-text-muted">
-                              {tag.description}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
-                          <IconButton clicked={() => handleEditTag(tag)}>
-                            <HiPencil className="size-5" />
-                          </IconButton>
-                          <IconButton
-                            clicked={() => handleDeleteClick(tag.id)}
-                            className="text-danger hover:text-danger-hover">
-                            <HiTrash className="size-5" />
-                          </IconButton>
-                        </div>
-                      </SortableListItem>
-                    )}
-                  </SortableList>
+                    }}
+                  />
                 </Container>
               )}
 
@@ -300,51 +216,14 @@ export function TagOverview() {
                   <h2 className="text-lg font-semibold mb-4 text-text">
                     Tags for Both
                   </h2>
-                  <SortableList
+                  <TagList
                     data={bothTags}
-                    getItemId={(tag) => tag.id}
+                    onEdit={handleEditTag}
+                    onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {
                       handleSectionReorder(orderedIds as string[], sortedTags);
-                    }}>
-                    {(tag: ITag, index, dragProps) => (
-                      <SortableListItem
-                        className="group"
-                        draggable={true}
-                        isDragging={dragProps.isDragging}
-                        isDragOver={dragProps.isDragOver}
-                        isOriginalPosition={dragProps.isOriginalPosition}
-                        draggedItemHeight={dragProps.draggedItemHeight}
-                        onDragStart={dragProps.onDragStart}
-                        onDragOver={dragProps.onDragOver}
-                        onDragEnd={dragProps.onDragEnd}
-                        onDrop={dragProps.onDrop}>
-                        <div className="flex items-center gap-3">
-                          {tag.color && (
-                            <div
-                              className="size-4 rounded"
-                              style={{ backgroundColor: tag.color }}
-                            />
-                          )}
-                          <span className="text-text">{tag.name}</span>
-                          {tag.description && (
-                            <span className="text-sm text-text-muted">
-                              {tag.description}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity">
-                          <IconButton clicked={() => handleEditTag(tag)}>
-                            <HiPencil className="size-5" />
-                          </IconButton>
-                          <IconButton
-                            clicked={() => handleDeleteClick(tag.id)}
-                            className="text-danger hover:text-danger-hover">
-                            <HiTrash className="size-5" />
-                          </IconButton>
-                        </div>
-                      </SortableListItem>
-                    )}
-                  </SortableList>
+                    }}
+                  />
                 </Container>
               )}
             </div>
