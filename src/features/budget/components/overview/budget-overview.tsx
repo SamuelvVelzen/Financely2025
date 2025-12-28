@@ -103,7 +103,15 @@ export function BudgetOverview() {
         </div>
       </Container>
 
-      {isLoadingBudgets && !errorBudgets && budgets.length > 0 && (
+      <Container>
+        <BudgetSummaryCards
+          overviewData={overviewData}
+          isLoading={isLoadingOverview}
+          error={errorOverview}
+        />
+      </Container>
+
+      {
         <Container>
           {isLoadingBudgets && (
             <div className="flex items-center justify-center py-8">
@@ -115,32 +123,22 @@ export function BudgetOverview() {
               <div className="text-danger">Failed to load budgets</div>
             </div>
           )}
-        </Container>
-      )}
 
-      <Container>
-        <BudgetSummaryCards
-          overviewData={overviewData}
-          isLoading={isLoadingOverview}
-          error={errorOverview}
-        />
-      </Container>
-
-      {!isLoadingOverview && !errorOverview && budgets.length > 0 && (
-        <Container>
-          <List data={budgets}>
-            {(budget: IBudget) => (
-              <BudgetListItem
-                key={budget.id}
-                budget={budget}
-                onView={handleViewBudget}
-                onEdit={handleEditBudget}
-                onDelete={handleDeleteClick}
-              />
-            )}
-          </List>
+          {budgets.length > 0 && (
+            <List data={budgets}>
+              {(budget: IBudget) => (
+                <BudgetListItem
+                  key={budget.id}
+                  budget={budget}
+                  onView={handleViewBudget}
+                  onEdit={handleEditBudget}
+                  onDelete={handleDeleteClick}
+                />
+              )}
+            </List>
+          )}
         </Container>
-      )}
+      }
 
       {!isLoadingOverview && !errorOverview && budgets.length === 0 && (
         <Container>
