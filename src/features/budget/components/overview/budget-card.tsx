@@ -62,8 +62,12 @@ export function BudgetCard({
           <span className="text-sm text-text-muted whitespace-nowrap">
             {formatDateRange(budget.startDate, budget.endDate)}
           </span>
-          <span className="text-text-muted">|</span>
-          <div className="shrink-0">{totals && getStatusBadge(percentage)}</div>
+          {totals && (
+            <>
+              <span className="text-text-muted">|</span>
+              <div className="shrink-0">{getStatusBadge(percentage)}</div>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
