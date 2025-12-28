@@ -10,13 +10,20 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { HiDotsVertical } from "react-icons/hi";
-import { Button } from "../button/button";
+import { Button, IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
 import { useDialogContext } from "../dialog/dialog/dialog-context";
 import {
   useDropdownPlacement,
   type IPlacementOption,
 } from "./hooks/use-dropdown-placement";
+
+const dropdownSizeClasses: { [key in IButtonSize]: { iconClasses: string } } = {
+  xs: { iconClasses: "size-3" },
+  sm: { iconClasses: "size-4" },
+  md: { iconClasses: "size-5" },
+  lg: { iconClasses: "size-6" },
+};
 
 type IDropdownProps = {
   dropdownSelector?: ReactNode;
@@ -28,6 +35,7 @@ type IDropdownProps = {
   /** Whether to close the dropdown when an item is clicked. Defaults to true. */
   closeOnItemClick?: boolean;
   disabled?: boolean;
+  size?: IButtonSize;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -40,6 +48,7 @@ export function Dropdown({
   placement,
   closeOnItemClick = true,
   disabled = false,
+  size = "md",
 }: IDropdownProps) {
   const dialogContext = useDialogContext();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -82,6 +91,7 @@ export function Dropdown({
     <div ref={triggerRef}>
       {dropdownSelector ? (
         <Button
+          size={size}
           clicked={toggleDropdown}
           disabled={disabled}
           className={cn(
@@ -93,9 +103,10 @@ export function Dropdown({
         </Button>
       ) : (
         <IconButton
+          size={size}
           clicked={toggleDropdown}
           disabled={disabled}>
-          <HiDotsVertical className="size-5" />
+          <HiDotsVertical className={dropdownSizeClasses[size].iconClasses} />
         </IconButton>
       )}
     </div>
