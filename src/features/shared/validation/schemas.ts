@@ -744,6 +744,42 @@ export const BudgetComparisonSchema = z.object({
   }),
 });
 
+export const BudgetsOverviewResponseSchema = z.object({
+  overallHealth: z.object({
+    totalExpected: DecimalStringSchema,
+    totalActual: DecimalStringSchema,
+    remaining: DecimalStringSchema,
+    percentage: z.number(),
+    activeCount: z.number().int().min(0),
+    currency: CurrencySchema,
+  }),
+  riskSummary: z.object({
+    totalActive: z.number().int().min(0),
+    nearingLimit: z.number().int().min(0), // 80-100%
+    overBudget: z.number().int().min(0), // >100%
+  }),
+  timeContext: z.object({
+    daysRemaining: z.number().int().min(0).nullable(),
+    spendingPace: z.enum(["faster", "slower", "on-track"]).nullable(),
+    primaryBudgetEndDate: ISODateStringSchema.nullable(),
+  }),
+  topSpenders: z
+    .array(
+      z.object({
+        tagId: z.string(),
+        tagName: z.string(),
+        tagColor: z.string().nullable(),
+        amount: DecimalStringSchema,
+        percentage: z.number(),
+      })
+    )
+    .max(3),
+  context: z.object({
+    totalBudgets: z.number().int().min(0),
+    totalExpectedAll: DecimalStringSchema,
+  }),
+});
+
 // ============================================================================
 // Error response schema
 // ============================================================================
@@ -843,3 +879,6 @@ export type IBudgetsResponse = z.infer<typeof BudgetsResponseSchema>;
 export type IBudgetItemComparison = z.infer<typeof BudgetItemComparisonSchema>;
 export type IBudgetAlert = z.infer<typeof BudgetAlertSchema>;
 export type IBudgetComparison = z.infer<typeof BudgetComparisonSchema>;
+export type IBudgetsOverviewResponse = z.infer<
+  typeof BudgetsOverviewResponseSchema
+>;

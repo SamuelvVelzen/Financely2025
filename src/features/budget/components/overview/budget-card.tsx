@@ -4,6 +4,7 @@ import type { IBudget } from "@/features/shared/validation/schemas";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
+import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
 import { format } from "date-fns";
 import { HiEye, HiPencil, HiTrash } from "react-icons/hi2";
@@ -51,68 +52,102 @@ export function BudgetCard({
   const endDate = new Date(budget.endDate);
 
   return (
-    <div className="p-6 border border-border rounded-2xl bg-surface hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
+    <ListItem className="flex-col items-stretch p-6">
+      <div className="flex items-start justify-between mb-5">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold truncate mb-1">{budget.name}</h3>
+          <h3 className="text-xl font-semibold truncate mb-1.5">
+            {budget.name}
+          </h3>
           <div className="text-sm text-text-muted">
             {format(startDate, "MMM d")} - {format(endDate, "MMM d, yyyy")}
           </div>
         </div>
-        {comparison && getStatusBadge(percentage)}
+        {comparison && (
+          <div className="ml-4 shrink-0">{getStatusBadge(percentage)}</div>
+        )}
       </div>
 
-      <div className="space-y-3 mb-4">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-text-muted">Tags Budgeted</span>
-          <span className="font-medium">{budget.items.length}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-text-muted">Total Expected</span>
-          <span className="font-semibold">
-            {totalExpected.toLocaleString(undefined, {
-              style: "currency",
-              currency: budget.currency,
-            })}
-          </span>
-        </div>
-        {comparison && (
-          <>
-            <div className="flex items-center justify-between">
-              <span className="text-text-muted">Total Actual</span>
-              <span className={cn("font-semibold", getStatusColor(percentage))}>
+      {comparison ? (
+        <div className="mb-5">
+          <div className="flex items-baseline justify-between mb-3">
+            <div>
+              <div className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">
+                Budgeted
+              </div>
+              <div className="text-lg font-semibold">
+                {totalExpected.toLocaleString(undefined, {
+                  style: "currency",
+                  currency: budget.currency,
+                })}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">
+                Spent
+              </div>
+              <div
+                className={cn(
+                  "text-lg font-semibold",
+                  getStatusColor(percentage)
+                )}>
                 {parseFloat(comparison.totalActual).toLocaleString(undefined, {
                   style: "currency",
                   currency: budget.currency,
                 })}
+              </div>
+            </div>
+          </div>
+          <div className="mb-2">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span className="text-text-muted">Progress</span>
+              <span className={cn("font-semibold", getStatusColor(percentage))}>
+                {percentage.toFixed(1)}%
               </span>
             </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-text-muted">Progress</span>
-                <span className={cn("font-medium", getStatusColor(percentage))}>
-                  {percentage.toFixed(1)}%
-                </span>
+            <div className="w-full bg-surface-hover rounded-full h-2.5 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all",
+                  percentage < 80
+                    ? "bg-success"
+                    : percentage >= 80 && percentage <= 100
+                      ? "bg-warning"
+                      : "bg-danger"
+                )}
+                style={{ width: `${Math.min(percentage, 100)}%` }}
+              />
+            </div>
+          </div>
+          <div className="text-xs text-text-muted mt-2">
+            {budget.items.length} {budget.items.length === 1 ? "tag" : "tags"}{" "}
+            budgeted
+          </div>
+        </div>
+      ) : (
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">
+                Total Expected
               </div>
-              <div className="w-full bg-surface-hover rounded-full h-2 overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full transition-all",
-                    percentage < 80
-                      ? "bg-success"
-                      : percentage >= 80 && percentage <= 100
-                        ? "bg-warning"
-                        : "bg-danger"
-                  )}
-                  style={{ width: `${Math.min(percentage, 100)}%` }}
-                />
+              <div className="text-lg font-semibold">
+                {totalExpected.toLocaleString(undefined, {
+                  style: "currency",
+                  currency: budget.currency,
+                })}
               </div>
             </div>
-          </>
-        )}
-      </div>
+            <div className="text-right">
+              <div className="text-xs font-medium text-text-muted uppercase tracking-wide mb-1">
+                Tags
+              </div>
+              <div className="text-lg font-semibold">{budget.items.length}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <div className="flex items-center gap-2 pt-4 border-t border-border">
+      <div className="flex items-center gap-2 pt-5 border-t border-border">
         {onView && (
           <Button
             variant="secondary"
@@ -141,6 +176,6 @@ export function BudgetCard({
           </IconButton>
         )}
       </div>
-    </div>
+    </ListItem>
   );
 }

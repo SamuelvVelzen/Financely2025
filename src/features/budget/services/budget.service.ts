@@ -1,22 +1,27 @@
 import {
-  BudgetsQuerySchema,
-  BudgetSchema,
-  BudgetItemSchema,
-  CreateBudgetInputSchema,
-  UpdateBudgetInputSchema,
+  calculateDaysRemaining,
+  calculateSpendingPace,
+} from "@/features/budget/utils/budget-overview-helpers";
+import {
+  BudgetAlertSchema,
   BudgetComparisonSchema,
   BudgetItemComparisonSchema,
-  BudgetAlertSchema,
+  BudgetItemSchema,
+  BudgetSchema,
+  BudgetsOverviewResponseSchema,
+  BudgetsQuerySchema,
+  CreateBudgetInputSchema,
   TransactionSchema,
+  UpdateBudgetInputSchema,
   type IBudget,
-  type IBudgetItem,
-  type IBudgetsQuery,
-  type ICreateBudgetInput,
-  type IUpdateBudgetInput,
+  type IBudgetAlert,
   type IBudgetComparison,
   type IBudgetItemComparison,
-  type IBudgetAlert,
+  type IBudgetsOverviewResponse,
+  type IBudgetsQuery,
+  type ICreateBudgetInput,
   type ITransaction,
+  type IUpdateBudgetInput,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
 import { Prisma } from "@prisma/client";
@@ -46,7 +51,9 @@ export class BudgetService {
                     ...(validated.to ? { lte: new Date(validated.to) } : {}),
                   },
                   endDate: {
-                    ...(validated.from ? { gte: new Date(validated.from) } : {}),
+                    ...(validated.from
+                      ? { gte: new Date(validated.from) }
+                      : {}),
                   },
                 },
               ],
@@ -510,25 +517,28 @@ export class BudgetService {
     }
 
     // Calculate comparisons for each budget item
-    const itemComparisons: IBudgetItemComparison[] = budget.items.map((item) => {
-      const itemTransactions = tagTransactionMap.get(item.tagId) ?? [];
-      const actualAmount = itemTransactions.reduce(
-        (sum, tx) => sum + parseFloat(tx.amount),
-        0
-      );
-      const expectedAmount = parseFloat(item.expectedAmount);
-      const difference = actualAmount - expectedAmount;
-      const percentage = expectedAmount > 0 ? (actualAmount / expectedAmount) * 100 : 0;
+    const itemComparisons: IBudgetItemComparison[] = budget.items.map(
+      (item) => {
+        const itemTransactions = tagTransactionMap.get(item.tagId) ?? [];
+        const actualAmount = itemTransactions.reduce(
+          (sum, tx) => sum + parseFloat(tx.amount),
+          0
+        );
+        const expectedAmount = parseFloat(item.expectedAmount);
+        const difference = actualAmount - expectedAmount;
+        const percentage =
+          expectedAmount > 0 ? (actualAmount / expectedAmount) * 100 : 0;
 
-      return BudgetItemComparisonSchema.parse({
-        item,
-        expected: item.expectedAmount,
-        actual: actualAmount.toString(),
-        difference: difference.toString(),
-        percentage: Math.round(percentage * 100) / 100,
-        transactions: itemTransactions,
-      });
-    });
+        return BudgetItemComparisonSchema.parse({
+          item,
+          expected: item.expectedAmount,
+          actual: actualAmount.toString(),
+          difference: difference.toString(),
+          percentage: Math.round(percentage * 100) / 100,
+          transactions: itemTransactions,
+        });
+      }
+    );
 
     // Build alerts for tags without budget items
     const alerts: IBudgetAlert[] = [];
@@ -580,5 +590,302 @@ export class BudgetService {
       },
     });
   }
-}
 
+  /**
+   * Get aggregated overview data for all active budgets
+   */
+  static async getBudgetsOverview(
+    userId: string
+  ): Promise<IBudgetsOverviewResponse> {
+    const now = new Date();
+
+    // Get all budgets for user
+    const allBudgets = await prisma.budget.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        items: {
+          include: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        startDate: "desc",
+      },
+    });
+
+    // Filter to active budgets
+    const activeBudgets = allBudgets.filter((budget) => {
+      const start = new Date(budget.startDate);
+      const end = new Date(budget.endDate);
+      return now >= start && now <= end;
+    });
+
+    // If no active budgets, return empty overview
+    if (activeBudgets.length === 0) {
+      return BudgetsOverviewResponseSchema.parse({
+        overallHealth: {
+          totalExpected: "0",
+          totalActual: "0",
+          remaining: "0",
+          percentage: 0,
+          activeCount: 0,
+          currency: "USD", // Default fallback
+        },
+        riskSummary: {
+          totalActive: 0,
+          nearingLimit: 0,
+          overBudget: 0,
+        },
+        timeContext: {
+          daysRemaining: null,
+          spendingPace: null,
+          primaryBudgetEndDate: null,
+        },
+        topSpenders: [],
+        context: {
+          totalBudgets: allBudgets.length,
+          totalExpectedAll: allBudgets
+            .reduce((sum, b) => {
+              return (
+                sum +
+                b.items.reduce((itemSum, item) => {
+                  return itemSum + parseFloat(item.expectedAmount.toString());
+                }, 0)
+              );
+            }, 0)
+            .toString(),
+        },
+      });
+    }
+
+    // Determine primary currency (most common among active budgets)
+    const currencyCounts = new Map<string, number>();
+    activeBudgets.forEach((budget) => {
+      currencyCounts.set(
+        budget.currency,
+        (currencyCounts.get(budget.currency) || 0) + 1
+      );
+    });
+    const primaryCurrency = Array.from(currencyCounts.entries()).sort(
+      (a, b) => b[1] - a[1]
+    )[0][0];
+
+    // Filter to active budgets with primary currency
+    const activeBudgetsPrimaryCurrency = activeBudgets.filter(
+      (budget) => budget.currency === primaryCurrency
+    );
+
+    // Calculate overall health metrics
+    let totalExpected = 0;
+    let totalActual = 0;
+    const budgetPercentages: number[] = [];
+    const tagSpendingMap = new Map<
+      string,
+      { name: string; color: string | null; amount: number }
+    >();
+
+    // Process each active budget
+    for (const budgetData of activeBudgetsPrimaryCurrency) {
+      const budget = BudgetSchema.parse({
+        id: budgetData.id,
+        userId: budgetData.userId,
+        name: budgetData.name,
+        startDate: budgetData.startDate.toISOString(),
+        endDate: budgetData.endDate.toISOString(),
+        currency: budgetData.currency,
+        items: budgetData.items.map((item) =>
+          BudgetItemSchema.parse({
+            id: item.id,
+            budgetId: item.budgetId,
+            tagId: item.tagId,
+            expectedAmount: item.expectedAmount.toString(),
+            createdAt: item.createdAt.toISOString(),
+            updatedAt: item.updatedAt.toISOString(),
+          })
+        ),
+        createdAt: budgetData.createdAt.toISOString(),
+        updatedAt: budgetData.updatedAt.toISOString(),
+      });
+
+      // Calculate expected for this budget
+      const budgetExpected = budget.items.reduce(
+        (sum, item) => sum + parseFloat(item.expectedAmount),
+        0
+      );
+      totalExpected += budgetExpected;
+
+      // Fetch transactions for this budget
+      const transactions = await prisma.transaction.findMany({
+        where: {
+          userId,
+          currency: budget.currency,
+          occurredAt: {
+            gte: new Date(budget.startDate),
+            lte: new Date(budget.endDate),
+          },
+        },
+        include: {
+          primaryTag: {
+            select: {
+              id: true,
+              name: true,
+              color: true,
+            },
+          },
+        },
+      });
+
+      // Calculate actual spending per tag
+      const tagAmountMap = new Map<string | null, number>();
+      transactions.forEach((tx) => {
+        const tagId = tx.primaryTag?.id ?? null;
+        const amount = parseFloat(tx.amount.toString());
+        tagAmountMap.set(tagId, (tagAmountMap.get(tagId) || 0) + amount);
+
+        // Track spending for biggest driver
+        if (tx.primaryTag) {
+          const existing = tagSpendingMap.get(tx.primaryTag.id);
+          if (existing) {
+            existing.amount += amount;
+          } else {
+            tagSpendingMap.set(tx.primaryTag.id, {
+              name: tx.primaryTag.name,
+              color: tx.primaryTag.color,
+              amount,
+            });
+          }
+        }
+      });
+
+      // Calculate actual for this budget (sum of all transactions)
+      const budgetActual = transactions.reduce(
+        (sum, tx) => sum + parseFloat(tx.amount.toString()),
+        0
+      );
+      totalActual += budgetActual;
+
+      // Calculate percentage for risk assessment
+      const budgetPercentage =
+        budgetExpected > 0 ? (budgetActual / budgetExpected) * 100 : 0;
+      budgetPercentages.push(budgetPercentage);
+    }
+
+    // Calculate remaining
+    const remaining = totalExpected - totalActual;
+    const overallPercentage =
+      totalExpected > 0 ? (totalActual / totalExpected) * 100 : 0;
+
+    // Calculate risk summary
+    const nearingLimit = budgetPercentages.filter(
+      (pct) => pct >= 80 && pct <= 100
+    ).length;
+    const overBudget = budgetPercentages.filter((pct) => pct > 100).length;
+
+    // Calculate time context
+    const endDates = activeBudgetsPrimaryCurrency.map(
+      (b) => new Date(b.endDate)
+    );
+    const earliestEndDate = new Date(
+      Math.min(...endDates.map((d) => d.getTime()))
+    );
+    const daysRemaining = calculateDaysRemaining(earliestEndDate);
+
+    // Calculate spending pace (aggregate across all active budgets)
+    const startDates = activeBudgetsPrimaryCurrency.map(
+      (b) => new Date(b.startDate)
+    );
+    const earliestStartDate = new Date(
+      Math.min(...startDates.map((d) => d.getTime()))
+    );
+    const daysElapsed = Math.max(
+      1,
+      Math.ceil(
+        (now.getTime() - earliestStartDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
+    );
+    const totalDays = Math.ceil(
+      (earliestEndDate.getTime() - earliestStartDate.getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+    const spendingPace = calculateSpendingPace(
+      totalActual,
+      totalExpected,
+      daysElapsed,
+      totalDays
+    );
+
+    // Find top 3 spenders
+    const topSpenders: {
+      tagId: string;
+      tagName: string;
+      tagColor: string | null;
+      amount: string;
+      percentage: number;
+    }[] = [];
+
+    if (tagSpendingMap.size > 0) {
+      const entries = Array.from(tagSpendingMap.entries());
+      const sortedTags = entries
+        .sort((a, b) => b[1].amount - a[1].amount)
+        .slice(0, 3);
+
+      sortedTags.forEach(([tagId, tagData]) => {
+        const percentage =
+          totalActual > 0 ? (tagData.amount / totalActual) * 100 : 0;
+
+        topSpenders.push({
+          tagId,
+          tagName: tagData.name,
+          tagColor: tagData.color,
+          amount: tagData.amount.toString(),
+          percentage: Math.round(percentage * 100) / 100,
+        });
+      });
+    }
+
+    // Calculate total expected across all budgets (for context)
+    const totalExpectedAll = allBudgets.reduce((sum, budget) => {
+      return (
+        sum +
+        budget.items.reduce((itemSum, item) => {
+          return itemSum + parseFloat(item.expectedAmount.toString());
+        }, 0)
+      );
+    }, 0);
+
+    return BudgetsOverviewResponseSchema.parse({
+      overallHealth: {
+        totalExpected: totalExpected.toString(),
+        totalActual: totalActual.toString(),
+        remaining: remaining.toString(),
+        percentage: Math.round(overallPercentage * 100) / 100,
+        activeCount: activeBudgetsPrimaryCurrency.length,
+        currency: primaryCurrency,
+      },
+      riskSummary: {
+        totalActive: activeBudgetsPrimaryCurrency.length,
+        nearingLimit,
+        overBudget,
+      },
+      timeContext: {
+        daysRemaining,
+        spendingPace,
+        primaryBudgetEndDate: earliestEndDate.toISOString(),
+      },
+      topSpenders,
+      context: {
+        totalBudgets: allBudgets.length,
+        totalExpectedAll: totalExpectedAll.toString(),
+      },
+    });
+  }
+}

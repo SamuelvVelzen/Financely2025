@@ -2,6 +2,7 @@
 
 import {
   useBudgets,
+  useBudgetsOverview,
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
 import type { IBudget } from "@/features/shared/validation/schemas";
@@ -14,13 +15,23 @@ import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { HiOutlineCurrencyEuro, HiPlus } from "react-icons/hi2";
 import { BudgetCard } from "./budget-card";
+import { BudgetSummaryCards } from "./budget-summary-cards";
 
 export function BudgetOverview() {
-  const { data, isLoading, error } = useBudgets();
-  const budgets = data?.data ?? [];
+  const {
+    data: budgetsData,
+    isLoading: isLoadingBudgets,
+    error: errorBudgets,
+  } = useBudgets();
+  const {
+    data: overviewData,
+    isLoading: isLoadingOverview,
+    error: errorOverview,
+  } = useBudgetsOverview();
+  const budgets = budgetsData?.data ?? [];
   const { mutate: deleteBudget } = useDeleteBudget();
   const toast = useToast();
   const navigate = useNavigate();
@@ -73,24 +84,6 @@ export function BudgetOverview() {
     setSelectedBudget(undefined);
   };
 
-  // Calculate summary stats
-  const summaryStats = useMemo(() => {
-    const totalBudgets = budgets.length;
-    const totalExpected = budgets.reduce((sum: number, budget: IBudget) => {
-      return (
-        sum +
-        budget.items.reduce((itemSum: number, item) => {
-          return itemSum + parseFloat(item.expectedAmount);
-        }, 0)
-      );
-    }, 0);
-
-    return {
-      totalBudgets,
-      totalExpected,
-    };
-  }, [budgets]);
-
   return (
     <>
       <Container className="sticky top-0 z-10 bg-surface">
@@ -110,73 +103,47 @@ export function BudgetOverview() {
         </div>
       </Container>
 
-      <Container>
-        {isLoading && (
-          <div className="flex items-center justify-center">
-            <Loading text="Loading budgets" />
-          </div>
-        )}
-        {error && (
-          <div className="flex items-center justify-center">
-            <div className="text-danger">Failed to load budgets</div>
-          </div>
-        )}
-
-        {/* Summary Cards */}
-        {!isLoading && !error && budgets.length > 0 && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border border-border rounded-2xl bg-surface">
-                <div className="text-sm text-text-muted mb-1">
-                  Total Budgets
-                </div>
-                <div className="text-2xl font-semibold">
-                  {summaryStats.totalBudgets}
-                </div>
-              </div>
-              <div className="p-4 border border-border rounded-2xl bg-surface">
-                <div className="text-sm text-text-muted mb-1">
-                  Total Expected
-                </div>
-                <div className="text-2xl font-semibold">
-                  {summaryStats.totalExpected.toLocaleString(undefined, {
-                    style: "currency",
-                    currency: "USD",
-                  })}
-                </div>
-              </div>
-              <div className="p-4 border border-border rounded-2xl bg-surface">
-                <div className="text-sm text-text-muted mb-1">
-                  Active Periods
-                </div>
-                <div className="text-2xl font-semibold">
-                  {
-                    budgets.filter((b: IBudget) => {
-                      const now = new Date();
-                      const start = new Date(b.startDate);
-                      const end = new Date(b.endDate);
-                      return now >= start && now <= end;
-                    }).length
-                  }
-                </div>
-              </div>
+      {isLoadingBudgets && !errorBudgets && budgets.length > 0 && (
+        <Container>
+          {isLoadingBudgets && (
+            <div className="flex items-center justify-center py-8">
+              <Loading text="Loading budgets" />
             </div>
+          )}
+          {errorBudgets && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-danger">Failed to load budgets</div>
+            </div>
+          )}
+        </Container>
+      )}
 
-            <List data={budgets}>
-              {(budget: IBudget) => (
-                <BudgetCard
-                  key={budget.id}
-                  budget={budget}
-                  onView={handleViewBudget}
-                  onEdit={handleEditBudget}
-                  onDelete={handleDeleteClick}
-                />
-              )}
-            </List>
-          </>
-        )}
+      <Container>
+        <BudgetSummaryCards
+          overviewData={overviewData}
+          isLoading={isLoadingOverview}
+          error={errorOverview}
+        />
+      </Container>
 
-        {!isLoading && !error && budgets.length === 0 && (
+      {!isLoadingOverview && !errorOverview && budgets.length > 0 && (
+        <Container>
+          <List data={budgets}>
+            {(budget: IBudget) => (
+              <BudgetCard
+                key={budget.id}
+                budget={budget}
+                onView={handleViewBudget}
+                onEdit={handleEditBudget}
+                onDelete={handleDeleteClick}
+              />
+            )}
+          </List>
+        </Container>
+      )}
+
+      {!isLoadingOverview && !errorOverview && budgets.length === 0 && (
+        <Container>
           <EmptyPage
             icon={HiOutlineCurrencyEuro}
             emptyText="Create your first budget to start tracking your expenses and income."
@@ -185,27 +152,27 @@ export function BudgetOverview() {
               clicked: handleCreateBudget,
             }}
           />
-        )}
+        </Container>
+      )}
 
-        {/* Delete Dialog */}
-        <DeleteDialog
-          open={isDeleteDialogOpen}
-          onOpenChange={setIsDeleteDialogOpen}
-          title="Delete Budget"
-          content={`Are you sure you want to delete "${selectedBudget?.name}"? This action cannot be undone.`}
-          footerButtons={[
-            {
-              buttonContent: "Cancel",
-              clicked: handleDeleteCancel,
-            },
-            {
-              buttonContent: "Delete",
-              clicked: handleDeleteConfirm,
-              variant: "danger",
-            },
-          ]}
-        />
-      </Container>
+      {/* Delete Dialog */}
+      <DeleteDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        title="Delete Budget"
+        content={`Are you sure you want to delete "${selectedBudget?.name}"? This action cannot be undone.`}
+        footerButtons={[
+          {
+            buttonContent: "Cancel",
+            clicked: handleDeleteCancel,
+          },
+          {
+            buttonContent: "Delete",
+            clicked: handleDeleteConfirm,
+            variant: "danger",
+          },
+        ]}
+      />
     </>
   );
 }

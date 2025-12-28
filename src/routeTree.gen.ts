@@ -46,6 +46,7 @@ import { Route as ApiV1MessagesCountRouteImport } from './routes/api/v1/messages
 import { Route as ApiV1MessagesMessageIdRouteImport } from './routes/api/v1/messages.$messageId'
 import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
 import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
+import { Route as ApiV1BudgetsOverviewRouteImport } from './routes/api/v1/budgets.overview'
 import { Route as ApiV1BudgetsBudgetIdRouteImport } from './routes/api/v1/budgets.$budgetId'
 import { Route as appBudgetsBudgetIdEditRouteImport } from './routes/(app)/budgets.$budgetId.edit'
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
@@ -242,6 +243,11 @@ const ApiV1MeAccountsRoute = ApiV1MeAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => ApiV1MeRoute,
 } as any)
+const ApiV1BudgetsOverviewRoute = ApiV1BudgetsOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => ApiV1BudgetsRoute,
+} as any)
 const ApiV1BudgetsBudgetIdRoute = ApiV1BudgetsBudgetIdRouteImport.update({
   id: '/$budgetId',
   path: '/$budgetId',
@@ -297,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/budgets': typeof appBudgetsIndexRoute
   '/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
   '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
+  '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
@@ -341,6 +348,7 @@ export interface FileRoutesByTo {
   '/budgets': typeof appBudgetsIndexRoute
   '/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
   '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
+  '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
@@ -387,6 +395,7 @@ export interface FileRoutesById {
   '/(app)/budgets/': typeof appBudgetsIndexRoute
   '/(app)/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
   '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
+  '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
@@ -433,6 +442,7 @@ export interface FileRouteTypes {
     | '/budgets'
     | '/budgets/$budgetId/edit'
     | '/api/v1/budgets/$budgetId'
+    | '/api/v1/budgets/overview'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/messages/$messageId'
@@ -477,6 +487,7 @@ export interface FileRouteTypes {
     | '/budgets'
     | '/budgets/$budgetId/edit'
     | '/api/v1/budgets/$budgetId'
+    | '/api/v1/budgets/overview'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/messages/$messageId'
@@ -522,6 +533,7 @@ export interface FileRouteTypes {
     | '/(app)/budgets/'
     | '/(app)/budgets/$budgetId/edit'
     | '/api/v1/budgets/$budgetId'
+    | '/api/v1/budgets/overview'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/messages/$messageId'
@@ -821,6 +833,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeAccountsRouteImport
       parentRoute: typeof ApiV1MeRoute
     }
+    '/api/v1/budgets/overview': {
+      id: '/api/v1/budgets/overview'
+      path: '/overview'
+      fullPath: '/api/v1/budgets/overview'
+      preLoaderRoute: typeof ApiV1BudgetsOverviewRouteImport
+      parentRoute: typeof ApiV1BudgetsRoute
+    }
     '/api/v1/budgets/$budgetId': {
       id: '/api/v1/budgets/$budgetId'
       path: '/$budgetId'
@@ -909,10 +928,12 @@ const ApiV1BudgetsBudgetIdRouteWithChildren =
 
 interface ApiV1BudgetsRouteChildren {
   ApiV1BudgetsBudgetIdRoute: typeof ApiV1BudgetsBudgetIdRouteWithChildren
+  ApiV1BudgetsOverviewRoute: typeof ApiV1BudgetsOverviewRoute
 }
 
 const ApiV1BudgetsRouteChildren: ApiV1BudgetsRouteChildren = {
   ApiV1BudgetsBudgetIdRoute: ApiV1BudgetsBudgetIdRouteWithChildren,
+  ApiV1BudgetsOverviewRoute: ApiV1BudgetsOverviewRoute,
 }
 
 const ApiV1BudgetsRouteWithChildren = ApiV1BudgetsRoute._addFileChildren(

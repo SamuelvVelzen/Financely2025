@@ -8,6 +8,7 @@ import {
 import type {
   IBudget,
   IBudgetComparison,
+  IBudgetsOverviewResponse,
   IBudgetsQuery,
   IBudgetsResponse,
   ICreateBudgetInput,
@@ -53,5 +54,9 @@ export async function getBudgetComparison(
   budgetId: string
 ): Promise<IBudgetComparison> {
   return apiGet<IBudgetComparison>(`/budgets/${budgetId}/comparison`);
+}
+
+export async function getBudgetsOverview(): Promise<IBudgetsOverviewResponse> {
+  return apiGet<IBudgetsOverviewResponse>("/budgets/overview");
 }
 

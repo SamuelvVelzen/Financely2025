@@ -4,6 +4,7 @@ import {
   getBudget,
   getBudgetComparison,
   getBudgets,
+  getBudgetsOverview,
   updateBudget,
 } from "@/features/budget/api/client";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
@@ -11,11 +12,13 @@ import { queryKeys } from "@/features/shared/query/keys";
 import type {
   IBudget,
   IBudgetComparison,
+  IBudgetsOverviewResponse,
   IBudgetsQuery,
   IBudgetsResponse,
   ICreateBudgetInput,
   IUpdateBudgetInput,
 } from "@/features/shared/validation/schemas";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
  * Query budgets list
@@ -58,37 +61,66 @@ export function useBudgetComparison(budgetId: string) {
 
 /**
  * Create budget mutation
- * - Invalidates budgets query on success
+ * - Invalidates budgets query and overview on success
  */
 export function useCreateBudget() {
   return useFinMutation<IBudget, Error, ICreateBudgetInput>({
     mutationFn: createBudget,
-    invalidateQueries: [queryKeys.budgets],
+    invalidateQueries: [
+      () => queryKeys.budgets(),
+      () => queryKeys.budgetsOverview(),
+    ],
   });
 }
 
 /**
  * Update budget mutation
- * - Invalidates budgets query and specific budget query on success
+ * - Invalidates budgets query, specific budget query, and overview on success
  */
 export function useUpdateBudget() {
+  const queryClient = useQueryClient();
+
   return useFinMutation<
     IBudget,
     Error,
     { budgetId: string; input: IUpdateBudgetInput }
   >({
     mutationFn: ({ budgetId, input }) => updateBudget(budgetId, input),
-    invalidateQueries: [queryKeys.budgets],
+    invalidateQueries: [
+      () => queryKeys.budgets(),
+      () => queryKeys.budgetsOverview(),
+    ],
+    onSuccess: async (data, variables) => {
+      // Invalidate the specific budget query using budgetId from variables
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.budget(variables.budgetId),
+      });
+    },
   });
 }
 
 /**
  * Delete budget mutation
- * - Invalidates budgets query on success
+ * - Invalidates budgets query and overview on success
  */
 export function useDeleteBudget() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: deleteBudget,
-    invalidateQueries: [queryKeys.budgets],
+    invalidateQueries: [
+      () => queryKeys.budgets(),
+      () => queryKeys.budgetsOverview(),
+    ],
+  });
+}
+
+/**
+ * Query budgets overview (aggregated metrics for active budgets)
+ * - staleTime: 30 seconds (frequently changing data, like comparison)
+ */
+export function useBudgetsOverview() {
+  return useFinQuery<IBudgetsOverviewResponse, Error>({
+    queryKey: queryKeys.budgetsOverview(),
+    queryFn: () => getBudgetsOverview(),
+    staleTime: 30 * 1000, // 30 seconds
   });
 }

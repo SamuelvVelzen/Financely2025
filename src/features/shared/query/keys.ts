@@ -70,4 +70,5 @@ export const queryKeys = {
   budget: (budgetId: string) => ["budgets", budgetId] as const,
   budgetComparison: (budgetId: string) =>
     ["budgets", budgetId, "comparison"] as const,
+  budgetsOverview: () => ["budgets", "overview"] as const,
 } as const;
