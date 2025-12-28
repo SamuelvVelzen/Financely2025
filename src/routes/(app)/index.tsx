@@ -12,6 +12,7 @@ import { useDialog } from "@/features/ui/dialog/dialog/use-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { ColorInput } from "@/features/ui/input/color-input";
 import { NumberInput } from "@/features/ui/input/number-input";
 import { TextInput } from "@/features/ui/input/text-input";
@@ -21,7 +22,6 @@ import { Title } from "@/features/ui/typography/title";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { HiMoon, HiSun } from "react-icons/hi2";
 import { z } from "zod";
 
@@ -39,24 +39,24 @@ export const Route = createFileRoute("/(app)/")({
 function Home() {
   return (
     <>
-      <Container className="mb-4">
+      <Container>
         <Title>Dashboard</Title>
         <p className="text-text-muted text-sm">
           Welcome to Financely. Manage your finances with ease.
         </p>
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Toast Examples</h2>
         <ToastExample />
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Message Testing</h2>
         <MessageTestingExample />
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Dialog Examples</h2>
         <div className="space-y-4">
           <DefaultDialogExample />
@@ -65,7 +65,7 @@ function Home() {
         </div>
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Select Dropdown Examples</h2>
         <div className="space-y-4">
           <SelectDropdownExample />
@@ -78,7 +78,7 @@ function Home() {
         </Dropdown>
       </Container>
 
-      <Container className="mb-4">
+      <Container>
         <h2 className="text-lg font-semibold mb-4">Toggle Button Examples</h2>
         <ToggleButtonExample />
       </Container>
@@ -101,7 +101,7 @@ function DefaultDialogExample() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
+        className="px-4 py-2 bg-primary text-white rounded-2xl hover:bg-primary-hover motion-safe:transition-colors">
         Open Default Dialog
       </button>
       <Dialog
@@ -165,7 +165,7 @@ function CustomDialogExample() {
       <button
         type="button"
         onClick={dialog.open}
-        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover motion-safe:transition-colors">
+        className="px-4 py-2 bg-primary text-white rounded-2xl hover:bg-primary-hover motion-safe:transition-colors">
         Open Custom Dialog
       </button>
       <Dialog
@@ -177,19 +177,19 @@ function CustomDialogExample() {
               It demonstrates imperative control and custom styling:
             </p>
             <div className="space-y-2">
-              <div className="p-3 bg-surface-hover rounded-lg">
+              <div className="p-3 bg-surface-hover rounded-2xl">
                 <p className="font-medium text-sm">useDialog Hook</p>
                 <p className="text-xs text-text-muted">
                   Imperative control with open(), close(), toggle()
                 </p>
               </div>
-              <div className="p-3 bg-surface-hover rounded-lg">
+              <div className="p-3 bg-surface-hover rounded-2xl">
                 <p className="font-medium text-sm">Large Modal Size</p>
                 <p className="text-xs text-text-muted">
                   Uses size="lg" for wider dialog
                 </p>
               </div>
-              <div className="p-3 bg-surface-hover rounded-lg">
+              <div className="p-3 bg-surface-hover rounded-2xl">
                 <p className="font-medium text-sm">Custom Styling</p>
                 <p className="text-xs text-text-muted">
                   Override default styles with className prop (shadow-2xl)
@@ -246,7 +246,7 @@ function FormDialogExample() {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
 
-  const form = useForm<FormData>({
+  const form = useFinForm<FormData>({
     resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: "",
@@ -317,7 +317,7 @@ function FormDialogExample() {
                 disabled={pending}
               />
               {pending && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl">
                   <p className="text-sm text-blue-600 dark:text-blue-400">
                     Submitting form...
                   </p>
@@ -370,7 +370,7 @@ type ISelectDropdownFormData = {
 
 function SelectDropdownExample() {
   const [isSelected, setIsSelected] = useState(false);
-  const form = useForm<ISelectDropdownFormData>({
+  const form = useFinForm<ISelectDropdownFormData>({
     defaultValues: {
       singleValue: undefined,
       multipleValue: [],
@@ -833,7 +833,7 @@ function ToggleButtonExample() {
   const [mediumToggle, setMediumToggle] = useState(true);
   const [largeToggle, setLargeToggle] = useState(false);
 
-  const form = useForm<{ notifications: boolean; darkMode: boolean }>({
+  const form = useFinForm<{ notifications: boolean; darkMode: boolean }>({
     defaultValues: {
       notifications: true,
       darkMode: false,

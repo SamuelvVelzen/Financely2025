@@ -248,7 +248,7 @@ export function TagCsvImportDialog({
         />
       </div>
       {uploadMutation.isError && (
-        <div className="p-3 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-3 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-sm text-danger">
             {uploadMutation.error?.message || "Upload failed"}
           </p>
@@ -294,7 +294,7 @@ export function TagCsvImportDialog({
         })}
       </div>
       {validateMutation.isError && (
-        <div className="p-3 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-3 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-sm text-danger">
             {validateMutation.error?.message || "Validation failed"}
           </p>
@@ -310,7 +310,7 @@ export function TagCsvImportDialog({
 
     if (parseQuery.isError) {
       return (
-        <div className="p-3 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-3 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-sm text-danger">
             {parseQuery.error?.message || "Failed to parse CSV"}
           </p>
@@ -392,7 +392,7 @@ export function TagCsvImportDialog({
                     </span>
                     {candidate.data.color && (
                       <span
-                        className="w-4 h-4 rounded border border-border"
+                        className="size-4 rounded border border-border"
                         style={{ backgroundColor: candidate.data.color }}
                       />
                     )}
@@ -449,7 +449,7 @@ export function TagCsvImportDialog({
 
     return (
       <div className="space-y-4">
-        <div className="p-4 bg-surface-hover rounded-lg">
+        <div className="p-4 bg-surface-hover rounded-2xl">
           <p className="text-sm font-medium mb-2">Import Summary</p>
           <p className="text-sm">
             You are about to import <strong>{selectedCount}</strong> of{" "}
@@ -457,7 +457,7 @@ export function TagCsvImportDialog({
           </p>
         </div>
         {importMutation.isError && (
-          <div className="p-3 bg-danger/10 border border-danger rounded-lg">
+          <div className="p-3 bg-danger/10 border border-danger rounded-2xl">
             <p className="text-sm text-danger">
               {importMutation.error?.message || "Import failed"}
             </p>
@@ -511,9 +511,11 @@ export function TagCsvImportDialog({
           },
           variant: "primary" as const,
           disabled: validateMutation.isPending,
-          buttonContent: validateMutation.isPending
-            ? "Validating..."
-            : "Continue",
+          loading: {
+            isLoading: validateMutation.isPending,
+            text: "Validating mapping",
+          },
+          buttonContent: "Continue",
         },
       ],
     },

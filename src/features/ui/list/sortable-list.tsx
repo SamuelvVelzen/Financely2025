@@ -58,10 +58,16 @@ export function SortableList<T>({
         if (draggedIndex !== null) {
           handleDragEnd();
         }
-      }}
-    >
-      <List data={orderedData} className={className} getItemKey={getItemKey}>
+      }}>
+      <List
+        data={orderedData}
+        className={className}
+        getItemKey={getItemKey}>
         {(item, index) => {
+          const isDragging = draggedIndex === index;
+          const isDragOver = dragOverIndex === index;
+          const isOriginalPosition = draggedIndex === index;
+
           const dragProps = {
             onDragStart: (e: React.DragEvent) => {
               handleDragStart(index);
@@ -83,9 +89,9 @@ export function SortableList<T>({
             onDrop: (e: React.DragEvent) => {
               handleDrop(e);
             },
-            isDragging: draggedIndex === index,
-            isDragOver: dragOverIndex === index,
-            isOriginalPosition: draggedIndex === index,
+            isDragging,
+            isDragOver,
+            isOriginalPosition,
             draggedItemHeight,
           };
 

@@ -33,23 +33,23 @@ const sizeConfig: {
   sm: {
     trackWidth: "w-11", // 44px
     trackHeight: "h-6", // 24px
-    thumbSize: "w-5 h-5", // 20px
+    thumbSize: "size-5", // 20px
     thumbTranslate: "translate-x-5", // 20px (44px - 20px - 4px padding)
-    iconSize: "w-3 h-3", // 12px
+    iconSize: "size-3", // 12px
   },
   md: {
     trackWidth: "w-14", // 56px (close to iOS 51px)
     trackHeight: "h-8", // 32px (close to iOS 31px)
-    thumbSize: "w-7 h-7", // 28px
+    thumbSize: "size-7", // 28px
     thumbTranslate: "translate-x-6", // 24px (56px - 28px - 4px padding)
-    iconSize: "w-4 h-4", // 16px
+    iconSize: "size-4", // 16px
   },
   lg: {
     trackWidth: "w-16", // 64px
     trackHeight: "h-10", // 40px
-    thumbSize: "w-9 h-9", // 36px
+    thumbSize: "size-9", // 36px
     thumbTranslate: "translate-x-6", // 24px (64px - 36px - 4px padding)
-    iconSize: "w-5 h-5", // 20px
+    iconSize: "size-5", // 20px
   },
 };
 
@@ -97,7 +97,7 @@ export function ToggleButton({
   const config = sizeConfig[size];
 
   const buttonClassName = cn(
-    "relative inline-flex items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+    "relative inline-flex items-center rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:ring-offset-2",
     config.trackWidth,
     config.trackHeight,
     checked ? "bg-success" : "bg-border",

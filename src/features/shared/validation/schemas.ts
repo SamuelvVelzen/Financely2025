@@ -42,10 +42,7 @@ export const CurrencySchema = z.enum([...SUPPORTED_CURRENCIES] as [
  * Payment method schema - created from payment method config (single source of truth)
  * No longer generated from Prisma enum, so we can add payment methods without migrations
  */
-export const PaymentMethodSchema = z.enum([...PAYMENT_METHOD_VALUES] as [
-  string,
-  ...string[],
-]);
+export const PaymentMethodSchema = z.enum([...PAYMENT_METHOD_VALUES]);
 export const TransactionTypeSchema = GeneratedTransactionTypeSchema;
 export const MessageTypeSchema = z.enum([
   "INFO",
@@ -70,6 +67,37 @@ export { getCurrencyOptionsFromConfig as getCurrencyOptions };
 // ============================================================================
 
 const ISODateStringSchema = z.string().datetime();
+
+// Schema that accepts date-only strings (YYYY-MM-DD) and transforms to ISO datetime
+const DateStringSchema = z
+  .string()
+  .transform((val) => {
+    // If it's already a full ISO datetime string, validate and return as is
+    if (val.includes("T")) {
+      // Validate it's a proper ISO datetime
+      const date = new Date(val);
+      if (isNaN(date.getTime())) {
+        throw new Error("Invalid ISO datetime format");
+      }
+      return val;
+    }
+    // If it's a date-only string (YYYY-MM-DD), convert to ISO datetime
+    // Parse components to avoid timezone issues
+    const match = val.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) {
+      throw new Error(
+        "Invalid date format. Expected YYYY-MM-DD or ISO datetime"
+      );
+    }
+    const [, year, month, day] = match.map(Number);
+    // Create date in UTC to avoid timezone shifts
+    const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+    if (isNaN(date.getTime())) {
+      throw new Error("Invalid date");
+    }
+    return date.toISOString();
+  })
+  .pipe(z.string().datetime());
 
 // ============================================================================
 // Decimal as string (for API serialization)
@@ -309,6 +337,7 @@ export const TransactionSchema = z.object({
   externalId: z.string().nullable(),
   paymentMethod: PaymentMethodSchema,
   tags: z.array(TransactionTagSchema),
+  primaryTag: TransactionTagSchema.nullable().optional(),
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
 });
@@ -324,6 +353,7 @@ export const CreateTransactionInputSchema = z.object({
   externalId: z.string().max(200).nullable().optional(),
   paymentMethod: PaymentMethodSchema,
   tagIds: z.array(z.string()).optional().default([]),
+  primaryTagId: z.string().nullable().optional(),
 });
 
 export const UpdateTransactionInputSchema =
@@ -598,6 +628,156 @@ export const UnreadCountResponseSchema = z.object({
 });
 
 // ============================================================================
+// Budget schemas
+// ============================================================================
+
+export const BudgetPresetSchema = z.enum(["monthly", "yearly", "custom"]);
+
+export const BudgetItemSchema = z.object({
+  id: z.string(),
+  budgetId: z.string(),
+  tagId: z.string().nullable(),
+  expectedAmount: DecimalStringSchema,
+  createdAt: ISODateStringSchema,
+  updatedAt: ISODateStringSchema,
+});
+
+export const BudgetSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  name: z.string(),
+  startDate: ISODateStringSchema,
+  endDate: ISODateStringSchema,
+  currency: CurrencySchema,
+  items: z.array(BudgetItemSchema),
+  createdAt: ISODateStringSchema,
+  updatedAt: ISODateStringSchema,
+});
+
+export const CreateBudgetItemInputSchema = z.object({
+  tagId: z.string().nullable(),
+  expectedAmount: DecimalStringSchema.refine(
+    (val) => parseFloat(val) > 0,
+    "Expected amount must be greater than 0"
+  ),
+});
+
+export const CreateBudgetInputSchema = z
+  .object({
+    name: z.string().min(1).max(200),
+    startDate: DateStringSchema,
+    endDate: DateStringSchema,
+    currency: CurrencySchema,
+    items: z
+      .array(CreateBudgetItemInputSchema)
+      .min(1, "At least one budget item is required"),
+  })
+  .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
+    message: "End date must be after or equal to start date",
+    path: ["endDate"],
+  });
+
+export const UpdateBudgetItemInputSchema = z.object({
+  tagId: z.string().nullable().optional(),
+  expectedAmount: DecimalStringSchema.optional(),
+});
+
+export const UpdateBudgetInputSchema = z
+  .object({
+    name: z.string().min(1).max(200).optional(),
+    startDate: DateStringSchema.optional(),
+    endDate: DateStringSchema.optional(),
+    currency: CurrencySchema.optional(),
+    items: z.array(CreateBudgetItemInputSchema).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        return new Date(data.endDate) >= new Date(data.startDate);
+      }
+      return true;
+    },
+    {
+      message: "End date must be after or equal to start date",
+      path: ["endDate"],
+    }
+  );
+
+export const BudgetsQuerySchema = z.object({
+  from: ISODateStringSchema.optional(),
+  to: ISODateStringSchema.optional(),
+});
+
+export const BudgetsResponseSchema = z.object({
+  data: z.array(BudgetSchema),
+});
+
+export const BudgetItemComparisonSchema = z.object({
+  item: BudgetItemSchema,
+  expected: DecimalStringSchema,
+  actual: DecimalStringSchema,
+  difference: DecimalStringSchema,
+  percentage: z.number(),
+  transactions: z.array(TransactionSchema),
+});
+
+export const BudgetAlertSchema = z.object({
+  tagId: z.string(),
+  tagName: z.string(),
+  tagColor: z.string().nullable(),
+  transactionCount: z.number().int().min(0),
+  totalAmount: DecimalStringSchema,
+  transactions: z.array(TransactionSchema),
+});
+
+export const BudgetComparisonSchema = z.object({
+  budget: BudgetSchema,
+  items: z.array(BudgetItemComparisonSchema),
+  alerts: z.array(BudgetAlertSchema),
+  totals: z.object({
+    totalExpected: DecimalStringSchema,
+    totalActual: DecimalStringSchema,
+    totalDifference: DecimalStringSchema,
+  }),
+});
+
+export const BudgetsOverviewResponseSchema = z.object({
+  overallHealth: z.object({
+    totalExpected: DecimalStringSchema,
+    totalActual: DecimalStringSchema,
+    remaining: DecimalStringSchema,
+    percentage: z.number(),
+    activeCount: z.number().int().min(0),
+    currency: CurrencySchema,
+  }),
+  riskSummary: z.object({
+    totalActive: z.number().int().min(0),
+    nearingLimit: z.number().int().min(0), // 80-100%
+    overBudget: z.number().int().min(0), // >100%
+  }),
+  timeContext: z.object({
+    daysRemaining: z.number().int().min(0).nullable(),
+    spendingPace: z.enum(["faster", "slower", "on-track"]).nullable(),
+    primaryBudgetEndDate: ISODateStringSchema.nullable(),
+  }),
+  topSpenders: z
+    .array(
+      z.object({
+        tagId: z.string(),
+        tagName: z.string(),
+        tagColor: z.string().nullable(),
+        amount: DecimalStringSchema,
+        percentage: z.number(),
+      })
+    )
+    .max(3),
+  context: z.object({
+    totalBudgets: z.number().int().min(0),
+    totalExpectedAll: DecimalStringSchema,
+  }),
+});
+
+// ============================================================================
 // Error response schema
 // ============================================================================
 
@@ -680,3 +860,22 @@ export type IUpdateMessageInput = z.infer<typeof UpdateMessageInputSchema>;
 export type IMessagesQuery = z.infer<typeof MessagesQuerySchema>;
 export type IMessagesResponse = z.infer<typeof MessagesResponseSchema>;
 export type IUnreadCountResponse = z.infer<typeof UnreadCountResponseSchema>;
+export type IBudgetPreset = z.infer<typeof BudgetPresetSchema>;
+export type IBudget = z.infer<typeof BudgetSchema>;
+export type IBudgetItem = z.infer<typeof BudgetItemSchema>;
+export type ICreateBudgetInput = z.infer<typeof CreateBudgetInputSchema>;
+export type ICreateBudgetItemInput = z.infer<
+  typeof CreateBudgetItemInputSchema
+>;
+export type IUpdateBudgetInput = z.infer<typeof UpdateBudgetInputSchema>;
+export type IUpdateBudgetItemInput = z.infer<
+  typeof UpdateBudgetItemInputSchema
+>;
+export type IBudgetsQuery = z.infer<typeof BudgetsQuerySchema>;
+export type IBudgetsResponse = z.infer<typeof BudgetsResponseSchema>;
+export type IBudgetItemComparison = z.infer<typeof BudgetItemComparisonSchema>;
+export type IBudgetAlert = z.infer<typeof BudgetAlertSchema>;
+export type IBudgetComparison = z.infer<typeof BudgetComparisonSchema>;
+export type IBudgetsOverviewResponse = z.infer<
+  typeof BudgetsOverviewResponseSchema
+>;

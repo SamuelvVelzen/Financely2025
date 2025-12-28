@@ -1,5 +1,6 @@
 "use client";
 
+import { Spinner } from "@/features/ui/loading/spinner";
 import { cn } from "@/features/util/cn";
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
@@ -19,7 +20,13 @@ export type IButtonProps = {
   variant?: IVariant;
   disabled?: boolean;
   size?: IButtonSize;
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> &
+  loading?:
+    | boolean
+    | {
+        isLoading?: boolean;
+        text?: string;
+      };
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type" | "onClick"> &
   (
     | {
         type?: "button";
@@ -37,12 +44,14 @@ export function Button({
   clicked,
   children,
   disabled = false,
-  onClick,
+  loading = false,
   type = "button",
   variant = "default",
   size = "md",
   ...rest
 }: IButtonProps) {
+  const isLoading = typeof loading === "boolean" ? loading : loading.isLoading;
+
   const variantClasses: { [key in IVariant]: string } = {
     default: "hover:bg-surface-hover border-border",
     danger: "bg-danger hover:bg-danger-hover text-white border-danger",
@@ -55,16 +64,19 @@ export function Button({
   };
 
   const baseClasses =
-    "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface focus:outline-none focus:ring-2 focus:ring-primary";
-  const disabledClasses = disabled && "pointer-events-none";
+    "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
+  const disabledClasses = (disabled || isLoading) && "pointer-events-none";
   const sizeClasses: { [key in IButtonSize]: string } = {
-    xs: "px-0.5 py-0.5 text-xs",
-    sm: "px-2 py-1 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg",
+    xs: "px-0.5 py-0.25 text-xs",
+    sm: "px-2 py-0.75 text-sm",
+    md: "px-4 py-1.25 text-base",
+    lg: "px-6 py-1.75 text-lg",
   };
+  const spinnerSize = size === "xs" || size === "sm" ? "sm" : "md";
+
   return (
-    <div className={disabled ? "opacity-50 cursor-not-allowed" : ""}>
+    <div
+      className={disabled || isLoading ? "opacity-50 cursor-not-allowed" : ""}>
       <button
         type={type}
         className={cn(
@@ -74,12 +86,16 @@ export function Button({
           className,
           disabledClasses
         )}
-        disabled={disabled}
+        disabled={disabled || isLoading}
         onClick={(event) => {
-          onClick?.(event);
+          // Prevent default form submission for button-type buttons
+          if (type === "button") {
+            event.preventDefault();
+          }
           clicked?.(event);
         }}
         {...rest}>
+        {isLoading && <Spinner size={spinnerSize} />}
         {buttonContent ?? children}
       </button>
     </div>

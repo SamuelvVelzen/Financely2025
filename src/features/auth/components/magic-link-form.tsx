@@ -34,7 +34,7 @@ export function MagicLinkForm({
 }: MagicLinkFormProps) {
   if (magicLinkSent) {
     return (
-      <div className="p-4 bg-success/10 border border-success rounded-lg">
+      <div className="p-4 bg-success/10 border border-success rounded-2xl">
         <p className="text-success font-medium">Magic link sent!</p>
         <p className="text-sm text-text-muted mt-2">
           Check your email for a sign-in link. It will expire in 15 minutes.
@@ -60,8 +60,12 @@ export function MagicLinkForm({
           type="submit"
           variant="primary"
           disabled={loading}
-          className="w-full">
-          {loading ? "Sending..." : "Send Magic Link"}
+          className="w-full"
+          loading={{
+            isLoading: loading,
+            text: "Sending magic link",
+          }}>
+          Send Magic Link
         </Button>
       </Form>
 

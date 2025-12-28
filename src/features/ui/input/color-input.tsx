@@ -65,18 +65,20 @@ export function ColorInput({
   const colorPickerId = id || `${generatedId}-color-picker`;
   const textInputId = `${generatedId}-text-input`;
   const form = useFormContext();
-  const error = form.formState.errors[name];
   const [textValue, setTextValue] = useState(() => form.getValues(name) || "");
 
   const baseClasses =
-    "w-full px-3 py-2 border rounded-lg bg-surface focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
-  const borderClass = error ? "border-danger" : "border-border";
+    "w-full px-3 py-2 border rounded-2xl bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
     <Controller
       name={name}
       control={form.control}
-      render={({ field }) => {
+      render={({ field, fieldState }) => {
+        const error = fieldState.error;
+        // Only show error if form has been submitted
+        const shouldShowError = error && form.formState.isSubmitted;
+        const borderClass = shouldShowError ? "border-danger" : "border-border";
         const currentFieldValue = field.value || "";
 
         // Sync text value when field value changes from outside (e.g., form reset)
@@ -133,7 +135,7 @@ export function ColorInput({
               {/* Color Picker */}
               <div
                 className={cn(
-                  "rounded-lg overflow-hidden shrink-0 w-16 h-[2.47rem]"
+                  "rounded-2xl overflow-hidden shrink-0 w-16 h-[2.47rem]"
                 )}>
                 <input
                   type="color"
@@ -145,9 +147,9 @@ export function ColorInput({
                     "w-full h-full cursor-pointer border-0 rounded-2xl appearance-none",
                     "[-webkit-appearance:none]",
                     "[&::-webkit-color-swatch]:border-0",
-                    "[&::-webkit-color-swatch]:rounded-lg",
+                    "[&::-webkit-color-swatch]:rounded-2xl",
                     "[&::-moz-color-swatch]:border-0",
-                    "[&::-moz-color-swatch]:rounded-lg",
+                    "[&::-moz-color-swatch]:rounded-2xl",
                     className
                   )}
                   style={{
@@ -170,7 +172,7 @@ export function ColorInput({
                 className={cn(baseClasses, borderClass, "flex-1")}
               />
             </div>
-            {error && (
+            {shouldShowError && (
               <p className="text-sm text-danger mt-1">
                 {error.message as string}
               </p>

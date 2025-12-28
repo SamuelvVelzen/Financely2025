@@ -49,7 +49,7 @@ function MessagesPage() {
 
   return (
     <>
-      <Container className="mb-4">
+      <Container>
         <div className="flex items-center justify-between">
           <div>
             <Title>Messages</Title>
@@ -60,16 +60,18 @@ function MessagesPage() {
               size="sm"
               clicked={handleMarkAllAsRead}
               disabled={markAllAsRead.isPending}
-              buttonContent={
-                markAllAsRead.isPending ? "Marking..." : "Mark All as Read"
-              }
+              loading={{
+                isLoading: markAllAsRead.isPending,
+                text: "Marking all messages as read",
+              }}
+              buttonContent="Mark All as Read"
             />
           )}
         </div>
       </Container>
 
-      <Container className="mb-4">
-        <div className="flex flex-wrap gap-2">
+      <Container>
+        <div className="flex flex-wrap gap-2 mb-4">
           <Button
             variant={filter === "all" ? "primary" : "default"}
             size="sm"
@@ -113,13 +115,7 @@ function MessagesPage() {
             buttonContent="Error"
           />
         </div>
-      </Container>
 
-      <Container>
-        <MessageList
-          messages={data?.data || []}
-          isLoading={isLoading}
-        />
         <MessageList
           messages={data?.data || []}
           isLoading={isLoading}

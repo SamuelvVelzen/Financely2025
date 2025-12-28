@@ -41,18 +41,15 @@ export function BaseInput({
   prefixIcon,
   suffixIcon,
   renderField,
-  style,
   ...props
 }: IBaseInputProps) {
   const generatedId = useId();
   const inputId = id || generatedId;
   const form = useFormContext();
-  const error = form.formState.errors[name];
 
   const baseClasses =
-    "border rounded-2xl bg-surface text-text focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
-  const borderClass = error ? "border-danger" : "border-border";
-  const widthBaseClasses = `h-[22px] box-content`;
+    "border rounded-2xl bg-surface text-text hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed w-full";
+  const widthBaseClasses = `h-9`;
 
   // Adjust padding based on icons
   const paddingClasses = cn(
@@ -65,79 +62,79 @@ export function BaseInput({
     <Controller
       name={name}
       control={form.control}
-      render={({ field }) => (
-        <div className={label || hint ? "space-y-1" : ""}>
-          {label && (
-            <Label
-              htmlFor={inputId}
-              required={required}>
-              {label}
-            </Label>
-          )}
-          <div className="relative">
-            {prefixIcon && (
-              <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text pointer-events-none">
-                {prefixIcon}
-              </div>
+      render={({ field, fieldState }) => {
+        const error = fieldState.error;
+        // Only show error if form has been submitted
+        const shouldShowError = error && form.formState.isSubmitted;
+        const borderClass = shouldShowError ? "border-danger" : "border-border";
+
+        return (
+          <div className={label || hint ? "space-y-1" : ""}>
+            {label && (
+              <Label
+                htmlFor={inputId}
+                required={required}>
+                {label}
+              </Label>
             )}
-            {renderField ? (
-              renderField({
-                field,
-                inputProps: {
-                  type,
-                  id: inputId,
-                  required,
-                  className: cn(
+            <div className="relative">
+              {prefixIcon && (
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 text-text pointer-events-none">
+                  {prefixIcon}
+                </div>
+              )}
+              {renderField ? (
+                renderField({
+                  field,
+                  inputProps: {
+                    type,
+                    id: inputId,
+                    required,
+                    className: cn(
+                      baseClasses,
+                      borderClass,
+                      paddingClasses,
+                      widthBaseClasses,
+                      className
+                    ),
+
+                    ...props,
+                  },
+                })
+              ) : (
+                <input
+                  type={type}
+                  id={inputId}
+                  required={required}
+                  className={cn(
                     baseClasses,
                     borderClass,
                     paddingClasses,
                     widthBaseClasses,
                     className
-                  ),
-                  style: {
-                    width: `calc(100% - ${(prefixIcon ? 36 : 8) + (suffixIcon ? 36 : 8) + 2}px)`,
-                    ...(style ?? {}),
-                  },
-                  ...props,
-                },
-              })
-            ) : (
-              <input
-                type={type}
-                id={inputId}
-                required={required}
-                className={cn(
-                  baseClasses,
-                  borderClass,
-                  paddingClasses,
-                  widthBaseClasses,
-                  className
-                )}
-                style={{
-                  width: `calc(100% - ${(prefixIcon ? 36 : 8) + (suffixIcon ? 36 : 8) + 2}px)`,
-                  ...(style ?? {}),
-                }}
-                {...field}
-                ref={field.ref}
-                {...props}
-              />
+                  )}
+                  {...field}
+                  ref={field.ref}
+                  {...props}
+                />
+              )}
+              {suffixIcon && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 text-text flex">
+                  {suffixIcon}
+                </div>
+              )}
+            </div>
+            {shouldShowError && (
+              <p className="text-sm text-danger mt-1">
+                {error.message as string}
+              </p>
             )}
-            {suffixIcon && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 text-text flex">
-                {suffixIcon}
-              </div>
+            {!shouldShowError && hint && (
+              <p className="text-xs text-text-muted mt-1">{hint}</p>
             )}
           </div>
-          {error && (
-            <p className="text-sm text-danger mt-1">
-              {error.message as string}
-            </p>
-          )}
-          {!error && hint && (
-            <p className="text-xs text-text-muted mt-1">{hint}</p>
-          )}
-        </div>
-      )}
+        );
+      }}
     />
   );
 }

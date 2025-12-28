@@ -6,10 +6,11 @@ import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { HiChevronDown, HiX } from "react-icons/hi";
+import { HiChevronDown, HiInformationCircle, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
+import { DropdownItemEmpty } from "../dropdown/dropdown-item-empty";
 import type { IPlacementOption } from "../dropdown/hooks/use-dropdown-placement";
 import { Label } from "../typography/label";
 import { NativeSelect } from "./native-select";
@@ -26,9 +27,8 @@ type ExtractDataFromOptions<
 > = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
 
 export type ISelectProps<
-  TOptions extends
-    | ISelectOption<any>[]
-    | readonly ISelectOption<any>[] = ISelectOption[],
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
+    ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 > = IPropsWithClassName & {
   name: string;
@@ -38,6 +38,7 @@ export type ISelectProps<
   label?: string;
   searchPlaceholder?: string;
   disabled?: boolean;
+  hint?: string;
   children?: (
     option: ISelectOption<TData>,
     index: number,
@@ -55,9 +56,8 @@ export type ISelectProps<
 };
 
 export function Select<
-  TOptions extends
-    | ISelectOption<any>[]
-    | readonly ISelectOption<any>[] = ISelectOption[],
+  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
+    ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 >({
   className = "",
@@ -68,6 +68,7 @@ export function Select<
   label,
   searchPlaceholder = "Type to search...",
   disabled = false,
+  hint,
   children,
   onCreateNew,
   createNewLabel = "Create new",
@@ -144,8 +145,9 @@ export function Select<
 
   // Get selected options
   const getSelectedOptions = (
-    value: string | string[] | undefined
+    value: string | number | string[] | number[] | undefined
   ): ISelectOption<TData>[] => {
+    console.log("value", value);
     if (!value) return [];
     if (multiple && Array.isArray(value)) {
       // Preserve the order from the value array (FIFO)
@@ -153,7 +155,8 @@ export function Select<
         .map((val) => options.find((opt) => opt.value === val))
         .filter((opt): opt is ISelectOption<TData> => opt !== undefined);
     }
-    if (!multiple && typeof value === "string") {
+    if (!multiple) {
+      console.log("options", options);
       const option = options.find((opt) => opt.value === value);
       return option ? [option] : [];
     }
@@ -225,7 +228,7 @@ export function Select<
                       onClick={(e) => handleRemoveChip(e, option.value)}
                       className="hover:text-text-muted focus:outline-none cursor-pointer"
                       aria-label={`Remove ${option.label}`}>
-                      <HiX className="w-3 h-3" />
+                      <HiX className="size-3" />
                     </button>
                   </span>
                 ))}
@@ -279,7 +282,7 @@ export function Select<
             </div>
             <HiChevronDown
               className={cn(
-                "w-4 h-4 text-text-muted shrink-0 transition-transform duration-200",
+                "size-4 text-text-muted shrink-0 transition-transform duration-200",
                 isOpen && "rotate-180"
               )}
             />
@@ -337,15 +340,11 @@ export function Select<
               {filteredOptions.length === 0 &&
                 searchQuery.trim() &&
                 !showCreateNew && (
-                  <DropdownItem className="text-text-muted cursor-default">
-                    No results found
-                  </DropdownItem>
+                  <DropdownItemEmpty>No results found</DropdownItemEmpty>
                 )}
 
               {!searchQuery.trim() && filteredOptions.length === 0 && (
-                <DropdownItem className="text-text-muted cursor-default">
-                  No options available
-                </DropdownItem>
+                <DropdownItemEmpty>No options available</DropdownItemEmpty>
               )}
 
               {showCreateNew && (
@@ -366,6 +365,12 @@ export function Select<
             {error && (
               <p className="text-sm text-danger mt-1">
                 {(error as { message?: string })?.message || String(error)}
+              </p>
+            )}
+            {!error && hint && (
+              <p className="text-xs text-text-muted/60 mt-1 flex items-center gap-1">
+                <HiInformationCircle className="size-4" />
+                <span>{hint}</span>
               </p>
             )}
           </div>

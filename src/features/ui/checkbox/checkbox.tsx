@@ -35,7 +35,7 @@ export function Checkbox({
   }, [indeterminate]);
 
   const baseClasses =
-    "w-4 h-4 border rounded cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed appearance-none relative";
+    "size-4 border rounded cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed appearance-none relative";
   const borderClass =
     indeterminate || checked
       ? "bg-primary border-primary text-white"
@@ -55,7 +55,7 @@ export function Checkbox({
           {...props}
         />
         <svg
-          className="absolute top-0 left-0 w-4 h-4 pointer-events-none text-white"
+          className="absolute top-0 left-0 size-4 pointer-events-none text-white"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

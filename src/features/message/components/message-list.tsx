@@ -3,6 +3,7 @@
 import type { IMessage } from "@/features/shared/validation/schemas";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { SkeletonText } from "@/features/ui/skeleton";
+import { HiOutlineEnvelope } from "react-icons/hi2";
 import { MessageItem } from "./message-item";
 
 type IMessageListProps = {
@@ -17,7 +18,7 @@ export function MessageList({ messages, isLoading }: IMessageListProps) {
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="p-4 rounded-lg border">
+            className="p-4 rounded-2xl border">
             <SkeletonText lines={3} />
           </div>
         ))}
@@ -26,7 +27,12 @@ export function MessageList({ messages, isLoading }: IMessageListProps) {
   }
 
   if (messages.length === 0) {
-    return <EmptyPage emptyText="No messages yet." />;
+    return (
+      <EmptyPage
+        icon={HiOutlineEnvelope}
+        emptyText="No messages yet."
+      />
+    );
   }
 
   return (

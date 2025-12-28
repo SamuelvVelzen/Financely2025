@@ -29,7 +29,7 @@ function AppLayout() {
       <ThemeProvider>
         <SidebarProvider>
           <Sidebar />
-          <main className="flex-1 overflow-y-auto bg-background p-8">
+          <main className="flex-1 overflow-y-auto bg-background p-4">
             <Outlet />
           </main>
         </SidebarProvider>

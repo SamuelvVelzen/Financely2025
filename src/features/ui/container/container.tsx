@@ -18,7 +18,7 @@ export function Container({
     Component,
     {
       className: cn(
-        "bg-surface border border-border rounded-2xl p-4",
+        "bg-surface border border-border rounded-2xl p-4 shadow-lg mb-4",
         className
       ),
     },

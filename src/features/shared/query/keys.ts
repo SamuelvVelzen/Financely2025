@@ -61,4 +61,14 @@ export const queryKeys = {
   }) => ["messages", params] as const,
   message: (messageId: string) => ["messages", messageId] as const,
   unreadCount: () => ["messages", "unread-count"] as const,
+
+  // Budget queries
+  budgets: (params?: {
+    from?: string; // ISO date string
+    to?: string; // ISO date string
+  }) => ["budgets", params] as const,
+  budget: (budgetId: string) => ["budgets", budgetId] as const,
+  budgetComparison: (budgetId: string) =>
+    ["budgets", budgetId, "comparison"] as const,
+  budgetsOverview: () => ["budgets", "overview"] as const,
 } as const;

@@ -18,8 +18,10 @@ import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { type IPriceRange, RangeInput } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
+import { Loading } from "@/features/ui/loading/loading";
 import { Pagination } from "@/features/ui/pagination";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
@@ -32,7 +34,6 @@ import {
 } from "@/features/util/date/date-helpers";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 import {
   HiArrowDownTray,
   HiArrowTrendingUp,
@@ -70,7 +71,7 @@ export function IncomeOverview() {
     useState<IPriceRange>(defaultPriceFilter);
 
   // Form for search and tag filter (requires form context)
-  const filterForm = useForm<FilterFormData>({
+  const filterForm = useFinForm<FilterFormData>({
     defaultValues: {
       searchQuery: "",
       tagFilter: [],
@@ -236,7 +237,7 @@ export function IncomeOverview() {
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface pb-0 mb-4">
+      <Container className="sticky top-0 z-10 bg-surface pb-0">
         <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
           <div className="flex gap-2 items-center">
             <HiArrowTrendingUp />
@@ -306,7 +307,7 @@ export function IncomeOverview() {
                   <>
                     {option.data?.color && (
                       <div
-                        className="w-3 h-3 rounded-full shrink-0"
+                        className="size-3 rounded-full shrink-0"
                         style={{ backgroundColor: option.data.color }}
                       />
                     )}
@@ -320,10 +321,18 @@ export function IncomeOverview() {
       </Container>
 
       <Container>
+        {isLoading && (
+          <div className="flex items-center justify-center">
+            <Loading text="Loading incomes" />
+          </div>
+        )}
+
         {isEmpty && (
           <EmptyPage
-            icon={<HiArrowTrendingUp />}
-            emptyText={"No income entries yet. Start by adding your first income source."}
+            icon={HiArrowTrendingUp}
+            emptyText={
+              "No income entries yet. Start by adding your first income source."
+            }
             button={{
               buttonContent: "Add income",
               clicked: handleCreateIncome,
@@ -332,7 +341,7 @@ export function IncomeOverview() {
 
         {isEmptyWithFilters && (
           <EmptyPage
-            icon={<HiArrowTrendingUp />}
+            icon={HiArrowTrendingUp}
             emptyText={
               "No incomes match your filters. Try adjusting your search criteria or clearing your filters."
             }

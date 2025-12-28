@@ -90,6 +90,10 @@ export class TransactionService {
       orderBy.amount = sortDirection === "asc" ? "asc" : "desc";
     } else if (sortField === "name") {
       orderBy.name = sortDirection === "asc" ? "asc" : "desc";
+    } else if (sortField === "primaryTag") {
+      orderBy.primaryTag = {
+        name: sortDirection === "asc" ? "asc" : "desc",
+      };
     } else {
       orderBy.occurredAt = "desc";
     }
@@ -105,6 +109,13 @@ export class TransactionService {
       take: limit,
       include: {
         tags: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+        primaryTag: {
           select: {
             id: true,
             name: true,
@@ -131,6 +142,13 @@ export class TransactionService {
           name: tag.name,
           color: tag.color,
         })),
+        primaryTag: tx.primaryTag
+          ? {
+              id: tx.primaryTag.id,
+              name: tx.primaryTag.name,
+              color: tx.primaryTag.color,
+            }
+          : null,
         createdAt: tx.createdAt.toISOString(),
         updatedAt: tx.updatedAt.toISOString(),
       })
@@ -165,6 +183,13 @@ export class TransactionService {
             color: true,
           },
         },
+        primaryTag: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
       },
     });
 
@@ -187,6 +212,13 @@ export class TransactionService {
         name: tag.name,
         color: tag.color,
       })),
+      primaryTag: transaction.primaryTag
+        ? {
+            id: transaction.primaryTag.id,
+            name: transaction.primaryTag.name,
+            color: transaction.primaryTag.color,
+          }
+        : null,
       createdAt: transaction.createdAt.toISOString(),
       updatedAt: transaction.updatedAt.toISOString(),
     });
@@ -215,6 +247,30 @@ export class TransactionService {
       }
     }
 
+    // Verify primaryTagId belongs to user and matches transaction type
+    if (validated.primaryTagId) {
+      const primaryTag = await prisma.tag.findFirst({
+        where: {
+          id: validated.primaryTagId,
+          userId,
+        },
+      });
+
+      if (!primaryTag) {
+        throw new Error("Primary tag not found");
+      }
+
+      // Validate transaction type match: tag.transactionType must be null (works with both) or match transaction type
+      if (
+        primaryTag.transactionType !== null &&
+        primaryTag.transactionType !== validated.type
+      ) {
+        throw new Error(
+          "Primary tag transaction type does not match transaction type"
+        );
+      }
+    }
+
     const transaction = await prisma.transaction.create({
       data: {
         userId,
@@ -227,6 +283,7 @@ export class TransactionService {
         notes: validated.notes ?? null,
         externalId: validated.externalId ?? null,
         paymentMethod: validated.paymentMethod,
+        primaryTagId: validated.primaryTagId ?? null,
         tags: validated.tagIds
           ? {
               connect: validated.tagIds.map((id) => ({ id })),
@@ -235,6 +292,13 @@ export class TransactionService {
       },
       include: {
         tags: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+        primaryTag: {
           select: {
             id: true,
             name: true,
@@ -259,6 +323,13 @@ export class TransactionService {
         name: tag.name,
         color: tag.color,
       })),
+      primaryTag: transaction.primaryTag
+        ? {
+            id: transaction.primaryTag.id,
+            name: transaction.primaryTag.name,
+            color: transaction.primaryTag.color,
+          }
+        : null,
       createdAt: transaction.createdAt.toISOString(),
       updatedAt: transaction.updatedAt.toISOString(),
     });
@@ -303,6 +374,36 @@ export class TransactionService {
           }
         }
 
+        // Verify primaryTagId belongs to user and matches transaction type
+        if (validatedItem.primaryTagId) {
+          const primaryTag = await prisma.tag.findFirst({
+            where: {
+              id: validatedItem.primaryTagId,
+              userId,
+            },
+          });
+
+          if (!primaryTag) {
+            errors.push({
+              index,
+              message: "Primary tag not found",
+            });
+            continue;
+          }
+
+          // Validate transaction type match
+          if (
+            primaryTag.transactionType !== null &&
+            primaryTag.transactionType !== validatedItem.type
+          ) {
+            errors.push({
+              index,
+              message: "Primary tag transaction type does not match transaction type",
+            });
+            continue;
+          }
+        }
+
         // Create the transaction
         const transaction = await prisma.transaction.create({
           data: {
@@ -316,6 +417,7 @@ export class TransactionService {
             notes: validatedItem.notes ?? null,
             externalId: validatedItem.externalId ?? null,
             paymentMethod: validatedItem.paymentMethod,
+            primaryTagId: validatedItem.primaryTagId ?? null,
             tags: validatedItem.tagIds
               ? {
                   connect: validatedItem.tagIds.map((id) => ({ id })),
@@ -324,6 +426,13 @@ export class TransactionService {
           },
           include: {
             tags: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+              },
+            },
+            primaryTag: {
               select: {
                 id: true,
                 name: true,
@@ -348,6 +457,13 @@ export class TransactionService {
             name: tag.name,
             color: tag.color,
           })),
+          primaryTag: transaction.primaryTag
+            ? {
+                id: transaction.primaryTag.id,
+                name: transaction.primaryTag.name,
+                color: transaction.primaryTag.color,
+              }
+            : null,
           createdAt: transaction.createdAt.toISOString(),
           updatedAt: transaction.updatedAt.toISOString(),
         });
@@ -400,6 +516,36 @@ export class TransactionService {
       }
     }
 
+    // Verify primaryTagId if updating
+    if (validated.primaryTagId !== undefined) {
+      if (validated.primaryTagId !== null) {
+        const primaryTag = await prisma.tag.findFirst({
+          where: {
+            id: validated.primaryTagId,
+            userId,
+          },
+        });
+
+        if (!primaryTag) {
+          throw new Error("Primary tag not found");
+        }
+
+        // Get transaction type (use validated type if updating, otherwise use existing)
+        const transactionType =
+          validated.type ?? existing.type;
+
+        // Validate transaction type match
+        if (
+          primaryTag.transactionType !== null &&
+          primaryTag.transactionType !== transactionType
+        ) {
+          throw new Error(
+            "Primary tag transaction type does not match transaction type"
+          );
+        }
+      }
+    }
+
     const transaction = await prisma.transaction.update({
       where: { id: transactionId },
       data: {
@@ -427,9 +573,19 @@ export class TransactionService {
             set: validated.tagIds.map((id) => ({ id })),
           },
         }),
+        ...(validated.primaryTagId !== undefined && {
+          primaryTagId: validated.primaryTagId,
+        }),
       },
       include: {
         tags: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
+        primaryTag: {
           select: {
             id: true,
             name: true,
@@ -454,6 +610,13 @@ export class TransactionService {
         name: tag.name,
         color: tag.color,
       })),
+      primaryTag: transaction.primaryTag
+        ? {
+            id: transaction.primaryTag.id,
+            name: transaction.primaryTag.name,
+            color: transaction.primaryTag.color,
+          }
+        : null,
       createdAt: transaction.createdAt.toISOString(),
       updatedAt: transaction.updatedAt.toISOString(),
     });

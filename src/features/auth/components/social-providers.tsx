@@ -52,8 +52,7 @@ export function SocialProviders({
             variant="default"
             clicked={() => onProviderClick("google")}
             disabled={loading}
-            className="w-full"
-          >
+            className="w-full">
             Continue with Google
           </Button>
         )}
@@ -62,8 +61,7 @@ export function SocialProviders({
             variant="default"
             clicked={() => onProviderClick("microsoft")}
             disabled={loading}
-            className="w-full"
-          >
+            className="w-full">
             Continue with Microsoft
           </Button>
         )}
@@ -72,8 +70,7 @@ export function SocialProviders({
             variant="default"
             clicked={() => onProviderClick("apple")}
             disabled={loading}
-            className="w-full"
-          >
+            className="w-full">
             Continue with Apple
           </Button>
         )}

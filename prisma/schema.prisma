@@ -134,6 +134,7 @@ model User {
   transactions  Transaction[]
   tags          Tag[]
   messages      Message[]
+  budgets       Budget[]
 }
 
 model Transaction {
@@ -155,6 +156,10 @@ model Transaction {
   // many-to-many relation to tags
   tags          Tag[] 
 
+  // primary tag for budget sorting and display
+  primaryTagId  String?
+  primaryTag    Tag?             @relation("PrimaryTag", fields: [primaryTagId], references: [id])
+
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
@@ -174,6 +179,8 @@ model Tag {
   transactionType TransactionType? // null = works with both, EXPENSE = expense only, INCOME = income only
 
   transactions  Transaction[]
+  primaryTransactions Transaction[] @relation("PrimaryTag")
+  budgetItems   BudgetItem[]
 
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -207,4 +214,37 @@ model Message {
   @@index([userId, read])
   @@index([userId, createdAt])
   @@index([userId, type])
+}
+
+model Budget {
+  id            String         @id @default(cuid())
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+
+  name          String
+  startDate     DateTime
+  endDate       DateTime
+  currency      String
+
+  items         BudgetItem[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId, startDate, endDate])
+}
+
+model BudgetItem {
+  id            String         @id @default(cuid())
+  budget        Budget         @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budgetId      String
+
+  tagId         String?        // null means "Misc" for untagged transactions
+  tag           Tag?           @relation(fields: [tagId], references: [id], onDelete: SetNull)
+  expectedAmount Decimal
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@unique([budgetId, tagId])
 }

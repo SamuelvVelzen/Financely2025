@@ -7,6 +7,7 @@
 
 import { Button } from "@/features/ui/button/button";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { BaseInput } from "@/features/ui/input/input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { NavLink } from "@/features/ui/navigation/nav-link";
@@ -15,7 +16,6 @@ import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 // Feature flags from environment (client-side check)
@@ -43,7 +43,7 @@ export function RegisterForm() {
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/register" });
 
-  const registerForm = useForm<RegisterFormData>({
+  const registerForm = useFinForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       firstname: "",
@@ -120,7 +120,7 @@ export function RegisterForm() {
 
   if (!ENABLE_EMAIL_PASSWORD) {
     return (
-      <div className="p-4 bg-warning/10 border border-warning rounded-lg">
+      <div className="p-4 bg-warning/10 border border-warning rounded-2xl">
         <p className="text-warning text-sm">
           Email/password registration is currently disabled.
         </p>
@@ -131,7 +131,7 @@ export function RegisterForm() {
   if (registrationSuccess) {
     return (
       <div className="space-y-6">
-        <div className="p-4 bg-success/10 border border-success rounded-lg space-y-4">
+        <div className="p-4 bg-success/10 border border-success rounded-2xl space-y-4">
           <p className="text-success text-sm font-medium">
             Account created successfully!
           </p>
@@ -143,8 +143,12 @@ export function RegisterForm() {
               type="button"
               clicked={handleResendVerification}
               disabled={resendLoading}
-              className="w-full">
-              {resendLoading ? "Sending..." : "Resend verification email"}
+              className="w-full"
+              loading={{
+                isLoading: resendLoading,
+                text: "Sending verification email",
+              }}>
+              Resend verification email
             </Button>
             <NavLink
               to="/login"
@@ -161,7 +165,7 @@ export function RegisterForm() {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-4 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-4 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-danger text-sm">{error}</p>
         </div>
       )}
@@ -213,8 +217,12 @@ export function RegisterForm() {
         <Button
           type="submit"
           variant="primary"
-          className="w-full">
-          {loading ? "Creating account..." : "Sign Up"}
+          className="w-full"
+          loading={{
+            isLoading: loading,
+            text: "Creating account",
+          }}>
+          Sign Up
         </Button>
       </Form>
 

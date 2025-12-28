@@ -233,7 +233,7 @@ function MappingStepContent() {
 
       {/* Error Display */}
       {transformMutation.isError && (
-        <div className="p-3 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-3 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-sm text-danger">
             {transformMutation.error?.message || "Processing failed"}
           </p>
@@ -264,9 +264,11 @@ export function useMappingStep(): IStepConfig<IStep> {
         },
         variant: "primary",
         disabled: ctx.transformMutation.isPending,
-        buttonContent: ctx.transformMutation.isPending
-          ? "Processing..."
-          : "Continue",
+        loading: {
+          isLoading: ctx.transformMutation.isPending,
+          text: "Processing transactions",
+        },
+        buttonContent: "Continue",
       },
     ],
   };

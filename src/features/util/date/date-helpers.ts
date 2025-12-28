@@ -130,3 +130,14 @@ export function formatDateRange(from: string, to: string): string {
     return `${formatMonthYear(from)} - ${formatMonthYear(to)}`;
   }
 }
+
+export function formatDate(date: string): string {
+  const locale = LocaleHelpers.getLocale();
+
+  const dateFormatter = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  return dateFormatter.format(parseISO(date));
+}

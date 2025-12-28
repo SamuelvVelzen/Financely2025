@@ -269,12 +269,12 @@ export function Dialog({
   if (!open) return null;
 
   const sizeClasses = {
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    "1/2": "max-w-1/2",
-    "3/4": "max-w-3/4",
+    sm: "max-w-full sm:max-w-sm",
+    md: "max-w-full sm:max-w-md",
+    lg: "max-w-full sm:max-w-lg",
+    xl: "max-w-full sm:max-w-xl",
+    "1/2": "max-w-full sm:max-w-1/2",
+    "3/4": "max-w-full sm:max-w-3/4",
     full: "max-w-full",
   };
 
@@ -353,7 +353,7 @@ export function Dialog({
           </div>
 
           <IconButton clicked={handleClose}>
-            <HiX className="w-5 h-5" />
+            <HiX className="size-5" />
           </IconButton>
         </header>
 

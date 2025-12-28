@@ -5,6 +5,7 @@ import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { TextInput } from "@/features/ui/input/text-input";
 import { useToast } from "@/features/ui/toast";
 import { Label } from "@/features/ui/typography/label";
@@ -13,7 +14,6 @@ import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { useUpdateProfile } from "@/features/users/hooks/useUpdateProfile";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 
 export function ProfileInformation() {
   const { data: profile } = useMyProfile();
@@ -22,7 +22,7 @@ export function ProfileInformation() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
-  const profileForm = useForm<IUpdateUserProfileInput>({
+  const profileForm = useFinForm<IUpdateUserProfileInput>({
     resolver: zodResolver(UpdateUserProfileInputSchema),
     defaultValues: {
       firstName: "",
@@ -88,7 +88,7 @@ export function ProfileInformation() {
 
   return (
     <>
-      <Container className="mb-4">
+      <Container>
         <div className="flex items-center justify-between mb-4">
           <ScrollableHeader id="profile-information">
             Profile Information
@@ -102,7 +102,7 @@ export function ProfileInformation() {
             aria-label={isEditingProfile ? "Cancel editing" : "Edit profile"}>
             {isEditingProfile ? (
               <svg
-                className="w-5 h-5"
+                className="size-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24">
@@ -115,7 +115,7 @@ export function ProfileInformation() {
               </svg>
             ) : (
               <svg
-                className="w-5 h-5"
+                className="size-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24">

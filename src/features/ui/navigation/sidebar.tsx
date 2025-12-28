@@ -8,6 +8,7 @@ import {
   HiArrowTrendingUp,
   HiChartBar,
   HiOutlineBell,
+  HiOutlineCurrencyEuro,
   HiOutlineTag,
 } from "react-icons/hi2";
 import { Container } from "../container/container";
@@ -23,8 +24,8 @@ export function Sidebar() {
   const navigate = useNavigate();
   const { data: unreadCountData } = useUnreadCount();
   const unreadCount = unreadCountData?.count || 0;
-  const isExpandedContainerClasses = isExpanded ? "w-80 px-6" : "w-20 px-3";
-  const containerClasses = `h-screen flex-shrink-0 rounded-l-none py-6 flex flex-col border-r border-border ${isExpandedContainerClasses}`;
+  const isExpandedContainerClasses = isExpanded ? "w-60 px-4" : "w-20 px-2";
+  const containerClasses = `h-screen flex-shrink-0 rounded-l-none py-6 flex flex-col border-r border-border mb-0 ${isExpandedContainerClasses}`;
 
   return (
     <Container
@@ -60,6 +61,13 @@ export function Sidebar() {
               to={ROUTES.ROOT}
               label="Dashboard"
               icon={HiChartBar}
+            />
+          </li>
+          <li>
+            <NavItem
+              to={ROUTES.BUDGETS}
+              label="Budgets"
+              icon={HiOutlineCurrencyEuro}
             />
           </li>
           <li>
@@ -100,7 +108,7 @@ export function Sidebar() {
             to={ROUTES.ACCOUNT}
             label="Account"
             customIcon={
-              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="size-6 bg-primary rounded-full flex items-center justify-center shrink-0">
                 <span className="text-white text-xs font-semibold">SV</span>
               </div>
             }

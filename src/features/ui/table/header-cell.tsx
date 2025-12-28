@@ -68,12 +68,12 @@ export function HeaderCell<T = unknown>({
     if (!sortable || !sortKey) return null;
 
     if (sortDirection === "asc") {
-      return <HiArrowUp className="w-4 h-4" />;
+      return <HiArrowUp className="size-4" />;
     }
     if (sortDirection === "desc") {
-      return <HiArrowDown className="w-4 h-4" />;
+      return <HiArrowDown className="size-4" />;
     }
-    return <HiArrowsUpDown className="w-4 h-4 opacity-40" />;
+    return <HiArrowsUpDown className="size-4 opacity-40" />;
   };
 
   return (

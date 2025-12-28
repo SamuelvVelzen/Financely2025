@@ -39,7 +39,7 @@ function UploadStepContent({ error, file, setFile }: IUploadStepContentProps) {
         />
       </div>
       {error && (
-        <div className="p-3 bg-danger/10 border border-danger rounded-lg">
+        <div className="p-3 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-sm text-danger">
             {error.message || "Upload failed"}
           </p>

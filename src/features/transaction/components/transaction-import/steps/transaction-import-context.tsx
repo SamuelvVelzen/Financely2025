@@ -6,16 +6,18 @@ import type {
   ICsvFieldMapping,
   ICurrency,
 } from "@/features/shared/validation/schemas";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { useToast } from "@/features/ui/toast";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import { useForm, type UseFormReturn } from "react-hook-form";
+import { type UseFormReturn } from "react-hook-form";
 import type { BankEnum } from "../../../config/banks";
 import type { ITransactionFieldName } from "../../../config/transaction-fields";
 import {
@@ -153,7 +155,7 @@ export function TransactionImportProvider({
   const typeDetectionStrategy = getDefaultStrategyForBank(selectedBank);
 
   // Form for mapping step controls
-  const mappingForm = useForm<MappingFormData>({
+  const mappingForm = useFinForm<MappingFormData>({
     defaultValues: {
       defaultCurrency: "EUR",
       mappings: {},
@@ -181,7 +183,7 @@ export function TransactionImportProvider({
 
   const suggestedMapping = mappingQuery.data?.mapping;
 
-  const resetAllState = () => {
+  const resetAllState = useCallback(() => {
     setRows([]);
     setColumns([]);
     setMapping({});
@@ -194,7 +196,7 @@ export function TransactionImportProvider({
       defaultCurrency: "EUR",
       mappings: {},
     });
-  };
+  }, [mappingForm]);
 
   const hasUnsavedChanges = useMemo(() => {
     const mappingHasValues = Object.values(mapping).some(Boolean);

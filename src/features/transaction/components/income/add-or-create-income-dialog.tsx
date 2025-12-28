@@ -1,20 +1,21 @@
 "use client";
 
+import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
   CreateTransactionInputSchema,
   CurrencySchema,
   getCurrencyOptions,
   type ITransaction,
 } from "@/features/shared/validation/schemas";
+import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import {
   useCreateIncome,
   useUpdateIncome,
 } from "@/features/transaction/hooks/useTransactions";
-import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
-import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
@@ -26,8 +27,8 @@ import {
   isoToDatetimeLocal,
 } from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { useEffect, useId, useState } from "react";
+import { type Resolver } from "react-hook-form";
 import { z } from "zod";
 
 type IAddOrCreateIncomeDialog = {
@@ -52,6 +53,7 @@ const IncomeFormSchema = CreateTransactionInputSchema.omit({
     }, "Amount must be positive"),
   occurredAt: z.string().min(1, "Date is required"),
   tagIds: z.array(z.string()).optional().default([]),
+  primaryTagId: z.string().nullable().optional(),
 });
 
 type FormData = z.infer<typeof IncomeFormSchema>;
@@ -66,6 +68,7 @@ const getEmptyFormValues = (): FormData => ({
   paymentMethod: "OTHER",
   description: "",
   tagIds: [],
+  primaryTagId: null,
 });
 
 export function AddOrCreateIncomeDialog({
@@ -81,7 +84,8 @@ export function AddOrCreateIncomeDialog({
   const { mutate: updateIncome } = useUpdateIncome();
   const toast = useToast();
 
-  const form = useForm<FormData>({
+  const formId = useId();
+  const form = useFinForm<FormData>({
     resolver: zodResolver(IncomeFormSchema) as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
   });
@@ -126,6 +130,7 @@ export function AddOrCreateIncomeDialog({
           paymentMethod: transaction.paymentMethod,
           description: transaction.description ?? "",
           tagIds: transaction.tags.map((tag) => tag.id),
+          primaryTagId: transaction.primaryTag?.id ?? null,
         });
       } else {
         // Create mode: reset to defaults with current date/time
@@ -138,6 +143,7 @@ export function AddOrCreateIncomeDialog({
           paymentMethod: "OTHER",
           description: "",
           tagIds: [],
+          primaryTagId: null,
         });
       }
     } else {
@@ -161,6 +167,7 @@ export function AddOrCreateIncomeDialog({
           ? data.description.trim()
           : null,
       tagIds: data.tagIds || [],
+      primaryTagId: data.primaryTagId || null,
     };
 
     try {
@@ -213,7 +220,8 @@ export function AddOrCreateIncomeDialog({
         content={
           <Form<FormData>
             form={form}
-            onSubmit={handleSubmit}>
+            onSubmit={handleSubmit}
+            id={formId}>
             <div className="space-y-4">
               <TextInput
                 name="name"
@@ -254,6 +262,15 @@ export function AddOrCreateIncomeDialog({
                 disabled={pending}
               />
               <TagSelect
+                name="primaryTagId"
+                label="Primary Tag"
+                multiple={false}
+                placeholder="Select primary tag..."
+                disabled={pending}
+                transactionType="INCOME"
+                hint="Used for budget, sorting and display"
+              />
+              <TagSelect
                 name="tagIds"
                 label="Tags"
                 multiple={true}
@@ -271,19 +288,15 @@ export function AddOrCreateIncomeDialog({
             buttonContent: "Cancel",
           },
           {
-            clicked: () => {
-              form.handleSubmit(handleSubmit)();
-            },
             variant: "primary",
             disabled: pending,
             type: "submit",
-            buttonContent: pending
-              ? isEditMode
-                ? "Updating..."
-                : "Creating..."
-              : isEditMode
-                ? "Update"
-                : "Create",
+            loading: {
+              isLoading: pending,
+              text: isEditMode ? "Updating income" : "Creating income",
+            },
+            form: formId,
+            buttonContent: isEditMode ? "Update" : "Create",
           },
         ]}
         open={open}

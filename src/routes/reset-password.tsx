@@ -10,6 +10,7 @@ import { Button } from "@/features/ui/button/button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import { Container } from "@/features/ui/container/container";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { BaseInput } from "@/features/ui/input/input";
 import { Title } from "@/features/ui/typography/title";
 import { authClient } from "@/lib/auth-client";
@@ -20,7 +21,6 @@ import {
   useSearch,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 // Validation schemas
@@ -61,14 +61,14 @@ function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const requestForm = useForm<RequestResetFormData>({
+  const requestForm = useFinForm<RequestResetFormData>({
     resolver: zodResolver(requestResetSchema),
     defaultValues: {
       email: searchEmail || "",
     },
   });
 
-  const resetForm = useForm<ResetPasswordFormData>({
+  const resetForm = useFinForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       password: "",
@@ -191,7 +191,7 @@ function ResetPasswordPage() {
         </div>
 
         {error && (
-          <div className="p-4 bg-danger/10 border border-danger rounded-lg">
+          <div className="p-4 bg-danger/10 border border-danger rounded-2xl">
             <p className="text-danger text-sm">{error}</p>
           </div>
         )}

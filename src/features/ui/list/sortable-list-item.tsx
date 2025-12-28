@@ -103,7 +103,7 @@ export function SortableListItem({
       <ListItem
         ref={listItemRef}
         className={cn(
-          "opacity-30 border-2 border-dashed border-border rounded-lg",
+          "opacity-30 border-2 border-dashed border-border rounded-2xl",
           className
         )}
         clicked={clicked}
@@ -115,9 +115,9 @@ export function SortableListItem({
             <div className="shrink-0">
               <DragHandle />
             </div>
-            <div className="h-4 bg-surface-hover rounded w-32" />
+            <div className="h-4 bg-surface-hover rounded-2xl w-32" />
           </div>
-          <div className="h-4 bg-surface-hover rounded w-16" />
+          <div className="h-4 bg-surface-hover rounded-2xl w-16" />
         </div>
       </ListItem>
     );
@@ -129,7 +129,7 @@ export function SortableListItem({
       <ListItem
         ref={listItemRef}
         className={cn(
-          "border-2 border-dashed border-primary bg-primary/10 rounded-lg shadow-md",
+          "border-2 border-dashed border-primary bg-primary/10 rounded-2xl shadow-md",
           draggable && "cursor-move",
           className
         )}
@@ -164,7 +164,7 @@ export function SortableListItem({
       className={cn(
         draggable && "cursor-move",
         isDragging &&
-          "opacity-50 scale-105 shadow-lg border-2 border-primary rounded-lg z-50",
+          "opacity-50 scale-105 shadow-lg border-2 border-primary rounded-2xl z-50",
         className
       )}
       clicked={clicked}>

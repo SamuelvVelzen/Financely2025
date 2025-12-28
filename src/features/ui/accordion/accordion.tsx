@@ -30,7 +30,7 @@ export function Accordion({
         </span>
         <HiChevronDown
           className={cn(
-            "w-4 h-4 text-text-muted transition-transform group-hover:text-text",
+            "size-4 text-text-muted transition-transform group-hover:text-text",
             isOpen && "rotate-180"
           )}
         />
@@ -41,9 +41,7 @@ export function Accordion({
           "grid transition-[grid-template-rows] duration-200 ease-out",
           isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
         )}>
-        <div className="overflow-hidden">
-          <div className="pt-2">{children}</div>
-        </div>
+        <div className="overflow-hidden">{children}</div>
       </div>
     </div>
   );

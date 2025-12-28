@@ -50,7 +50,7 @@ export function MessageItem({ message }: IMessageItemProps) {
     <>
       <div
         className={cn(
-          "p-4 rounded-lg border",
+          "p-4 rounded-r-2xl",
           typeStyles[message.type],
           !message.read && "font-semibold"
         )}>
@@ -82,7 +82,7 @@ export function MessageItem({ message }: IMessageItemProps) {
               size="sm"
               clicked={() => setIsDeleteDialogOpen(true)}
               aria-label="Delete message">
-              <HiTrash className="w-4 h-4" />
+              <HiTrash className="size-4" />
             </IconButton>
           </div>
         </div>
@@ -106,7 +106,11 @@ export function MessageItem({ message }: IMessageItemProps) {
           {
             clicked: handleDeleteConfirm,
             variant: "danger",
-            buttonContent: deleteMessage.isPending ? "Deleting..." : "Delete",
+            loading: {
+              isLoading: deleteMessage.isPending,
+              text: "Deleting message",
+            },
+            buttonContent: "Delete",
             disabled: deleteMessage.isPending,
           },
         ]}
