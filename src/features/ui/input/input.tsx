@@ -48,7 +48,7 @@ export function BaseInput({
   const form = useFormContext();
 
   const baseClasses =
-    "border rounded-2xl bg-surface text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed w-full";
+    "border rounded-2xl bg-surface text-text hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed w-full";
   const widthBaseClasses = `h-9`;
 
   // Adjust padding based on icons
