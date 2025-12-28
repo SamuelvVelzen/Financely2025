@@ -208,8 +208,6 @@ export function BudgetCreateOrEditPage({
   // Get error messages for each group
   const tagsErrors = getGroupErrorMessages(form.formState.errors.tags);
 
-  console.log(form.formState.errors.tags);
-
   // Check if each group has errors
   const hasGeneralErrors = !!form.formState.errors.general;
   const hasTagsErrors = tagsErrors.length > 0;
@@ -429,7 +427,7 @@ export function BudgetCreateOrEditPage({
         <Container className="sticky top-0 z-10 bg-surface">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <IconButton
                 clicked={handleBack}
                 aria-label={

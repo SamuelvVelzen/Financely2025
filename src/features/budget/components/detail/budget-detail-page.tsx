@@ -7,6 +7,7 @@ import {
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
 import { Button } from "@/features/ui/button/button";
+import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
@@ -98,13 +99,12 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
       <Container className="sticky top-0 z-10 bg-surface">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              size="sm"
+          <div className="flex items-center gap-2">
+            <IconButton
               clicked={handleBack}
               aria-label="Back to budgets">
               <HiArrowLeft className="size-4" />
-            </Button>
+            </IconButton>
             <Title>{budget.name}</Title>
           </div>
           <div className="flex items-center gap-2">
