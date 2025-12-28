@@ -26,6 +26,7 @@ export const ListItem = forwardRef<HTMLDivElement, IListItemProps>(
           "[li:last-child_&]:rounded-b-2xl [li:last-child_&]:border-b",
           // Dividers between items (not first)
           "[li:not(:first-child)_&]:border-t [li:not(:first-child)_&]:border-border",
+          clicked && "cursor-pointer",
           className
         )}
         onClick={clicked}

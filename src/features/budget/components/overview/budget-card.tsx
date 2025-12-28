@@ -53,7 +53,13 @@ export function BudgetCard({
   };
 
   return (
-    <ListItem className="group flex-col items-stretch gap-2 py-4">
+    <ListItem
+      className="group flex-col items-stretch gap-2 py-4"
+      clicked={() => {
+        if (onView) {
+          onView(budget);
+        }
+      }}>
       {/* Top row: Name, Date, Status, Actions, Amount */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
