@@ -27,22 +27,25 @@ export function Sidebar() {
   const { data: unreadCountData } = useUnreadCount();
   const unreadCount = unreadCountData?.count || 0;
   const isExpandedContainerClasses = isExpanded ? "w-60 px-4" : "w-20 px-2";
-  const containerClasses = `h-screen flex-shrink-0 rounded-l-none py-6 flex flex-col border-r border-border mb-0 transition-all duration-300 ease-in-out ${isExpandedContainerClasses}`;
+  const containerClasses = `h-screen flex-shrink-0 rounded-l-none py-6 flex flex-col border-r border-border mb-0 ${isExpandedContainerClasses}`;
+  const animationClasses = "transition-[width,margin,padding] duration-500";
 
   return (
     <Container
       as="aside"
-      className={containerClasses}>
+      className={cn(containerClasses, animationClasses)}>
       <div
-        className={
-          "h-10 mb-6 flex " + (isExpanded ? "items-center" : "mx-auto")
-        }>
+        className={cn(
+          "h-10 mb-6 flex",
+          "transition-[margin,max-width] duration-500",
+          isExpanded ? "mx-0" : "mx-2.5"
+        )}>
         <BaseLink to={ROUTES.ROOT}>
           <div className="flex items-center overflow-hidden">
             <Logo />
             <span
-              className={`font-bold text-text text-lg whitespace-nowrap overflow-hidden ${
-                isExpanded ? "ml-3" : "hidden"
+              className={`font-bold text-text text-lg whitespace-nowrap overflow-hidden transition-[margin,max-width] duration-500 ${
+                isExpanded ? "ml-3 max-w-full" : "ml-3 max-w-0"
               }`}>
               Financely
             </span>
@@ -92,7 +95,8 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Navigation */}
-      <div className="mt-auto p-2 border-t border-border">
+      <div className="mt-auto">
+        <div className={"h-px w-full border-t border-border my-2"}></div>
         <NavItem
           to={ROUTES.MESSAGES}
           label="Messages"
@@ -105,7 +109,7 @@ export function Sidebar() {
             label="Account"
             className={cn(isExpanded ? "pr-4" : "")}
             customIcon={
-              <div className="size-6 bg-primary rounded-full flex items-center justify-center shrink-0">
+              <div className="size-7 bg-primary rounded-full flex items-center justify-center shrink-0">
                 <span className="text-white text-xs font-semibold">SV</span>
               </div>
             }
@@ -113,8 +117,8 @@ export function Sidebar() {
           />
           <div
             className={cn(
-              "absolute right-0 top-1/2 -translate-y-1/2",
-              isExpanded ? "translate-x-9.5" : "translate-x-7.5"
+              "absolute right-0 top-1/2 -translate-y-1/2 transition-transform duration-500",
+              isExpanded ? "translate-x-8" : "translate-x-6"
             )}>
             <IconButton
               clicked={toggleSidebar}

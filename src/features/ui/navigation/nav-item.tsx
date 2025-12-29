@@ -41,8 +41,12 @@ export function NavItem({
 
   const content = (
     <>
-      <div className="relative flex-shrink-0">
-        {customIcon || (Icon && <Icon className="size-6 flex-shrink-0" />)}
+      <div
+        className={cn(
+          "relative transition-[margin] duration-500",
+          isExpanded ? "mx-0" : "mx-4"
+        )}>
+        {customIcon || (Icon && <Icon className="size-6" />)}
         {badge !== undefined && badge !== null && badge !== 0 && (
           <Badge
             backgroundColor="#dc2626"
@@ -53,19 +57,28 @@ export function NavItem({
       </div>
       <span
         className={cn(
-          "whitespace-nowrap text-base overflow-hidden flex-1 text-left",
-          isExpanded ? "ml-4" : "hidden"
+          "whitespace-nowrap text-base overflow-hidden text-left transition-[max-width,opacity,flex-basis,margin] duration-500",
+          isExpanded
+            ? "ml-4 flex-1 opacity-100 max-w-full"
+            : "max-w-0 opacity-0 flex-basis-0"
         )}>
         {label}
       </span>
-      <div className={cn(isExpanded ? "ml-4" : "hidden")}>{postfixContent}</div>
+      <div
+        className={cn(
+          "transition-[margin,opacity] duration-500",
+          isExpanded ? "ml-4 opacity-100" : "ml-0 opacity-0"
+        )}>
+        {postfixContent}
+      </div>
     </>
   );
 
   const baseClasses = cn(
     "flex items-center py-3.5 rounded-2xl overflow-hidden",
     "focus-visible:ring-2 focus-visible:ring-primary",
-    isExpanded ? "px-1 -mx-1 justify-start" : "justify-center px-0"
+    "transition-[padding,margin] duration-500 justify-start",
+    isExpanded ? "px-1 -mx-1" : "px-0"
   );
 
   const activeClasses = "bg-background text-text font-semibold";
