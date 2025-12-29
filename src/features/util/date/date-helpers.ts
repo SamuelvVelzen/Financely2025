@@ -2,9 +2,11 @@ import {
   endOfMonth,
   format,
   getYear,
+  isSameDay,
   isWithinInterval,
   parseISO,
   startOfMonth,
+  subDays,
   subMonths,
 } from "date-fns";
 import { LocaleHelpers } from "../locale.helpers";
@@ -140,4 +142,63 @@ export function formatDate(date: string): string {
     year: "numeric",
   });
   return dateFormatter.format(parseISO(date));
+}
+
+/**
+ * Format date header for grouped transaction lists
+ * - "Today" for current date
+ * - "Yesterday" for previous date
+ * - "Monday, January 15" for same week (if within last 7 days)
+ * - "January 15, 2024" for older dates
+ */
+export function formatDateHeader(date: Date | string): string {
+  const dateObj = typeof date === "string" ? parseISO(date) : date;
+  const today = new Date();
+  const yesterday = subDays(today, 1);
+  const locale = LocaleHelpers.getLocale();
+
+  // Check if it's today
+  if (isSameDay(dateObj, today)) {
+    return "Today";
+  }
+
+  // Check if it's yesterday
+  if (isSameDay(dateObj, yesterday)) {
+    return "Yesterday";
+  }
+
+  // Check if it's within the last 7 days (same week)
+  const daysDiff = Math.floor(
+    (today.getTime() - dateObj.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (daysDiff <= 7 && daysDiff > 0) {
+    // Format as weekday and date
+    const dateFormatter = new Intl.DateTimeFormat(locale, {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+    return dateFormatter.format(dateObj);
+  }
+
+  // For older dates, show full date
+  const currentYear = getYear(today);
+  const dateYear = getYear(dateObj);
+
+  if (dateYear === currentYear) {
+    // Same year, omit year
+    const dateFormatter = new Intl.DateTimeFormat(locale, {
+      month: "long",
+      day: "numeric",
+    });
+    return dateFormatter.format(dateObj);
+  } else {
+    // Different year, include year
+    const dateFormatter = new Intl.DateTimeFormat(locale, {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+    return dateFormatter.format(dateObj);
+  }
 }

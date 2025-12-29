@@ -1,5 +1,7 @@
 import {
+  type InfiniteData,
   type UseInfiniteQueryOptions,
+  type UseInfiniteQueryResult,
   type UseMutationOptions,
   type UseQueryOptions,
   useInfiniteQuery,
@@ -126,13 +128,25 @@ export function useFinInfiniteQuery<
     initialPageParam: TPageParam;
     staleTime?: number;
   } & Omit<
-    UseInfiniteQueryOptions<TData, TError, TData, TQueryKey, TPageParam>,
+    UseInfiniteQueryOptions<
+      TData,
+      TError,
+      InfiniteData<TData>,
+      TQueryKey,
+      TPageParam
+    >,
     "queryKey" | "queryFn" | "getNextPageParam" | "initialPageParam"
   >
-) {
+): UseInfiniteQueryResult<InfiniteData<TData>, TError> {
   const { queryFn: userQueryFn, ...restOptions } = options;
 
-  return useInfiniteQuery<TData, TError, TData, TQueryKey, TPageParam>({
+  return useInfiniteQuery<
+    TData,
+    TError,
+    InfiniteData<TData>,
+    TQueryKey,
+    TPageParam
+  >({
     refetchOnWindowFocus: true,
     queryFn: ({ pageParam }) =>
       userQueryFn({ pageParam: pageParam as TPageParam }),

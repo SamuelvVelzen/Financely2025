@@ -338,6 +338,39 @@ export function useDeleteExpense() {
   });
 }
 
+/**
+ * Infinite query for expenses (for infinite scroll)
+ * - Automatically handles pagination
+ */
+export function useInfiniteExpenses(
+  query?: Omit<ITransactionsQuery, "type" | "page">
+) {
+  return useFinInfiniteQuery<
+    IPaginatedTransactionsResponse,
+    Error,
+    ReturnType<typeof queryKeys.expenses>,
+    number
+  >({
+    queryKey: queryKeys.expenses({ ...query, page: undefined }),
+    queryFn: ({ pageParam = 1 }) => {
+      const expensesQuery = {
+        ...query,
+        type: "EXPENSE" as const,
+        page: pageParam,
+      } as ITransactionsQuery;
+      return getTransactions(expensesQuery);
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.hasNext) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+    staleTime: 30 * 1000,
+  });
+}
+
 // ============================================================================
 // Income hooks (transactions with type INCOME)
 // ============================================================================
@@ -407,5 +440,38 @@ export function useDeleteIncome() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: deleteTransaction,
     invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+  });
+}
+
+/**
+ * Infinite query for incomes (for infinite scroll)
+ * - Automatically handles pagination
+ */
+export function useInfiniteIncomes(
+  query?: Omit<ITransactionsQuery, "type" | "page">
+) {
+  return useFinInfiniteQuery<
+    IPaginatedTransactionsResponse,
+    Error,
+    ReturnType<typeof queryKeys.incomes>,
+    number
+  >({
+    queryKey: queryKeys.incomes({ ...query, page: undefined }),
+    queryFn: ({ pageParam = 1 }) => {
+      const incomesQuery = {
+        ...query,
+        type: "INCOME" as const,
+        page: pageParam,
+      } as ITransactionsQuery;
+      return getTransactions(incomesQuery);
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.hasNext) {
+        return lastPage.page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+    staleTime: 30 * 1000,
   });
 }

@@ -4,7 +4,7 @@ import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
 import {
   useDeleteIncome,
-  useIncomes,
+  useInfiniteIncomes,
 } from "@/features/transaction/hooks/useTransactions";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
@@ -22,7 +22,6 @@ import { useFinForm } from "@/features/ui/form/useForm";
 import { type IPriceRange, RangeInput } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
 import { Loading } from "@/features/ui/loading/loading";
-import { Pagination } from "@/features/ui/pagination";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
@@ -33,7 +32,7 @@ import {
   getCurrentMonthStart,
 } from "@/features/util/date/date-helpers";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   HiArrowDownTray,
   HiArrowTrendingUp,
@@ -42,7 +41,7 @@ import {
 } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../../utils/export-csv";
 import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
-import { IncomeList } from "./income-list";
+import { IncomeListGrouped } from "./income-list-grouped";
 
 const PAGE_SIZE = 20;
 
@@ -63,8 +62,6 @@ type FilterFormData = {
 };
 
 export function IncomeOverview() {
-  const [currentPage, setCurrentPage] = useState(1);
-
   // Filter state
   const [dateFilter, setDateFilter] = useState<IDateFilter>(defaultDateFilter);
   const [priceFilter, setPriceFilter] =
@@ -81,32 +78,9 @@ export function IncomeOverview() {
   const searchQuery = filterForm.watch("searchQuery") ?? "";
   const tagFilter = filterForm.watch("tagFilter") ?? [];
 
-  // Track previous filter values to reset page only when values actually change
-  const prevFilterKey = useRef<string>("");
-  const filterKey = useMemo(
-    () =>
-      JSON.stringify({
-        dateType: dateFilter.type,
-        dateFrom: dateFilter.from,
-        dateTo: dateFilter.to,
-        priceMin: priceFilter.min,
-        priceMax: priceFilter.max,
-        search: searchQuery,
-        tags: tagFilter.join(","),
-      }),
-    [dateFilter, priceFilter, searchQuery, tagFilter]
-  );
-
-  // Reset to page 1 only when filter values actually change
-  if (prevFilterKey.current !== "" && prevFilterKey.current !== filterKey) {
-    setCurrentPage(1);
-  }
-  prevFilterKey.current = filterKey;
-
-  // Build query with pagination and all filters (backend filtering)
-  const query = useMemo((): Parameters<typeof useIncomes>[0] => {
+  // Build query with all filters (backend filtering) - no page param for infinite query
+  const query = useMemo((): Parameters<typeof useInfiniteIncomes>[0] => {
     return {
-      page: currentPage,
       limit: PAGE_SIZE,
       // Date filter
       from: dateFilter.type !== "allTime" ? dateFilter.from : undefined,
@@ -119,18 +93,25 @@ export function IncomeOverview() {
       minAmount: priceFilter.min?.toString(),
       maxAmount: priceFilter.max?.toString(),
     };
-  }, [currentPage, dateFilter, tagFilter, searchQuery, priceFilter]);
+  }, [dateFilter, tagFilter, searchQuery, priceFilter]);
 
   // Debounce query to reduce API calls during rapid filter changes
   const debouncedQuery = useDebouncedValue(query, 300);
 
-  // Fetch incomes with all filters applied by backend
-  const { data, isLoading, error } = useIncomes(debouncedQuery, {
-    placeholderData: (previousData) => previousData,
-  });
-  const incomes = data?.data ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  // Fetch incomes with infinite scroll
+  const {
+    data,
+    isLoading,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteIncomes(debouncedQuery);
+
+  // Flatten all pages into a single array
+  const incomes = useMemo(() => {
+    return data?.pages.flatMap((page) => page.data) ?? [];
+  }, [data]);
 
   const { mutate: deleteIncome } = useDeleteIncome();
   const toast = useToast();
@@ -353,20 +334,15 @@ export function IncomeOverview() {
         )}
 
         {!isEmpty && !isEmptyWithFilters && (
-          <>
-            <IncomeList
-              data={incomes}
-              searchQuery={searchQuery}
-              onDelete={handleDeleteClick}
-              onEdit={handleEditIncome}
-            />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              className="mt-4"
-            />
-          </>
+          <IncomeListGrouped
+            data={incomes}
+            searchQuery={searchQuery}
+            onDelete={handleDeleteClick}
+            onEdit={handleEditIncome}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            fetchNextPage={fetchNextPage}
+          />
         )}
       </Container>
 
