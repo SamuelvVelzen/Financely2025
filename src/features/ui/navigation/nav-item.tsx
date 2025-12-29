@@ -64,7 +64,8 @@ export function NavItem({
 
   const baseClasses = cn(
     "flex items-center py-3.5 rounded-2xl overflow-hidden",
-    isExpanded ? "px-3 -mx-3 justify-start" : "justify-center px-0"
+    "focus-visible:ring-2 focus-visible:ring-primary",
+    isExpanded ? "px-1 -mx-1 justify-start" : "justify-center px-0"
   );
 
   const activeClasses = "bg-background text-text font-semibold";
@@ -94,7 +95,7 @@ export function NavItem({
   return (
     <BaseLink
       to={to}
-      className={cn("w-full", combinedClasses)}
+      className={cn(combinedClasses)}
       title={isExpanded ? label : label}
       inactiveProps={{ className: inactiveClasses }}
       activeProps={{ className: combinedActiveClasses }}
