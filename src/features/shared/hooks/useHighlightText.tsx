@@ -5,9 +5,9 @@
 export function useHighlightText() {
   const highlightText = (
     text: string,
-    query: string
+    query?: string
   ): string | React.ReactNode => {
-    if (!query.trim()) return text;
+    if (!query || !query.trim()) return text;
 
     const regex = new RegExp(
       `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
@@ -19,7 +19,9 @@ export function useHighlightText() {
       <>
         {parts.map((part, index) =>
           regex.test(part) ? (
-            <mark key={index} className="bg-primary/20 text-primary">
+            <mark
+              key={index}
+              className="bg-primary/20 text-primary">
               {part}
             </mark>
           ) : (
@@ -32,5 +34,3 @@ export function useHighlightText() {
 
   return { highlightText };
 }
-
-

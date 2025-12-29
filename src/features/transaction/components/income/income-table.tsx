@@ -114,19 +114,15 @@ export function IncomeTable({
                 className="group">
                 <BodyCell>
                   <span className="text-text font-medium">
-                    {searchQuery
-                      ? highlightText(income.name, searchQuery)
-                      : income.name}
+                    {highlightText(income.name, searchQuery)}
                   </span>
                 </BodyCell>
                 <BodyCell>
                   <span className="text-text font-semibold">
-                    {searchQuery
-                      ? highlightText(
-                          formatCurrency(income.amount, income.currency),
-                          searchQuery
-                        )
-                      : formatCurrency(income.amount, income.currency)}
+                    {highlightText(
+                      formatCurrency(income.amount, income.currency),
+                      searchQuery
+                    )}
                   </span>
                 </BodyCell>
                 <BodyCell>
@@ -138,17 +134,13 @@ export function IncomeTable({
                 </BodyCell>
                 <BodyCell>
                   <span className="text-sm text-text-muted">
-                    {searchQuery
-                      ? highlightText(income.description ?? "", searchQuery)
-                      : income.description}
+                    {highlightText(income.description ?? "", searchQuery)}
                   </span>
                 </BodyCell>
                 <BodyCell>
                   {income.primaryTag ? (
                     <span className="px-2 py-0.5 bg-surface-hover rounded text-xs">
-                      {searchQuery
-                        ? highlightText(income.primaryTag.name, searchQuery)
-                        : income.primaryTag.name}
+                      {highlightText(income.primaryTag.name, searchQuery)}
                     </span>
                   ) : (
                     <span className="text-sm text-text-muted">—</span>

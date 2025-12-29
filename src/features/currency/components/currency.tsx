@@ -25,9 +25,7 @@ export function Currency({
 
   return (
     <span className={cn("tabular-nums text-text", className)}>
-      {searchQuery && searchQuery.trim()
-        ? highlightText(formattedAmount, searchQuery)
-        : formattedAmount}
+      {highlightText(formattedAmount, searchQuery)}
     </span>
   );
 }

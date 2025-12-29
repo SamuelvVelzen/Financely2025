@@ -115,19 +115,15 @@ export function ExpenseTable({
                 className="group">
                 <BodyCell>
                   <span className="text-text font-medium">
-                    {searchQuery
-                      ? highlightText(expense.name, searchQuery)
-                      : expense.name}
+                    {highlightText(expense.name, searchQuery)}
                   </span>
                 </BodyCell>
                 <BodyCell>
                   <span className="text-text font-semibold">
-                    {searchQuery
-                      ? highlightText(
-                          formatCurrency(expense.amount, expense.currency),
-                          searchQuery
-                        )
-                      : formatCurrency(expense.amount, expense.currency)}
+                    {highlightText(
+                      formatCurrency(expense.amount, expense.currency),
+                      searchQuery
+                    )}
                   </span>
                 </BodyCell>
                 <BodyCell>
@@ -139,17 +135,13 @@ export function ExpenseTable({
                 </BodyCell>
                 <BodyCell>
                   <span className="text-sm text-text-muted">
-                    {searchQuery
-                      ? highlightText(expense.description ?? "", searchQuery)
-                      : expense.description}
+                    {highlightText(expense.description ?? "", searchQuery)}
                   </span>
                 </BodyCell>
                 <BodyCell>
                   {expense.primaryTag ? (
                     <span className="px-2 py-0.5 bg-surface-hover rounded text-xs">
-                      {searchQuery
-                        ? highlightText(expense.primaryTag.name, searchQuery)
-                        : expense.primaryTag.name}
+                      {highlightText(expense.primaryTag.name, searchQuery)}
                     </span>
                   ) : (
                     <span className="text-sm text-text-muted">—</span>

@@ -325,9 +325,7 @@ export function Select<
                             })
                           ) : (
                             <span className="flex-1">
-                              {searchQuery.trim()
-                                ? highlightText(option.label, searchQuery)
-                                : option.label}
+                              {highlightText(option.label, searchQuery)}
                             </span>
                           )}
                         </div>
