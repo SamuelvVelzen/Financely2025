@@ -2,6 +2,7 @@ import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
+import { useTransactionFilters } from "@/features/transaction/hooks/useTransactionFilters";
 import {
   useDeleteExpense,
   useInfiniteExpenses,
@@ -9,28 +10,14 @@ import {
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
-import {
-  Datepicker,
-  type IDateFilter,
-} from "@/features/ui/datepicker/datepicker";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { Form } from "@/features/ui/form/form";
-import { useFinForm } from "@/features/ui/form/useForm";
-import { type IPriceRange, RangeInput } from "@/features/ui/input/range-input";
-import { SearchInput } from "@/features/ui/input/search-input";
 import { Loading } from "@/features/ui/loading/loading";
-import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
-import { cn } from "@/features/util/cn";
-import {
-  formatMonthYear,
-  getCurrentMonthEnd,
-  getCurrentMonthStart,
-} from "@/features/util/date/date-helpers";
+import { formatMonthYear } from "@/features/util/date/date-helpers";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useMemo, useState } from "react";
 import {
@@ -40,60 +27,49 @@ import {
   HiPlus,
 } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../../utils/export-csv";
+import { TransactionFilters } from "../transaction-filters";
 import { AddOrCreateExpenseDialog } from "./add-or-create-expense-dialog";
 import { ExpenseListGrouped } from "./expense-list-grouped";
 
 const PAGE_SIZE = 20;
 
-const defaultDateFilter: IDateFilter = {
-  type: "thisMonth",
-  from: getCurrentMonthStart(),
-  to: getCurrentMonthEnd(),
-};
-
-const defaultPriceFilter: IPriceRange = {
-  min: undefined,
-  max: undefined,
-};
-
-type FilterFormData = {
-  searchQuery: string;
-  tagFilter: string[];
-};
-
 export function ExpenseOverview() {
-  // Filter state
-  const [dateFilter, setDateFilter] = useState<IDateFilter>(defaultDateFilter);
-  const [priceFilter, setPriceFilter] =
-    useState<IPriceRange>(defaultPriceFilter);
+  // Use shared filter state hook (includes form)
+  const {
+    filterState,
+    form,
+    setDateFilter,
+    setPriceFilter,
+    setTagFilter,
+    clearAllFilters,
+    hasActiveFilters,
+  } = useTransactionFilters();
 
-  // Form for search and tag filter (requires form context)
-  const filterForm = useFinForm<FilterFormData>({
-    defaultValues: {
-      searchQuery: "",
-      tagFilter: [],
-    },
-  });
-
-  const searchQuery = filterForm.watch("searchQuery") ?? "";
-  const tagFilter = filterForm.watch("tagFilter") ?? [];
+  const searchQuery = form.watch("searchQuery") ?? "";
 
   // Build query with all filters (backend filtering) - no page param for infinite query
   const query = useMemo((): Parameters<typeof useInfiniteExpenses>[0] => {
     return {
       limit: PAGE_SIZE,
       // Date filter
-      from: dateFilter.type !== "allTime" ? dateFilter.from : undefined,
-      to: dateFilter.type !== "allTime" ? dateFilter.to : undefined,
+      from:
+        filterState.dateFilter.type !== "allTime"
+          ? filterState.dateFilter.from
+          : undefined,
+      to:
+        filterState.dateFilter.type !== "allTime"
+          ? filterState.dateFilter.to
+          : undefined,
       // Tag filter
-      tagIds: tagFilter.length > 0 ? tagFilter : undefined,
+      tagIds:
+        filterState.tagFilter.length > 0 ? filterState.tagFilter : undefined,
       // Search filter
-      q: searchQuery.trim() || undefined,
+      q: filterState.searchQuery.trim() || undefined,
       // Amount filter
-      minAmount: priceFilter.min?.toString(),
-      maxAmount: priceFilter.max?.toString(),
+      minAmount: filterState.priceFilter.min?.toString(),
+      maxAmount: filterState.priceFilter.max?.toString(),
     };
-  }, [dateFilter, tagFilter, searchQuery, priceFilter]);
+  }, [filterState]);
 
   // Debounce query to reduce API calls during rapid filter changes
   const debouncedQuery = useDebouncedValue(query, 300);
@@ -126,14 +102,6 @@ export function ExpenseOverview() {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
   const orderedTags = useOrderedData(tags);
-
-  const tagOptions = useMemo(() => {
-    return orderedTags.map((tag) => ({
-      value: tag.id,
-      label: tag.name,
-      data: tag,
-    }));
-  }, [orderedTags]);
 
   const handleCreateExpense = () => {
     setSelectedExpense(undefined);
@@ -170,43 +138,30 @@ export function ExpenseOverview() {
     setSelectedExpense(undefined);
   };
 
-  const clearFilters = () => {
-    setDateFilter(defaultDateFilter);
-    setPriceFilter(defaultPriceFilter);
-    filterForm.reset({ searchQuery: "", tagFilter: [] });
-  };
-
   // Get month display text from date filter
   const getMonthDisplay = (): string => {
-    if (dateFilter.type === "allTime") {
+    if (filterState.dateFilter.type === "allTime") {
       return "All Time";
     }
-    if (dateFilter.type === "thisMonth") {
+    if (filterState.dateFilter.type === "thisMonth") {
       return formatMonthYear(new Date());
     }
-    if (dateFilter.type === "lastMonth") {
+    if (filterState.dateFilter.type === "lastMonth") {
       const lastMonth = new Date();
       lastMonth.setMonth(lastMonth.getMonth() - 1);
       return formatMonthYear(lastMonth);
     }
-    if (dateFilter.type === "custom" && dateFilter.from && dateFilter.to) {
-      const from = formatMonthYear(dateFilter.from);
-      const to = formatMonthYear(dateFilter.to);
+    if (
+      filterState.dateFilter.type === "custom" &&
+      filterState.dateFilter.from &&
+      filterState.dateFilter.to
+    ) {
+      const from = formatMonthYear(filterState.dateFilter.from);
+      const to = formatMonthYear(filterState.dateFilter.to);
       return `${from} - ${to}`;
     }
     return formatMonthYear(new Date());
   };
-
-  // Check if any filter is active (non-default)
-  const hasActiveFilters = useMemo(() => {
-    return (
-      dateFilter.type !== defaultDateFilter.type ||
-      priceFilter.min !== undefined ||
-      priceFilter.max !== undefined ||
-      searchQuery.trim() !== "" ||
-      tagFilter.length > 0
-    );
-  }, [dateFilter, priceFilter, searchQuery, tagFilter]);
 
   const isEmpty = useMemo(() => {
     return !isLoading && !error && expenses.length === 0 && !hasActiveFilters;
@@ -259,46 +214,16 @@ export function ExpenseOverview() {
           </div>
         </Title>
 
-        {/* Inline Filters */}
-        <div
-          className={cn("flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto")}>
-          <Form
-            form={filterForm}
-            onSubmit={() => {}}>
-            <div className="flex gap-3 items-end">
-              <SearchInput name="searchQuery" />
-
-              <Datepicker
-                value={dateFilter}
-                onChange={setDateFilter}
-              />
-
-              <RangeInput
-                value={priceFilter}
-                onChange={setPriceFilter}
-                className="w-[400px]"
-              />
-
-              <SelectDropdown
-                name="tagFilter"
-                options={tagOptions}
-                multiple
-                placeholder="Filter by tags"
-                children={(option) => (
-                  <>
-                    {option.data?.color && (
-                      <div
-                        className="size-3 rounded-full shrink-0"
-                        style={{ backgroundColor: option.data.color }}
-                      />
-                    )}
-                    <span>{option.label}</span>
-                  </>
-                )}
-              />
-            </div>
-          </Form>
-        </div>
+        <TransactionFilters
+          form={form}
+          dateFilter={filterState.dateFilter}
+          onDateFilterChange={setDateFilter}
+          priceFilter={filterState.priceFilter}
+          onPriceFilterChange={setPriceFilter}
+          tags={orderedTags}
+          onClearAll={clearAllFilters}
+          hasActiveFilters={hasActiveFilters}
+        />
       </Container>
 
       <Container>
@@ -326,7 +251,7 @@ export function ExpenseOverview() {
             }
             button={{
               buttonContent: "Clear filters",
-              clicked: clearFilters,
+              clicked: clearAllFilters,
             }}
           />
         )}
