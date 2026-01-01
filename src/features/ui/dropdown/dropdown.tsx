@@ -10,7 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { HiDotsVertical } from "react-icons/hi";
-import { Button, IButtonSize } from "../button/button";
+import { Button, IButtonProps, IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
 import { useDialogContext } from "../dialog/dialog/dialog-context";
 import {
@@ -26,7 +26,9 @@ const dropdownSizeClasses: { [key in IButtonSize]: { iconClasses: string } } = {
 };
 
 type IDropdownProps = {
-  dropdownSelector?: ReactNode;
+  dropdownSelector?:
+    | ReactNode
+    | { content: ReactNode; variant: IButtonProps["variant"] };
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   expandedContent?: ReactNode;
@@ -87,20 +89,42 @@ export function Dropdown({
     placement,
   });
 
+  const isDropdownSelectorObject = (
+    selector: IDropdownProps["dropdownSelector"]
+  ): selector is { content: ReactNode; variant: IButtonProps["variant"] } => {
+    return (
+      selector !== null &&
+      typeof selector === "object" &&
+      !Array.isArray(selector) &&
+      "content" in selector
+    );
+  };
+
   const DropdownSelector = (
     <div ref={triggerRef}>
       {dropdownSelector ? (
-        <Button
-          size={size}
-          clicked={toggleDropdown}
-          disabled={disabled}
-          className={cn(
-            "w-full py-2 h-9",
-            "focus:ring-2 focus:ring-primary",
-            dropdownIsOpen && "ring-2 ring-primary"
-          )}>
-          {dropdownSelector}
-        </Button>
+        (() => {
+          const isObject = isDropdownSelectorObject(dropdownSelector);
+          const buttonContent = isObject
+            ? dropdownSelector.content
+            : dropdownSelector;
+          const variant = isObject ? dropdownSelector.variant : undefined;
+
+          return (
+            <Button
+              size={size}
+              clicked={toggleDropdown}
+              disabled={disabled}
+              variant={variant}
+              className={cn(
+                "w-full py-2 h-9",
+                "focus:ring-2 focus:ring-primary",
+                dropdownIsOpen && "ring-2 ring-primary"
+              )}>
+              {buttonContent}
+            </Button>
+          );
+        })()
       ) : (
         <IconButton
           size={size}
