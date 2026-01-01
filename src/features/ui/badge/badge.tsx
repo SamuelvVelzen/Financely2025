@@ -55,12 +55,12 @@ export function Badge({
   className,
 }: IBadgeProps) {
   const backgroundColorClass = backgroundColor
-    ? backgroundColor
+    ? `bg-[${backgroundColor}]`
     : variant
       ? variantClasses[variant].backgroundColor
       : "bg-surface-hover";
   const textColorClass = backgroundColor
-    ? getContrastingTextColor(backgroundColor)
+    ? `text-[${getContrastingTextColor(backgroundColor)}]`
     : variant
       ? variantClasses[variant].textColor
       : "text-text";
@@ -68,7 +68,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "px-2.5 py-0.5 rounded-full text-xs font-medium inline-block max-w-full truncate",
+        "px-2.5 py-0.5 rounded-full flex items-center gap-1 text-xs font-medium max-w-full truncate",
         backgroundColorClass,
         textColorClass,
         className
