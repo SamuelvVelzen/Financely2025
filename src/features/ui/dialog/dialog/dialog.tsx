@@ -1,14 +1,7 @@
 "use client";
 
 import { cn } from "@/features/util/cn";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
@@ -17,6 +10,7 @@ import { DialogContext } from "./dialog-context";
 import { DialogOverlay } from "./dialog-overlay";
 import type { IDialogProps, IDialogStatus } from "./types";
 import { useDialogStack } from "./use-dialog-stack";
+import { useFocusTrap } from "./use-focus-trap";
 
 /**
  * Dialog component provides a fully accessible modal dialog system
@@ -140,115 +134,16 @@ export function Dialog({
     }
   }, [open, onClose]);
 
-  // Get all focusable elements within dialog
-  const getFocusableElements = useCallback(() => {
-    if (!dialogRef.current || typeof window === "undefined") return [];
-
-    const focusableSelectors = [
-      "a[href]",
-      "button:not([disabled])",
-      "textarea:not([disabled])",
-      "input:not([disabled])",
-      "select:not([disabled])",
-      '[tabindex]:not([tabindex="-1"])',
-    ].join(", ");
-
-    return Array.from(
-      dialogRef.current.querySelectorAll<HTMLElement>(focusableSelectors)
-    ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
-  }, []);
-
-  // Focus trap: handle Tab and Shift+Tab
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === "Escape" && dismissible) {
-        e.preventDefault();
-        e.stopPropagation();
-        handleOpenChange(false);
-        return;
-      }
-
-      if (e.key !== "Tab") return;
-
-      const focusableElements = getFocusableElements();
-      if (focusableElements.length === 0) {
-        // No focusable elements, prevent tabbing out
-        e.preventDefault();
-        return;
-      }
-
-      const firstElement = focusableElements[0];
-      const lastElement = focusableElements[focusableElements.length - 1];
-      const activeElement = document.activeElement as HTMLElement;
-
-      // Check if focus is within dialog
-      const isFocusInDialog =
-        dialogRef.current?.contains(activeElement) ||
-        activeElement === dialogRef.current;
-
-      if (!isFocusInDialog) {
-        // Focus escaped, bring it back
-        e.preventDefault();
-        firstElement.focus();
-        return;
-      }
-
-      if (e.shiftKey) {
-        // Shift+Tab
-        if (
-          activeElement === firstElement ||
-          activeElement === dialogRef.current
-        ) {
-          e.preventDefault();
-          lastElement.focus();
-        }
-      } else {
-        // Tab
-        if (
-          activeElement === lastElement ||
-          activeElement === dialogRef.current
-        ) {
-          e.preventDefault();
-          firstElement.focus();
-        }
-      }
-    },
-    [dismissible, handleOpenChange, getFocusableElements]
-  );
-
-  // Focus first element when dialog opens
-  useEffect(() => {
-    if (!open || !dialogRef.current || typeof window === "undefined") return;
-
-    const focusableElements = getFocusableElements();
-
-    if (focusableElements.length === 0) {
-      // Focus dialog container if no focusable elements
-      dialogRef.current.focus();
-      return;
-    }
-
-    // Filter out buttons in the header (close button)
-    const header = dialogRef.current.querySelector("header");
-    const elementsOutsideHeader = focusableElements.filter((el) => {
-      return !header?.contains(el);
-    });
-
-    // Focus first element outside header, or first element if none found
-    const elementToFocus =
-      elementsOutsideHeader.length > 0
-        ? elementsOutsideHeader[0]
-        : focusableElements[0];
-
-    // Small delay to ensure dialog is visible
-    setTimeout(() => {
-      elementToFocus.focus();
-    }, 100);
-  }, [open, getFocusableElements]);
-
   const handleClose = useCallback(() => {
     handleOpenChange(false);
   }, [handleOpenChange]);
+
+  // Use focus trap hook
+  const { handleKeyDown } = useFocusTrap({
+    enabled: open,
+    containerRef: dialogRef as React.RefObject<HTMLElement>,
+    onEscape: dismissible ? handleClose : undefined,
+  });
 
   // Generate title ID for aria-labelledby if title is provided
   // Regenerates only when title changes to maintain stable ID across re-renders

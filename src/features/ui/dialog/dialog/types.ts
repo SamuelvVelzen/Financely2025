@@ -29,9 +29,7 @@ export interface IDialogEvents {
  * Base props for Dialog component
  */
 export interface IDialogProps
-  extends PropsWithChildren,
-    IPropsWithClassName,
-    IDialogEvents {
+  extends PropsWithChildren, IPropsWithClassName, IDialogEvents {
   /** Controlled open state */
   open?: boolean;
   /** Callback when open state changes */
@@ -77,8 +75,7 @@ export interface IDialogOverlayProps extends IPropsWithClassName {
  * Props for DialogHeader component
  */
 export interface IDialogHeaderProps
-  extends PropsWithChildren,
-    IPropsWithClassName {
+  extends PropsWithChildren, IPropsWithClassName {
   /** Title element (for aria-labelledby) */
   titleId?: string;
   /** Show close button */
@@ -91,8 +88,7 @@ export interface IDialogHeaderProps
  * Props for DialogBody component
  */
 export interface IDialogBodyProps
-  extends PropsWithChildren,
-    IPropsWithClassName {
+  extends PropsWithChildren, IPropsWithClassName {
   /** Whether body is scrollable */
   scrollable?: boolean;
 }
@@ -101,8 +97,7 @@ export interface IDialogBodyProps
  * Props for DialogFooter component
  */
 export interface IDialogFooterProps
-  extends PropsWithChildren,
-    IPropsWithClassName {
+  extends PropsWithChildren, IPropsWithClassName {
   /** Alignment of footer content */
   align?: "left" | "right" | "between";
   /** Dense spacing mode */
@@ -113,8 +108,7 @@ export interface IDialogFooterProps
  * Props for DialogActions component
  */
 export interface IDialogActionsProps
-  extends PropsWithChildren,
-    IPropsWithClassName {
+  extends PropsWithChildren, IPropsWithClassName {
   /** Alignment of actions */
   align?: "left" | "right" | "between";
 }
@@ -123,8 +117,7 @@ export interface IDialogActionsProps
  * Props for DialogTrigger component
  */
 export interface IDialogTriggerProps
-  extends PropsWithChildren,
-    IPropsWithClassName {
+  extends PropsWithChildren, IPropsWithClassName {
   /** Dialog open state */
   open?: boolean;
   /** Open change handler */
