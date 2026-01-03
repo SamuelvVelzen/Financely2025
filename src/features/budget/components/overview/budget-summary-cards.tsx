@@ -50,8 +50,11 @@ export function BudgetSummaryCards({
   const { overallHealth, riskSummary, timeContext, context, topSpenders } =
     overviewData;
 
+  const borderClasses =
+    "divide-y md:divide-y-0 md:divide-x divide-border [&>:not(:last-child)]:mb-3 [&>:not(:last-child)]:pb-3 md:[&>:not(:last-child)]:mr-3 md:[&>:not(:last-child)]:pr-3 md:[&>:not(:last-child)]:mb-0 md:[&>:not(:last-child)]:pb-0";
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 divide-x divide-border [&>:not(:last-child)]:mr-3 [&>:not(:last-child)]:pr-3">
+    <div className={cn("grid grid-cols-1 md:grid-cols-3", borderClasses)}>
       {/* Card 1: Overall Budget Health */}
       <div>
         <div className="text-xs font-medium text-text-muted uppercase tracking-wide mb-4">
