@@ -451,11 +451,14 @@ export function serializeFilterStateToQuery(
 
   // Date filter - always include to preserve state in URLs (for sharing/bookmarking)
   params.dateType = state.dateFilter.type;
-  if (state.dateFilter.from) {
-    params.dateFrom = state.dateFilter.from;
-  }
-  if (state.dateFilter.to) {
-    params.dateTo = state.dateFilter.to;
+  // Only include dateFrom/dateTo for custom date ranges (they can be recalculated for other types)
+  if (state.dateFilter.type === "custom") {
+    if (state.dateFilter.from) {
+      params.dateFrom = state.dateFilter.from;
+    }
+    if (state.dateFilter.to) {
+      params.dateTo = state.dateFilter.to;
+    }
   }
 
   // Price filter
