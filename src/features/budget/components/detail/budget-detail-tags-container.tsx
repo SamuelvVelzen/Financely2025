@@ -221,7 +221,7 @@ export function BudgetDetailTagsContainer({
                           {tx.name}
                         </div>
                         <div className="text-xs text-text-muted">
-                          {formatDate(tx.occurredAt)}
+                          {formatDate(tx.transactionDate)}
                         </div>
                       </div>
                       <div className="text-right text-sm font-medium">

@@ -27,7 +27,7 @@ export const queryKeys = {
     type?: "INCOME" | "EXPENSE";
     tagIds?: string[];
     q?: string;
-    sort?: string; // e.g., "occurredAt:desc"
+    sort?: string; // e.g., "transactionDate:desc"
   }) => ["transactions", params] as const,
 
   // Expense queries (transactions with type EXPENSE)
@@ -38,7 +38,7 @@ export const queryKeys = {
     to?: string; // ISO date string
     tagIds?: string[];
     q?: string;
-    sort?: string; // e.g., "occurredAt:desc"
+    sort?: string; // e.g., "transactionDate:desc"
   }) => ["expenses", params] as const,
 
   // Income queries (transactions with type INCOME)
@@ -49,7 +49,7 @@ export const queryKeys = {
     to?: string; // ISO date string
     tagIds?: string[];
     q?: string;
-    sort?: string; // e.g., "occurredAt:desc"
+    sort?: string; // e.g., "transactionDate:desc"
   }) => ["incomes", params] as const,
 
   // Message queries

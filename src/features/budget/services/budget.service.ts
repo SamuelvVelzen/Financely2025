@@ -432,7 +432,7 @@ export class BudgetService {
       where: {
         userId,
         currency: budget.currency,
-        occurredAt: {
+        transactionDate: {
           gte: new Date(budget.startDate),
           lte: new Date(budget.endDate),
         },
@@ -462,7 +462,8 @@ export class BudgetService {
         type: tx.type,
         amount: tx.amount.toString(),
         currency: tx.currency,
-        occurredAt: tx.occurredAt.toISOString(),
+        transactionDate: tx.transactionDate.toISOString(),
+        timePrecision: tx.timePrecision,
         name: tx.name,
         description: tx.description,
         externalId: tx.externalId,
@@ -728,7 +729,7 @@ export class BudgetService {
         where: {
           userId,
           currency: budget.currency,
-          occurredAt: {
+          transactionDate: {
             gte: new Date(budget.startDate),
             lte: new Date(budget.endDate),
           },
