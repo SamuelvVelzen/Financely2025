@@ -17,8 +17,6 @@ import { Route as appIndexRouteImport } from './routes/(app)/index'
 import { Route as appTransactionsRouteImport } from './routes/(app)/transactions'
 import { Route as appTagsRouteImport } from './routes/(app)/tags'
 import { Route as appMessagesRouteImport } from './routes/(app)/messages'
-import { Route as appIncomesRouteImport } from './routes/(app)/incomes'
-import { Route as appExpensesRouteImport } from './routes/(app)/expenses'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
 import { Route as appBudgetsIndexRouteImport } from './routes/(app)/budgets.index'
 import { Route as ApiV1TransactionsRouteImport } from './routes/api/v1/transactions'
@@ -92,16 +90,6 @@ const appTagsRoute = appTagsRouteImport.update({
 const appMessagesRoute = appMessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
-  getParentRoute: () => appRouteRoute,
-} as any)
-const appIncomesRoute = appIncomesRouteImport.update({
-  id: '/incomes',
-  path: '/incomes',
-  getParentRoute: () => appRouteRoute,
-} as any)
-const appExpensesRoute = appExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
   getParentRoute: () => appRouteRoute,
 } as any)
 const appAccountRoute = appAccountRouteImport.update({
@@ -294,8 +282,6 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
-  '/expenses': typeof appExpensesRoute
-  '/incomes': typeof appIncomesRoute
   '/messages': typeof appMessagesRoute
   '/tags': typeof appTagsRoute
   '/transactions': typeof appTransactionsRoute
@@ -340,8 +326,6 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
-  '/expenses': typeof appExpensesRoute
-  '/incomes': typeof appIncomesRoute
   '/messages': typeof appMessagesRoute
   '/tags': typeof appTagsRoute
   '/transactions': typeof appTransactionsRoute
@@ -388,8 +372,6 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/(app)/account': typeof appAccountRoute
-  '/(app)/expenses': typeof appExpensesRoute
-  '/(app)/incomes': typeof appIncomesRoute
   '/(app)/messages': typeof appMessagesRoute
   '/(app)/tags': typeof appTagsRoute
   '/(app)/transactions': typeof appTransactionsRoute
@@ -436,8 +418,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/account'
-    | '/expenses'
-    | '/incomes'
     | '/messages'
     | '/tags'
     | '/transactions'
@@ -482,8 +462,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/account'
-    | '/expenses'
-    | '/incomes'
     | '/messages'
     | '/tags'
     | '/transactions'
@@ -529,8 +507,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/(app)/account'
-    | '/(app)/expenses'
-    | '/(app)/incomes'
     | '/(app)/messages'
     | '/(app)/tags'
     | '/(app)/transactions'
@@ -640,20 +616,6 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof appMessagesRouteImport
-      parentRoute: typeof appRouteRoute
-    }
-    '/(app)/incomes': {
-      id: '/(app)/incomes'
-      path: '/incomes'
-      fullPath: '/incomes'
-      preLoaderRoute: typeof appIncomesRouteImport
-      parentRoute: typeof appRouteRoute
-    }
-    '/(app)/expenses': {
-      id: '/(app)/expenses'
-      path: '/expenses'
-      fullPath: '/expenses'
-      preLoaderRoute: typeof appExpensesRouteImport
       parentRoute: typeof appRouteRoute
     }
     '/(app)/account': {
@@ -906,8 +868,6 @@ declare module '@tanstack/react-router' {
 
 interface appRouteRouteChildren {
   appAccountRoute: typeof appAccountRoute
-  appExpensesRoute: typeof appExpensesRoute
-  appIncomesRoute: typeof appIncomesRoute
   appMessagesRoute: typeof appMessagesRoute
   appTagsRoute: typeof appTagsRoute
   appTransactionsRoute: typeof appTransactionsRoute
@@ -920,8 +880,6 @@ interface appRouteRouteChildren {
 
 const appRouteRouteChildren: appRouteRouteChildren = {
   appAccountRoute: appAccountRoute,
-  appExpensesRoute: appExpensesRoute,
-  appIncomesRoute: appIncomesRoute,
   appMessagesRoute: appMessagesRoute,
   appTagsRoute: appTagsRoute,
   appTransactionsRoute: appTransactionsRoute,

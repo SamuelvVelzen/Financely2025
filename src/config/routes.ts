@@ -2,8 +2,6 @@ export const ROUTES = {
   ROOT: "/",
   LOGIN: "/login",
   REGISTER: "/register",
-  INCOMES: "/incomes",
-  EXPENSES: "/expenses",
   TRANSACTIONS: "/transactions",
   TAGS: "/tags",
   BUDGETS: "/budgets",

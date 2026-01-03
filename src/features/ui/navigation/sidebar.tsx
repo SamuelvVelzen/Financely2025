@@ -6,8 +6,6 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   HiArrowRightOnRectangle,
   HiArrowsRightLeft,
-  HiArrowTrendingDown,
-  HiArrowTrendingUp,
   HiChartBar,
   HiChevronRight,
   HiOutlineBell,
@@ -76,20 +74,6 @@ export function Sidebar() {
               to={ROUTES.TRANSACTIONS}
               label="Transactions"
               icon={HiArrowsRightLeft}
-            />
-          </li>
-          <li>
-            <NavItem
-              to={ROUTES.INCOMES}
-              label="Income"
-              icon={HiArrowTrendingUp}
-            />
-          </li>
-          <li>
-            <NavItem
-              to={ROUTES.EXPENSES}
-              label="Expense"
-              icon={HiArrowTrendingDown}
             />
           </li>
           <li>
