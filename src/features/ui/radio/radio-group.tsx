@@ -13,6 +13,7 @@ export type IRadioGroupProps = IPropsWithClassName & {
   hint?: string;
   required?: boolean;
   orientation?: "horizontal" | "vertical";
+  disabled?: boolean;
   children: React.ReactNode;
 };
 
@@ -23,6 +24,7 @@ export function RadioGroup({
   hint,
   required,
   orientation = "horizontal",
+  disabled = false,
   children,
 }: IRadioGroupProps) {
   const generatedId = useId();
@@ -30,7 +32,7 @@ export function RadioGroup({
   const form = useFormContext();
   const error = form.formState.errors[name];
 
-  const baseClasses = "space-y-1";
+  const baseClasses = "space-y-1 w-full";
   const orientationClasses =
     orientation === "horizontal"
       ? "flex flex-wrap gap-3"
@@ -45,7 +47,7 @@ export function RadioGroup({
           name: field.name,
           value: field.value,
           onChange: field.onChange,
-          disabled: false,
+          disabled,
           groupId,
         };
 

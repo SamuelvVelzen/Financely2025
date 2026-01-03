@@ -55,7 +55,7 @@ export function RadioItem({
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group grow">
       <input
         ref={inputRef}
         type="radio"
