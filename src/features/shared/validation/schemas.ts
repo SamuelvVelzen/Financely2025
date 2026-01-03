@@ -375,6 +375,20 @@ export const TransactionsQuerySchema = PaginationQuerySchema.merge(
   q: z.string().optional(),
   minAmount: DecimalStringSchema.optional(),
   maxAmount: DecimalStringSchema.optional(),
+  paymentMethod: z
+    .union([PaymentMethodSchema, z.array(PaymentMethodSchema)])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return Array.isArray(val) ? val : [val];
+    }),
+  currency: z
+    .union([CurrencySchema, z.array(CurrencySchema)])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return Array.isArray(val) ? val : [val];
+    }),
 });
 
 export const PaginatedTransactionsResponseSchema = z.object({

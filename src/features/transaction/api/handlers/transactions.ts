@@ -29,6 +29,12 @@ export async function GET({ request }: { request: Request }) {
         sort: url.searchParams.get("sort") ?? undefined,
         minAmount: url.searchParams.get("minAmount") ?? undefined,
         maxAmount: url.searchParams.get("maxAmount") ?? undefined,
+        paymentMethod: url.searchParams.get("paymentMethod")
+          ? url.searchParams.getAll("paymentMethod")
+          : undefined,
+        currency: url.searchParams.get("currency")
+          ? url.searchParams.getAll("currency")
+          : undefined,
       };
 
       const validated = TransactionsQuerySchema.parse(query);

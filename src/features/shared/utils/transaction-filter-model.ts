@@ -1,6 +1,6 @@
 /**
  * Transaction Filter Model
- * 
+ *
  * A canonical, versionable filter state model for transaction filtering.
  * Provides normalization, validation, and serialization utilities.
  */
@@ -13,7 +13,7 @@ import {
   getLastMonthEnd,
   getLastMonthStart,
 } from "@/features/util/date/date-helpers";
-import { parseISO, isValid } from "date-fns";
+import { isValid, parseISO } from "date-fns";
 
 /**
  * Version of the filter model schema.
@@ -23,7 +23,7 @@ export const FILTER_MODEL_VERSION = 1;
 
 /**
  * Canonical filter state model.
- * 
+ *
  * This structure is stable and versionable. When adding new fields:
  * 1. Add the field to this interface
  * 2. Update the default state
@@ -36,51 +36,28 @@ export interface ITransactionFilterState {
    * Date filter configuration
    */
   dateFilter: IDateFilter;
-  
+
   /**
    * Price/amount range filter
    * - undefined means "unset" (no filter applied)
    * - number means filter is active
    */
   priceFilter: IPriceRange;
-  
+
   /**
    * Search query string
    * - Empty string means "unset" (no search)
    * - Non-empty string means search is active
    */
   searchQuery: string;
-  
+
   /**
    * Tag filter - array of tag IDs
    * - Empty array means "unset" (no tag filter)
    * - Non-empty array means tags are filtered
    */
   tagFilter: string[];
-  
-  /**
-   * Transaction type filter - array of transaction types
-   * - Empty array means "unset" (show all types)
-   * - ["EXPENSE"] means expenses only
-   * - ["INCOME"] means incomes only
-   * - ["EXPENSE", "INCOME"] means show all (same as empty)
-   */
-  transactionTypeFilter: string[];
-  
-  /**
-   * Payment method filter - array of payment method values
-   * - Empty array means "unset" (show all payment methods)
-   * - Non-empty array means filter by selected payment methods
-   */
-  paymentMethodFilter: string[];
-  
-  /**
-   * Currency filter - array of currency codes
-   * - Empty array means "unset" (show all currencies)
-   * - Non-empty array means filter by selected currencies
-   */
-  currencyFilter: string[];
-  
+
   /**
    * Optional: Model version for future compatibility
    */
@@ -112,9 +89,6 @@ export const DEFAULT_FILTER_STATE: ITransactionFilterState = {
   priceFilter: defaultPriceFilter,
   searchQuery: "",
   tagFilter: [],
-  transactionTypeFilter: [],
-  paymentMethodFilter: [],
-  currencyFilter: [],
   _version: FILTER_MODEL_VERSION,
 };
 
@@ -123,7 +97,12 @@ export const DEFAULT_FILTER_STATE: ITransactionFilterState = {
  */
 function normalizeDateFilter(filter: IDateFilter): IDateFilter {
   // Validate date filter type
-  const validTypes: IDateFilter["type"][] = ["allTime", "thisMonth", "lastMonth", "custom"];
+  const validTypes: IDateFilter["type"][] = [
+    "allTime",
+    "thisMonth",
+    "lastMonth",
+    "custom",
+  ];
   const type = validTypes.includes(filter.type) ? filter.type : "thisMonth";
 
   // For custom type, validate dates
@@ -258,59 +237,20 @@ function normalizeTagFilter(tags: unknown): string[] {
     return [];
   }
   // Filter out invalid values and ensure all are strings
-  return tags.filter((tag): tag is string => typeof tag === "string" && tag.length > 0);
-}
-
-/**
- * Normalize transaction type filter array
- */
-function normalizeTransactionTypeFilter(types: unknown): string[] {
-  if (!Array.isArray(types)) {
-    return [];
-  }
-  // Filter out invalid values, only allow EXPENSE and INCOME
-  const validTypes = ["EXPENSE", "INCOME"];
-  return types.filter(
-    (type): type is string =>
-      typeof type === "string" && validTypes.includes(type)
-  );
-}
-
-/**
- * Normalize payment method filter array
- */
-function normalizePaymentMethodFilter(methods: unknown): string[] {
-  if (!Array.isArray(methods)) {
-    return [];
-  }
-  // Filter out invalid values and ensure all are strings
-  return methods.filter(
-    (method): method is string => typeof method === "string" && method.length > 0
-  );
-}
-
-/**
- * Normalize currency filter array
- */
-function normalizeCurrencyFilter(currencies: unknown): string[] {
-  if (!Array.isArray(currencies)) {
-    return [];
-  }
-  // Filter out invalid values and ensure all are strings
-  return currencies.filter(
-    (currency): currency is string => typeof currency === "string" && currency.length > 0
+  return tags.filter(
+    (tag): tag is string => typeof tag === "string" && tag.length > 0
   );
 }
 
 /**
  * Normalize and validate a filter state.
- * 
+ *
  * This ensures:
  * - All fields have valid types
  * - Conflicting values are resolved (e.g., min > max)
  * - Invalid values fall back to defaults
  * - The state is always in a valid, consistent form
- * 
+ *
  * Note: This function may create new object references even when values
  * are semantically the same (e.g., trimming strings). Callers should
  * compare values semantically, not by reference.
@@ -330,15 +270,6 @@ export function normalizeFilterState(
     ),
     tagFilter: normalizeTagFilter(
       state.tagFilter ?? DEFAULT_FILTER_STATE.tagFilter
-    ),
-    transactionTypeFilter: normalizeTransactionTypeFilter(
-      state.transactionTypeFilter ?? DEFAULT_FILTER_STATE.transactionTypeFilter
-    ),
-    paymentMethodFilter: normalizePaymentMethodFilter(
-      state.paymentMethodFilter ?? DEFAULT_FILTER_STATE.paymentMethodFilter
-    ),
-    currencyFilter: normalizeCurrencyFilter(
-      state.currencyFilter ?? DEFAULT_FILTER_STATE.currencyFilter
     ),
     _version: FILTER_MODEL_VERSION,
   };
@@ -373,30 +304,6 @@ export function areFilterStatesEqual(
     if (aTagsSorted[i] !== bTagsSorted[i]) return false;
   }
 
-  // Compare transaction type filters
-  if (a.transactionTypeFilter.length !== b.transactionTypeFilter.length) return false;
-  const aTypesSorted = [...a.transactionTypeFilter].sort();
-  const bTypesSorted = [...b.transactionTypeFilter].sort();
-  for (let i = 0; i < aTypesSorted.length; i++) {
-    if (aTypesSorted[i] !== bTypesSorted[i]) return false;
-  }
-
-  // Compare payment method filters
-  if (a.paymentMethodFilter.length !== b.paymentMethodFilter.length) return false;
-  const aMethodsSorted = [...a.paymentMethodFilter].sort();
-  const bMethodsSorted = [...b.paymentMethodFilter].sort();
-  for (let i = 0; i < aMethodsSorted.length; i++) {
-    if (aMethodsSorted[i] !== bMethodsSorted[i]) return false;
-  }
-
-  // Compare currency filters
-  if (a.currencyFilter.length !== b.currencyFilter.length) return false;
-  const aCurrenciesSorted = [...a.currencyFilter].sort();
-  const bCurrenciesSorted = [...b.currencyFilter].sort();
-  for (let i = 0; i < aCurrenciesSorted.length; i++) {
-    if (aCurrenciesSorted[i] !== bCurrenciesSorted[i]) return false;
-  }
-
   return true;
 }
 
@@ -407,20 +314,12 @@ export function hasActiveFilters(
   state: ITransactionFilterState,
   defaultState: ITransactionFilterState = DEFAULT_FILTER_STATE
 ): boolean {
-  // Check if transaction type filter is active (not empty and not both types)
-  const hasTransactionTypeFilter =
-    state.transactionTypeFilter.length > 0 &&
-    state.transactionTypeFilter.length < 2;
-
   return (
     state.dateFilter.type !== defaultState.dateFilter.type ||
     state.priceFilter.min !== undefined ||
     state.priceFilter.max !== undefined ||
     state.searchQuery.trim() !== "" ||
-    state.tagFilter.length > 0 ||
-    hasTransactionTypeFilter ||
-    state.paymentMethodFilter.length > 0 ||
-    state.currencyFilter.length > 0
+    state.tagFilter.length > 0
   );
 }
 
@@ -463,24 +362,6 @@ export function serializeFilterStateToQuery(
     params.tags = state.tagFilter.join(",");
   }
 
-  // Transaction type filter (only serialize if not both types selected)
-  if (
-    state.transactionTypeFilter.length > 0 &&
-    state.transactionTypeFilter.length < 2
-  ) {
-    params.transactionTypes = state.transactionTypeFilter.join(",");
-  }
-
-  // Payment method filter
-  if (state.paymentMethodFilter.length > 0) {
-    params.paymentMethods = state.paymentMethodFilter.join(",");
-  }
-
-  // Currency filter
-  if (state.currencyFilter.length > 0) {
-    params.currencies = state.currencyFilter.join(",");
-  }
-
   // Version (for future compatibility)
   params._v = FILTER_MODEL_VERSION.toString();
 
@@ -509,7 +390,10 @@ export function deserializeFilterStateFromQuery(
 
   // Date filter
   const dateType = getParam("dateType");
-  if (dateType && ["allTime", "thisMonth", "lastMonth", "custom"].includes(dateType)) {
+  if (
+    dateType &&
+    ["allTime", "thisMonth", "lastMonth", "custom"].includes(dateType)
+  ) {
     const dateFrom = getParam("dateFrom");
     const dateTo = getParam("dateTo");
     state.dateFilter = {
@@ -550,30 +434,6 @@ export function deserializeFilterStateFromQuery(
     state.tagFilter = tags.split(",").filter((tag) => tag.length > 0);
   }
 
-  // Transaction type filter
-  const transactionTypes = getParam("transactionTypes");
-  if (transactionTypes !== undefined) {
-    state.transactionTypeFilter = transactionTypes
-      .split(",")
-      .filter((type) => type.length > 0);
-  }
-
-  // Payment method filter
-  const paymentMethods = getParam("paymentMethods");
-  if (paymentMethods !== undefined) {
-    state.paymentMethodFilter = paymentMethods
-      .split(",")
-      .filter((method) => method.length > 0);
-  }
-
-  // Currency filter
-  const currencies = getParam("currencies");
-  if (currencies !== undefined) {
-    state.currencyFilter = currencies
-      .split(",")
-      .filter((currency) => currency.length > 0);
-  }
-
   // Version check (for future compatibility)
   const version = getParam("_v");
   if (version) {
@@ -608,4 +468,3 @@ export function deserializeFilterStateFromJSON(
     return {};
   }
 }
-

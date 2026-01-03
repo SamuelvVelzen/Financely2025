@@ -1,5 +1,9 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
-import type { ITransaction } from "@/features/shared/validation/schemas";
+import type {
+  ICurrency,
+  IPaymentMethod,
+  ITransaction,
+} from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
 import { useTransactionFilters } from "@/features/transaction/hooks/useTransactionFilters";
@@ -49,6 +53,17 @@ export function TransactionOverview() {
 
   // Build query with all filters (backend filtering) - no page param for infinite query
   const query = useMemo((): Parameters<typeof useInfiniteTransactions>[0] => {
+    // Transaction type logic: if both selected or empty, send undefined (show all)
+    // If only one selected, send that single type
+    let typeFilter: "EXPENSE" | "INCOME" | undefined = undefined;
+    if (
+      filterState.transactionTypeFilter.length === 1 &&
+      (filterState.transactionTypeFilter[0] === "EXPENSE" ||
+        filterState.transactionTypeFilter[0] === "INCOME")
+    ) {
+      typeFilter = filterState.transactionTypeFilter[0] as "EXPENSE" | "INCOME";
+    }
+
     return {
       limit: PAGE_SIZE,
       // Date filter
@@ -60,6 +75,8 @@ export function TransactionOverview() {
         filterState.dateFilter.type !== "allTime"
           ? filterState.dateFilter.to
           : undefined,
+      // Transaction type filter
+      type: typeFilter,
       // Tag filter
       tagIds:
         filterState.tagFilter.length > 0 ? filterState.tagFilter : undefined,
@@ -68,7 +85,16 @@ export function TransactionOverview() {
       // Amount filter
       minAmount: filterState.priceFilter.min?.toString(),
       maxAmount: filterState.priceFilter.max?.toString(),
-      // Don't filter by type - we want both expenses and incomes
+      // Payment method filter
+      paymentMethod:
+        filterState.paymentMethodFilter.length > 0
+          ? (filterState.paymentMethodFilter as IPaymentMethod[])
+          : undefined,
+      // Currency filter
+      currency:
+        filterState.currencyFilter.length > 0
+          ? (filterState.currencyFilter as ICurrency[])
+          : undefined,
     };
   }, [filterState]);
 

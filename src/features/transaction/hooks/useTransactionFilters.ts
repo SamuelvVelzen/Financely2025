@@ -37,6 +37,9 @@ export interface IUseTransactionFiltersOptions {
 export interface IFilterFormValues {
   searchQuery: string;
   tagFilter: string[];
+  transactionTypeFilter: string[];
+  paymentMethodFilter: string[];
+  currencyFilter: string[];
 }
 
 /**
@@ -68,6 +71,9 @@ export interface IUseTransactionFiltersReturn {
   setPriceFilter: (filter: ITransactionFilterState["priceFilter"]) => void;
   setSearchQuery: (query: string) => void;
   setTagFilter: (tags: string[]) => void;
+  setTransactionTypeFilter: (types: string[]) => void;
+  setPaymentMethodFilter: (methods: string[]) => void;
+  setCurrencyFilter: (currencies: string[]) => void;
 
   /**
    * Reset all filters to default state
@@ -115,14 +121,23 @@ export function useTransactionFilters(
     defaultValues: {
       searchQuery: filterState.searchQuery,
       tagFilter: filterState.tagFilter,
+      transactionTypeFilter: filterState.transactionTypeFilter,
+      paymentMethodFilter: filterState.paymentMethodFilter,
+      currencyFilter: filterState.currencyFilter,
     },
   });
 
   // Keep refs of latest filterState values to avoid circular updates
   const searchQueryRef = useRef(filterState.searchQuery);
   const tagFilterRef = useRef(filterState.tagFilter);
+  const transactionTypeFilterRef = useRef(filterState.transactionTypeFilter);
+  const paymentMethodFilterRef = useRef(filterState.paymentMethodFilter);
+  const currencyFilterRef = useRef(filterState.currencyFilter);
   searchQueryRef.current = filterState.searchQuery;
   tagFilterRef.current = filterState.tagFilter;
+  transactionTypeFilterRef.current = filterState.transactionTypeFilter;
+  paymentMethodFilterRef.current = filterState.paymentMethodFilter;
+  currencyFilterRef.current = filterState.currencyFilter;
 
   // Sync form changes to filterState (when user types/selects)
   useEffect(() => {
@@ -155,6 +170,51 @@ export function useTransactionFilters(
           });
         }
       }
+      if (name === "transactionTypeFilter") {
+        const formValue = (value.transactionTypeFilter ?? []).filter(
+          (v): v is string => v !== undefined
+        );
+        const formValueStr = JSON.stringify([...formValue].sort());
+        const typeFilterStr = JSON.stringify([...transactionTypeFilterRef.current].sort());
+        if (formValueStr !== typeFilterStr) {
+          setFilterStateInternal((current) => {
+            const updated = { ...current, transactionTypeFilter: formValue };
+            const normalized = normalizeFilterState(updated);
+            onFilterChange?.(normalized);
+            return normalized;
+          });
+        }
+      }
+      if (name === "paymentMethodFilter") {
+        const formValue = (value.paymentMethodFilter ?? []).filter(
+          (v): v is string => v !== undefined
+        );
+        const formValueStr = JSON.stringify([...formValue].sort());
+        const methodFilterStr = JSON.stringify([...paymentMethodFilterRef.current].sort());
+        if (formValueStr !== methodFilterStr) {
+          setFilterStateInternal((current) => {
+            const updated = { ...current, paymentMethodFilter: formValue };
+            const normalized = normalizeFilterState(updated);
+            onFilterChange?.(normalized);
+            return normalized;
+          });
+        }
+      }
+      if (name === "currencyFilter") {
+        const formValue = (value.currencyFilter ?? []).filter(
+          (v): v is string => v !== undefined
+        );
+        const formValueStr = JSON.stringify([...formValue].sort());
+        const currencyFilterStr = JSON.stringify([...currencyFilterRef.current].sort());
+        if (formValueStr !== currencyFilterStr) {
+          setFilterStateInternal((current) => {
+            const updated = { ...current, currencyFilter: formValue };
+            const normalized = normalizeFilterState(updated);
+            onFilterChange?.(normalized);
+            return normalized;
+          });
+        }
+      }
     });
     return () => subscription.unsubscribe();
   }, [form, onFilterChange]);
@@ -181,6 +241,39 @@ export function useTransactionFilters(
       });
     }
   }, [filterState.tagFilter, form]);
+
+  useEffect(() => {
+    const currentFormTransactionTypeFilter = form.getValues("transactionTypeFilter") ?? [];
+    const currentFormTypeFilterStr = JSON.stringify([...currentFormTransactionTypeFilter].sort());
+    const typeFilterStr = JSON.stringify([...filterState.transactionTypeFilter].sort());
+    if (typeFilterStr !== currentFormTypeFilterStr) {
+      form.setValue("transactionTypeFilter", filterState.transactionTypeFilter, {
+        shouldDirty: false,
+      });
+    }
+  }, [filterState.transactionTypeFilter, form]);
+
+  useEffect(() => {
+    const currentFormPaymentMethodFilter = form.getValues("paymentMethodFilter") ?? [];
+    const currentFormMethodFilterStr = JSON.stringify([...currentFormPaymentMethodFilter].sort());
+    const methodFilterStr = JSON.stringify([...filterState.paymentMethodFilter].sort());
+    if (methodFilterStr !== currentFormMethodFilterStr) {
+      form.setValue("paymentMethodFilter", filterState.paymentMethodFilter, {
+        shouldDirty: false,
+      });
+    }
+  }, [filterState.paymentMethodFilter, form]);
+
+  useEffect(() => {
+    const currentFormCurrencyFilter = form.getValues("currencyFilter") ?? [];
+    const currentFormCurrencyFilterStr = JSON.stringify([...currentFormCurrencyFilter].sort());
+    const currencyFilterStr = JSON.stringify([...filterState.currencyFilter].sort());
+    if (currencyFilterStr !== currentFormCurrencyFilterStr) {
+      form.setValue("currencyFilter", filterState.currencyFilter, {
+        shouldDirty: false,
+      });
+    }
+  }, [filterState.currencyFilter, form]);
 
   // Update filter state with normalization
   const setFilterState = useCallback(
@@ -227,6 +320,27 @@ export function useTransactionFilters(
     [setFilterState]
   );
 
+  const setTransactionTypeFilter = useCallback(
+    (types: string[]) => {
+      setFilterState({ transactionTypeFilter: types });
+    },
+    [setFilterState]
+  );
+
+  const setPaymentMethodFilter = useCallback(
+    (methods: string[]) => {
+      setFilterState({ paymentMethodFilter: methods });
+    },
+    [setFilterState]
+  );
+
+  const setCurrencyFilter = useCallback(
+    (currencies: string[]) => {
+      setFilterState({ currencyFilter: currencies });
+    },
+    [setFilterState]
+  );
+
   // Reset to defaults
   const clearAllFilters = useCallback(() => {
     setFilterStateInternal(DEFAULT_FILTER_STATE);
@@ -234,6 +348,15 @@ export function useTransactionFilters(
       shouldDirty: false,
     });
     form.setValue("tagFilter", DEFAULT_FILTER_STATE.tagFilter, {
+      shouldDirty: false,
+    });
+    form.setValue("transactionTypeFilter", DEFAULT_FILTER_STATE.transactionTypeFilter, {
+      shouldDirty: false,
+    });
+    form.setValue("paymentMethodFilter", DEFAULT_FILTER_STATE.paymentMethodFilter, {
+      shouldDirty: false,
+    });
+    form.setValue("currencyFilter", DEFAULT_FILTER_STATE.currencyFilter, {
       shouldDirty: false,
     });
     onFilterChange?.(DEFAULT_FILTER_STATE);
@@ -253,6 +376,9 @@ export function useTransactionFilters(
     setPriceFilter,
     setSearchQuery,
     setTagFilter,
+    setTransactionTypeFilter,
+    setPaymentMethodFilter,
+    setCurrencyFilter,
     clearAllFilters,
     hasActiveFilters: hasActiveFiltersValue,
     defaultFilterState: DEFAULT_FILTER_STATE,

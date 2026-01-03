@@ -40,6 +40,8 @@ export class TransactionService {
       sort,
       minAmount,
       maxAmount,
+      paymentMethod,
+      currency,
     } = validated;
 
     // Build where clause
@@ -76,6 +78,10 @@ export class TransactionService {
             },
           }
         : {}),
+      ...(paymentMethod && paymentMethod.length > 0
+        ? { paymentMethod: { in: paymentMethod } }
+        : {}),
+      ...(currency && currency.length > 0 ? { currency: { in: currency } } : {}),
     };
 
     // Parse sort
