@@ -59,11 +59,7 @@ export function FilterBar({
     tagFilter.length > 0;
 
   return (
-    <div
-      className={cn(
-        "flex gap-3 items-end pb-4 pt-2 px-2 overflow-x-auto",
-        className
-      )}>
+    <div className={cn("flex gap-3 items-end overflow-x-auto", className)}>
       <Form
         form={form}
         onSubmit={() => {}}>

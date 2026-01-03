@@ -180,7 +180,7 @@ export function TransactionOverview() {
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface pb-0">
+      <Container className="sticky top-0 z-10 bg-surface">
         <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
           <div className="flex gap-2 items-center">
             <HiArrowsRightLeft />

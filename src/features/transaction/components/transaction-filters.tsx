@@ -58,7 +58,7 @@ export function TransactionFilters({
       </div>
 
       {/* Mobile: Search + Date inline */}
-      <div className="md:hidden flex gap-3 items-end pb-4 pt-2 px-2">
+      <div className="md:hidden flex gap-3 items-end">
         <Form
           form={form}
           onSubmit={() => {}}>
