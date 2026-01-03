@@ -197,6 +197,11 @@ export function FilterBar({
                   placeholder="Filter by tags"
                   children={(option) => (
                     <>
+                      {option.data?.emoticon && (
+                        <span className="text-base shrink-0">
+                          {option.data.emoticon}
+                        </span>
+                      )}
                       {option.data?.color && (
                         <div
                           className="size-3 rounded-full shrink-0"

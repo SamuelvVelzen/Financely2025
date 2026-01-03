@@ -40,6 +40,9 @@ export function TagList({
           onDragEnd={dragProps.onDragEnd}
           onDrop={dragProps.onDrop}>
           <div className="flex items-center gap-3">
+            {tag.emoticon && (
+              <span className="text-lg">{tag.emoticon}</span>
+            )}
             {tag.color && (
               <div
                 className="size-4 rounded"

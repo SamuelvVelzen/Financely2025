@@ -181,6 +181,7 @@ model Tag {
   name          String
   color         String?           // optional color like #FF6600
   description   String?
+  emoticon      String?           // optional emoticon/emoji
   order         Int
   transactionType TransactionType? // null = works with both, EXPENSE = expense only, INCOME = income only
 

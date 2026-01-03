@@ -145,8 +145,9 @@ export const TagSchema = z.object({
   name: z.string(),
   color: z.string().nullable(),
   description: z.string().nullable(),
-  order: z.number().int(),
-  transactionType: TransactionTypeSchema.nullable()
+  emoticon: z
+    .string()
+    .nullable()
     .or(z.undefined())
     .transform((val) => val ?? null),
   createdAt: ISODateStringSchema,
@@ -214,6 +215,22 @@ export const CreateTagInputSchema = z.object({
     .nullable()
     .optional(),
   description: z.string().max(500).nullable().optional(),
+  emoticon: z
+    .string()
+    .max(20, "Emoticon must be 20 characters or less")
+    .refine(
+      (val) => {
+        if (!val || val.trim() === "") return true; // Allow empty/null
+        // Reset regex lastIndex to avoid state issues, then test
+        EMOJI_REGEX.lastIndex = 0;
+        return EMOJI_REGEX.test(val);
+      },
+      {
+        message: "Emoticon must contain at least one emoji character",
+      }
+    )
+    .nullable()
+    .optional(),
   order: z.number().int().optional(),
   transactionType: z.preprocess(
     (val) => (val === "" || val === undefined ? null : val),

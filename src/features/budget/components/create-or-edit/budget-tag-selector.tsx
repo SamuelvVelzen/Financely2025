@@ -87,6 +87,9 @@ export function BudgetTagSelector({
               checked={checked}
               onChange={onChange}
               checkboxId={checkboxId}>
+              {tag.emoticon && (
+                <span className="text-base shrink-0">{tag.emoticon}</span>
+              )}
               {tag.color && (
                 <div
                   className="w-2.5 h-2.5 rounded-full shrink-0"

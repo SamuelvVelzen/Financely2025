@@ -98,7 +98,7 @@ export function TagSelect({
     }
   };
 
-  // Default rendering for tags (with color indicator)
+  // Default rendering for tags (with emoticon and color indicator)
   const children = (
     option: ISelectOption<ITag>,
     index: number,
@@ -111,6 +111,9 @@ export function TagSelect({
   ) => {
     return (
       <>
+        {option.data?.emoticon && (
+          <span className="text-base shrink-0">{option.data.emoticon}</span>
+        )}
         {option.data?.color && (
           <div
             className="size-3 rounded-full shrink-0"

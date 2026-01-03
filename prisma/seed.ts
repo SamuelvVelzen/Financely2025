@@ -17,6 +17,7 @@ const defaultTags = [
     name: "Food & Dining",
     color: "#FF6B6B",
     description: "Restaurants, groceries, and food-related expenses",
+    emoticon: "🍔",
     order: 0,
     transactionType: "EXPENSE",
   },
@@ -24,6 +25,7 @@ const defaultTags = [
     name: "Transportation",
     color: "#4ECDC4",
     description: "Gas, public transit, car maintenance, and travel",
+    emoticon: "🚗",
     order: 1,
     transactionType: "EXPENSE",
   },
@@ -31,6 +33,7 @@ const defaultTags = [
     name: "Shopping",
     color: "#9B59B6",
     description: "General shopping and retail purchases",
+    emoticon: "🛍️",
     order: 2,
     transactionType: "EXPENSE",
   },
@@ -38,6 +41,7 @@ const defaultTags = [
     name: "Entertainment",
     color: "#E91E63",
     description: "Movies, concerts, hobbies, and leisure activities",
+    emoticon: "🎬",
     order: 3,
     transactionType: "EXPENSE",
   },
@@ -45,6 +49,7 @@ const defaultTags = [
     name: "Bills & Utilities",
     color: "#F39C12",
     description: "Electricity, water, internet, phone, and other bills",
+    emoticon: "💡",
     order: 4,
     transactionType: "EXPENSE",
   },
@@ -52,6 +57,7 @@ const defaultTags = [
     name: "Healthcare",
     color: "#2ECC71",
     description: "Medical expenses, prescriptions, and health services",
+    emoticon: "🏥",
     order: 5,
     transactionType: "EXPENSE",
   },
@@ -59,6 +65,7 @@ const defaultTags = [
     name: "Income",
     color: "#27AE60",
     description: "Salary, freelance income, and other earnings",
+    emoticon: "💰",
     order: 6,
     transactionType: "INCOME",
   },
@@ -66,13 +73,15 @@ const defaultTags = [
     name: "Savings",
     color: "#3498DB",
     description: "Savings transfers and investment contributions",
+    emoticon: "💾",
     order: 7,
-    transactionType: null,
+    transactionType: "EXPENSE",
   },
   {
     name: "Other",
     color: "#95A5A6",
     description: "Miscellaneous expenses that don't fit other categories",
+    emoticon: "📦",
     order: 8,
     transactionType: "EXPENSE",
   },
@@ -167,11 +176,12 @@ async function main() {
       });
 
       if (existingTag) {
-        // Update existing tag with transactionType
+        // Update existing tag with transactionType and emoticon
         await prisma.tag.update({
           where: { id: existingTag.id },
           data: {
             transactionType: tag.transactionType,
+            emoticon: tag.emoticon ?? null,
           },
         });
         console.log(`  🔄 Updated tag: ${tag.name}`);
@@ -184,6 +194,7 @@ async function main() {
             name: tag.name,
             color: tag.color,
             description: tag.description,
+            emoticon: tag.emoticon ?? null,
             order: tag.order,
             transactionType: tag.transactionType,
           },

@@ -38,7 +38,7 @@ const getEmptyFormValues = (): FormData => ({
   name: "",
   color: "",
   description: "",
-  transactionType: undefined,
+  emoticon: "",
 });
 
 export function AddOrCreateTagDialog({
@@ -98,15 +98,12 @@ export function AddOrCreateTagDialog({
           name: tag.name,
           color: tag.color ?? "",
           description: tag.description ?? "",
-          transactionType: tag.transactionType ?? undefined,
+          emoticon: tag.emoticon ?? "",
         });
       } else {
         // Create mode: reset to defaults or use initial name
         form.reset({
-          name: initialName || "",
-          color: "",
-          description: "",
-          transactionType: undefined,
+          emoticon: initialValues?.emoticon || "",
         });
       }
     } else {
@@ -131,9 +128,9 @@ export function AddOrCreateTagDialog({
         data.description && data.description.trim() !== ""
           ? data.description.trim()
           : null,
-      transactionType:
-        data.transactionType && data.transactionType !== ""
-          ? (data.transactionType as ITransactionType)
+      emoticon:
+        data.emoticon && data.emoticon.trim() !== ""
+          ? data.emoticon.trim()
           : null,
     };
 
@@ -195,6 +192,13 @@ export function AddOrCreateTagDialog({
                 label="Name"
                 disabled={pending}
                 required
+              />
+              <EmoticonInput
+                name="emoticon"
+                label="Emoticon"
+                placeholder="e.g., 🍔 or :food:"
+                disabled={pending}
+                hint="Optional emoji to represent this tag. Type :emoji: for autocomplete or click the button to browse."
               />
               <ColorInput
                 name="color"

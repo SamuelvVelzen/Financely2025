@@ -66,6 +66,7 @@ export class TagService {
           name: string;
           color: string | null;
           description: string | null;
+            emoticon: string | null;
           order: number;
           transactionType: "EXPENSE" | "INCOME" | null | undefined;
           createdAt: Date;
@@ -76,6 +77,7 @@ export class TagService {
             name: tag.name,
             color: tag.color,
             description: tag.description,
+              emoticon: tag.emoticon,
             order: tag.order,
             transactionType: tag.transactionType ?? null,
             createdAt: tag.createdAt.toISOString(),
@@ -105,8 +107,9 @@ export class TagService {
       name: tag.name,
       color: tag.color,
       description: tag.description,
+      emoticon: tag.emoticon,
       order: tag.order,
-      transactionType: tag.transactionType ?? null,
+      transactionType: tag.transactionType,
       createdAt: tag.createdAt.toISOString(),
       updatedAt: tag.updatedAt.toISOString(),
     });
@@ -155,6 +158,7 @@ export class TagService {
         name: validated.name,
         color: validated.color ?? null,
         description: validated.description ?? null,
+        emoticon: validated.emoticon ?? null,
         order,
         transactionType: validated.transactionType ?? null,
       },
@@ -212,6 +216,9 @@ export class TagService {
         ...(validated.description !== undefined && {
           description: validated.description,
         }),
+        ...(validated.emoticon !== undefined && {
+          emoticon: validated.emoticon,
+        }),
         ...(validated.order !== undefined && { order: validated.order }),
         ...(validated.transactionType !== undefined && {
           transactionType: validated.transactionType,
@@ -224,6 +231,7 @@ export class TagService {
       name: tag.name,
       color: tag.color,
       description: tag.description,
+      emoticon: tag.emoticon,
       order: tag.order,
       transactionType: tag.transactionType ?? null,
       createdAt: tag.createdAt.toISOString(),
@@ -318,7 +326,7 @@ export class TagService {
             color: validatedItem.color ?? null,
             description: validatedItem.description ?? null,
             order,
-            transactionType: validatedItem.transactionType ?? null,
+            emoticon: validatedItem.emoticon ?? null,
           },
         });
 
@@ -327,6 +335,7 @@ export class TagService {
           name: tag.name,
           color: tag.color,
           description: tag.description,
+          emoticon: tag.emoticon,
           order: tag.order,
           transactionType: tag.transactionType,
           createdAt: tag.createdAt.toISOString(),
