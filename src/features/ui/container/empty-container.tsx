@@ -29,7 +29,7 @@ export function EmptyPage({
         </div>
       )}
 
-      <p>{emptyText}</p>
+      <p className="text-center">{emptyText}</p>
 
       {button && (
         <Button
