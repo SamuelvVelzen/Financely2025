@@ -2,7 +2,7 @@ import type { BankProfile } from "../bank.factory";
 
 export const americanExpressProfile: BankProfile = {
   columnHints: {
-    occurredAt: ["Date", "Date & Time", "Transaction Date"],
+    transactionDate: ["Date", "Date & Time", "Transaction Date"],
     name: ["Description", "Card Member", "Merchant"],
     amount: ["Amount", "Amount (USD)", "Amount (Original)"],
     currency: ["Currency", "Currency Code"],

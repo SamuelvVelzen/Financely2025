@@ -4,15 +4,25 @@
  */
 
 import type { BankEnum } from "../config/banks";
+import type { ITimePrecision } from "@/features/shared/validation/schemas";
+
+/**
+ * Result of date parsing with precision information
+ */
+export interface IDateParseResult {
+  isoString: string; // Full ISO datetime string
+  precision: ITimePrecision; // DateTime or DateOnly
+  dateOnly: string; // Calendar date in YYYY-MM-DD format
+}
 
 /**
  * Interface for date parsing strategies
  */
 export interface IDateParsingStrategy {
   /**
-   * Parse date value to ISO format string
+   * Parse date value and return ISO format string with precision information
    */
-  parseDate(value: string): string;
+  parseDate(value: string): IDateParseResult;
 }
 
 /**
@@ -20,26 +30,44 @@ export interface IDateParsingStrategy {
  * Tries ISO format first, then common formats like YYYY-MM-DD, MM/DD/YYYY, DD.MM.YYYY
  */
 export class DefaultDateParsing implements IDateParsingStrategy {
-  parseDate(value: string): string {
+  parseDate(value: string): IDateParseResult {
     if (!value) {
       throw new Error("Date is required");
     }
 
-    // Try ISO format first
-    const isoDate = new Date(value);
+    const trimmed = value.trim();
+
+    // Check if value includes time component (ISO datetime or datetime-like)
+    const hasTime = trimmed.includes("T") || / \d{1,2}:\d{2}/.test(trimmed);
+
+    // Try ISO format first (may include time)
+    const isoDate = new Date(trimmed);
     if (!isNaN(isoDate.getTime())) {
-      return isoDate.toISOString();
+      const isoString = isoDate.toISOString();
+      const dateOnly = isoString.split("T")[0];
+      const precision: ITimePrecision = hasTime ? "DateTime" : "DateOnly";
+      
+      // If date-only, normalize to noon UTC as placeholder
+      const normalizedIsoString = precision === "DateOnly" 
+        ? `${dateOnly}T12:00:00.000Z`
+        : isoString;
+
+      return {
+        isoString: normalizedIsoString,
+        precision,
+        dateOnly,
+      };
     }
 
-    // Try common formats: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, DD.MM.YYYY
+    // Try common date-only formats: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY, DD.MM.YYYY
     const formats = [
-      /^(\d{4})-(\d{2})-(\d{2})/, // YYYY-MM-DD
-      /^(\d{2})\/(\d{2})\/(\d{4})/, // MM/DD/YYYY or DD/MM/YYYY
-      /^(\d{2})\.(\d{2})\.(\d{4})/, // DD.MM.YYYY
+      /^(\d{4})-(\d{2})-(\d{2})$/, // YYYY-MM-DD (date only)
+      /^(\d{2})\/(\d{2})\/(\d{4})$/, // MM/DD/YYYY or DD/MM/YYYY (date only)
+      /^(\d{2})\.(\d{2})\.(\d{4})$/, // DD.MM.YYYY (date only)
     ];
 
     for (const format of formats) {
-      const match = value.match(format);
+      const match = trimmed.match(format);
       if (match) {
         let year: string, month: string, day: string;
 
@@ -53,7 +81,15 @@ export class DefaultDateParsing implements IDateParsingStrategy {
 
         const date = new Date(`${year}-${month}-${day}`);
         if (!isNaN(date.getTime())) {
-          return date.toISOString();
+          const dateOnly = `${year}-${month}-${day}`;
+          // Use noon UTC as placeholder for date-only
+          const isoString = `${dateOnly}T12:00:00.000Z`;
+          
+          return {
+            isoString,
+            precision: "DateOnly",
+            dateOnly,
+          };
         }
       }
     }
@@ -65,14 +101,15 @@ export class DefaultDateParsing implements IDateParsingStrategy {
 /**
  * ING strategy: YYYYMMDD format
  * Parses dates like `20251210` (2025-12-10) → ISO format
+ * ING format is always date-only (no time component)
  */
 export class IngDateParsing implements IDateParsingStrategy {
-  parseDate(value: string): string {
+  parseDate(value: string): IDateParseResult {
     if (!value) {
       throw new Error("Date is required");
     }
 
-    // ING format: YYYYMMDD (8 digits)
+    // ING format: YYYYMMDD (8 digits) - always date-only
     const match = value.trim().match(/^(\d{4})(\d{2})(\d{2})$/);
     if (!match) {
       throw new Error(
@@ -86,21 +123,30 @@ export class IngDateParsing implements IDateParsingStrategy {
       throw new Error(`Invalid date: ${value}`);
     }
 
-    return date.toISOString();
+    const dateOnly = `${year}-${month}-${day}`;
+    // Use noon UTC as placeholder for date-only
+    const isoString = `${dateOnly}T12:00:00.000Z`;
+
+    return {
+      isoString,
+      precision: "DateOnly",
+      dateOnly,
+    };
   }
 }
 
 /**
  * Amex strategy: MM/DD/YYYY format
  * Parses dates like `06/30/2025` → ISO format
+ * Amex format is typically date-only (no time component)
  */
 export class AmexDateParsing implements IDateParsingStrategy {
-  parseDate(value: string): string {
+  parseDate(value: string): IDateParseResult {
     if (!value) {
       throw new Error("Date is required");
     }
 
-    // Amex format: MM/DD/YYYY
+    // Amex format: MM/DD/YYYY - typically date-only
     const match = value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (!match) {
       throw new Error(
@@ -114,7 +160,15 @@ export class AmexDateParsing implements IDateParsingStrategy {
       throw new Error(`Invalid date: ${value}`);
     }
 
-    return date.toISOString();
+    const dateOnly = `${year}-${month}-${day}`;
+    // Use noon UTC as placeholder for date-only
+    const isoString = `${dateOnly}T12:00:00.000Z`;
+
+    return {
+      isoString,
+      precision: "DateOnly",
+      dateOnly,
+    };
   }
 }
 

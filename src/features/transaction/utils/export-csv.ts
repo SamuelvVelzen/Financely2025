@@ -26,7 +26,10 @@ function getColumnValue(transaction: ITransaction, column: string): string {
     case "Amount":
       return formatCurrency(transaction.amount, transaction.currency);
     case "Date":
-      return DateFormatHelpers.formatIsoStringToString(transaction.occurredAt);
+      return DateFormatHelpers.formatIsoStringToString(
+        transaction.transactionDate,
+        transaction.timePrecision
+      );
     case "Payment Method":
       return PAYMENT_METHOD_LABELS[transaction.paymentMethod];
     case "Description":

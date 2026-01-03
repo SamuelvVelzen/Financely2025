@@ -46,7 +46,7 @@ const FIELD_NAME_PATTERNS: Record<string, string[]> = {
   type: ["type", "transaction_type", "kind", "category"],
   amount: ["amount", "value", "betrag", "sum", "total", "price", "cost"],
   currency: ["currency", "curr", "ccy", "währung"],
-  occurredAt: [
+  transactionDate: [
     "date",
     "transaction_date",
     "booking date",
@@ -492,18 +492,28 @@ export async function convertRowToTransaction(
           transaction.currency = parseCurrency(rawValue);
         }
         break;
-      case "occurredAt":
+      case "transactionDate":
         // Priority: Use extracted date/time from notifications if available
         // 1. Use dateTime (most precise, includes time)
         // 2. Fallback to valueDate (date only)
         // 3. Fallback to mapped date field (existing behavior)
         if (extracted.dateTime) {
-          transaction.occurredAt = extracted.dateTime;
+          // Extracted datetime has time component
+          const dateObj = new Date(extracted.dateTime);
+          transaction.transactionDate = extracted.dateTime;
+          transaction.timePrecision = "DateTime";
         } else if (extracted.valueDate) {
-          transaction.occurredAt = extracted.valueDate;
+          // Extracted valueDate is date-only
+          const dateObj = new Date(extracted.valueDate);
+          const dateOnly = dateObj.toISOString().split("T")[0];
+          transaction.transactionDate = `${dateOnly}T12:00:00.000Z`; // Placeholder time for DateOnly
+          transaction.timePrecision = "DateOnly";
         } else {
+          // Parse using date parsing strategy
           const dateStrategy = DateParsingFactory.getStrategy(bank);
-          transaction.occurredAt = dateStrategy.parseDate(rawValue);
+          const parseResult = dateStrategy.parseDate(rawValue);
+          transaction.transactionDate = parseResult.isoString;
+          transaction.timePrecision = parseResult.precision;
         }
         break;
       case "name":
@@ -860,7 +870,7 @@ export async function convertRowsToCandidates(
           type: "EXPENSE",
           amount: "0",
           currency: "EUR",
-          occurredAt: new Date().toISOString(),
+          transactionDate: new Date().toISOString(),
           name: "Invalid transaction",
           paymentMethod: "OTHER",
           tagIds: [],

@@ -35,6 +35,11 @@ enum MessageType {
   ERROR
 }
 
+enum TimePrecision {
+  DateTime
+  DateOnly
+}
+
 // ----------
 // Models
 // ----------
@@ -145,7 +150,8 @@ model Transaction {
   type          TransactionType
   amount        Decimal
   currency      String
-  occurredAt    DateTime
+  transactionDate DateTime       // Authoritative calendar date for day-based operations
+  timePrecision TimePrecision   @default(DateTime) // DateTime = date + time known, DateOnly = date known, time unknown
 
   name          String
   description   String?
@@ -163,8 +169,8 @@ model Transaction {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
-  @@index([userId, occurredAt])
-  @@index([userId, type, occurredAt])
+  @@index([userId, transactionDate])
+  @@index([userId, type, transactionDate])
 }
 
 model Tag {

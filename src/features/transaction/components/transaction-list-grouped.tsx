@@ -85,7 +85,8 @@ export function TransactionListGrouped({
                       <span className="text-text-muted">•</span>
                       <span className="text-sm text-text-muted whitespace-nowrap">
                         {DateFormatHelpers.formatIsoStringToString(
-                          transaction.occurredAt
+                          transaction.transactionDate,
+                          transaction.timePrecision
                         )}
                       </span>
                       <span className="text-text-muted">•</span>

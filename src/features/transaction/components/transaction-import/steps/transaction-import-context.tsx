@@ -30,7 +30,7 @@ import { getDefaultStrategyForBank } from "../../../services/csv-type-detection"
 
 /**
  * Compute required mapping fields based on bank and whether default currency is set.
- * Base required fields: amount, occurredAt, name
+ * Base required fields: amount, transactionDate, name
  * Additional fields based on bank profile (e.g., ING requires "type")
  * Currency is required if no default currency is set
  */
@@ -39,7 +39,7 @@ function getRequiredMappingFields(
   hasDefaultCurrency: boolean
 ): ITransactionFieldName[] {
   // Base required fields (always needed in mapping)
-  const base: ITransactionFieldName[] = ["amount", "occurredAt", "name"];
+  const base: ITransactionFieldName[] = ["amount", "transactionDate", "name"];
 
   // Add bank-specific required fields (e.g., ING requires "type")
   const bankRequired = BankProfileFactory.getRequiredFields(bank);
@@ -351,7 +351,7 @@ export function TransactionImportProvider({
         !candidate ||
         !candidate.data.type ||
         !candidate.data.amount ||
-        !candidate.data.occurredAt ||
+        !candidate.data.transactionDate ||
         !candidate.data.name
       ) {
         continue;
@@ -362,7 +362,7 @@ export function TransactionImportProvider({
         type: candidate.data.type,
         currency: candidate.data.currency || defaultCurrency || "EUR",
         amount: candidate.data.amount,
-        occurredAt: candidate.data.occurredAt,
+        transactionDate: candidate.data.transactionDate,
         name: candidate.data.name,
         tagIds: candidate.data.tagIds || [],
       };

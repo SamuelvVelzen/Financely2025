@@ -1,7 +1,7 @@
 import type { BankProfile } from "../bank.factory";
 
 const VALIDATED_COLUMN_HINTS = {
-  occurredAt: ["Date"],
+  transactionDate: ["Date"],
   name: ["Name / Description"],
   amount: ["Amount (EUR)"],
   currency: [],
@@ -11,8 +11,8 @@ const VALIDATED_COLUMN_HINTS = {
 
 export const ingProfile: BankProfile = {
   columnHints: {
-    occurredAt: [
-      ...VALIDATED_COLUMN_HINTS.occurredAt,
+    transactionDate: [
+      ...VALIDATED_COLUMN_HINTS.transactionDate,
       "Datum",
       "Boekingsdatum",
       "Date",

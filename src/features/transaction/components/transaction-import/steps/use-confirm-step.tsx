@@ -61,7 +61,7 @@ export function useConfirmStep(): IStepConfig<IStep> {
         !candidate ||
         !candidate.data.type ||
         !candidate.data.amount ||
-        !candidate.data.occurredAt ||
+        !candidate.data.transactionDate ||
         !candidate.data.name
       ) {
         continue;
@@ -72,7 +72,7 @@ export function useConfirmStep(): IStepConfig<IStep> {
         type: candidate.data.type,
         currency: candidate.data.currency || defaultCurrency || "EUR",
         amount: candidate.data.amount,
-        occurredAt: candidate.data.occurredAt,
+        transactionDate: candidate.data.transactionDate,
         name: candidate.data.name,
         tagIds: candidate.data.tagIds || [],
       };

@@ -7,7 +7,7 @@ export const SYSTEM_REQUIRED_FIELDS = [
   "type",
   "amount",
   "currency",
-  "occurredAt",
+  "transactionDate",
   "name",
   "paymentMethod",
 ] as const;
@@ -16,7 +16,7 @@ export type ITransactionFieldName =
   | "type"
   | "amount"
   | "currency"
-  | "occurredAt"
+  | "transactionDate"
   | "name"
   | "description"
   | "notes"
@@ -49,7 +49,7 @@ export const TRANSACTION_FIELDS: ITransactionFieldMetadata[] = [
     description: "Transaction amount (decimal number)",
   },
   {
-    name: "occurredAt",
+    name: "transactionDate",
     label: "Date",
     required: true,
     type: "date",

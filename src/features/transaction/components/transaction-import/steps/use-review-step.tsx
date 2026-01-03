@@ -133,9 +133,10 @@ function ReviewStepContent({
               </BodyCell>
               <BodyCell>
                 <span className="text-sm text-text-muted">
-                  {candidate.data.occurredAt
+                  {candidate.data.transactionDate
                     ? DateFormatHelpers.formatIsoStringToString(
-                        candidate.data.occurredAt
+                        candidate.data.transactionDate,
+                        candidate.data.timePrecision
                       )
                     : "—"}
                 </span>

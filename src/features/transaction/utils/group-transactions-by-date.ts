@@ -10,19 +10,20 @@ export interface IDateGroup {
 
 /**
  * Group transactions by date
- * - Extracts date portion from ISO datetime strings
+ * - Uses transactionDate (authoritative calendar date) for grouping
  * - Groups transactions into date buckets
  * - Sorts dates descending (most recent first)
  * - Formats date headers intelligently
+ * - Uses precision-aware sorting within groups
  */
 export function groupTransactionsByDate(
   transactions: ITransaction[]
 ): IDateGroup[] {
-  // Group transactions by date (date portion only, ignoring time)
+  // Group transactions by transactionDate (authoritative calendar date)
   const dateMap = new Map<string, ITransaction[]>();
 
   for (const transaction of transactions) {
-    const dateObj = parseISO(transaction.occurredAt);
+    const dateObj = parseISO(transaction.transactionDate);
     // Create a date-only key (YYYY-MM-DD)
     const dateKey = dateObj.toISOString().split("T")[0];
 
@@ -41,10 +42,35 @@ export function groupTransactionsByDate(
         date: dateKey,
         dateHeader: formatDateHeader(dateObj),
         transactions: transactions.sort((a, b) => {
-          // Sort transactions within group by time (most recent first)
-          return (
-            new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()
-          );
+          // Precision-aware sorting within group (R13)
+          // Primary: transactionDate (should be same, but ensure consistency)
+          const dateCompare =
+            new Date(b.transactionDate).getTime() -
+            new Date(a.transactionDate).getTime();
+          if (dateCompare !== 0) return dateCompare;
+
+          // Secondary: precision-aware
+          if (
+            a.timePrecision === "DateTime" &&
+            b.timePrecision === "DateTime"
+          ) {
+            // Both have time: sort by transactionDate time (most recent first)
+            return (
+              new Date(b.transactionDate).getTime() -
+              new Date(a.transactionDate).getTime()
+            );
+          } else if (
+            a.timePrecision === "DateOnly" &&
+            b.timePrecision === "DateOnly"
+          ) {
+            // Both date-only: sort by createdAt (stable tie-breaker, most recent first)
+            return (
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+          } else {
+            // Mixed: DateTime comes before DateOnly (more precise first)
+            return a.timePrecision === "DateTime" ? -1 : 1;
+          }
         }),
       };
     })

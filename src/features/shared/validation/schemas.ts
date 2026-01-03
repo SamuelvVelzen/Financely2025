@@ -50,11 +50,13 @@ export const MessageTypeSchema = z.enum([
   "WARNING",
   "ERROR",
 ]);
+export const TimePrecisionSchema = z.enum(["DateTime", "DateOnly"]);
 
 // Re-export enum types for convenience
 export type { ICurrency, IPaymentMethod };
 export type ITransactionType = z.infer<typeof TransactionTypeSchema>;
 export type IMessageType = z.infer<typeof MessageTypeSchema>;
+export type ITimePrecision = z.infer<typeof TimePrecisionSchema>;
 
 /**
  * Get currency options for select inputs
@@ -331,7 +333,8 @@ export const TransactionSchema = z.object({
   type: TransactionTypeSchema,
   amount: DecimalStringSchema,
   currency: CurrencySchema,
-  occurredAt: ISODateStringSchema,
+  transactionDate: ISODateStringSchema,
+  timePrecision: TimePrecisionSchema,
   name: z.string(),
   description: z.string().nullable(),
   externalId: z.string().nullable(),
@@ -346,7 +349,8 @@ export const CreateTransactionInputSchema = z.object({
   type: TransactionTypeSchema,
   amount: DecimalStringSchema,
   currency: CurrencySchema,
-  occurredAt: ISODateStringSchema,
+  transactionDate: ISODateStringSchema,
+  timePrecision: TimePrecisionSchema.optional(),
   name: z.string().min(1).max(200),
   description: z.string().max(1000).nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),

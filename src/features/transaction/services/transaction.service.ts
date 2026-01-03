@@ -45,11 +45,12 @@ export class TransactionService {
     } = validated;
 
     // Build where clause
+    // Use transactionDate for day-based filters (includes both precision types)
     const where: Prisma.TransactionWhereInput = {
       userId,
       ...(from || to
         ? {
-            occurredAt: {
+            transactionDate: {
               ...(from ? { gte: new Date(from) } : {}),
               ...(to ? { lte: new Date(to) } : {}),
             },
@@ -81,36 +82,55 @@ export class TransactionService {
       ...(paymentMethod && paymentMethod.length > 0
         ? { paymentMethod: { in: paymentMethod } }
         : {}),
-      ...(currency && currency.length > 0 ? { currency: { in: currency } } : {}),
+      ...(currency && currency.length > 0
+        ? { currency: { in: currency } }
+        : {}),
     };
 
     // Parse sort
+    // For transactionDate sorting, use precision-aware logic:
+    // Primary: transactionDate (calendar day)
+    // Secondary: transactionDate time for DateTime, createdAt for DateOnly
     const [sortField, sortDirection] = sort?.split(":") ?? [
-      "occurredAt",
+      "transactionDate",
       "desc",
     ];
-    const orderBy: Prisma.TransactionOrderByWithRelationInput = {};
-    if (sortField === "occurredAt") {
-      orderBy.occurredAt = sortDirection === "asc" ? "asc" : "desc";
+    const orderBy: Prisma.TransactionOrderByWithRelationInput[] = [];
+
+    if (sortField === "transactionDate") {
+      // Primary sort by transactionDate (calendar day)
+      orderBy.push({
+        transactionDate: sortDirection === "asc" ? "asc" : "desc",
+      });
     } else if (sortField === "amount") {
-      orderBy.amount = sortDirection === "asc" ? "asc" : "desc";
+      orderBy.push({
+        amount: sortDirection === "asc" ? "asc" : "desc",
+      });
     } else if (sortField === "name") {
-      orderBy.name = sortDirection === "asc" ? "asc" : "desc";
-    } else if (sortField === "primaryTag") {
-      orderBy.primaryTag = {
+      orderBy.push({
         name: sortDirection === "asc" ? "asc" : "desc",
-      };
+      });
+    } else if (sortField === "primaryTag") {
+      orderBy.push({
+        primaryTag: {
+          name: sortDirection === "asc" ? "asc" : "desc",
+        },
+      });
     } else {
-      orderBy.occurredAt = "desc";
+      orderBy.push({
+        transactionDate: "desc",
+      });
     }
 
     // Get total count
     const total = await prisma.transaction.count({ where });
 
     // Get paginated results
+    // Use Prisma's orderBy (transactionDate primary)
+    // For precision-aware sorting within same day, we'll handle in post-processing if needed
     const transactions = await prisma.transaction.findMany({
       where,
-      orderBy,
+      orderBy: orderBy.length === 1 ? orderBy[0] : orderBy,
       skip: (page - 1) * limit,
       take: limit,
       include: {
@@ -138,7 +158,8 @@ export class TransactionService {
         type: tx.type,
         amount: tx.amount.toString(),
         currency: tx.currency,
-        occurredAt: tx.occurredAt.toISOString(),
+        transactionDate: tx.transactionDate.toISOString(),
+        timePrecision: tx.timePrecision,
         name: tx.name,
         description: tx.description,
         externalId: tx.externalId,
@@ -208,7 +229,8 @@ export class TransactionService {
       type: transaction.type,
       amount: transaction.amount.toString(),
       currency: transaction.currency,
-      occurredAt: transaction.occurredAt.toISOString(),
+      transactionDate: transaction.transactionDate.toISOString(),
+      timePrecision: transaction.timePrecision,
       name: transaction.name,
       description: transaction.description,
       externalId: transaction.externalId,
@@ -277,13 +299,35 @@ export class TransactionService {
       }
     }
 
+    // Determine timePrecision: use provided value, or default based on context
+    // For manual entry (no externalId), default to DateOnly
+    // For API/import, default to DateTime
+    const timePrecision =
+      validated.timePrecision ??
+      (validated.externalId ? "DateTime" : "DateOnly");
+
+    // Parse transactionDate and normalize based on precision
+    const transactionDate = new Date(validated.transactionDate);
+
+    // Validate: if DateOnly, ensure time is placeholder (noon UTC)
+    if (timePrecision === "DateOnly") {
+      const timeStr = transactionDate.toISOString().split("T")[1];
+      // Check if time is not noon UTC (12:00:00.000Z)
+      if (timeStr !== "12:00:00.000Z") {
+        // Normalize to noon UTC for date-only
+        const dateOnly = transactionDate.toISOString().split("T")[0];
+        transactionDate.setUTCHours(12, 0, 0, 0);
+      }
+    }
+
     const transaction = await prisma.transaction.create({
       data: {
         userId,
         type: validated.type,
         amount: validated.amount,
         currency: validated.currency,
-        occurredAt: new Date(validated.occurredAt),
+        transactionDate,
+        timePrecision,
         name: validated.name,
         description: validated.description ?? null,
         notes: validated.notes ?? null,
@@ -319,7 +363,8 @@ export class TransactionService {
       type: transaction.type,
       amount: transaction.amount.toString(),
       currency: transaction.currency,
-      occurredAt: transaction.occurredAt.toISOString(),
+      transactionDate: transaction.transactionDate.toISOString(),
+      timePrecision: transaction.timePrecision,
       name: transaction.name,
       description: transaction.description,
       externalId: transaction.externalId,
@@ -404,9 +449,27 @@ export class TransactionService {
           ) {
             errors.push({
               index,
-              message: "Primary tag transaction type does not match transaction type",
+              message:
+                "Primary tag transaction type does not match transaction type",
             });
             continue;
+          }
+        }
+
+        // Determine timePrecision and transactionDate (same logic as createTransaction)
+        const timePrecision =
+          validatedItem.timePrecision ??
+          (validatedItem.externalId ? "DateTime" : "DateOnly");
+
+        // Parse transactionDate and normalize based on precision
+        const transactionDate = new Date(validatedItem.transactionDate);
+
+        // Validate: if DateOnly, ensure time is placeholder
+        if (timePrecision === "DateOnly") {
+          const timeStr = transactionDate.toISOString().split("T")[1];
+          if (timeStr !== "12:00:00.000Z") {
+            const dateOnly = transactionDate.toISOString().split("T")[0];
+            transactionDate.setUTCHours(12, 0, 0, 0);
           }
         }
 
@@ -417,7 +480,8 @@ export class TransactionService {
             type: validatedItem.type,
             amount: validatedItem.amount,
             currency: validatedItem.currency,
-            occurredAt: new Date(validatedItem.occurredAt),
+            transactionDate,
+            timePrecision,
             name: validatedItem.name,
             description: validatedItem.description ?? null,
             notes: validatedItem.notes ?? null,
@@ -453,7 +517,8 @@ export class TransactionService {
           type: transaction.type,
           amount: transaction.amount.toString(),
           currency: transaction.currency,
-          occurredAt: transaction.occurredAt.toISOString(),
+          transactionDate: transaction.transactionDate.toISOString(),
+          timePrecision: transaction.timePrecision,
           name: transaction.name,
           description: transaction.description,
           externalId: transaction.externalId,
@@ -537,8 +602,7 @@ export class TransactionService {
         }
 
         // Get transaction type (use validated type if updating, otherwise use existing)
-        const transactionType =
-          validated.type ?? existing.type;
+        const transactionType = validated.type ?? existing.type;
 
         // Validate transaction type match
         if (
@@ -552,37 +616,79 @@ export class TransactionService {
       }
     }
 
+    // Handle transactionDate and precision updates
+    let updateData: any = {
+      ...(validated.type && { type: validated.type }),
+      ...(validated.amount && { amount: validated.amount }),
+      ...(validated.currency && { currency: validated.currency }),
+      ...(validated.name && { name: validated.name }),
+      ...(validated.description !== undefined && {
+        description: validated.description,
+      }),
+      ...(validated.notes !== undefined && {
+        notes: validated.notes,
+      }),
+      ...(validated.externalId !== undefined && {
+        externalId: validated.externalId,
+      }),
+      ...(validated.paymentMethod !== undefined && {
+        paymentMethod: validated.paymentMethod,
+      }),
+      ...(validated.tagIds !== undefined && {
+        tags: {
+          set: validated.tagIds.map((id) => ({ id })),
+        },
+      }),
+      ...(validated.primaryTagId !== undefined && {
+        primaryTagId: validated.primaryTagId,
+      }),
+    };
+
+    // Handle transactionDate and precision updates
+    if (validated.transactionDate !== undefined) {
+      const transactionDate = new Date(validated.transactionDate);
+      const dateOnly = transactionDate.toISOString().split("T")[0];
+      const timeStr = transactionDate.toISOString().split("T")[1];
+
+      // Detect if time was set or removed
+      // If timePrecision is explicitly provided, use it
+      // Otherwise, infer from transactionDate: if time is noon UTC (12:00:00.000Z), it's DateOnly
+      let newPrecision = validated.timePrecision;
+      if (newPrecision === undefined) {
+        // Infer precision from time component
+        // Check if time is the placeholder (12:00:00.000Z) or has actual time
+        if (timeStr === "12:00:00.000Z") {
+          newPrecision = "DateOnly";
+          // Normalize to noon UTC
+          transactionDate.setUTCHours(12, 0, 0, 0);
+        } else {
+          newPrecision = "DateTime";
+        }
+      } else if (newPrecision === "DateOnly") {
+        // Normalize to noon UTC for date-only
+        transactionDate.setUTCHours(12, 0, 0, 0);
+      }
+
+      updateData.transactionDate = transactionDate;
+      updateData.timePrecision = newPrecision;
+    } else if (validated.timePrecision !== undefined) {
+      // Only precision changed, update transactionDate if needed
+      if (
+        validated.timePrecision === "DateOnly" &&
+        existing.timePrecision === "DateTime"
+      ) {
+        // Switching to DateOnly: normalize transactionDate to noon UTC
+        const dateOnly = new Date(existing.transactionDate)
+          .toISOString()
+          .split("T")[0];
+        updateData.transactionDate = new Date(dateOnly + "T12:00:00.000Z");
+      }
+      updateData.timePrecision = validated.timePrecision;
+    }
+
     const transaction = await prisma.transaction.update({
       where: { id: transactionId },
-      data: {
-        ...(validated.type && { type: validated.type }),
-        ...(validated.amount && { amount: validated.amount }),
-        ...(validated.currency && { currency: validated.currency }),
-        ...(validated.occurredAt && {
-          occurredAt: new Date(validated.occurredAt),
-        }),
-        ...(validated.name && { name: validated.name }),
-        ...(validated.description !== undefined && {
-          description: validated.description,
-        }),
-        ...(validated.notes !== undefined && {
-          notes: validated.notes,
-        }),
-        ...(validated.externalId !== undefined && {
-          externalId: validated.externalId,
-        }),
-        ...(validated.paymentMethod !== undefined && {
-          paymentMethod: validated.paymentMethod,
-        }),
-        ...(validated.tagIds !== undefined && {
-          tags: {
-            set: validated.tagIds.map((id) => ({ id })),
-          },
-        }),
-        ...(validated.primaryTagId !== undefined && {
-          primaryTagId: validated.primaryTagId,
-        }),
-      },
+      data: updateData,
       include: {
         tags: {
           select: {
@@ -606,7 +712,8 @@ export class TransactionService {
       type: transaction.type,
       amount: transaction.amount.toString(),
       currency: transaction.currency,
-      occurredAt: transaction.occurredAt.toISOString(),
+      transactionDate: transaction.transactionDate.toISOString(),
+      timePrecision: transaction.timePrecision,
       name: transaction.name,
       description: transaction.description,
       externalId: transaction.externalId,
@@ -701,7 +808,8 @@ export class TransactionService {
       type: updated.type,
       amount: updated.amount.toString(),
       currency: updated.currency,
-      occurredAt: updated.occurredAt.toISOString(),
+      transactionDate: updated.transactionDate.toISOString(),
+      timePrecision: updated.timePrecision,
       name: updated.name,
       description: updated.description,
       externalId: updated.externalId,
@@ -711,6 +819,7 @@ export class TransactionService {
         name: tag.name,
         color: tag.color,
       })),
+      primaryTag: null,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
     });
@@ -751,6 +860,13 @@ export class TransactionService {
             color: true,
           },
         },
+        primaryTag: {
+          select: {
+            id: true,
+            name: true,
+            color: true,
+          },
+        },
       },
     });
 
@@ -759,7 +875,8 @@ export class TransactionService {
       type: updated.type,
       amount: updated.amount.toString(),
       currency: updated.currency,
-      occurredAt: updated.occurredAt.toISOString(),
+      transactionDate: updated.transactionDate.toISOString(),
+      timePrecision: updated.timePrecision,
       name: updated.name,
       description: updated.description,
       externalId: updated.externalId,
@@ -769,6 +886,13 @@ export class TransactionService {
         name: tag.name,
         color: tag.color,
       })),
+      primaryTag: updated.primaryTag
+        ? {
+            id: updated.primaryTag.id,
+            name: updated.primaryTag.name,
+            color: updated.primaryTag.color,
+          }
+        : null,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
     });
