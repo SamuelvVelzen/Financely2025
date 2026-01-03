@@ -17,7 +17,8 @@ import { Loading } from "@/features/ui/loading/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
-import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiArrowDownTray, HiOutlineTag, HiPlus } from "react-icons/hi2";
 import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
@@ -28,15 +29,37 @@ type ITagSearchFormValues = {
   searchQuery: string;
 };
 
-export function TagOverview() {
+interface ITagOverviewProps {
+  initialSearchQuery?: string;
+}
+
+export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
+  const navigate = useNavigate();
   const form = useForm<ITagSearchFormValues>({
     defaultValues: {
-      searchQuery: "",
+      searchQuery: initialSearchQuery,
     },
   });
 
+  // Update form when initialSearchQuery changes (e.g., from URL navigation)
+  useEffect(() => {
+    if (form.getValues("searchQuery") !== initialSearchQuery) {
+      form.setValue("searchQuery", initialSearchQuery, { shouldDirty: false });
+    }
+  }, [initialSearchQuery, form]);
+
   const searchQuery = form.watch("searchQuery") ?? "";
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+
+  // Sync search query changes to query params
+  useEffect(() => {
+    const trimmedQuery = debouncedSearchQuery.trim();
+    navigate({
+      to: "/tags",
+      search: trimmedQuery ? { q: trimmedQuery } : {},
+      replace: true, // Use replace to avoid cluttering browser history
+    });
+  }, [debouncedSearchQuery, navigate]);
 
   // Build query with search filter (backend filtering)
   const query = useMemo(() => {

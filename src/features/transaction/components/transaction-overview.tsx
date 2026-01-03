@@ -11,6 +11,8 @@ import {
   useDeleteTransaction,
   useInfiniteTransactions,
 } from "@/features/transaction/hooks/useTransactions";
+import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
+import { serializeFilterStateToQuery } from "@/features/transaction/utils/transaction-filter-model";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
@@ -23,7 +25,8 @@ import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { formatMonthYear } from "@/features/util/date/date-helpers";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
-import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import {
   HiArrowDownTray,
   HiArrowsRightLeft,
@@ -37,7 +40,15 @@ import { TransactionListGrouped } from "./transaction-list-grouped";
 
 const PAGE_SIZE = 20;
 
-export function TransactionOverview() {
+interface ITransactionOverviewProps {
+  initialState?: Partial<ITransactionFilterState>;
+}
+
+export function TransactionOverview({
+  initialState,
+}: ITransactionOverviewProps) {
+  const navigate = useNavigate();
+
   // Use shared filter state hook (includes form)
   const {
     filterState,
@@ -47,9 +58,22 @@ export function TransactionOverview() {
     setTagFilter,
     clearAllFilters,
     hasActiveFilters,
-  } = useTransactionFilters();
+  } = useTransactionFilters({ initialState });
 
   const searchQuery = form.watch("searchQuery") ?? "";
+
+  // Debounce filter state for URL updates to avoid excessive navigation
+  const debouncedFilterState = useDebouncedValue(filterState, 300);
+
+  // Sync filter state changes to query params
+  useEffect(() => {
+    const queryParams = serializeFilterStateToQuery(debouncedFilterState);
+    navigate({
+      to: "/transactions",
+      search: queryParams,
+      replace: true, // Use replace to avoid cluttering browser history
+    });
+  }, [debouncedFilterState, navigate]);
 
   // Build query with all filters (backend filtering) - no page param for infinite query
   const query = useMemo((): Parameters<typeof useInfiniteTransactions>[0] => {
