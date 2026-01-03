@@ -449,15 +449,13 @@ export function serializeFilterStateToQuery(
 ): Record<string, string> {
   const params: Record<string, string> = {};
 
-  // Date filter
-  if (state.dateFilter.type !== DEFAULT_FILTER_STATE.dateFilter.type) {
-    params.dateType = state.dateFilter.type;
-    if (state.dateFilter.from) {
-      params.dateFrom = state.dateFilter.from;
-    }
-    if (state.dateFilter.to) {
-      params.dateTo = state.dateFilter.to;
-    }
+  // Date filter - always include to preserve state in URLs (for sharing/bookmarking)
+  params.dateType = state.dateFilter.type;
+  if (state.dateFilter.from) {
+    params.dateFrom = state.dateFilter.from;
+  }
+  if (state.dateFilter.to) {
+    params.dateTo = state.dateFilter.to;
   }
 
   // Price filter
