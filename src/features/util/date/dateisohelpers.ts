@@ -27,3 +27,38 @@ export function datetimeLocalToIso(datetimeLocal: string): string {
   return new Date(datetimeLocal).toISOString();
 }
 
+/**
+ * Convert ISO datetime string to date-only format (YYYY-MM-DD)
+ * @param isoString - ISO datetime string (e.g., "2024-01-15T14:30:00.000Z")
+ * @returns Date-only format string (e.g., "2024-01-15")
+ */
+export function isoToDateOnly(isoString: string): string {
+  const date = new Date(isoString);
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Convert date-only format to datetime-local format with default time
+ * @param dateOnly - Date-only format string (e.g., "2024-01-15")
+ * @param defaultTime - Default time in HH:mm format (default: "12:00")
+ * @returns Datetime-local format string (e.g., "2024-01-15T12:00")
+ */
+export function dateOnlyToDatetimeLocal(
+  dateOnly: string,
+  defaultTime: string = "12:00"
+): string {
+  return `${dateOnly}T${defaultTime}`;
+}
+
+/**
+ * Convert date-only format to ISO datetime string with noon UTC placeholder
+ * @param dateOnly - Date-only format string (e.g., "2024-01-15")
+ * @returns ISO datetime string (e.g., "2024-01-15T12:00:00.000Z")
+ */
+export function dateOnlyToIso(dateOnly: string): string {
+  return new Date(`${dateOnly}T12:00:00.000Z`).toISOString();
+}
+

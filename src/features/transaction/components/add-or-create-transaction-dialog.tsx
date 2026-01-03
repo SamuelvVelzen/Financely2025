@@ -14,6 +14,7 @@ import {
   useUpdateExpense,
   useUpdateIncome,
 } from "@/features/transaction/hooks/useTransactions";
+import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -25,7 +26,10 @@ import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import { useToast } from "@/features/ui/toast";
 import {
+  dateOnlyToDatetimeLocal,
+  dateOnlyToIso,
   datetimeLocalToIso,
+  isoToDateOnly,
   isoToDatetimeLocal,
 } from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,7 +48,7 @@ type IAddOrCreateTransactionDialog = {
 const TransactionFormSchema = CreateTransactionInputSchema.omit({
   type: true,
   amount: true,
-  occurredAt: true,
+  transactionDate: true,
 }).extend({
   type: TransactionTypeSchema,
   amount: z
@@ -54,7 +58,7 @@ const TransactionFormSchema = CreateTransactionInputSchema.omit({
       const parsed = Number(value);
       return Number.isFinite(parsed) && parsed > 0;
     }, "Amount must be positive"),
-  occurredAt: z.string().min(1, "Date is required"),
+  transactionDate: z.string().min(1, "Date is required"),
   tagIds: z.array(z.string()).optional().default([]),
   primaryTagId: z.string().nullable().optional(),
 });
@@ -65,7 +69,7 @@ const getEmptyFormValues = (): FormData => ({
   amount: "",
   currency: "EUR",
   type: "EXPENSE",
-  occurredAt: "",
+  transactionDate: "",
   paymentMethod: "OTHER",
   description: "",
   tagIds: [],
@@ -85,6 +89,7 @@ export function AddOrCreateTransactionDialog({
 }: IAddOrCreateTransactionDialog) {
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [hasTime, setHasTime] = useState(false);
   const isEditMode = !!transaction;
   const { mutate: createExpense } = useCreateExpense();
   const { mutate: createIncome } = useCreateIncome();
@@ -131,26 +136,35 @@ export function AddOrCreateTransactionDialog({
     if (open) {
       if (transaction) {
         // Edit mode: populate form with existing transaction data
+        const isDateTime = transaction.timePrecision === "DateTime";
+        setHasTime(isDateTime);
+
+        // For DateOnly: use date-only format, for DateTime: use datetime-local format
+        const transactionDateValue = isDateTime
+          ? isoToDatetimeLocal(transaction.transactionDate)
+          : isoToDateOnly(transaction.transactionDate);
+
         form.reset({
           name: transaction.name,
           amount: transaction.amount,
           currency: transaction.currency,
           type: transaction.type,
-          occurredAt: isoToDatetimeLocal(transaction.occurredAt),
+          transactionDate: transactionDateValue,
           paymentMethod: transaction.paymentMethod,
           description: transaction.description ?? "",
           tagIds: transaction.tags.map((tag) => tag.id),
           primaryTagId: transaction.primaryTag?.id ?? null,
         });
       } else {
-        // Create mode: reset to defaults with current date/time
+        // Create mode: reset to defaults with current date (no time - DateOnly default)
         const now = new Date();
+        setHasTime(false);
         form.reset({
           name: "",
           amount: "",
           currency: "EUR",
           type: "EXPENSE",
-          occurredAt: isoToDatetimeLocal(now.toISOString()),
+          transactionDate: isoToDateOnly(now.toISOString()),
           paymentMethod: "OTHER",
           description: "",
           tagIds: [],
@@ -159,19 +173,59 @@ export function AddOrCreateTransactionDialog({
       }
     } else {
       // Reset form when dialog closes to ensure clean state
+      setHasTime(false);
       form.reset(getEmptyFormValues());
     }
   }, [open, transaction?.id, form]);
+
+  const handleToggleTime = () => {
+    const currentValue = form.getValues("transactionDate");
+    if (!currentValue) return;
+
+    if (hasTime) {
+      // Removing time: convert datetime-local to date-only
+      const dateOnly = currentValue.split("T")[0];
+      form.setValue("transactionDate", dateOnly);
+      setHasTime(false);
+    } else {
+      // Adding time: convert date-only to datetime-local with default time (noon UTC in local time)
+      // Get noon UTC and convert to local time for the default
+      const dateOnly = currentValue;
+      const noonUtc = new Date(`${dateOnly}T12:00:00.000Z`);
+      const localHours = String(noonUtc.getHours()).padStart(2, "0");
+      const localMinutes = String(noonUtc.getMinutes()).padStart(2, "0");
+      const datetimeLocal = dateOnlyToDatetimeLocal(
+        dateOnly,
+        `${localHours}:${localMinutes}`
+      );
+      form.setValue("transactionDate", datetimeLocal);
+      setHasTime(true);
+    }
+  };
 
   const handleSubmit = async (data: FormData) => {
     setPending(true);
 
     // Transform form data to API format
+    let transactionDateIso: string;
+    let timePrecision: "DateTime" | "DateOnly";
+
+    if (hasTime) {
+      // DateTime: convert datetime-local to ISO
+      transactionDateIso = datetimeLocalToIso(data.transactionDate);
+      timePrecision = "DateTime";
+    } else {
+      // DateOnly: convert date-only to ISO with noon UTC placeholder
+      transactionDateIso = dateOnlyToIso(data.transactionDate);
+      timePrecision = "DateOnly";
+    }
+
     const submitData = {
       name: data.name.trim(),
       amount: data.amount.trim(),
       currency: CurrencySchema.parse(data.currency),
-      occurredAt: datetimeLocalToIso(data.occurredAt),
+      transactionDate: transactionDateIso,
+      timePrecision,
       paymentMethod: data.paymentMethod,
       description:
         data.description && data.description.trim() !== ""
@@ -283,7 +337,6 @@ export function AddOrCreateTransactionDialog({
                   options={TRANSACTION_TYPE_OPTIONS}
                   placeholder="Select transaction type..."
                   disabled={pending}
-                  required
                 />
               )}
               <TextInput
@@ -305,13 +358,22 @@ export function AddOrCreateTransactionDialog({
                   disabled={pending}
                 />
               </div>
-              <DateInput
-                name="occurredAt"
-                label="Date & Time"
-                type="datetime-local"
-                disabled={pending}
-                required
-              />
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <DateInput
+                    name="transactionDate"
+                    label={hasTime ? "Date & Time" : "Date"}
+                    type={hasTime ? "datetime-local" : "date"}
+                    disabled={pending}
+                    required
+                  />
+                </div>
+                <Button
+                  clicked={handleToggleTime}
+                  disabled={pending}>
+                  {hasTime ? "Remove time" : "Add time"}
+                </Button>
+              </div>
               <SelectDropdown
                 name="paymentMethod"
                 label="Payment Method"
@@ -381,4 +443,3 @@ export function AddOrCreateTransactionDialog({
     </>
   );
 }
-
