@@ -74,30 +74,33 @@ export function Button({
   };
   const spinnerSize = size === "xs" || size === "sm" ? "sm" : "md";
 
-  return (
-    <div
-      className={disabled || isLoading ? "opacity-50 cursor-not-allowed" : ""}>
-      <button
-        type={type}
-        className={cn(
-          baseClasses,
-          variantClasses[variant],
-          sizeClasses[size],
-          className,
-          disabledClasses
-        )}
-        disabled={disabled || isLoading}
-        onClick={(event) => {
-          // Prevent default form submission for button-type buttons
-          if (type === "button") {
-            event.preventDefault();
-          }
-          clicked?.(event);
-        }}
-        {...rest}>
-        {isLoading && <Spinner size={spinnerSize} />}
-        {buttonContent ?? children}
-      </button>
-    </div>
+  const button = (
+    <button
+      type={type}
+      className={cn(
+        baseClasses,
+        variantClasses[variant],
+        sizeClasses[size],
+        className,
+        disabledClasses
+      )}
+      disabled={disabled || isLoading}
+      onClick={(event) => {
+        // Prevent default form submission for button-type buttons
+        if (type === "button") {
+          event.preventDefault();
+        }
+        clicked?.(event);
+      }}
+      {...rest}>
+      {isLoading && <Spinner size={spinnerSize} />}
+      {buttonContent ?? children}
+    </button>
   );
+
+  if (disabled || isLoading) {
+    return <span className="opacity-50 cursor-not-allowed">{button}</span>;
+  }
+
+  return button;
 }
