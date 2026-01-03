@@ -33,9 +33,23 @@ export class TagService {
       where: {
         userId,
         ...(validated.q && {
-          name: {
-            contains: validated.q,
-          },
+          OR: [
+            {
+              name: {
+                contains: validated.q,
+              },
+            },
+            {
+              description: {
+                contains: validated.q,
+              },
+            },
+            {
+              color: {
+                contains: validated.q,
+              },
+            },
+          ],
         }),
       },
       orderBy: [

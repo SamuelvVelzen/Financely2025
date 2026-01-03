@@ -11,17 +11,42 @@ import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { Form } from "@/features/ui/form/form";
+import { SearchInput } from "@/features/ui/input/search-input";
 import { Loading } from "@/features/ui/loading/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { HiArrowDownTray, HiOutlineTag, HiPlus } from "react-icons/hi2";
 import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
 import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 import { TagList } from "./tag-list";
 
+type ITagSearchFormValues = {
+  searchQuery: string;
+};
+
 export function TagOverview() {
-  const { data, isLoading, error } = useTags();
+  const form = useForm<ITagSearchFormValues>({
+    defaultValues: {
+      searchQuery: "",
+    },
+  });
+
+  const searchQuery = form.watch("searchQuery") ?? "";
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+
+  // Build query with search filter (backend filtering)
+  const query = useMemo(() => {
+    return {
+      q: debouncedSearchQuery.trim() || undefined,
+      sort: "name:asc" as const,
+    };
+  }, [debouncedSearchQuery]);
+
+  const { data, isLoading, error } = useTags(query);
   const tags = data?.data ?? [];
   const sortedTags = useOrderedData(tags) as ITag[];
   const { mutate: deleteTag } = useDeleteTag();
@@ -142,6 +167,15 @@ export function TagOverview() {
             </Dropdown>
           </div>
         </Title>
+
+        <Form
+          form={form}
+          onSubmit={() => {}}>
+          <SearchInput
+            name="searchQuery"
+            placeholder="Search tags by name, description, or color..."
+          />
+        </Form>
       </Container>
 
       {isLoading && (
@@ -184,6 +218,7 @@ export function TagOverview() {
                   </h2>
                   <TagList
                     data={expenseTags}
+                    searchQuery={debouncedSearchQuery}
                     onEdit={handleEditTag}
                     onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {
@@ -201,6 +236,7 @@ export function TagOverview() {
                   </h2>
                   <TagList
                     data={incomeTags}
+                    searchQuery={debouncedSearchQuery}
                     onEdit={handleEditTag}
                     onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {
@@ -218,6 +254,7 @@ export function TagOverview() {
                   </h2>
                   <TagList
                     data={bothTags}
+                    searchQuery={debouncedSearchQuery}
                     onEdit={handleEditTag}
                     onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {

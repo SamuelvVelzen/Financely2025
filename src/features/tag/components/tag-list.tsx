@@ -1,3 +1,4 @@
+import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITag } from "@/features/shared/validation/schemas";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { SortableList } from "@/features/ui/list/sortable-list";
@@ -6,6 +7,7 @@ import { HiPencil, HiTrash } from "react-icons/hi2";
 
 type ITagListProps = {
   data: ITag[];
+  searchQuery?: string;
   onEdit?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
   onOrderChange?: (orderedIds: (string | number)[]) => void;
@@ -13,10 +15,13 @@ type ITagListProps = {
 
 export function TagList({
   data,
+  searchQuery,
   onEdit,
   onDelete,
   onOrderChange,
 }: ITagListProps) {
+  const { highlightText } = useHighlightText();
+
   return (
     <SortableList
       data={data}
@@ -41,10 +46,12 @@ export function TagList({
                 style={{ backgroundColor: tag.color }}
               />
             )}
-            <span className="text-text">{tag.name}</span>
+            <span className="text-text">
+              {highlightText(tag.name, searchQuery)}
+            </span>
             {tag.description && (
               <span className="text-sm text-text-muted">
-                {tag.description}
+                {highlightText(tag.description, searchQuery)}
               </span>
             )}
           </div>
@@ -67,4 +74,3 @@ export function TagList({
     </SortableList>
   );
 }
-
