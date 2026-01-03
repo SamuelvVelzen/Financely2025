@@ -251,7 +251,8 @@ export function Dropdown({
                     ? `${dropdownPosition.maxHeight}px`
                     : "none",
                 }}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (closeOnItemClick) {
                     setDropdownState(false);
                   }
