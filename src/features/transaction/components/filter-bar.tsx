@@ -208,17 +208,17 @@ export function FilterBar({
                   )}
                 />
               </div>
-
-              <div className="flex gap-2 pt-2 border-t border-border">
-                <Button
-                  clicked={onClearAll}
-                  variant="default"
-                  size="sm"
-                  buttonContent="Clear all"
-                  className="flex-1"
-                />
-              </div>
             </div>
+
+            <Dropdown.Footer className="p-4">
+              <Button
+                clicked={onClearAll}
+                variant="default"
+                size="sm"
+                buttonContent="Clear all"
+                className="flex-1"
+              />
+            </Dropdown.Footer>
           </Dropdown>
         </div>
       </Form>
