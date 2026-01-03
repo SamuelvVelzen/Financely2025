@@ -53,6 +53,7 @@ export type ISelectProps<
   createNewLabel?: string | ((searchQuery: string) => string);
   getOptionSearchValue?: (option: ISelectOption<TData>) => string;
   forcePlacement?: IPlacementOption[];
+  required?: boolean;
 };
 
 export function Select<
@@ -74,6 +75,7 @@ export function Select<
   createNewLabel = "Create new",
   getOptionSearchValue,
   forcePlacement,
+  required = false,
 }: ISelectProps<TOptions, TData>) {
   const { isMobile } = useResponsive();
   const form = useFormContext();
@@ -95,6 +97,7 @@ export function Select<
         placeholder={placeholder}
         label={label}
         disabled={disabled}
+        required={required}
       />
     );
   }
@@ -167,6 +170,10 @@ export function Select<
     <Controller
       name={name}
       control={form.control}
+      rules={{
+        required: required,
+      }}
+      disabled={disabled}
       render={({ field }) => {
         const value = field.value;
         const selectedOptions = getSelectedOptions(value);

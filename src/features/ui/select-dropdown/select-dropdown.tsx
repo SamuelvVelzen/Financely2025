@@ -45,6 +45,7 @@ export type ISelectDropdownProps<
     }
   ) => ReactNode;
   disabled?: boolean;
+  required?: boolean;
 };
 
 export function SelectDropdown<
@@ -62,6 +63,7 @@ export function SelectDropdown<
   showClearButton = true,
   children,
   disabled = false,
+  required = false,
 }: ISelectDropdownProps<TOptions, TData>) {
   const { isMobile } = useResponsive();
   const form = useFormContext();
@@ -86,6 +88,7 @@ export function SelectDropdown<
         placeholder={placeholder}
         label={label}
         disabled={disabled}
+        required={required}
       />
     );
   }
@@ -148,6 +151,10 @@ export function SelectDropdown<
     <Controller
       name={name}
       control={form.control}
+      rules={{
+        required: required,
+      }}
+      disabled={disabled}
       render={({ field }) => {
         const value = field.value;
         const displayText = getDisplayText(value);

@@ -3,6 +3,7 @@
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { SelectHTMLAttributes } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { ISelectOption } from "../select-dropdown/select-dropdown";
 
@@ -15,14 +16,15 @@ export type ISelectInputProps<
   TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
     ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
-> = IPropsWithClassName & {
-  name: string;
-  options: TOptions;
-  multiple?: boolean;
-  placeholder?: string;
-  label?: string;
-  disabled?: boolean;
-};
+> = IPropsWithClassName &
+  SelectHTMLAttributes<HTMLSelectElement> & {
+    name: string;
+    options: TOptions;
+    multiple?: boolean;
+    placeholder?: string;
+    label?: string;
+    disabled?: boolean;
+  };
 
 export function NativeSelect<
   TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
@@ -36,6 +38,7 @@ export function NativeSelect<
   placeholder = "Select...",
   label,
   disabled = false,
+  ...props
 }: ISelectInputProps<TOptions, TData>) {
   const form = useFormContext();
   const error = form.formState.errors[name];
@@ -84,7 +87,8 @@ export function NativeSelect<
               } else {
                 field.onChange(e.target.value || undefined);
               }
-            }}>
+            }}
+            {...props}>
             {!multiple && (
               <option
                 value=""
