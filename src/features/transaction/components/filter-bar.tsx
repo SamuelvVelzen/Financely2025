@@ -108,7 +108,7 @@ export function FilterBar({
   }
 
   return (
-    <div className={cn("flex gap-3 items-end overflow-x-auto", className)}>
+    <div className={cn("flex gap-3 items-end", className)}>
       <Form
         form={form}
         onSubmit={() => {}}>
