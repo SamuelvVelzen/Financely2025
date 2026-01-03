@@ -32,7 +32,7 @@ export function Sidebar() {
   return (
     <Container
       as="aside"
-      className={cn(containerClasses, animationClasses)}>
+      className={cn(containerClasses, animationClasses, "hidden md:flex")}>
       <div
         className={cn(
           "h-10 mb-6 flex",

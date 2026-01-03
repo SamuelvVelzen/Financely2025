@@ -1,4 +1,6 @@
 import { PermissionHelpers } from "@/features/auth/permission.helpers";
+import { MobileBottomNav } from "@/features/ui/navigation/mobile-bottom-nav";
+import { MobileTopNav } from "@/features/ui/navigation/mobile-top-nav";
 import { Sidebar } from "@/features/ui/navigation/sidebar";
 import { SidebarProvider } from "@/features/ui/navigation/useSidebar";
 import { ThemeProvider } from "@/features/ui/ThemeProvider";
@@ -28,10 +30,12 @@ function AppLayout() {
     <div className="flex h-screen overflow-hidden">
       <ThemeProvider>
         <SidebarProvider>
+          <MobileTopNav />
           <Sidebar />
-          <main className="flex-1 overflow-y-auto bg-background p-4">
+          <main className="flex-1 overflow-y-auto bg-background p-4 pt-20 md:pt-4 pb-20 md:pb-4">
             <Outlet />
           </main>
+          <MobileBottomNav />
         </SidebarProvider>
       </ThemeProvider>
     </div>
