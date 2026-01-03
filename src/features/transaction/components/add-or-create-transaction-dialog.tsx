@@ -22,6 +22,8 @@ import { useFinForm } from "@/features/ui/form/useForm";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
+import { RadioGroup } from "@/features/ui/radio/radio-group";
+import { RadioItem } from "@/features/ui/radio/radio-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import { useToast } from "@/features/ui/toast";
@@ -75,11 +77,6 @@ const getEmptyFormValues = (): FormData => ({
   tagIds: [],
   primaryTagId: null,
 });
-
-const TRANSACTION_TYPE_OPTIONS = [
-  { value: "EXPENSE", label: "Expense" },
-  { value: "INCOME", label: "Income" },
-] as const;
 
 export function AddOrCreateTransactionDialog({
   open,
@@ -331,13 +328,15 @@ export function AddOrCreateTransactionDialog({
             <div className="space-y-4">
               {/* Transaction type selector - only show in create mode */}
               {!isEditMode && (
-                <SelectDropdown
+                <RadioGroup
                   name="type"
                   label="Type"
-                  options={TRANSACTION_TYPE_OPTIONS}
-                  placeholder="Select transaction type..."
+                  required
                   disabled={pending}
-                />
+                  orientation="horizontal">
+                  <RadioItem value="EXPENSE">Expense</RadioItem>
+                  <RadioItem value="INCOME">Income</RadioItem>
+                </RadioGroup>
               )}
               <TextInput
                 name="name"
