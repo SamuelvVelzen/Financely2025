@@ -1,6 +1,8 @@
 "use client";
 
+import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import type { ITag } from "@/features/shared/validation/schemas";
+import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import type { IButtonProps } from "@/features/ui/button/button";
 import type { IDateFilter } from "@/features/ui/datepicker/datepicker";
@@ -10,6 +12,7 @@ import { Form } from "@/features/ui/form/form";
 import type { IPriceRange } from "@/features/ui/input/range-input";
 import { RangeInput } from "@/features/ui/input/range-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 export interface IFilterSheetProps {
@@ -43,6 +46,16 @@ export function FilterSheet({
     data: tag,
   }));
 
+  const currencyOptions = useMemo(() => getCurrencyOptions(), []);
+  const paymentMethodOptions = useMemo(() => PAYMENT_METHOD_OPTIONS, []);
+  const transactionTypeOptions = useMemo(
+    () => [
+      { value: "EXPENSE", label: "Expense" },
+      { value: "INCOME", label: "Income" },
+    ],
+    []
+  );
+
   const footerButtons: IButtonProps[] = [
     {
       clicked: onClearAll,
@@ -68,29 +81,65 @@ export function FilterSheet({
       onOpenChange={onOpenChange}
       footerButtons={footerButtons}>
       <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-text mb-2">
-            Date Range
-          </label>
-          <Datepicker
-            value={dateFilter}
-            onChange={onDateFilterChange}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-text mb-2">
-            Amount Range
-          </label>
-          <RangeInput
-            value={priceFilter}
-            onChange={onPriceFilterChange}
-          />
-        </div>
-
         <Form
           form={form}
           onSubmit={() => {}}>
+          <div>
+            <label className="block text-sm font-medium text-text mb-2">
+              Transaction Type
+            </label>
+            <SelectDropdown
+              name="transactionTypeFilter"
+              options={transactionTypeOptions}
+              multiple
+              placeholder="Filter by transaction type"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text mb-2">
+              Date Range
+            </label>
+            <Datepicker
+              value={dateFilter}
+              onChange={onDateFilterChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text mb-2">
+              Amount Range
+            </label>
+            <RangeInput
+              value={priceFilter}
+              onChange={onPriceFilterChange}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text mb-2">
+              Payment Method
+            </label>
+            <SelectDropdown
+              name="paymentMethodFilter"
+              options={paymentMethodOptions}
+              multiple
+              placeholder="Filter by payment method"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text mb-2">
+              Currency
+            </label>
+            <SelectDropdown
+              name="currencyFilter"
+              options={currencyOptions}
+              multiple
+              placeholder="Filter by currency"
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-text mb-2">
               Tags

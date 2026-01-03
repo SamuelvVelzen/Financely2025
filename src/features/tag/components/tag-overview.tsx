@@ -11,17 +11,65 @@ import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
+import { Form } from "@/features/ui/form/form";
+import { SearchInput } from "@/features/ui/input/search-input";
 import { Loading } from "@/features/ui/loading/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
-import { useMemo, useState } from "react";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { HiArrowDownTray, HiOutlineTag, HiPlus } from "react-icons/hi2";
 import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
 import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 import { TagList } from "./tag-list";
 
-export function TagOverview() {
-  const { data, isLoading, error } = useTags();
+type ITagSearchFormValues = {
+  searchQuery: string;
+};
+
+interface ITagOverviewProps {
+  initialSearchQuery?: string;
+}
+
+export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
+  const navigate = useNavigate();
+  const form = useForm<ITagSearchFormValues>({
+    defaultValues: {
+      searchQuery: initialSearchQuery,
+    },
+  });
+
+  // Update form when initialSearchQuery changes (e.g., from URL navigation)
+  useEffect(() => {
+    if (form.getValues("searchQuery") !== initialSearchQuery) {
+      form.setValue("searchQuery", initialSearchQuery, { shouldDirty: false });
+    }
+  }, [initialSearchQuery, form]);
+
+  const searchQuery = form.watch("searchQuery") ?? "";
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+
+  // Sync search query changes to query params
+  useEffect(() => {
+    const trimmedQuery = debouncedSearchQuery.trim();
+    navigate({
+      to: "/tags",
+      search: trimmedQuery ? { q: trimmedQuery } : {},
+      replace: true, // Use replace to avoid cluttering browser history
+    });
+  }, [debouncedSearchQuery, navigate]);
+
+  // Build query with search filter (backend filtering)
+  const query = useMemo(() => {
+    return {
+      q: debouncedSearchQuery.trim() || undefined,
+      sort: "name:asc" as const,
+    };
+  }, [debouncedSearchQuery]);
+
+  const { data, isLoading, error } = useTags(query);
   const tags = data?.data ?? [];
   const sortedTags = useOrderedData(tags) as ITag[];
   const { mutate: deleteTag } = useDeleteTag();
@@ -118,8 +166,8 @@ export function TagOverview() {
 
   return (
     <>
-      <Container>
-        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center">
+      <Container className="sticky top-0 z-10 bg-surface">
+        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
           <div className="flex gap-2 items-center">
             <HiOutlineTag />
             <span>Tags</span>
@@ -142,6 +190,15 @@ export function TagOverview() {
             </Dropdown>
           </div>
         </Title>
+
+        <Form
+          form={form}
+          onSubmit={() => {}}>
+          <SearchInput
+            name="searchQuery"
+            placeholder="Search tags by name, description, or color..."
+          />
+        </Form>
       </Container>
 
       {isLoading && (
@@ -184,6 +241,7 @@ export function TagOverview() {
                   </h2>
                   <TagList
                     data={expenseTags}
+                    searchQuery={debouncedSearchQuery}
                     onEdit={handleEditTag}
                     onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {
@@ -201,6 +259,7 @@ export function TagOverview() {
                   </h2>
                   <TagList
                     data={incomeTags}
+                    searchQuery={debouncedSearchQuery}
                     onEdit={handleEditTag}
                     onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {
@@ -218,6 +277,7 @@ export function TagOverview() {
                   </h2>
                   <TagList
                     data={bothTags}
+                    searchQuery={debouncedSearchQuery}
                     onEdit={handleEditTag}
                     onDelete={handleDeleteClick}
                     onOrderChange={(orderedIds) => {

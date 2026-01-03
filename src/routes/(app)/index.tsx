@@ -636,9 +636,9 @@ function MessageTestingExample() {
               "INFO",
               [
                 {
-                  label: "View Expenses",
+                  label: "View Transactions",
                   type: "navigate",
-                  path: "/expenses",
+                  path: "/transactions",
                   variant: "primary",
                 },
                 {
@@ -664,7 +664,7 @@ function MessageTestingExample() {
                 {
                   label: "View Transactions",
                   type: "navigate",
-                  path: "/expenses",
+                  path: "/transactions",
                   variant: "primary",
                 },
                 {
@@ -696,7 +696,7 @@ function MessageTestingExample() {
                 {
                   label: "View Details",
                   type: "navigate",
-                  path: "/expenses",
+                  path: "/transactions",
                   variant: "primary",
                 },
                 {
@@ -767,9 +767,9 @@ function MessageTestingExample() {
               "WARNING",
               [
                 {
-                  label: "View Expenses",
+                  label: "View Transactions",
                   type: "navigate",
-                  path: "/expenses",
+                  path: "/transactions",
                   variant: "primary",
                 },
                 {
@@ -794,7 +794,7 @@ function MessageTestingExample() {
                 {
                   label: "View Transactions",
                   type: "navigate",
-                  path: "/expenses",
+                  path: "/transactions",
                   variant: "primary",
                 },
                 {

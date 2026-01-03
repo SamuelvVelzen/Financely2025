@@ -5,8 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
 import {
   HiArrowRightOnRectangle,
-  HiArrowTrendingDown,
-  HiArrowTrendingUp,
+  HiArrowsRightLeft,
   HiChartBar,
   HiChevronRight,
   HiOutlineBell,
@@ -72,16 +71,9 @@ export function Sidebar() {
           </li>
           <li>
             <NavItem
-              to={ROUTES.INCOMES}
-              label="Income"
-              icon={HiArrowTrendingUp}
-            />
-          </li>
-          <li>
-            <NavItem
-              to={ROUTES.EXPENSES}
-              label="Expense"
-              icon={HiArrowTrendingDown}
+              to={ROUTES.TRANSACTIONS}
+              label="Transactions"
+              icon={HiArrowsRightLeft}
             />
           </li>
           <li>

@@ -3,7 +3,7 @@
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 import { HiMagnifyingGlass } from "react-icons/hi2";
@@ -23,83 +23,62 @@ export function SearchInput({
 }: ISearchInputProps) {
   const form = useFormContext();
   const value = form.watch(name) || "";
-  const [isExpanded, setIsExpanded] = useState(false);
+
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleClear = () => {
     form.setValue(name, "");
   };
 
-  // Expand if there's text
+  const isEmpty = !value;
+  const isOpen = !isEmpty || isHovered;
+
   useEffect(() => {
-    if (value) {
-      setIsExpanded(true);
-    }
-  }, [value]);
-
-  // Handle click outside to collapse if no text
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node) &&
-        !value
-      ) {
-        setIsExpanded(false);
-      }
-    };
-
-    if (isExpanded) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside);
-      };
-    }
-  }, [isExpanded, value]);
-
-  const handleIconClick = () => {
-    setIsExpanded(true);
-  };
-
-  const shouldExpand = isExpanded || isHovered || !!value;
+    setIsCollapsed(isEmpty && !isHovered);
+  }, [isEmpty, isHovered]);
 
   return (
     <div
-      ref={containerRef}
-      className={cn(
-        "relative transition-all duration-300 ease-in-out focus-within:w-[300px]",
-        shouldExpand ? "w-[300px]" : "w-10",
-        className
-      )}
+      data-collapsed={isCollapsed}
+      data-empty={isEmpty}
+      data-open={isOpen}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}>
-      {shouldExpand ? (
-        <TextInput
-          name={name}
-          label={label}
-          placeholder={placeholder}
-          className="truncate"
-          prefixIcon={<HiMagnifyingGlass className="size-5" />}
-          suffixIcon={
-            value ? (
-              <IconButton
-                clicked={handleClear}
-                aria-label="Clear search"
-                className="p-0">
-                <HiX className="size-5" />
-              </IconButton>
-            ) : undefined
-          }
-        />
-      ) : (
-        <IconButton
-          clicked={handleIconClick}
-          className="size-10 my-0"
-          aria-label="Search">
-          <HiMagnifyingGlass className="size-5" />
-        </IconButton>
-      )}
+      onMouseLeave={() => setIsHovered(false)}
+      className={cn(
+        "relative transition-all duration-300 ease-in-out",
+        "w-9 hover:w-[300px] focus-within:w-[300px]",
+        "has-[input:not(:placeholder-shown)]:w-[300px]",
+        "data-[open=true]:w-[300px]",
+        "data-[collapsed=true]:[&_input]:pr-2!",
+        "data-[collapsed=true]:[&_input]:pl-2!",
+        "data-[open=true]:[&_input]:pl-9!",
+        "data-[open=true]:[&_input]:pr-9!",
+        "focus-within:[&_input]:pl-9!",
+        "focus-within:[&_input]:pr-9!",
+        "data-[collapsed=true]:[&>div>div>div:last-child]:hidden",
+        "focus-within:[&>div>div>div:last-child]:flex!",
+        "[&_input::placeholder]:opacity-0",
+        "hover:[&_input::placeholder]:opacity-100",
+        "focus-within:[&_input::placeholder]:opacity-100",
+        "has-[input:not(:placeholder-shown)]:[&_input::placeholder]:opacity-100",
+        className
+      )}>
+      <TextInput
+        name={name}
+        label={label}
+        placeholder={placeholder}
+        className="truncate"
+        prefixIcon={<HiMagnifyingGlass className="size-5" />}
+        suffixIcon={
+          <IconButton
+            clicked={handleClear}
+            aria-label="Clear search"
+            className="p-0">
+            <HiX className="size-5" />
+          </IconButton>
+        }
+      />
     </div>
   );
 }

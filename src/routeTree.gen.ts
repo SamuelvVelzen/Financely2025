@@ -14,10 +14,9 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as appIndexRouteImport } from './routes/(app)/index'
+import { Route as appTransactionsRouteImport } from './routes/(app)/transactions'
 import { Route as appTagsRouteImport } from './routes/(app)/tags'
 import { Route as appMessagesRouteImport } from './routes/(app)/messages'
-import { Route as appIncomesRouteImport } from './routes/(app)/incomes'
-import { Route as appExpensesRouteImport } from './routes/(app)/expenses'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
 import { Route as appBudgetsIndexRouteImport } from './routes/(app)/budgets.index'
 import { Route as ApiV1TransactionsRouteImport } from './routes/api/v1/transactions'
@@ -78,6 +77,11 @@ const appIndexRoute = appIndexRouteImport.update({
   path: '/',
   getParentRoute: () => appRouteRoute,
 } as any)
+const appTransactionsRoute = appTransactionsRouteImport.update({
+  id: '/transactions',
+  path: '/transactions',
+  getParentRoute: () => appRouteRoute,
+} as any)
 const appTagsRoute = appTagsRouteImport.update({
   id: '/tags',
   path: '/tags',
@@ -86,16 +90,6 @@ const appTagsRoute = appTagsRouteImport.update({
 const appMessagesRoute = appMessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
-  getParentRoute: () => appRouteRoute,
-} as any)
-const appIncomesRoute = appIncomesRouteImport.update({
-  id: '/incomes',
-  path: '/incomes',
-  getParentRoute: () => appRouteRoute,
-} as any)
-const appExpensesRoute = appExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
   getParentRoute: () => appRouteRoute,
 } as any)
 const appAccountRoute = appAccountRouteImport.update({
@@ -288,10 +282,9 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
-  '/expenses': typeof appExpensesRoute
-  '/incomes': typeof appIncomesRoute
   '/messages': typeof appMessagesRoute
   '/tags': typeof appTagsRoute
+  '/transactions': typeof appTransactionsRoute
   '/': typeof appIndexRoute
   '/budgets/new': typeof appBudgetsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -333,10 +326,9 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
-  '/expenses': typeof appExpensesRoute
-  '/incomes': typeof appIncomesRoute
   '/messages': typeof appMessagesRoute
   '/tags': typeof appTagsRoute
+  '/transactions': typeof appTransactionsRoute
   '/': typeof appIndexRoute
   '/budgets/new': typeof appBudgetsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -380,10 +372,9 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/(app)/account': typeof appAccountRoute
-  '/(app)/expenses': typeof appExpensesRoute
-  '/(app)/incomes': typeof appIncomesRoute
   '/(app)/messages': typeof appMessagesRoute
   '/(app)/tags': typeof appTagsRoute
+  '/(app)/transactions': typeof appTransactionsRoute
   '/(app)/': typeof appIndexRoute
   '/(app)/budgets/new': typeof appBudgetsNewRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -427,10 +418,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/account'
-    | '/expenses'
-    | '/incomes'
     | '/messages'
     | '/tags'
+    | '/transactions'
     | '/'
     | '/budgets/new'
     | '/api/auth/$'
@@ -472,10 +462,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/account'
-    | '/expenses'
-    | '/incomes'
     | '/messages'
     | '/tags'
+    | '/transactions'
     | '/'
     | '/budgets/new'
     | '/api/auth/$'
@@ -518,10 +507,9 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/(app)/account'
-    | '/(app)/expenses'
-    | '/(app)/incomes'
     | '/(app)/messages'
     | '/(app)/tags'
+    | '/(app)/transactions'
     | '/(app)/'
     | '/(app)/budgets/new'
     | '/api/auth/$'
@@ -609,6 +597,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appIndexRouteImport
       parentRoute: typeof appRouteRoute
     }
+    '/(app)/transactions': {
+      id: '/(app)/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof appTransactionsRouteImport
+      parentRoute: typeof appRouteRoute
+    }
     '/(app)/tags': {
       id: '/(app)/tags'
       path: '/tags'
@@ -621,20 +616,6 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof appMessagesRouteImport
-      parentRoute: typeof appRouteRoute
-    }
-    '/(app)/incomes': {
-      id: '/(app)/incomes'
-      path: '/incomes'
-      fullPath: '/incomes'
-      preLoaderRoute: typeof appIncomesRouteImport
-      parentRoute: typeof appRouteRoute
-    }
-    '/(app)/expenses': {
-      id: '/(app)/expenses'
-      path: '/expenses'
-      fullPath: '/expenses'
-      preLoaderRoute: typeof appExpensesRouteImport
       parentRoute: typeof appRouteRoute
     }
     '/(app)/account': {
@@ -887,10 +868,9 @@ declare module '@tanstack/react-router' {
 
 interface appRouteRouteChildren {
   appAccountRoute: typeof appAccountRoute
-  appExpensesRoute: typeof appExpensesRoute
-  appIncomesRoute: typeof appIncomesRoute
   appMessagesRoute: typeof appMessagesRoute
   appTagsRoute: typeof appTagsRoute
+  appTransactionsRoute: typeof appTransactionsRoute
   appIndexRoute: typeof appIndexRoute
   appBudgetsNewRoute: typeof appBudgetsNewRoute
   appBudgetsIndexRoute: typeof appBudgetsIndexRoute
@@ -900,10 +880,9 @@ interface appRouteRouteChildren {
 
 const appRouteRouteChildren: appRouteRouteChildren = {
   appAccountRoute: appAccountRoute,
-  appExpensesRoute: appExpensesRoute,
-  appIncomesRoute: appIncomesRoute,
   appMessagesRoute: appMessagesRoute,
   appTagsRoute: appTagsRoute,
+  appTransactionsRoute: appTransactionsRoute,
   appIndexRoute: appIndexRoute,
   appBudgetsNewRoute: appBudgetsNewRoute,
   appBudgetsIndexRoute: appBudgetsIndexRoute,

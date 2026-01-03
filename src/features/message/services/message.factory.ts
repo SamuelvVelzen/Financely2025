@@ -50,9 +50,9 @@ export class MessageFactory {
 
     const actions: IMessageAction[] = [
       {
-        label: "View Expenses",
+        label: "View Transactions",
         type: "navigate",
-        path: "/expenses",
+        path: "/transactions",
         variant: "primary",
       },
       {
@@ -83,7 +83,7 @@ export class MessageFactory {
       {
         label: "View Transactions",
         type: "navigate",
-        path: "/expenses",
+        path: "/transactions",
         variant: "primary",
       },
       {

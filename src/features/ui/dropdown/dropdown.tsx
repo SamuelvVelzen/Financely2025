@@ -1,9 +1,12 @@
 "use client";
 
 import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
+  Children,
   PropsWithChildren,
   ReactNode,
+  isValidElement,
   useEffect,
   useRef,
   useState,
@@ -24,6 +27,18 @@ const dropdownSizeClasses: { [key in IButtonSize]: { iconClasses: string } } = {
   md: { iconClasses: "size-5" },
   lg: { iconClasses: "size-6" },
 };
+
+type IDropdownFooterProps = {} & PropsWithChildren & IPropsWithClassName;
+
+function DropdownFooter({ children, className = "" }: IDropdownFooterProps) {
+  return (
+    <div className={cn("flex gap-2 pt-2 border-t border-border", className)}>
+      {children}
+    </div>
+  );
+}
+
+DropdownFooter.displayName = "DropdownFooter";
 
 type IDropdownProps = {
   dropdownSelector?:
@@ -179,6 +194,23 @@ export function Dropdown({
     }
   }, [dropdownIsOpen]);
 
+  // Separate Footer children from regular children
+  const childrenArray = Children.toArray(children);
+  const footerChildren: React.ReactNode[] = [];
+  const regularChildren: React.ReactNode[] = [];
+
+  childrenArray.forEach((child) => {
+    if (
+      isValidElement(child) &&
+      (child.type === DropdownFooter ||
+        (child.type as any)?.displayName === "DropdownFooter")
+    ) {
+      footerChildren.push(child);
+    } else {
+      regularChildren.push(child);
+    }
+  });
+
   return (
     <>
       <div
@@ -206,7 +238,7 @@ export function Dropdown({
               <div
                 ref={dropdownContentRef}
                 className={cn(
-                  "bg-surface border border-border overflow-y-auto text-base font-normal",
+                  "bg-surface border border-border text-base font-normal flex flex-col",
                   showExpanded ? "rounded-l-2xl" : "rounded-2xl"
                 )}
                 style={{
@@ -219,12 +251,16 @@ export function Dropdown({
                     ? `${dropdownPosition.maxHeight}px`
                     : "none",
                 }}
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (closeOnItemClick) {
                     setDropdownState(false);
                   }
                 }}>
-                {children}
+                <div className="overflow-y-auto flex-1">{regularChildren}</div>
+                {footerChildren.length > 0 && (
+                  <div className="shrink-0">{footerChildren}</div>
+                )}
               </div>
               {showExpanded && expandedContent && (
                 <div
@@ -246,3 +282,5 @@ export function Dropdown({
     </>
   );
 }
+
+Dropdown.Footer = DropdownFooter;

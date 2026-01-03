@@ -1,12 +1,18 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
-import type { ITransaction } from "@/features/shared/validation/schemas";
+import type {
+  ICurrency,
+  IPaymentMethod,
+  ITransaction,
+} from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
 import { useTransactionFilters } from "@/features/transaction/hooks/useTransactionFilters";
 import {
-  useDeleteIncome,
-  useInfiniteIncomes,
+  useDeleteTransaction,
+  useInfiniteTransactions,
 } from "@/features/transaction/hooks/useTransactions";
+import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
+import { serializeFilterStateToQuery } from "@/features/transaction/utils/transaction-filter-model";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
@@ -19,21 +25,30 @@ import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { formatMonthYear } from "@/features/util/date/date-helpers";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
-import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import {
   HiArrowDownTray,
-  HiArrowTrendingUp,
+  HiArrowsRightLeft,
   HiArrowUpTray,
   HiPlus,
 } from "react-icons/hi2";
-import { exportTransactionsToCsv } from "../../utils/export-csv";
-import { TransactionFilters } from "../transaction-filters";
-import { AddOrCreateIncomeDialog } from "./add-or-create-income-dialog";
-import { IncomeListGrouped } from "./income-list-grouped";
+import { exportTransactionsToCsv } from "../utils/export-csv";
+import { AddOrCreateTransactionDialog } from "./add-or-create-transaction-dialog";
+import { TransactionFilters } from "./transaction-filters";
+import { TransactionListGrouped } from "./transaction-list-grouped";
 
 const PAGE_SIZE = 20;
 
-export function IncomeOverview() {
+interface ITransactionOverviewProps {
+  initialState?: Partial<ITransactionFilterState>;
+}
+
+export function TransactionOverview({
+  initialState,
+}: ITransactionOverviewProps) {
+  const navigate = useNavigate();
+
   // Use shared filter state hook (includes form)
   const {
     filterState,
@@ -43,13 +58,36 @@ export function IncomeOverview() {
     setTagFilter,
     clearAllFilters,
     hasActiveFilters,
-    defaultFilterState,
-  } = useTransactionFilters();
+  } = useTransactionFilters({ initialState });
 
   const searchQuery = form.watch("searchQuery") ?? "";
 
+  // Debounce filter state for URL updates to avoid excessive navigation
+  const debouncedFilterState = useDebouncedValue(filterState, 300);
+
+  // Sync filter state changes to query params
+  useEffect(() => {
+    const queryParams = serializeFilterStateToQuery(debouncedFilterState);
+    navigate({
+      to: "/transactions",
+      search: queryParams,
+      replace: true, // Use replace to avoid cluttering browser history
+    });
+  }, [debouncedFilterState, navigate]);
+
   // Build query with all filters (backend filtering) - no page param for infinite query
-  const query = useMemo((): Parameters<typeof useInfiniteIncomes>[0] => {
+  const query = useMemo((): Parameters<typeof useInfiniteTransactions>[0] => {
+    // Transaction type logic: if both selected or empty, send undefined (show all)
+    // If only one selected, send that single type
+    let typeFilter: "EXPENSE" | "INCOME" | undefined = undefined;
+    if (
+      filterState.transactionTypeFilter.length === 1 &&
+      (filterState.transactionTypeFilter[0] === "EXPENSE" ||
+        filterState.transactionTypeFilter[0] === "INCOME")
+    ) {
+      typeFilter = filterState.transactionTypeFilter[0] as "EXPENSE" | "INCOME";
+    }
+
     return {
       limit: PAGE_SIZE,
       // Date filter
@@ -61,6 +99,8 @@ export function IncomeOverview() {
         filterState.dateFilter.type !== "allTime"
           ? filterState.dateFilter.to
           : undefined,
+      // Transaction type filter
+      type: typeFilter,
       // Tag filter
       tagIds:
         filterState.tagFilter.length > 0 ? filterState.tagFilter : undefined,
@@ -69,13 +109,23 @@ export function IncomeOverview() {
       // Amount filter
       minAmount: filterState.priceFilter.min?.toString(),
       maxAmount: filterState.priceFilter.max?.toString(),
+      // Payment method filter
+      paymentMethod:
+        filterState.paymentMethodFilter.length > 0
+          ? (filterState.paymentMethodFilter as IPaymentMethod[])
+          : undefined,
+      // Currency filter
+      currency:
+        filterState.currencyFilter.length > 0
+          ? (filterState.currencyFilter as ICurrency[])
+          : undefined,
     };
   }, [filterState]);
 
   // Debounce query to reduce API calls during rapid filter changes
   const debouncedQuery = useDebouncedValue(query, 300);
 
-  // Fetch incomes with infinite scroll
+  // Fetch transactions with infinite scroll (both expenses and incomes)
   const {
     data,
     isLoading,
@@ -83,19 +133,19 @@ export function IncomeOverview() {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useInfiniteIncomes(debouncedQuery);
+  } = useInfiniteTransactions(debouncedQuery);
 
   // Flatten all pages into a single array
-  const incomes = useMemo(() => {
+  const transactions = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
 
-  const { mutate: deleteIncome } = useDeleteIncome();
+  const { mutate: deleteTransaction } = useDeleteTransaction();
   const toast = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isIncomeDialogOpen, setIsIncomeDialogOpen] = useState(false);
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
-  const [selectedIncome, setSelectedIncome] = useState<
+  const [selectedTransaction, setSelectedTransaction] = useState<
     ITransaction | undefined
   >(undefined);
 
@@ -104,31 +154,33 @@ export function IncomeOverview() {
   const tags = tagsData?.data ?? [];
   const orderedTags = useOrderedData(tags);
 
-  const handleCreateIncome = () => {
-    setSelectedIncome(undefined);
-    setIsIncomeDialogOpen(true);
+  const handleCreateTransaction = () => {
+    setSelectedTransaction(undefined);
+    setIsTransactionDialogOpen(true);
   };
 
-  const handleEditIncome = (income: ITransaction) => {
-    setSelectedIncome(income);
-    setIsIncomeDialogOpen(true);
+  const handleEditTransaction = (transaction: ITransaction) => {
+    setSelectedTransaction(transaction);
+    setIsTransactionDialogOpen(true);
   };
 
-  const handleDeleteClick = (income: ITransaction) => {
-    setSelectedIncome(income);
+  const handleDeleteClick = (transaction: ITransaction) => {
+    setSelectedTransaction(transaction);
     setIsDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = () => {
-    if (selectedIncome) {
-      deleteIncome(selectedIncome.id, {
+    if (selectedTransaction) {
+      deleteTransaction(selectedTransaction.id, {
         onSuccess: () => {
           setIsDeleteDialogOpen(false);
-          setSelectedIncome(undefined);
-          toast.success("Income deleted successfully");
+          setSelectedTransaction(undefined);
+          toast.success(
+            `${selectedTransaction.type === "EXPENSE" ? "Expense" : "Income"} deleted successfully`
+          );
         },
         onError: () => {
-          toast.error("Failed to delete income");
+          toast.error("Failed to delete transaction");
         },
       });
     }
@@ -136,7 +188,7 @@ export function IncomeOverview() {
 
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
-    setSelectedIncome(undefined);
+    setSelectedTransaction(undefined);
   };
 
   // Get month display text from date filter
@@ -165,20 +217,24 @@ export function IncomeOverview() {
   };
 
   const isEmpty = useMemo(() => {
-    return !isLoading && !error && incomes.length === 0 && !hasActiveFilters;
-  }, [incomes, isLoading, error, hasActiveFilters]);
+    return (
+      !isLoading && !error && transactions.length === 0 && !hasActiveFilters
+    );
+  }, [transactions, isLoading, error, hasActiveFilters]);
 
   const isEmptyWithFilters = useMemo(() => {
-    return !isLoading && !error && incomes.length === 0 && hasActiveFilters;
-  }, [incomes, isLoading, error, hasActiveFilters]);
+    return (
+      !isLoading && !error && transactions.length === 0 && hasActiveFilters
+    );
+  }, [transactions, isLoading, error, hasActiveFilters]);
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface pb-0">
+      <Container className="sticky top-0 z-10 bg-surface">
         <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
           <div className="flex gap-2 items-center">
-            <HiArrowTrendingUp />
-            <span>Incomes</span>
+            <HiArrowsRightLeft />
+            <span>Transactions</span>
             <span className="text-sm text-text-muted font-normal self-end">
               ({getMonthDisplay()})
             </span>
@@ -186,7 +242,7 @@ export function IncomeOverview() {
 
           <div className="flex gap-2 items-center">
             <Button
-              clicked={handleCreateIncome}
+              clicked={handleCreateTransaction}
               variant="primary"
               size="sm">
               <HiPlus className="size-6" /> Add
@@ -204,12 +260,12 @@ export function IncomeOverview() {
                 icon={<HiArrowUpTray />}
                 clicked={() =>
                   exportTransactionsToCsv(
-                    incomes,
-                    ["Name", "Amount", "Date", "Description", "Tags"],
-                    "incomes"
+                    transactions,
+                    ["Name", "Amount", "Date", "Description", "Tags", "Type"],
+                    "transactions"
                   )
                 }>
-                Export from CSV
+                Export to CSV
               </DropdownItem>
             </Dropdown>
           </div>
@@ -230,27 +286,27 @@ export function IncomeOverview() {
       <Container>
         {isLoading && (
           <div className="flex items-center justify-center">
-            <Loading text="Loading incomes" />
+            <Loading text="Loading transactions" />
           </div>
         )}
 
         {isEmpty && (
           <EmptyPage
-            icon={HiArrowTrendingUp}
+            icon={HiArrowsRightLeft}
             emptyText={
-              "No income entries yet. Start by adding your first income source."
+              "No transactions yet. Start by adding your first expense or income."
             }
             button={{
-              buttonContent: "Add income",
-              clicked: handleCreateIncome,
+              buttonContent: "Add transaction",
+              clicked: handleCreateTransaction,
             }}></EmptyPage>
         )}
 
         {isEmptyWithFilters && (
           <EmptyPage
-            icon={HiArrowTrendingUp}
+            icon={HiArrowsRightLeft}
             emptyText={
-              "No incomes match your filters. Try adjusting your search criteria or clearing your filters."
+              "No transactions match your filters. Try adjusting your search criteria or clearing your filters."
             }
             button={{
               buttonContent: "Clear filters",
@@ -260,11 +316,11 @@ export function IncomeOverview() {
         )}
 
         {!isEmpty && !isEmptyWithFilters && (
-          <IncomeListGrouped
-            data={incomes}
+          <TransactionListGrouped
+            data={transactions}
             searchQuery={searchQuery}
             onDelete={handleDeleteClick}
-            onEdit={handleEditIncome}
+            onEdit={handleEditTransaction}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
             fetchNextPage={fetchNextPage}
@@ -272,15 +328,15 @@ export function IncomeOverview() {
         )}
       </Container>
 
-      <AddOrCreateIncomeDialog
-        open={isIncomeDialogOpen}
-        onOpenChange={setIsIncomeDialogOpen}
-        transaction={selectedIncome}
+      <AddOrCreateTransactionDialog
+        open={isTransactionDialogOpen}
+        onOpenChange={setIsTransactionDialogOpen}
+        transaction={selectedTransaction}
       />
 
       <DeleteDialog
-        title="Delete Income"
-        content={`Are you sure you want to delete the income "${selectedIncome?.name}"? This action cannot be undone.`}
+        title={`Delete ${selectedTransaction?.type === "EXPENSE" ? "Expense" : "Income"}`}
+        content={`Are you sure you want to delete the ${selectedTransaction?.type === "EXPENSE" ? "expense" : "income"} "${selectedTransaction?.name}"? This action cannot be undone.`}
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         footerButtons={[

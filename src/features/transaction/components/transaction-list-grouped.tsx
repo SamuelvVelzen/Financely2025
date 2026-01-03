@@ -15,17 +15,17 @@ import { cn } from "@/features/util/cn";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { HiPencil, HiTrash } from "react-icons/hi2";
 
-type IIncomeListGroupedProps = {
+type ITransactionListGroupedProps = {
   data: ITransaction[];
   searchQuery: string;
-  onDelete?: (income: ITransaction) => void;
-  onEdit?: (income: ITransaction) => void;
+  onDelete?: (transaction: ITransaction) => void;
+  onEdit?: (transaction: ITransaction) => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => void;
 };
 
-export function IncomeListGrouped({
+export function TransactionListGrouped({
   data,
   searchQuery,
   onDelete,
@@ -33,7 +33,7 @@ export function IncomeListGrouped({
   hasNextPage = false,
   isFetchingNextPage = false,
   fetchNextPage,
-}: IIncomeListGroupedProps) {
+}: ITransactionListGroupedProps) {
   const { highlightText } = useHighlightText();
   const dateGroups = groupTransactionsByDate(data);
 
@@ -69,10 +69,10 @@ export function IncomeListGrouped({
           {/* Transactions in this date group */}
           <List
             data={group.transactions}
-            getItemKey={(income) => income.id}>
-            {(income, index) => {
-              const isFirst = index === 0;
-              const isLast = index === group.transactions.length - 1;
+            getItemKey={(transaction) => transaction.id}>
+            {(transaction) => {
+              const isExpense = transaction.type === "EXPENSE";
+              const isIncome = transaction.type === "INCOME";
 
               return (
                 <ListItem className={cn("group flex-col items-stretch gap-1")}>
@@ -80,34 +80,34 @@ export function IncomeListGrouped({
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <span className="text-text font-medium truncate">
-                        {highlightText(income.name, searchQuery)}
+                        {highlightText(transaction.name, searchQuery)}
                       </span>
                       <span className="text-text-muted">•</span>
                       <span className="text-sm text-text-muted whitespace-nowrap">
                         {DateFormatHelpers.formatIsoStringToString(
-                          income.occurredAt
+                          transaction.occurredAt
                         )}
                       </span>
                       <span className="text-text-muted">•</span>
                       <Badge className="text-xs">
-                        {PAYMENT_METHOD_LABELS[income.paymentMethod]}
+                        {PAYMENT_METHOD_LABELS[transaction.paymentMethod]}
                       </Badge>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Amount */}
                       <Currency
-                        amount={income.amount}
-                        currency={income.currency}
+                        amount={`${transaction.type === "EXPENSE" ? "-" : ""}${transaction.amount}`}
+                        currency={transaction.currency}
                         searchQuery={searchQuery}
-                        className="font-semibold text-lg"
+                        className={cn("font-semibold text-lg")}
                       />
 
                       {(onEdit || onDelete) && (
                         <div className="flex items-center ml-1 gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
                           {onEdit && (
                             <IconButton
-                              clicked={() => onEdit(income)}
+                              clicked={() => onEdit(transaction)}
                               size="sm">
                               <HiPencil className="size-4" />
                             </IconButton>
@@ -118,7 +118,7 @@ export function IncomeListGrouped({
                               <DropdownItem
                                 icon={<HiTrash className="size-4" />}
                                 text="Delete"
-                                clicked={() => onDelete(income)}
+                                clicked={() => onDelete(transaction)}
                                 className="text-danger hover:bg-danger/10"
                               />
                             </Dropdown>
@@ -129,19 +129,24 @@ export function IncomeListGrouped({
                   </div>
 
                   {/* Primary tag badge */}
-                  {income.primaryTag && (
+                  {transaction.primaryTag && (
                     <div className="flex gap-1.5 flex-wrap">
                       <Badge
-                        backgroundColor={income.primaryTag.color ?? undefined}>
-                        {highlightText(income.primaryTag.name, searchQuery)}
+                        backgroundColor={
+                          transaction.primaryTag.color ?? undefined
+                        }>
+                        {highlightText(
+                          transaction.primaryTag.name,
+                          searchQuery
+                        )}
                       </Badge>
                     </div>
                   )}
 
                   {/* Description row */}
-                  {income.description && (
+                  {transaction.description && (
                     <p className="text-sm text-text-muted truncate">
-                      {highlightText(income.description, searchQuery)}
+                      {highlightText(transaction.description, searchQuery)}
                     </p>
                   )}
                 </ListItem>
@@ -158,7 +163,7 @@ export function IncomeListGrouped({
           className="flex items-center justify-center py-4">
           {isFetchingNextPage && (
             <Loading
-              text="Loading more incomes"
+              text="Loading more transactions"
               size="sm"
             />
           )}

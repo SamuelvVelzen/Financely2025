@@ -4,12 +4,14 @@ import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
   CreateTransactionInputSchema,
   CurrencySchema,
-  getCurrencyOptions,
   type ITransaction,
+  TransactionTypeSchema,
 } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import {
+  useCreateExpense,
   useCreateIncome,
+  useUpdateExpense,
   useUpdateIncome,
 } from "@/features/transaction/hooks/useTransactions";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -31,7 +33,7 @@ import { useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
 import { z } from "zod";
 
-type IAddOrCreateIncomeDialog = {
+type IAddOrCreateTransactionDialog = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction?: ITransaction;
@@ -39,11 +41,12 @@ type IAddOrCreateIncomeDialog = {
 };
 
 // Form schema that matches CreateTransactionInputSchema but with localized string amount for the form
-const IncomeFormSchema = CreateTransactionInputSchema.omit({
+const TransactionFormSchema = CreateTransactionInputSchema.omit({
   type: true,
   amount: true,
   occurredAt: true,
 }).extend({
+  type: TransactionTypeSchema,
   amount: z
     .string()
     .min(1, "Amount is required")
@@ -56,14 +59,12 @@ const IncomeFormSchema = CreateTransactionInputSchema.omit({
   primaryTagId: z.string().nullable().optional(),
 });
 
-type FormData = z.infer<typeof IncomeFormSchema>;
-
-// Currency options extracted from CurrencySchema
-const currencyOptions = getCurrencyOptions();
+type FormData = z.infer<typeof TransactionFormSchema>;
 const getEmptyFormValues = (): FormData => ({
   name: "",
   amount: "",
   currency: "EUR",
+  type: "EXPENSE",
   occurredAt: "",
   paymentMethod: "OTHER",
   description: "",
@@ -71,25 +72,33 @@ const getEmptyFormValues = (): FormData => ({
   primaryTagId: null,
 });
 
-export function AddOrCreateIncomeDialog({
+const TRANSACTION_TYPE_OPTIONS = [
+  { value: "EXPENSE", label: "Expense" },
+  { value: "INCOME", label: "Income" },
+] as const;
+
+export function AddOrCreateTransactionDialog({
   open,
   onOpenChange,
   transaction,
   onSuccess,
-}: IAddOrCreateIncomeDialog) {
+}: IAddOrCreateTransactionDialog) {
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const isEditMode = !!transaction;
+  const { mutate: createExpense } = useCreateExpense();
   const { mutate: createIncome } = useCreateIncome();
+  const { mutate: updateExpense } = useUpdateExpense();
   const { mutate: updateIncome } = useUpdateIncome();
   const toast = useToast();
 
   const formId = useId();
   const form = useFinForm<FormData>({
-    resolver: zodResolver(IncomeFormSchema) as Resolver<FormData>,
+    resolver: zodResolver(TransactionFormSchema) as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
   });
   const hasUnsavedChanges = form.formState.isDirty;
+  const transactionType = form.watch("type");
 
   const resetFormToClosedState = () => {
     form.reset(getEmptyFormValues());
@@ -126,6 +135,7 @@ export function AddOrCreateIncomeDialog({
           name: transaction.name,
           amount: transaction.amount,
           currency: transaction.currency,
+          type: transaction.type,
           occurredAt: isoToDatetimeLocal(transaction.occurredAt),
           paymentMethod: transaction.paymentMethod,
           description: transaction.description ?? "",
@@ -139,6 +149,7 @@ export function AddOrCreateIncomeDialog({
           name: "",
           amount: "",
           currency: "EUR",
+          type: "EXPENSE",
           occurredAt: isoToDatetimeLocal(now.toISOString()),
           paymentMethod: "OTHER",
           description: "",
@@ -172,40 +183,77 @@ export function AddOrCreateIncomeDialog({
 
     try {
       if (isEditMode && transaction) {
-        // Update existing income
-        updateIncome(
-          { transactionId: transaction.id, input: submitData },
-          {
+        // Update existing transaction - use appropriate hook based on type
+        if (data.type === "EXPENSE") {
+          updateExpense(
+            { transactionId: transaction.id, input: submitData },
+            {
+              onSuccess: () => {
+                resetFormToClosedState();
+                setPending(false);
+                onOpenChange(false);
+                toast.success("Expense updated successfully");
+                onSuccess?.();
+              },
+              onError: (error) => {
+                setPending(false);
+                toast.error("Failed to update expense");
+                throw error;
+              },
+            }
+          );
+        } else {
+          updateIncome(
+            { transactionId: transaction.id, input: submitData },
+            {
+              onSuccess: () => {
+                resetFormToClosedState();
+                setPending(false);
+                onOpenChange(false);
+                toast.success("Income updated successfully");
+                onSuccess?.();
+              },
+              onError: (error) => {
+                setPending(false);
+                toast.error("Failed to update income");
+                throw error;
+              },
+            }
+          );
+        }
+      } else {
+        // Create new transaction - use appropriate hook based on type
+        if (data.type === "EXPENSE") {
+          createExpense(submitData, {
             onSuccess: () => {
               resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
-              toast.success("Income updated successfully");
+              toast.success("Expense created successfully");
               onSuccess?.();
             },
             onError: (error) => {
               setPending(false);
-              toast.error("Failed to update income");
+              toast.error("Failed to create expense");
               throw error;
             },
-          }
-        );
-      } else {
-        // Create new income
-        createIncome(submitData, {
-          onSuccess: () => {
-            resetFormToClosedState();
-            setPending(false);
-            onOpenChange(false);
-            toast.success("Income created successfully");
-            onSuccess?.();
-          },
-          onError: (error) => {
-            setPending(false);
-            toast.error("Failed to create income");
-            throw error;
-          },
-        });
+          });
+        } else {
+          createIncome(submitData, {
+            onSuccess: () => {
+              resetFormToClosedState();
+              setPending(false);
+              onOpenChange(false);
+              toast.success("Income created successfully");
+              onSuccess?.();
+            },
+            onError: (error) => {
+              setPending(false);
+              toast.error("Failed to create income");
+              throw error;
+            },
+          });
+        }
       }
     } catch (err) {
       setPending(false);
@@ -213,16 +261,31 @@ export function AddOrCreateIncomeDialog({
     }
   };
 
+  const dialogTitle = isEditMode
+    ? `Edit ${transactionType === "EXPENSE" ? "Expense" : "Income"}`
+    : "Create Transaction";
+
   return (
     <>
       <Dialog
-        title={isEditMode ? "Edit Income" : "Create Income"}
+        title={dialogTitle}
         content={
           <Form<FormData>
             form={form}
             onSubmit={handleSubmit}
             id={formId}>
             <div className="space-y-4">
+              {/* Transaction type selector - only show in create mode */}
+              {!isEditMode && (
+                <SelectDropdown
+                  name="type"
+                  label="Type"
+                  options={TRANSACTION_TYPE_OPTIONS}
+                  placeholder="Select transaction type..."
+                  disabled={pending}
+                  required
+                />
+              )}
               <TextInput
                 name="name"
                 label="Name"
@@ -267,7 +330,7 @@ export function AddOrCreateIncomeDialog({
                 multiple={false}
                 placeholder="Select primary tag..."
                 disabled={pending}
-                transactionType="INCOME"
+                transactionType={transactionType}
                 hint="Used for budget, sorting and display"
               />
               <TagSelect
@@ -276,7 +339,7 @@ export function AddOrCreateIncomeDialog({
                 multiple={true}
                 placeholder="Select tags..."
                 disabled={pending}
-                transactionType="INCOME"
+                transactionType={transactionType}
               />
             </div>
           </Form>
@@ -289,13 +352,14 @@ export function AddOrCreateIncomeDialog({
           },
           {
             variant: "primary",
-            disabled: pending,
             type: "submit",
+            form: formId,
             loading: {
               isLoading: pending,
-              text: isEditMode ? "Updating income" : "Creating income",
+              text: isEditMode
+                ? `Updating ${transactionType === "EXPENSE" ? "expense" : "income"}`
+                : `Creating ${transactionType === "EXPENSE" ? "expense" : "income"}`,
             },
-            form: formId,
             buttonContent: isEditMode ? "Update" : "Create",
           },
         ]}
@@ -317,3 +381,4 @@ export function AddOrCreateIncomeDialog({
     </>
   );
 }
+
