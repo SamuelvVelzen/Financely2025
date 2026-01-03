@@ -1,13 +1,25 @@
 "use client";
 
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
+import { IVariant } from "../button/button";
 
 export type ISpinnerSize = "sm" | "md" | "lg";
 
 export type ISpinnerProps = {
   size?: ISpinnerSize;
+  variant?: IVariant;
 } & IPropsWithClassName;
+
+const VARIANT_TO_COLOR = {
+  default: "color-mix(in srgb, var(--color-primary) 80%, black 20%)",
+  danger: "color-mix(in srgb, var(--color-danger) 80%, black 20%)",
+  info: "color-mix(in srgb, var(--color-info) 80%, black 20%)",
+  warning: "color-mix(in srgb, var(--color-warning) 80%, black 20%)",
+  success: "color-mix(in srgb, var(--color-success) 80%, black 20%)",
+  primary: "color-mix(in srgb, var(--color-primary) 80%, black 20%)",
+  secondary: "color-mix(in srgb, var(--color-secondary) 80%, black 20%)",
+};
 
 // Pre-calculated constants for better performance
 const SPINNER_CONFIG = {
@@ -34,12 +46,18 @@ const SPINNER_CONFIG = {
   },
 } as const;
 
-export function Spinner({ size = "md", className = "" }: ISpinnerProps) {
+export function Spinner({
+  size = "md",
+  className = "",
+  variant = "primary",
+}: ISpinnerProps) {
+  const gradientId = useId(); // Generate unique ID per component instance
+
   const config = useMemo(() => SPINNER_CONFIG[size], [size]);
+  const color = useMemo(() => VARIANT_TO_COLOR[variant], [variant]);
 
   const center = config.size / 2;
   const radius = (config.size - config.strokeWidth) / 2;
-  const gradientId = `gradient-${size}`;
 
   return (
     <div
@@ -63,15 +81,16 @@ export function Spinner({ size = "md", className = "" }: ISpinnerProps) {
             y2="100%">
             <stop
               offset="0%"
-              stopColor="var(--color-primary)"
+              stopColor={color}
             />
             <stop
               offset="50%"
-              stopColor="var(--color-secondary)"
+              stopColor={color}
+              stopOpacity={0.5}
             />
             <stop
               offset="100%"
-              stopColor="var(--color-primary)"
+              stopColor={color}
             />
           </linearGradient>
         </defs>

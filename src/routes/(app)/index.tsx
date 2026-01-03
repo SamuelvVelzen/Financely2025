@@ -82,6 +82,11 @@ function Home() {
         <h2 className="text-lg font-semibold mb-4">Toggle Button Examples</h2>
         <ToggleButtonExample />
       </Container>
+
+      <Container>
+        <h2 className="text-lg font-semibold mb-4">Button Examples</h2>
+        <ButtonExample />
+      </Container>
     </>
   );
 }
@@ -1007,6 +1012,195 @@ function ToggleButtonExample() {
             </p>
           </div>
         </Form>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Button Example
+ *
+ * Demonstrates:
+ * - Basic button usage
+ * - Loading states (boolean and object form)
+ * - Different variants with loading
+ * - Different sizes with loading
+ * - Disabled state
+ * - Async action example
+ */
+function ButtonExample() {
+  const [loadingStates, setLoadingStates] = useState<{
+    [key: string]: boolean;
+  }>({});
+
+  const handleAsyncAction = async (buttonId: string) => {
+    setLoadingStates((prev) => ({ ...prev, [buttonId]: true }));
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Success handling would go here
+    } finally {
+      setLoadingStates((prev) => ({ ...prev, [buttonId]: false }));
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-text-muted">
+        Button component with loading states, variants, and sizes. Click buttons
+        to see loading states in action.
+      </p>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">Loading States</h4>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="primary"
+            loading={loadingStates["loading-1"]}
+            clicked={() => handleAsyncAction("loading-1")}>
+            Click to Load
+          </Button>
+
+          <Button
+            variant="success"
+            loading={loadingStates["loading-2"]}
+            clicked={() => handleAsyncAction("loading-2")}>
+            Save Changes
+          </Button>
+
+          <Button
+            variant="danger"
+            loading={loadingStates["loading-3"]}
+            clicked={() => handleAsyncAction("loading-3")}>
+            Delete Item
+          </Button>
+
+          <Button
+            variant="info"
+            loading={{
+              isLoading: loadingStates["loading-4"],
+            }}
+            clicked={() => handleAsyncAction("loading-4")}>
+            Load Data
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">Variants with Loading</h4>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="default"
+            loading={loadingStates["variant-default"]}
+            clicked={() => handleAsyncAction("variant-default")}>
+            Default
+          </Button>
+
+          <Button
+            variant="primary"
+            loading={loadingStates["variant-primary"]}
+            clicked={() => handleAsyncAction("variant-primary")}>
+            Primary
+          </Button>
+
+          <Button
+            variant="secondary"
+            loading={loadingStates["variant-secondary"]}
+            clicked={() => handleAsyncAction("variant-secondary")}>
+            Secondary
+          </Button>
+
+          <Button
+            variant="success"
+            loading={loadingStates["variant-success"]}
+            clicked={() => handleAsyncAction("variant-success")}>
+            Success
+          </Button>
+
+          <Button
+            variant="warning"
+            loading={loadingStates["variant-warning"]}
+            clicked={() => handleAsyncAction("variant-warning")}>
+            Warning
+          </Button>
+
+          <Button
+            variant="danger"
+            loading={loadingStates["variant-danger"]}
+            clicked={() => handleAsyncAction("variant-danger")}>
+            Danger
+          </Button>
+
+          <Button
+            variant="info"
+            loading={loadingStates["variant-info"]}
+            clicked={() => handleAsyncAction("variant-info")}>
+            Info
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">Sizes with Loading</h4>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="xs"
+            variant="primary"
+            loading={loadingStates["size-xs"]}
+            clicked={() => handleAsyncAction("size-xs")}>
+            Extra Small
+          </Button>
+
+          <Button
+            size="sm"
+            variant="primary"
+            loading={loadingStates["size-sm"]}
+            clicked={() => handleAsyncAction("size-sm")}>
+            Small
+          </Button>
+
+          <Button
+            size="md"
+            variant="primary"
+            loading={loadingStates["size-md"]}
+            clicked={() => handleAsyncAction("size-md")}>
+            Medium
+          </Button>
+
+          <Button
+            size="lg"
+            variant="primary"
+            loading={loadingStates["size-lg"]}
+            clicked={() => handleAsyncAction("size-lg")}>
+            Large
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h4 className="font-medium text-sm">States</h4>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="primary">Normal</Button>
+
+          <Button
+            variant="primary"
+            disabled>
+            Disabled
+          </Button>
+
+          <Button
+            variant="primary"
+            loading={true}>
+            Always Loading
+          </Button>
+
+          <Button
+            variant="primary"
+            disabled
+            loading={true}>
+            Disabled & Loading
+          </Button>
+        </div>
       </div>
     </div>
   );

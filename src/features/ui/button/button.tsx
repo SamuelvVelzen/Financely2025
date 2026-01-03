@@ -72,7 +72,6 @@ export function Button({
     md: "px-4 py-1.25 text-base",
     lg: "px-6 py-1.75 text-lg",
   };
-  const spinnerSize = size === "xs" || size === "sm" ? "sm" : "md";
 
   const button = (
     <button
@@ -93,7 +92,12 @@ export function Button({
         clicked?.(event);
       }}
       {...rest}>
-      {isLoading && <Spinner size={spinnerSize} />}
+      {isLoading && (
+        <Spinner
+          size={"sm"}
+          variant={variant}
+        />
+      )}
       {buttonContent ?? children}
     </button>
   );
