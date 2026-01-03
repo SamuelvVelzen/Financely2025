@@ -124,6 +124,17 @@ export function BudgetOverview() {
             </div>
           )}
 
+          {!isLoadingOverview && !errorOverview && budgets.length === 0 && (
+            <EmptyPage
+              icon={HiOutlineCurrencyEuro}
+              emptyText="Create your first budget to start tracking your expenses and income."
+              button={{
+                buttonContent: "Create Budget",
+                clicked: handleCreateBudget,
+              }}
+            />
+          )}
+
           {budgets.length > 0 && (
             <List data={budgets}>
               {(budget: IBudget) => (
@@ -139,19 +150,6 @@ export function BudgetOverview() {
           )}
         </Container>
       }
-
-      {!isLoadingOverview && !errorOverview && budgets.length === 0 && (
-        <Container>
-          <EmptyPage
-            icon={HiOutlineCurrencyEuro}
-            emptyText="Create your first budget to start tracking your expenses and income."
-            button={{
-              buttonContent: "Create Budget",
-              clicked: handleCreateBudget,
-            }}
-          />
-        </Container>
-      )}
 
       {/* Delete Dialog */}
       <DeleteDialog
