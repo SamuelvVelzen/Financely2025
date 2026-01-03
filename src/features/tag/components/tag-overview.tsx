@@ -1,19 +1,26 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
-import type { ITag } from "@/features/shared/validation/schemas";
+import type {
+  ICreateTagInput,
+  ITag,
+} from "@/features/shared/validation/schemas";
+import { RECOMMENDED_TAGS } from "@/features/tag/config/recommended-tags";
 import {
+  useCreateTag,
   useDeleteTag,
   useReorderTags,
   useTags,
 } from "@/features/tag/hooks/useTags";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
-import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Form } from "@/features/ui/form/form";
 import { SearchInput } from "@/features/ui/input/search-input";
 import { Loading } from "@/features/ui/loading/loading";
+import { Tab } from "@/features/ui/tab/tab";
+import { TabContent } from "@/features/ui/tab/tab-content";
+import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
@@ -72,6 +79,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const { data, isLoading, error } = useTags(query);
   const tags = data?.data ?? [];
   const sortedTags = useOrderedData(tags) as ITag[];
+  const { mutate: createTag } = useCreateTag();
   const { mutate: deleteTag } = useDeleteTag();
   const { mutate: reorderTags } = useReorderTags();
   const toast = useToast();
@@ -80,17 +88,13 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<ITag | undefined>(undefined);
 
-  // Separate tags into three sections
+  // Separate tags into two sections
   const expenseTags = useMemo(
     () => sortedTags.filter((tag) => tag.transactionType === "EXPENSE"),
     [sortedTags]
   );
   const incomeTags = useMemo(
     () => sortedTags.filter((tag) => tag.transactionType === "INCOME"),
-    [sortedTags]
-  );
-  const bothTags = useMemo(
-    () => sortedTags.filter((tag) => tag.transactionType === null),
     [sortedTags]
   );
 
@@ -164,6 +168,73 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
     setSelectedTag(undefined);
   };
 
+  const [recommendedTagData, setRecommendedTagData] = useState<
+    (typeof RECOMMENDED_TAGS)[0] | undefined
+  >(undefined);
+
+  // Filter recommended tags by transaction type and exclude existing tags (by name and type)
+  const filteredRecommendedTags = useMemo(() => {
+    // Create a set of existing tags with both name and transaction type as the key
+    const existingTags = new Set(
+      tags.map(
+        (tag) => `${tag.name.toLowerCase().trim()}:${tag.transactionType}`
+      )
+    );
+    return RECOMMENDED_TAGS.filter(
+      (recommendedTag) =>
+        !existingTags.has(
+          `${recommendedTag.name.toLowerCase().trim()}:${recommendedTag.transactionType}`
+        )
+    );
+  }, [tags]);
+
+  const expenseRecommendedTags = useMemo(
+    () =>
+      filteredRecommendedTags.filter(
+        (tag) => tag.transactionType === "EXPENSE"
+      ),
+    [filteredRecommendedTags]
+  );
+
+  const incomeRecommendedTags = useMemo(
+    () =>
+      filteredRecommendedTags.filter((tag) => tag.transactionType === "INCOME"),
+    [filteredRecommendedTags]
+  );
+
+  const handleCreateFromRecommended = (
+    recommendedTag: (typeof RECOMMENDED_TAGS)[0]
+  ) => {
+    // Transform recommended tag data to match ICreateTagInput
+    // Ensure empty strings are converted to null for optional fields
+    // The schema expects null (not undefined) for nullable optional fields
+    const tagInput: ICreateTagInput = {
+      name: recommendedTag.name,
+      color:
+        recommendedTag.color && recommendedTag.color.trim() !== ""
+          ? recommendedTag.color.trim()
+          : null,
+      description:
+        recommendedTag.description && recommendedTag.description.trim() !== ""
+          ? recommendedTag.description.trim()
+          : null,
+      emoticon:
+        recommendedTag.emoticon && recommendedTag.emoticon.trim() !== ""
+          ? recommendedTag.emoticon.trim()
+          : null,
+      transactionType: recommendedTag.transactionType,
+    };
+
+    createTag(tagInput, {
+      onSuccess: () => {
+        toast.success(`Tag "${recommendedTag.name}" created successfully`);
+      },
+      onError: () => {
+        toast.error(`Failed to create tag "${recommendedTag.name}"`);
+      },
+    });
+  };
+
   return (
     <>
       <Container className="sticky top-0 z-10 bg-surface">
@@ -217,84 +288,217 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
 
       {!isLoading && !error && (
         <>
-          {sortedTags.length === 0 && (
+          {sortedTags.length === 0 &&
+            expenseRecommendedTags.length === 0 &&
+            incomeRecommendedTags.length === 0 && (
+              <Container>
+                <div className="text-center py-8">
+                  <HiOutlineTag className="size-12 mx-auto text-text-muted mb-4" />
+                  <h2 className="text-xl font-semibold text-text mb-2">
+                    No tags yet
+                  </h2>
+                  <p className="text-text-muted mb-6">
+                    Get started by creating your first tag or choose from our
+                    recommended tags below.
+                  </p>
+                </div>
+              </Container>
+            )}
+
+          {(sortedTags.length > 0 ||
+            expenseRecommendedTags.length > 0 ||
+            incomeRecommendedTags.length > 0) && (
             <Container>
-              <EmptyPage
-                icon={HiOutlineTag}
-                emptyText={
-                  "No tags yet. Create your first tag to organize your finances."
-                }
-                button={{
-                  buttonContent: "Add tag",
-                  clicked: handleCreateTag,
-                }}></EmptyPage>
+              <Tabs defaultValue="expense">
+                <Tab value="expense">Expense</Tab>
+                <Tab value="income">Income</Tab>
+
+                <TabContent value="expense">
+                  <div className="space-y-6">
+                    {expenseTags.length > 0 ? (
+                      <div>
+                        <h2 className="text-lg font-semibold mb-4 text-text">
+                          Expense Tags
+                        </h2>
+                        <TagList
+                          data={expenseTags}
+                          searchQuery={debouncedSearchQuery}
+                          onEdit={handleEditTag}
+                          onDelete={handleDeleteClick}
+                          onOrderChange={(orderedIds) => {
+                            handleSectionReorder(
+                              orderedIds as string[],
+                              sortedTags
+                            );
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <HiOutlineTag className="size-12 mx-auto text-text-muted mb-4" />
+                        <p className="text-text-muted">
+                          No expense tags yet. Create one or choose from
+                          recommended tags below.
+                        </p>
+                      </div>
+                    )}
+
+                    {expenseRecommendedTags.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 text-text">
+                          Recommended Tags
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {expenseRecommendedTags.map(
+                            (recommendedTag, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() =>
+                                  handleCreateFromRecommended(recommendedTag)
+                                }
+                                className="p-4 border border-border rounded-lg hover:bg-surface-hover transition-colors text-left group">
+                                <div className="flex items-center gap-3">
+                                  {recommendedTag.emoticon && (
+                                    <span className="text-2xl">
+                                      {recommendedTag.emoticon}
+                                    </span>
+                                  )}
+                                  {recommendedTag.color && (
+                                    <div
+                                      className="size-4 rounded shrink-0"
+                                      style={{
+                                        backgroundColor: recommendedTag.color,
+                                      }}
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-text group-hover:text-primary">
+                                      {recommendedTag.name}
+                                    </div>
+                                    {recommendedTag.description && (
+                                      <div className="text-sm text-text-muted mt-1">
+                                        {recommendedTag.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabContent>
+
+                <TabContent value="income">
+                  <div className="space-y-6">
+                    {incomeTags.length > 0 ? (
+                      <div>
+                        <h2 className="text-lg font-semibold mb-4 text-text">
+                          Income Tags
+                        </h2>
+                        <TagList
+                          data={incomeTags}
+                          searchQuery={debouncedSearchQuery}
+                          onEdit={handleEditTag}
+                          onDelete={handleDeleteClick}
+                          onOrderChange={(orderedIds) => {
+                            handleSectionReorder(
+                              orderedIds as string[],
+                              sortedTags
+                            );
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <HiOutlineTag className="size-12 mx-auto text-text-muted mb-4" />
+                        <p className="text-text-muted">
+                          No income tags yet. Create one or choose from
+                          recommended tags below.
+                        </p>
+                      </div>
+                    )}
+
+                    {incomeRecommendedTags.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 text-text">
+                          Recommended Tags
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {incomeRecommendedTags.map(
+                            (recommendedTag, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() =>
+                                  handleCreateFromRecommended(recommendedTag)
+                                }
+                                className="p-4 border border-border rounded-lg hover:bg-surface-hover transition-colors text-left group">
+                                <div className="flex items-center gap-3">
+                                  {recommendedTag.emoticon && (
+                                    <span className="text-2xl">
+                                      {recommendedTag.emoticon}
+                                    </span>
+                                  )}
+                                  {recommendedTag.color && (
+                                    <div
+                                      className="size-4 rounded shrink-0"
+                                      style={{
+                                        backgroundColor: recommendedTag.color,
+                                      }}
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-text group-hover:text-primary">
+                                      {recommendedTag.name}
+                                    </div>
+                                    {recommendedTag.description && (
+                                      <div className="text-sm text-text-muted mt-1">
+                                        {recommendedTag.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabContent>
+              </Tabs>
             </Container>
-          )}
-
-          {sortedTags.length > 0 && (
-            <div className="space-y-6">
-              {/* Expense Tags Section */}
-              {expenseTags.length > 0 && (
-                <Container>
-                  <h2 className="text-lg font-semibold mb-4 text-text">
-                    Expense Tags
-                  </h2>
-                  <TagList
-                    data={expenseTags}
-                    searchQuery={debouncedSearchQuery}
-                    onEdit={handleEditTag}
-                    onDelete={handleDeleteClick}
-                    onOrderChange={(orderedIds) => {
-                      handleSectionReorder(orderedIds as string[], sortedTags);
-                    }}
-                  />
-                </Container>
-              )}
-
-              {/* Income Tags Section */}
-              {incomeTags.length > 0 && (
-                <Container>
-                  <h2 className="text-lg font-semibold mb-4 text-text">
-                    Income Tags
-                  </h2>
-                  <TagList
-                    data={incomeTags}
-                    searchQuery={debouncedSearchQuery}
-                    onEdit={handleEditTag}
-                    onDelete={handleDeleteClick}
-                    onOrderChange={(orderedIds) => {
-                      handleSectionReorder(orderedIds as string[], sortedTags);
-                    }}
-                  />
-                </Container>
-              )}
-
-              {/* Tags for Both Section */}
-              {bothTags.length > 0 && (
-                <Container>
-                  <h2 className="text-lg font-semibold mb-4 text-text">
-                    Tags for Both
-                  </h2>
-                  <TagList
-                    data={bothTags}
-                    searchQuery={debouncedSearchQuery}
-                    onEdit={handleEditTag}
-                    onDelete={handleDeleteClick}
-                    onOrderChange={(orderedIds) => {
-                      handleSectionReorder(orderedIds as string[], sortedTags);
-                    }}
-                  />
-                </Container>
-              )}
-            </div>
           )}
         </>
       )}
 
       <AddOrCreateTagDialog
         open={isTagDialogOpen}
-        onOpenChange={setIsTagDialogOpen}
+        onOpenChange={(open) => {
+          setIsTagDialogOpen(open);
+          if (!open) {
+            setRecommendedTagData(undefined);
+          }
+        }}
         tag={selectedTag}
+        initialValues={
+          recommendedTagData
+            ? {
+                name: recommendedTagData.name,
+                color: recommendedTagData.color ?? "",
+                description: recommendedTagData.description ?? "",
+                emoticon: recommendedTagData.emoticon ?? "",
+                transactionType: recommendedTagData.transactionType,
+              }
+            : undefined
+        }
+        onSuccess={() => {
+          setRecommendedTagData(undefined);
+        }}
       />
 
       <DeleteDialog
