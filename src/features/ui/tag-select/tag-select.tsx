@@ -49,14 +49,13 @@ export function TagSelect({
   const { highlightText } = useHighlightText();
 
   // Filter tags based on transactionType
-  // Show tags where: transactionType === null (works with both) OR transactionType === provided type
+  // Show tags where transactionType matches the provided type
   const filteredTags = useMemo(() => {
     if (!transactionType) {
       return orderedTags;
     }
     return orderedTags.filter(
-      (tag) =>
-        tag.transactionType === null || tag.transactionType === transactionType
+      (tag) => tag.transactionType === transactionType
     );
   }, [orderedTags, transactionType]);
 

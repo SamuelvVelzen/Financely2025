@@ -183,7 +183,7 @@ model Tag {
   description   String?
   emoticon      String?           // optional emoticon/emoji
   order         Int
-  transactionType TransactionType? // null = works with both, EXPENSE = expense only, INCOME = income only
+  transactionType TransactionType // EXPENSE = expense only, INCOME = income only
 
   transactions  Transaction[]
   primaryTransactions Transaction[] @relation("PrimaryTag")

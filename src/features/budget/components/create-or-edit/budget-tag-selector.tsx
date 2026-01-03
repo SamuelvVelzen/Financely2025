@@ -32,22 +32,17 @@ export function BudgetTagSelector({
       return orderedTags;
     }
     return orderedTags.filter(
-      (tag) =>
-        tag.transactionType === null || tag.transactionType === transactionType
+      (tag) => tag.transactionType === transactionType
     );
   }, [orderedTags, transactionType]);
 
-  // Separate tags into three sections
+  // Separate tags into two sections
   const expenseTags = useMemo(
     () => filteredTags.filter((tag) => tag.transactionType === "EXPENSE"),
     [filteredTags]
   );
   const incomeTags = useMemo(
     () => filteredTags.filter((tag) => tag.transactionType === "INCOME"),
-    [filteredTags]
-  );
-  const bothTags = useMemo(
-    () => filteredTags.filter((tag) => tag.transactionType === null),
     [filteredTags]
   );
 
@@ -161,17 +156,6 @@ export function BudgetTagSelector({
               title="Income Tags"
               defaultOpen={true}>
               {renderTagList(incomeTags)}
-            </Accordion>
-          </div>
-        )}
-
-        {/* Tags for Both Section */}
-        {bothTags.length > 0 && (
-          <div className="space-y-3">
-            <Accordion
-              title="Tags for Both"
-              defaultOpen={true}>
-              {renderTagList(bothTags)}
             </Accordion>
           </div>
         )}

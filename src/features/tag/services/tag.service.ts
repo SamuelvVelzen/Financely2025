@@ -60,30 +60,37 @@ export class TagService {
     });
 
     return {
-      data: tags.map(
-        (tag: {
-          id: string;
-          name: string;
-          color: string | null;
-          description: string | null;
+      data: tags
+        .filter((tag) => {
+          // Filter out tags with invalid transactionType (shouldn't happen after migration)
+          return (
+            tag.transactionType === "EXPENSE" || tag.transactionType === "INCOME"
+          );
+        })
+        .map(
+          (tag: {
+            id: string;
+            name: string;
+            color: string | null;
+            description: string | null;
             emoticon: string | null;
-          order: number;
-          transactionType: "EXPENSE" | "INCOME" | null | undefined;
-          createdAt: Date;
-          updatedAt: Date;
-        }) =>
-          TagSchema.parse({
-            id: tag.id,
-            name: tag.name,
-            color: tag.color,
-            description: tag.description,
+            order: number;
+            transactionType: "EXPENSE" | "INCOME";
+            createdAt: Date;
+            updatedAt: Date;
+          }) =>
+            TagSchema.parse({
+              id: tag.id,
+              name: tag.name,
+              color: tag.color,
+              description: tag.description,
               emoticon: tag.emoticon,
-            order: tag.order,
-            transactionType: tag.transactionType ?? null,
-            createdAt: tag.createdAt.toISOString(),
-            updatedAt: tag.updatedAt.toISOString(),
-          })
-      ),
+              order: tag.order,
+              transactionType: tag.transactionType,
+              createdAt: tag.createdAt.toISOString(),
+              updatedAt: tag.updatedAt.toISOString(),
+            })
+        ),
     };
   }
 
@@ -160,7 +167,7 @@ export class TagService {
         description: validated.description ?? null,
         emoticon: validated.emoticon ?? null,
         order,
-        transactionType: validated.transactionType ?? null,
+        transactionType: validated.transactionType,
       },
     });
 
@@ -233,7 +240,7 @@ export class TagService {
       description: tag.description,
       emoticon: tag.emoticon,
       order: tag.order,
-      transactionType: tag.transactionType ?? null,
+      transactionType: tag.transactionType,
       createdAt: tag.createdAt.toISOString(),
       updatedAt: tag.updatedAt.toISOString(),
     });
@@ -327,6 +334,7 @@ export class TagService {
             description: validatedItem.description ?? null,
             order,
             emoticon: validatedItem.emoticon ?? null,
+            transactionType: validatedItem.transactionType,
           },
         });
 

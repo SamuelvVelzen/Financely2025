@@ -11,6 +11,7 @@ import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialo
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { ColorInput } from "@/features/ui/input/color-input";
+import { EmoticonInput } from "@/features/ui/input/emoticon-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
@@ -23,15 +24,15 @@ type IAddOrCreateTagDialog = {
   onOpenChange: (open: boolean) => void;
   tag?: ITag;
   initialName?: string;
+  initialValues?: Partial<FormData>;
   onSuccess?: (createdTag?: ITag) => void;
 };
 
 type FormData = z.infer<typeof CreateTagInputSchema>;
 
 const TRANSACTION_TYPE_OPTIONS = [
-  { value: "EXPENSE", label: "Expense Only" },
-  { value: "INCOME", label: "Income Only" },
-  { value: "", label: "Both" },
+  { value: "EXPENSE", label: "Expense" },
+  { value: "INCOME", label: "Income" },
 ] as const;
 
 const getEmptyFormValues = (): FormData => ({
@@ -39,6 +40,7 @@ const getEmptyFormValues = (): FormData => ({
   color: "",
   description: "",
   emoticon: "",
+  transactionType: "EXPENSE" as ITransactionType,
 });
 
 export function AddOrCreateTagDialog({
@@ -46,6 +48,7 @@ export function AddOrCreateTagDialog({
   onOpenChange,
   tag,
   initialName,
+  initialValues,
   onSuccess,
 }: IAddOrCreateTagDialog) {
   const [pending, setPending] = useState(false);
@@ -99,21 +102,34 @@ export function AddOrCreateTagDialog({
           color: tag.color ?? "",
           description: tag.description ?? "",
           emoticon: tag.emoticon ?? "",
+          transactionType: tag.transactionType,
         });
       } else {
-        // Create mode: reset to defaults or use initial name
+        // Create mode: reset to defaults or use initial name/values
         form.reset({
+          name: initialValues?.name || initialName || "",
+          color: initialValues?.color || "",
+          description: initialValues?.description || "",
           emoticon: initialValues?.emoticon || "",
+          transactionType: (initialValues?.transactionType ||
+            "EXPENSE") as ITransactionType,
         });
       }
     } else {
       // Reset form when dialog closes to ensure clean state
       form.reset(getEmptyFormValues());
     }
-  }, [open, tag?.id, initialName, form]);
+  }, [open, tag?.id, initialName, initialValues, form]);
 
   const handleSubmit = async (data: FormData) => {
     setPending(true);
+
+    // Ensure transactionType is valid (default to EXPENSE if not set)
+    const transactionType =
+      data.transactionType &&
+      (data.transactionType === "EXPENSE" || data.transactionType === "INCOME")
+        ? data.transactionType
+        : "EXPENSE";
 
     // Transform empty strings to null for optional fields
     const submitData = {
@@ -132,6 +148,7 @@ export function AddOrCreateTagDialog({
         data.emoticon && data.emoticon.trim() !== ""
           ? data.emoticon.trim()
           : null,
+      transactionType: transactionType as ITransactionType,
     };
 
     try {
@@ -216,6 +233,7 @@ export function AddOrCreateTagDialog({
                 options={TRANSACTION_TYPE_OPTIONS}
                 placeholder="Select transaction type..."
                 disabled={pending}
+                required
               />
             </div>
           </Form>

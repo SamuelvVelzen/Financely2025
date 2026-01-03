@@ -33,14 +33,14 @@ export function BudgetDetailTagsContainer({
       {
         name: string;
         color: string | null;
-        transactionType: "EXPENSE" | "INCOME" | null;
+        transactionType: "EXPENSE" | "INCOME";
       }
     >();
     tags.forEach((tag) => {
       map.set(tag.id, {
         name: tag.name,
         color: tag.color,
-        transactionType: tag.transactionType ?? null,
+        transactionType: tag.transactionType,
       });
     });
     return map;
@@ -50,42 +50,32 @@ export function BudgetDetailTagsContainer({
   const groupedItems = useMemo(() => {
     const expenseItems: typeof items = [];
     const incomeItems: typeof items = [];
-    const bothItems: typeof items = [];
+    const miscItems: typeof items = [];
 
     items.forEach((itemComparison) => {
       const tagId = itemComparison.item.tagId;
 
-      // Misc items (tagId: null) always go in "both" section
+      // Misc items (tagId: null) go in misc section
       if (tagId === null) {
-        bothItems.push(itemComparison);
+        miscItems.push(itemComparison);
         return;
       }
 
       // Get transaction type from tag map
       const tagInfo = tagMap.get(tagId);
-      const transactionType = tagInfo?.transactionType ?? null;
+      const transactionType = tagInfo?.transactionType;
 
       if (transactionType === "EXPENSE") {
         expenseItems.push(itemComparison);
       } else if (transactionType === "INCOME") {
         incomeItems.push(itemComparison);
       } else {
-        // transactionType is null, goes in "both" section
-        bothItems.push(itemComparison);
+        // Fallback: if tag not found, put in misc
+        miscItems.push(itemComparison);
       }
     });
 
-    // Sort misc items (tagId: null) to the bottom within bothItems
-    bothItems.sort((a, b) => {
-      const aTagId = a.item.tagId;
-      const bTagId = b.item.tagId;
-      if (aTagId === null && bTagId === null) return 0;
-      if (aTagId === null) return 1;
-      if (bTagId === null) return -1;
-      return 0;
-    });
-
-    return { expenseItems, incomeItems, bothItems };
+    return { expenseItems, incomeItems, miscItems };
   }, [items, tagMap]);
 
   const toggleItem = (itemId: string) => {
@@ -268,13 +258,13 @@ export function BudgetDetailTagsContainer({
         </Accordion>
       )}
 
-      {/* Tags for Both Section (includes Miscellaneous) */}
-      {groupedItems.bothItems.length > 0 && (
+      {/* Miscellaneous Section */}
+      {groupedItems.miscItems.length > 0 && (
         <Accordion
-          title="Tags for Both"
+          title="Miscellaneous"
           defaultOpen={true}>
           <List
-            data={groupedItems.bothItems}
+            data={groupedItems.miscItems}
             getItemKey={(item) => item.item.id}>
             {(itemComparison) => renderBudgetItem(itemComparison)}
           </List>

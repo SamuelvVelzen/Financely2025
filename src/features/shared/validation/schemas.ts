@@ -150,6 +150,8 @@ export const TagSchema = z.object({
     .nullable()
     .or(z.undefined())
     .transform((val) => val ?? null),
+  order: z.number().int(),
+  transactionType: TransactionTypeSchema,
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
 });
@@ -196,6 +198,11 @@ export const FORBIDDEN_COLORS = [
   "#14532d", // success-bg
 ];
 
+// Emoji regex pattern - matches emoji characters including skin tones, flags, etc.
+// Note: Not using global flag to avoid state issues with .test()
+const EMOJI_REGEX =
+  /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base})/u;
+
 export const CreateTagInputSchema = z.object({
   name: z.string().min(1).max(100),
   color: z
@@ -232,10 +239,7 @@ export const CreateTagInputSchema = z.object({
     .nullable()
     .optional(),
   order: z.number().int().optional(),
-  transactionType: z.preprocess(
-    (val) => (val === "" || val === undefined ? null : val),
-    TransactionTypeSchema.nullable().optional()
-  ),
+  transactionType: TransactionTypeSchema,
 });
 
 export const UpdateTagInputSchema = CreateTagInputSchema.partial();
