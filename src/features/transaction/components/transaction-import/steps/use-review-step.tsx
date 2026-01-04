@@ -199,7 +199,10 @@ function ReviewStepContent({
       <Pagination
         currentPage={currentPage}
         totalPages={pagination.totalPages}
-        onPageChange={setCurrentPage}
+        onPageChange={(page) => {
+          pagination.setCurrentPage(page);
+          setCurrentPage(page);
+        }}
       />
     </div>
   );
