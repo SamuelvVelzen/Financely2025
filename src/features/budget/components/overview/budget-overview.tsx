@@ -2,7 +2,6 @@
 
 import {
   useBudgets,
-  useBudgetsOverview,
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
 import type { IBudget } from "@/features/shared/validation/schemas";
@@ -18,7 +17,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { HiOutlineCurrencyEuro, HiPlus } from "react-icons/hi2";
 import { BudgetListItem } from "./budget-list-item";
-import { BudgetSummaryCards } from "./budget-summary-cards";
 
 export function BudgetOverview() {
   const {
@@ -26,11 +24,6 @@ export function BudgetOverview() {
     isLoading: isLoadingBudgets,
     error: errorBudgets,
   } = useBudgets();
-  const {
-    data: overviewData,
-    isLoading: isLoadingOverview,
-    error: errorOverview,
-  } = useBudgetsOverview();
   const budgets = budgetsData?.data ?? [];
   const { mutate: deleteBudget } = useDeleteBudget();
   const toast = useToast();
@@ -104,52 +97,42 @@ export function BudgetOverview() {
       </Container>
 
       <Container>
-        <BudgetSummaryCards
-          overviewData={overviewData}
-          isLoading={isLoadingOverview}
-          error={errorOverview}
-        />
+        {isLoadingBudgets && (
+          <div className="flex items-center justify-center py-8">
+            <Loading text="Loading budgets" />
+          </div>
+        )}
+        {errorBudgets && (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-danger">Failed to load budgets</div>
+          </div>
+        )}
+
+        {!isLoadingBudgets && !errorBudgets && budgets.length === 0 && (
+          <EmptyPage
+            icon={HiOutlineCurrencyEuro}
+            emptyText="Create your first budget to start tracking your expenses and income."
+            button={{
+              buttonContent: "Create Budget",
+              clicked: handleCreateBudget,
+            }}
+          />
+        )}
+
+        {budgets.length > 0 && (
+          <List data={budgets}>
+            {(budget: IBudget) => (
+              <BudgetListItem
+                key={budget.id}
+                budget={budget}
+                onView={handleViewBudget}
+                onEdit={handleEditBudget}
+                onDelete={handleDeleteClick}
+              />
+            )}
+          </List>
+        )}
       </Container>
-
-      {
-        <Container>
-          {isLoadingBudgets && (
-            <div className="flex items-center justify-center py-8">
-              <Loading text="Loading budgets" />
-            </div>
-          )}
-          {errorBudgets && (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-danger">Failed to load budgets</div>
-            </div>
-          )}
-
-          {!isLoadingOverview && !errorOverview && budgets.length === 0 && (
-            <EmptyPage
-              icon={HiOutlineCurrencyEuro}
-              emptyText="Create your first budget to start tracking your expenses and income."
-              button={{
-                buttonContent: "Create Budget",
-                clicked: handleCreateBudget,
-              }}
-            />
-          )}
-
-          {budgets.length > 0 && (
-            <List data={budgets}>
-              {(budget: IBudget) => (
-                <BudgetListItem
-                  key={budget.id}
-                  budget={budget}
-                  onView={handleViewBudget}
-                  onEdit={handleEditBudget}
-                  onDelete={handleDeleteClick}
-                />
-              )}
-            </List>
-          )}
-        </Container>
-      }
 
       {/* Delete Dialog */}
       <DeleteDialog
