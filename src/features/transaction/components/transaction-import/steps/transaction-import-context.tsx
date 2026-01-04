@@ -106,6 +106,7 @@ export interface ITransactionImportContext {
   handleExcludeAllInvalid: () => void;
   handleValidateMapping: (goToStep: (step: IStep) => void) => Promise<void>;
   handleConfirmImport: () => Promise<void>;
+  updateCandidate: (rowIndex: number, updates: Partial<ICreateTransactionInput>) => void;
   resetAllState: () => void;
 
   // Mutations
@@ -298,6 +299,19 @@ export function TransactionImportProvider({
     setSelectedRows(new Set(validIndices));
   };
 
+  const updateCandidate = useCallback(
+    (rowIndex: number, updates: Partial<ICreateTransactionInput>) => {
+      setCandidates((prev) =>
+        prev.map((c) =>
+          c.rowIndex === rowIndex
+            ? { ...c, data: { ...c.data, ...updates } }
+            : c
+        )
+      );
+    },
+    []
+  );
+
   const handleValidateMapping = async (goToStep: (step: IStep) => void) => {
     // Form validation already passed (triggered by handleSubmit in mapping step)
     // Only call transform API
@@ -420,6 +434,7 @@ export function TransactionImportProvider({
     handleExcludeAllInvalid,
     handleValidateMapping,
     handleConfirmImport,
+    updateCandidate,
     resetAllState,
 
     // Mutations

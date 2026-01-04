@@ -1,24 +1,40 @@
+import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { Alert } from "@/features/ui/alert/alert";
 import { Button } from "@/features/ui/button/button";
+import { IconButton } from "@/features/ui/button/icon-button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import type {
   IStepConfig,
   IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
+import { DateInput } from "@/features/ui/input/date-input";
+import { DecimalInput } from "@/features/ui/input/decimal-input";
+import { TextInput } from "@/features/ui/input/text-input";
 import { Pagination, usePagination } from "@/features/ui/pagination";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/features/util/cn";
-import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
+import {
+  dateOnlyToIso,
+  datetimeLocalToIso,
+  isoToDateOnly,
+  isoToDatetimeLocal,
+} from "@/features/util/date/dateisohelpers";
 import { useMemo, useState } from "react";
-import { HiExclamationCircle } from "react-icons/hi";
+import { HiClock, HiExclamationCircle } from "react-icons/hi";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
 import {
   useTransactionImportContext,
   type IStep,
 } from "./transaction-import-context";
+
+const TRANSACTION_TYPE_OPTIONS = [
+  { value: "EXPENSE", label: "Expense" },
+  { value: "INCOME", label: "Income" },
+] as const;
 
 function ReviewStepContent({
   errorDialogRowIndex,
@@ -38,6 +54,7 @@ function ReviewStepContent({
     setCurrentPage,
     handleSelectAllValid,
     handleExcludeAllInvalid,
+    updateCandidate,
   } = useTransactionImportContext();
 
   // Use the pagination hook for client-side pagination
@@ -180,34 +197,137 @@ function ReviewStepContent({
                 </span>
               </BodyCell>
               <BodyCell>
-                <span className="text-sm text-text-muted">
-                  {candidate.data.transactionDate
-                    ? DateFormatHelpers.formatIsoStringToString(
-                        candidate.data.transactionDate,
-                        candidate.data.timePrecision
-                      )
-                    : "—"}
-                </span>
+                {candidate.data.transactionDate ? (
+                  <div className="flex items-center gap-1">
+                    <DateInput
+                      value={
+                        candidate.data.timePrecision === "DateTime"
+                          ? isoToDatetimeLocal(candidate.data.transactionDate)
+                          : isoToDateOnly(candidate.data.transactionDate)
+                      }
+                      type={
+                        candidate.data.timePrecision === "DateTime"
+                          ? "datetime-local"
+                          : "date"
+                      }
+                      onChange={(value) => {
+                        if (value) {
+                          const isoDate =
+                            candidate.data.timePrecision === "DateTime"
+                              ? datetimeLocalToIso(String(value))
+                              : dateOnlyToIso(String(value));
+                          updateCandidate(candidate.rowIndex, {
+                            transactionDate: isoDate,
+                          });
+                        }
+                      }}
+                      className="h-8 text-sm flex-1"
+                    />
+                    <IconButton
+                      size="sm"
+                      clicked={() => {
+                        const currentPrecision =
+                          candidate.data.timePrecision || "DateOnly";
+                        const newPrecision =
+                          currentPrecision === "DateTime"
+                            ? "DateOnly"
+                            : "DateTime";
+                        const currentDate = candidate.data.transactionDate;
+
+                        // When switching modes, preserve the date part
+                        let newDate: string;
+                        if (newPrecision === "DateOnly") {
+                          // Switching to DateOnly: extract date part and normalize to noon UTC
+                          newDate = dateOnlyToIso(isoToDateOnly(currentDate));
+                        } else {
+                          // Switching to DateTime: if current is DateOnly, use current time, otherwise keep existing
+                          if (currentPrecision === "DateOnly") {
+                            // Convert date-only to datetime-local with current time, then to ISO
+                            const dateOnly = isoToDateOnly(currentDate);
+                            const now = new Date();
+                            const hours = String(now.getHours()).padStart(
+                              2,
+                              "0"
+                            );
+                            const minutes = String(now.getMinutes()).padStart(
+                              2,
+                              "0"
+                            );
+                            const datetimeLocal = `${dateOnly}T${hours}:${minutes}`;
+                            newDate = datetimeLocalToIso(datetimeLocal);
+                          } else {
+                            newDate = currentDate;
+                          }
+                        }
+
+                        updateCandidate(candidate.rowIndex, {
+                          transactionDate: newDate,
+                          timePrecision: newPrecision,
+                        });
+                      }}
+                      className={cn(
+                        "shrink-0",
+                        candidate.data.timePrecision === "DateTime" &&
+                          "text-primary"
+                      )}
+                      aria-label={
+                        candidate.data.timePrecision === "DateTime"
+                          ? "Remove time (switch to date only)"
+                          : "Add time (switch to date and time)"
+                      }>
+                      <HiClock className="size-5" />
+                    </IconButton>
+                  </div>
+                ) : (
+                  <span className="text-sm text-text-muted">—</span>
+                )}
               </BodyCell>
               <BodyCell>
-                <span className="text-sm text-text">
-                  {candidate.data.name || "—"}
-                </span>
+                <TextInput
+                  value={candidate.data.name || ""}
+                  onChange={(value) => {
+                    updateCandidate(candidate.rowIndex, {
+                      name: String(value || ""),
+                    });
+                  }}
+                  className="h-8 text-sm"
+                />
               </BodyCell>
               <BodyCell>
-                <span className="text-sm text-text">
-                  {candidate.data.amount || "—"}
-                </span>
+                <DecimalInput
+                  value={candidate.data.amount || ""}
+                  onValueChange={(normalizedValue) => {
+                    updateCandidate(candidate.rowIndex, {
+                      amount: normalizedValue,
+                    });
+                  }}
+                  className="h-8 text-sm"
+                />
               </BodyCell>
               <BodyCell>
-                <span className="text-sm font-medium">
-                  {candidate.data.currency || defaultCurrency}
-                </span>
+                <CurrencySelect
+                  value={(candidate.data.currency || defaultCurrency) as any}
+                  onChange={(value) => {
+                    updateCandidate(candidate.rowIndex, {
+                      currency: value || defaultCurrency || ("EUR" as any),
+                    });
+                  }}
+                  className="h-8 text-sm"
+                />
               </BodyCell>
               <BodyCell>
-                <span className="text-sm font-medium">
-                  {candidate.data.type || "—"}
-                </span>
+                <SelectDropdown
+                  options={TRANSACTION_TYPE_OPTIONS}
+                  value={candidate.data.type || undefined}
+                  onChange={(value) => {
+                    updateCandidate(candidate.rowIndex, {
+                      type: value as any,
+                    });
+                  }}
+                  placeholder="Select type"
+                  className="h-8 text-sm"
+                  showClearButton={false}
+                />
               </BodyCell>
               <BodyCell>
                 {candidate.errors.length > 0 ? (
