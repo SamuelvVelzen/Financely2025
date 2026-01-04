@@ -13,7 +13,7 @@ import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { Select, type ISelectOption } from "../select/select";
+import { Select } from "../select/select";
 
 export type ITagSelectProps = IPropsWithClassName & {
   name: string;
@@ -58,7 +58,7 @@ export function TagSelect({
   }, [orderedTags, transactionType]);
 
   // Convert tags to SelectOption format
-  const tagOptions: ISelectOption<ITag>[] = useMemo(() => {
+  const tagOptions = useMemo(() => {
     return filteredTags.map((tag) => ({
       value: tag.id,
       label: tag.name,

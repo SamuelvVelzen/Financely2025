@@ -19,10 +19,9 @@ import type { IPlacementOption } from "../dropdown/hooks/use-dropdown-placement"
 import { Label } from "../typography/label";
 import { NativeSelect } from "./native-select";
 
-export type ISelectOption<TData = unknown> = {
+export type ISelectOption = {
   value: string;
   label: string;
-  data?: TData;
 };
 
 export type ISelectProps<TOption extends ISelectOption = ISelectOption> =

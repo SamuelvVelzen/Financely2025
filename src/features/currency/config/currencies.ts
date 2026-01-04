@@ -27,7 +27,7 @@ export type ICurrency = (typeof SUPPORTED_CURRENCIES)[number];
  * Get currency options for select inputs
  * Returns formatted options array for UI components
  */
-export function getCurrencyOptions(): ISelectOption<ICurrency>[] {
+export function getCurrencyOptions(): ISelectOption[] {
   return SUPPORTED_CURRENCIES.map((value) => ({
     value,
     label: value,
