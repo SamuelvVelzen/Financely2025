@@ -10,18 +10,33 @@ import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { SelectHTMLAttributes } from "react";
 import { Controller } from "react-hook-form";
 import { ISelectOption } from "./select";
+import {
+  createStringToValueConverter,
+  createValueToStringConverter,
+  getStringValue,
+  type IValueSerialization,
+} from "./select-helpers";
 
-export type ISelectInputProps<TOption extends ISelectOption = ISelectOption> =
-  IPropsWithClassName &
-    Omit<SelectHTMLAttributes<HTMLSelectElement>, "value" | "onChange"> & {
-      options: TOption[] | readonly TOption[];
-      multiple?: boolean;
-      placeholder?: string;
-      label?: string;
-      disabled?: boolean;
-    } & IFormOrControlledMode<string | string[]>;
+// Re-export for convenience
+export type { IValueSerialization } from "./select-helpers";
 
-export function NativeSelect<TOption extends ISelectOption = ISelectOption>({
+export type ISelectInputProps<
+  TValue = string,
+  TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
+> = IPropsWithClassName &
+  Omit<SelectHTMLAttributes<HTMLSelectElement>, "value" | "onChange"> & {
+    options: TOption[] | readonly TOption[];
+    multiple?: boolean;
+    placeholder?: string;
+    label?: string;
+    disabled?: boolean;
+  } & IValueSerialization<TValue> &
+  IFormOrControlledMode<TValue | TValue[]>;
+
+export function NativeSelect<
+  TValue = string,
+  TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
+>({
   className = "",
   name,
   options,
@@ -31,9 +46,15 @@ export function NativeSelect<TOption extends ISelectOption = ISelectOption>({
   disabled = false,
   value: controlledValue,
   onChange: controlledOnChange,
+  valueToString,
+  stringToValue,
   ...props
-}: ISelectInputProps<TOption>) {
+}: ISelectInputProps<TValue, TOption>) {
   const form = useFormContextOptional();
+
+  // Create serialization converters
+  const convertValueToString = createValueToStringConverter(valueToString);
+  const convertStringToValue = createStringToValueConverter(stringToValue);
 
   // Determine mode
   const isFormMode = !!name && !!form;
@@ -51,14 +72,19 @@ export function NativeSelect<TOption extends ISelectOption = ISelectOption>({
 
   // Shared rendering logic
   const renderSelect = (
-    value: string | string[] | undefined,
-    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void,
+    value: TValue | TValue[] | undefined,
+    onChange: (newValue: TValue | TValue[] | undefined) => void,
     selectProps?: {
       name?: string;
       ref?: React.Ref<HTMLSelectElement>;
       onBlur?: () => void;
     }
   ) => {
+    const stringValue = getStringValue(value, multiple, {
+      valueToString,
+      stringToValue,
+    });
+
     return (
       <div className={cn("relative", label ? "space-y-1" : "", className)}>
         {label && <Label>{label}</Label>}
@@ -74,9 +100,29 @@ export function NativeSelect<TOption extends ISelectOption = ISelectOption>({
             "w-full"
           )}
           value={
-            multiple ? (Array.isArray(value) ? value : []) : String(value || "")
+            multiple
+              ? Array.isArray(stringValue)
+                ? stringValue
+                : []
+              : String(stringValue || "")
           }
-          onChange={onChange}
+          onChange={(e) => {
+            if (multiple) {
+              const selectedStrings = Array.from(
+                e.target.selectedOptions,
+                (option) => option.value
+              );
+              const selectedValues = selectedStrings.map(convertStringToValue);
+              onChange(selectedValues as TValue[]);
+            } else {
+              const selectedString = e.target.value || "";
+              if (selectedString === "") {
+                onChange(undefined);
+              } else {
+                onChange(convertStringToValue(selectedString));
+              }
+            }
+          }}
           {...props}>
           {!multiple && (
             <option
@@ -87,8 +133,8 @@ export function NativeSelect<TOption extends ISelectOption = ISelectOption>({
           )}
           {options.map((option) => (
             <option
-              key={option.value}
-              value={option.value}>
+              key={String(option.value)}
+              value={convertValueToString(option.value)}>
               {option.label}
             </option>
           ))}
@@ -104,19 +150,9 @@ export function NativeSelect<TOption extends ISelectOption = ISelectOption>({
 
   // Render controlled mode
   if (isControlledMode) {
-    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      if (multiple) {
-        const selectedValues = Array.from(
-          e.target.selectedOptions,
-          (option) => option.value
-        );
-        controlledOnChange?.(selectedValues);
-      } else {
-        controlledOnChange?.(e.target.value || undefined);
-      }
-    };
-
-    return renderSelect(controlledValue, handleChange);
+    return renderSelect(controlledValue, (newValue) => {
+      controlledOnChange?.(newValue);
+    });
   }
 
   // Render form mode
@@ -126,24 +162,15 @@ export function NativeSelect<TOption extends ISelectOption = ISelectOption>({
         name={name}
         control={form.control}
         render={({ field }) => {
-          const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-            if (multiple) {
-              const selectedValues = Array.from(
-                e.target.selectedOptions,
-                (option) => option.value
-              );
-              field.onChange(selectedValues);
-            } else {
-              field.onChange(e.target.value || undefined);
+          return renderSelect(
+            field.value as TValue | TValue[] | undefined,
+            field.onChange,
+            {
+              name: field.name,
+              ref: field.ref,
+              onBlur: field.onBlur,
             }
-          };
-
-          const value = field.value as string | string[] | undefined;
-          return renderSelect(value, handleChange, {
-            name: field.name,
-            ref: field.ref,
-            onBlur: field.onBlur,
-          });
+          );
         }}
       />
     );

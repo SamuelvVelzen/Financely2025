@@ -18,39 +18,46 @@ import { DropdownItemEmpty } from "../dropdown/dropdown-item-empty";
 import type { IPlacementOption } from "../dropdown/hooks/use-dropdown-placement";
 import { Label } from "../typography/label";
 import { NativeSelect } from "./native-select";
+import { type IValueSerialization } from "./select-helpers";
 
-export type ISelectOption = {
-  value: string;
+export type ISelectOption<TValue = string> = {
+  value: TValue;
   label: string;
 };
 
-export type ISelectProps<TOption extends ISelectOption = ISelectOption> =
-  IPropsWithClassName & {
-    options: TOption[] | readonly TOption[];
-    multiple?: boolean;
-    placeholder?: string;
-    label?: string;
-    searchPlaceholder?: string;
-    disabled?: boolean;
-    hint?: string;
-    children?: (
-      option: TOption,
-      index: number,
-      context: {
-        isSelected: boolean;
-        handleClick: () => void;
-        multiple: boolean;
-        searchQuery: string;
-      }
-    ) => ReactNode;
-    onCreateNew?: (searchQuery: string) => void;
-    createNewLabel?: string | ((searchQuery: string) => string);
-    getOptionSearchValue?: (option: TOption) => string;
-    forcePlacement?: IPlacementOption[];
-    required?: boolean;
-  } & IFormOrControlledMode<string | string[]>;
+export type ISelectProps<
+  TValue = string,
+  TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
+> = IPropsWithClassName & {
+  options: TOption[] | readonly TOption[];
+  multiple?: boolean;
+  placeholder?: string;
+  label?: string;
+  searchPlaceholder?: string;
+  disabled?: boolean;
+  hint?: string;
+  children?: (
+    option: TOption,
+    index: number,
+    context: {
+      isSelected: boolean;
+      handleClick: () => void;
+      multiple: boolean;
+      searchQuery: string;
+    }
+  ) => ReactNode;
+  onCreateNew?: (searchQuery: string) => void;
+  createNewLabel?: string | ((searchQuery: string) => string);
+  getOptionSearchValue?: (option: TOption) => string;
+  forcePlacement?: IPlacementOption[];
+  required?: boolean;
+} & IValueSerialization<TValue> &
+  IFormOrControlledMode<TValue | TValue[]>;
 
-export function Select<TOption extends ISelectOption = ISelectOption>({
+export function Select<
+  TValue = string,
+  TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
+>({
   className = "",
   name,
   options,
@@ -68,7 +75,9 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
   required = false,
   value: controlledValue,
   onChange: controlledOnChange,
-}: ISelectProps<TOption>) {
+  valueToString,
+  stringToValue,
+}: ISelectProps<TValue, TOption>) {
   const { isMobile } = useResponsive();
   const form = useFormContextOptional();
 
@@ -96,6 +105,8 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
         label={label}
         disabled={disabled}
         required={required}
+        valueToString={valueToString}
+        stringToValue={stringToValue}
       />
     );
   }
@@ -128,16 +139,16 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
 
   // Check if option is selected
   const isSelected = (
-    optionValue: string,
-    value: string | string[] | undefined
+    optionValue: TValue,
+    value: TValue | TValue[] | undefined
   ): boolean => {
     if (!value) return false;
 
     if (multiple && Array.isArray(value)) {
-      return value.includes(optionValue);
+      return value.some((v) => v === optionValue);
     }
 
-    if (!multiple && typeof value === "string") {
+    if (!multiple) {
       return value === optionValue;
     }
 
@@ -146,9 +157,8 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
 
   // Get selected options
   const getSelectedOptions = (
-    value: string | number | string[] | number[] | undefined
+    value: TValue | TValue[] | undefined
   ): TOption[] => {
-    console.log("value", value);
     if (!value) return [];
     if (multiple && Array.isArray(value)) {
       // Preserve the order from the value array (FIFO)
@@ -157,7 +167,6 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
         .filter((opt): opt is TOption => opt !== undefined);
     }
     if (!multiple) {
-      console.log("options", options);
       const option = options.find((opt) => opt.value === value);
       return option ? [option] : [];
     }
@@ -166,8 +175,8 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
 
   // Shared rendering logic
   const renderSelectContent = (
-    value: string | string[] | undefined,
-    onChange: (newValue: string | string[] | undefined) => void
+    value: TValue | TValue[] | undefined,
+    onChange: (newValue: TValue | TValue[] | undefined) => void
   ) => {
     const selectedOptions = getSelectedOptions(value);
     const hasSelection = selectedOptions.length > 0;
@@ -178,11 +187,11 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
     const showCreateNew = onCreateNew && searchQuery.trim();
 
     // Handle option selection
-    const handleOptionClick = (optionValue: string) => {
+    const handleOptionClick = (optionValue: TValue) => {
       if (multiple) {
         // Multiple select: toggle the option
         const currentValues = Array.isArray(value) ? value : [];
-        const newValues = currentValues.includes(optionValue)
+        const newValues = currentValues.some((v) => v === optionValue)
           ? currentValues.filter((v) => v !== optionValue)
           : [...currentValues, optionValue];
         onChange(newValues);
@@ -195,7 +204,7 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
     };
 
     // Handle remove chip
-    const handleRemoveChip = (e: React.MouseEvent, optionValue: string) => {
+    const handleRemoveChip = (e: React.MouseEvent, optionValue: TValue) => {
       e.stopPropagation();
       if (multiple) {
         const currentValues = Array.isArray(value) ? value : [];
@@ -220,7 +229,7 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
           {hasSelection &&
             selectedOptions.map((option) => (
               <span
-                key={option.value}
+                key={String(option.value)}
                 className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface-hover rounded text-xs text-text shrink-0">
                 {option.label}
                 <button
@@ -301,7 +310,7 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
                 const handleClick = () => handleOptionClick(option.value);
                 return (
                   <DropdownItem
-                    key={option.value}
+                    key={String(option.value)}
                     clicked={handleClick}>
                     <div className="flex items-center gap-2 w-full">
                       {multiple && (
@@ -390,7 +399,7 @@ export function Select<TOption extends ISelectOption = ISelectOption>({
         disabled={disabled}
         render={({ field }) => {
           return renderSelectContent(
-            field.value as string | string[] | undefined,
+            field.value as TValue | TValue[] | undefined,
             field.onChange
           );
         }}

@@ -15,10 +15,12 @@ import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import { NativeSelect } from "../select/native-select";
 import { ISelectOption } from "../select/select";
+import { type IValueSerialization } from "../select/select-helpers";
 import { Label } from "../typography/label";
 
 export type ISelectDropdownProps<
-  TOption extends ISelectOption = ISelectOption,
+  TValue = string,
+  TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
 > = IPropsWithClassName & {
   options: TOption[] | readonly TOption[];
   multiple?: boolean;
@@ -37,9 +39,13 @@ export type ISelectDropdownProps<
   ) => ReactNode;
   disabled?: boolean;
   required?: boolean;
-} & IFormOrControlledMode<TOption["value"] | TOption["value"][]>;
+} & IValueSerialization<TValue> &
+  IFormOrControlledMode<TValue | TValue[]>;
 
-export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
+export function SelectDropdown<
+  TValue = string,
+  TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
+>({
   className = "",
   name,
   options,
@@ -53,9 +59,9 @@ export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
   required = false,
   value: controlledValue,
   onChange: controlledOnChange,
-}: ISelectDropdownProps<TOption>) {
-  type TValue = TOption["value"] | TOption["value"][];
-
+  valueToString,
+  stringToValue,
+}: ISelectDropdownProps<TValue, TOption>) {
   const { isMobile } = useResponsive();
   const form = useFormContextOptional();
 
@@ -77,7 +83,7 @@ export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
   }, [disabled, isOpen]);
 
   // Get selected labels for display
-  const getDisplayText = (val: TValue | undefined): string => {
+  const getDisplayText = (val: TValue | TValue[] | undefined): string => {
     if (!val || (Array.isArray(val) && val.length === 0)) {
       return placeholder;
     }
@@ -109,20 +115,17 @@ export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
 
   // Check if option is selected
   const isSelected = (
-    optionValue: string | number,
-    val: TValue | undefined
+    optionValue: TValue,
+    val: TValue | TValue[] | undefined
   ): boolean => {
     if (!val) return false;
 
     if (multiple && Array.isArray(val)) {
-      // For arrays, check if optionValue is included (handles string/number coercion)
-      return val.some((v) => String(v) === String(optionValue));
+      return val.some((v) => v === optionValue);
     }
 
-    // For single select, handle both string and number types
-    // Convert both to string for comparison to handle type mismatches
     if (!multiple) {
-      return String(val) === String(optionValue);
+      return val === optionValue;
     }
 
     return false;
@@ -140,42 +143,42 @@ export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
         label={label}
         disabled={disabled}
         required={required}
+        valueToString={valueToString}
+        stringToValue={stringToValue}
       />
     );
   }
 
   // Shared rendering logic for both controlled and form modes
   const renderSelectContent = (
-    value: TValue | undefined,
-    onChange: (newValue: TValue | undefined) => void,
+    value: TValue | TValue[] | undefined,
+    onChange: (newValue: TValue | TValue[] | undefined) => void,
     isFormMode: boolean
   ) => {
     const displayText = getDisplayText(value);
     const hasSelection =
-      value && (Array.isArray(value) ? value.length > 0 : value !== "");
+      value !== undefined &&
+      value !== null &&
+      (Array.isArray(value) ? value.length > 0 : true);
 
     // Handle option selection
-    const handleOptionClick = (optionValue: string | number) => {
+    const handleOptionClick = (optionValue: TValue) => {
       if (disabled) return;
       if (multiple) {
         // Multiple select: toggle the option
-        const currentValues: (string | number)[] = Array.isArray(value)
-          ? (value as (string | number)[])
-          : [];
-        const newValues: (string | number)[] = currentValues.includes(
-          optionValue
-        )
+        const currentValues = Array.isArray(value) ? value : [];
+        const newValues = currentValues.some((v) => v === optionValue)
           ? currentValues.filter((v) => v !== optionValue)
           : [...currentValues, optionValue];
-        onChange(newValues as TValue);
+        onChange(newValues);
       } else {
         // Single select: toggle selection (allow deselecting)
-        if (String(value) === String(optionValue)) {
+        if (value === optionValue) {
           // Deselect if already selected
           onChange(undefined);
         } else {
           // Select the option
-          onChange(optionValue as TValue);
+          onChange(optionValue);
         }
         // Close dropdown after single selection
         setIsOpen(false);
@@ -187,7 +190,7 @@ export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
       e.stopPropagation(); // Prevent dropdown from opening
       if (disabled) return;
       if (multiple) {
-        onChange([] as unknown as TValue);
+        onChange([]);
       } else {
         if (isFormMode && form && name) {
           // Reset to default value so React Hook Form recognizes it as set
@@ -255,7 +258,7 @@ export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
             const handleClick = () => handleOptionClick(option.value);
             return (
               <DropdownItem
-                key={option.value}
+                key={String(option.value)}
                 clicked={handleClick}
                 selected={optionIsSelected}>
                 <div
@@ -320,10 +323,10 @@ export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
       }}
       disabled={disabled}
       render={({ field }) => {
-        const value = field.value as TValue | undefined;
+        const value = field.value as TValue | TValue[] | undefined;
         return renderSelectContent(
           value,
-          field.onChange as (newValue: TValue | undefined) => void,
+          field.onChange as (newValue: TValue | TValue[] | undefined) => void,
           true
         );
       }}

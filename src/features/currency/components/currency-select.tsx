@@ -32,15 +32,15 @@ const CURRENCY_ICONS: Partial<Record<ICurrency, IconType>> = {
 const currencyOptions: ISelectOption[] = getCurrencyOptions();
 
 type ICurrencySelectProps = Omit<
-  ISelectDropdownProps<ISelectOption>,
+  ISelectDropdownProps,
   "options" | "children" | "placeholder"
 > &
   IPropsWithClassName;
 
 export function CurrencySelect({ className, ...props }: ICurrencySelectProps) {
   return (
-    <SelectDropdown<ISelectOption>
-      {...(props as ISelectDropdownProps<ISelectOption>)}
+    <SelectDropdown
+      {...(props as ISelectDropdownProps)}
       className={className}
       options={currencyOptions}
       placeholder="Select currency"
