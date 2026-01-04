@@ -1,9 +1,13 @@
 "use client";
 
+import {
+  IFormOrControlledMode,
+  useFormContextOptional,
+} from "@/features/shared/hooks/use-form-context-optional";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useId, useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
 /**
  * Converts CSS color names (e.g., "red", "navy", "cornflowerblue") to hex codes
@@ -45,13 +49,12 @@ function cssColorToHex(color: string): string {
 
 export type IColorInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
-  "id" | "name" | "type"
+  "id" | "name" | "type" | "value" | "onChange" | "defaultValue"
 > &
   IPropsWithClassName & {
-    name: string;
     label: string;
     id?: string;
-  };
+  } & IFormOrControlledMode<string>;
 
 export function ColorInput({
   label,
@@ -59,127 +62,176 @@ export function ColorInput({
   id,
   className,
   disabled,
+  value: controlledValue,
+  onChange: controlledOnChange,
   ...props
 }: IColorInputProps) {
   const generatedId = useId();
   const colorPickerId = id || `${generatedId}-color-picker`;
   const textInputId = `${generatedId}-text-input`;
-  const form = useFormContext();
-  const [textValue, setTextValue] = useState(() => form.getValues(name) || "");
+  const form = useFormContextOptional();
+
+  // Determine mode
+  const isFormMode = !!name && !!form;
+  const isControlledMode =
+    controlledValue !== undefined && !!controlledOnChange;
+
+  // Initialize text value
+  const [textValue, setTextValue] = useState<string>(() => {
+    if (isControlledMode && controlledValue !== undefined) {
+      return String(controlledValue || "");
+    }
+    if (isFormMode && form) {
+      const formValue = form.getValues(name);
+      return String(formValue || "");
+    }
+    return "";
+  });
 
   const baseClasses =
     "w-full px-3 py-2 border rounded-2xl bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
 
-  return (
-    <Controller
-      name={name}
-      control={form.control}
-      render={({ field, fieldState }) => {
-        const error = fieldState.error;
-        // Only show error if form has been submitted
-        const shouldShowError = error && form.formState.isSubmitted;
-        const borderClass = shouldShowError ? "border-danger" : "border-border";
-        const currentFieldValue = field.value || "";
+  // Shared rendering logic
+  const renderColorInput = (
+    currentValue: string,
+    onChange: (value: string) => void,
+    borderClass: string,
+    showError?: boolean,
+    errorMessage?: string
+  ) => {
+    // Sync text value when value changes from outside
+    if (
+      currentValue !== textValue &&
+      document.activeElement?.id !== textInputId
+    ) {
+      setTextValue(currentValue);
+    }
 
-        // Sync text value when field value changes from outside (e.g., form reset)
-        // Only sync if text input is not currently focused
-        if (
-          currentFieldValue !== textValue &&
-          document.activeElement?.id !== textInputId
-        ) {
-          setTextValue(currentFieldValue);
-        }
+    const displayTextValue: string = textValue || "";
 
-        const displayTextValue = textValue;
+    const handleColorPickerChange = (
+      e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      const newValue = e.target.value;
+      onChange(newValue);
+      setTextValue(newValue);
+    };
 
-        const handleColorPickerChange = (
-          e: React.ChangeEvent<HTMLInputElement>
-        ) => {
-          const newValue = e.target.value;
-          field.onChange(newValue);
-          setTextValue(newValue);
-        };
+    const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
+      // Allow free typing - just update local state
+      setTextValue(inputValue);
+    };
 
-        const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-          const inputValue = e.target.value;
-          // Allow free typing - just update local state
-          setTextValue(inputValue);
-        };
+    const handleTextBlur = () => {
+      // Convert CSS color names to hex, or keep hex codes as-is when user finishes typing
+      const hexColor = cssColorToHex(textValue || "");
+      onChange(hexColor);
+      setTextValue(hexColor);
+    };
 
-        const handleTextBlur = () => {
-          // Convert CSS color names to hex, or keep hex codes as-is when user finishes typing
-          const hexColor = cssColorToHex(textValue);
-          field.onChange(hexColor);
-          setTextValue(hexColor);
-        };
+    const handleTextKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Convert on Enter key as well
+      if (e.key === "Enter") {
+        e.currentTarget.blur();
+      }
+    };
 
-        const handleTextKeyDown = (
-          e: React.KeyboardEvent<HTMLInputElement>
-        ) => {
-          // Convert on Enter key as well
-          if (e.key === "Enter") {
-            e.currentTarget.blur();
-          }
-        };
-
-        return (
-          <div className={label ? "space-y-1" : ""}>
-            {label && (
-              <label
-                htmlFor={colorPickerId}
-                className="block text-sm font-medium">
-                {label}
-              </label>
-            )}
-            <div className="flex items-center gap-3">
-              {/* Color Picker */}
-              <div
-                className={cn(
-                  "rounded-2xl overflow-hidden shrink-0 w-16 h-[2.47rem]"
-                )}>
-                <input
-                  type="color"
-                  id={colorPickerId}
-                  value={currentFieldValue || "#000000"}
-                  onChange={handleColorPickerChange}
-                  disabled={disabled}
-                  className={cn(
-                    "w-full h-full cursor-pointer border-0 rounded-2xl appearance-none",
-                    "[-webkit-appearance:none]",
-                    "[&::-webkit-color-swatch]:border-0",
-                    "[&::-webkit-color-swatch]:rounded-2xl",
-                    "[&::-moz-color-swatch]:border-0",
-                    "[&::-moz-color-swatch]:rounded-2xl",
-                    className
-                  )}
-                  style={{
-                    padding: 0,
-                    margin: 0,
-                  }}
-                  {...props}
-                />
-              </div>
-              {/* Text Input */}
-              <input
-                type="text"
-                id={textInputId}
-                value={displayTextValue}
-                onChange={handleTextChange}
-                onBlur={handleTextBlur}
-                onKeyDown={handleTextKeyDown}
-                disabled={disabled}
-                placeholder="#000000 or red, navy, etc."
-                className={cn(baseClasses, borderClass, "flex-1")}
-              />
-            </div>
-            {shouldShowError && (
-              <p className="text-sm text-danger mt-1">
-                {error.message as string}
-              </p>
-            )}
+    return (
+      <div className={label ? "space-y-1" : ""}>
+        {label && (
+          <label
+            htmlFor={colorPickerId}
+            className="block text-sm font-medium">
+            {label}
+          </label>
+        )}
+        <div className="flex items-center gap-3">
+          {/* Color Picker */}
+          <div
+            className={cn(
+              "rounded-2xl overflow-hidden shrink-0 w-16 h-[2.47rem]"
+            )}>
+            <input
+              type="color"
+              id={colorPickerId}
+              value={currentValue || "#000000"}
+              onChange={handleColorPickerChange}
+              disabled={disabled}
+              className={cn(
+                "w-full h-full cursor-pointer border-0 rounded-2xl appearance-none",
+                "[-webkit-appearance:none]",
+                "[&::-webkit-color-swatch]:border-0",
+                "[&::-webkit-color-swatch]:rounded-2xl",
+                "[&::-moz-color-swatch]:border-0",
+                "[&::-moz-color-swatch]:rounded-2xl",
+                className
+              )}
+              style={{
+                padding: 0,
+                margin: 0,
+              }}
+              {...(props as Omit<
+                React.InputHTMLAttributes<HTMLInputElement>,
+                "id" | "name" | "type" | "value" | "onChange" | "defaultValue"
+              >)}
+            />
           </div>
-        );
-      }}
-    />
-  );
+          {/* Text Input */}
+          <input
+            type="text"
+            id={textInputId}
+            value={displayTextValue}
+            onChange={handleTextChange}
+            onBlur={handleTextBlur}
+            onKeyDown={handleTextKeyDown}
+            disabled={disabled}
+            placeholder="#000000 or red, navy, etc."
+            className={cn(baseClasses, borderClass, "flex-1")}
+          />
+        </div>
+        {showError && errorMessage && (
+          <p className="text-sm text-danger mt-1">{errorMessage}</p>
+        )}
+      </div>
+    );
+  };
+
+  // Render controlled mode
+  if (isControlledMode) {
+    return renderColorInput(
+      controlledValue || "",
+      (value) => controlledOnChange?.(value),
+      "border-border"
+    );
+  }
+
+  // Render form mode
+  if (isFormMode && form) {
+    return (
+      <Controller
+        name={name}
+        control={form.control}
+        render={({ field, fieldState }) => {
+          const error = fieldState.error;
+          const shouldShowError = error && form.formState.isSubmitted;
+          const borderClass = shouldShowError
+            ? "border-danger"
+            : "border-border";
+          const currentFieldValue: string = String(field.value || "");
+
+          return renderColorInput(
+            currentFieldValue,
+            field.onChange,
+            borderClass,
+            shouldShowError,
+            error?.message as string | undefined
+          );
+        }}
+      />
+    );
+  }
+
+  // Fallback (should not happen with proper discriminated union)
+  return null;
 }

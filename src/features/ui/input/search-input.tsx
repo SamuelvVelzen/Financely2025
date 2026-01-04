@@ -1,34 +1,53 @@
 "use client";
 
+import {
+  IFormOrControlledMode,
+  useFormContextOptional,
+} from "@/features/shared/hooks/use-form-context-optional";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
-import { useFormContext } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import { TextInput } from "./text-input";
 
 export type ISearchInputProps = IPropsWithClassName & {
-  name: string;
   placeholder?: string;
   label?: string;
-};
+} & IFormOrControlledMode<string>;
 
 export function SearchInput({
   className = "",
   name,
   placeholder = "Search by name, tag, description...",
   label,
+  value: controlledValue,
+  onChange: controlledOnChange,
 }: ISearchInputProps) {
-  const form = useFormContext();
-  const value = form.watch(name) || "";
+  const form = useFormContextOptional();
+
+  // Determine mode
+  const isFormMode = !!name && !!form;
+  const isControlledMode =
+    controlledValue !== undefined && !!controlledOnChange;
+
+  // Get current value
+  const value = isControlledMode
+    ? controlledValue || ""
+    : isFormMode && form
+      ? form.watch(name) || ""
+      : "";
 
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleClear = () => {
-    form.setValue(name, "");
+    if (isControlledMode) {
+      controlledOnChange?.("");
+    } else if (isFormMode && form) {
+      form.setValue(name, "");
+    }
   };
 
   const isEmpty = !value;
@@ -84,7 +103,15 @@ export function SearchInput({
           className
         )}>
         <TextInput
-          name={name}
+          {...(isFormMode
+            ? ({ name } as { name: string })
+            : ({
+                value: controlledValue,
+                onChange: controlledOnChange,
+              } as {
+                value: string;
+                onChange: (value: string | number | undefined) => void;
+              }))}
           label={label}
           placeholder={placeholder}
           className="truncate"

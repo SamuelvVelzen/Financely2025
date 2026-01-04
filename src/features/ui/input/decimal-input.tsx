@@ -37,6 +37,9 @@ export function DecimalInput({
   locale,
   onValueChange,
   placeholder,
+  name,
+  value,
+  onChange,
   ...props
 }: IDecimalInputProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -123,14 +126,23 @@ export function DecimalInput({
   return (
     <BaseInput
       {...props}
+      {...(name
+        ? ({ name } as { name: string })
+        : ({ value, onChange } as {
+            value: string | number;
+            onChange: (value: string | number | undefined) => void;
+          }))}
       inputMode="decimal"
       renderField={({ field, inputProps }) => {
-        const { onChange, ...restInputProps } = inputProps;
+        const { onChange: inputOnChange, ...restInputProps } = inputProps;
+        // Get value from field (works for both form and controlled modes)
         const fieldValue = field.value as string | number | null | undefined;
         const previousNormalized =
           typeof fieldValue === "string" && fieldValue.length > 0
             ? fieldValue
-            : "";
+            : typeof fieldValue === "number"
+              ? fieldValue.toString()
+              : "";
         const formattedValue = formatDecimal(previousNormalized, {
           locale: resolvedLocale,
         });
@@ -192,21 +204,31 @@ export function DecimalInput({
           );
 
           scheduleCaretSync(nextFormattedValue, nextCaretPosition);
+
+          // Call field.onChange (works for both form and controlled modes)
+          // In form mode: updates react-hook-form state
+          // In controlled mode: calls the controlled onChange handler
           field.onChange(effectiveNormalized);
+
+          // Call onValueChange callback if provided
           onValueChange?.(effectiveNormalized);
-          onChange?.(event);
+
+          // Call input's onChange if provided (for additional handlers)
+          inputOnChange?.(event);
         };
 
         return (
           <input
-            {...field}
             {...restInputProps}
             placeholder={`${placeholder || "0"}${separators.decimal}00`}
             inputMode="decimal"
             value={formattedValue}
             ref={(node) => {
               inputRef.current = node;
-              field.ref(node);
+              // field.ref might be a function or undefined in controlled mode
+              if (typeof field.ref === "function") {
+                field.ref(node);
+              }
             }}
             onChange={handleChange}
           />
