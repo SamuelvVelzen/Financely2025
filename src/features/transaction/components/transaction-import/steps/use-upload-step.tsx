@@ -1,3 +1,5 @@
+import { Alert } from "@/features/ui/alert/alert";
+import { LinkButton } from "@/features/ui/button/link-button";
 import type {
   IStepConfig,
   IStepNavigation,
@@ -21,6 +23,17 @@ type IUploadStepContentProps = {
 function UploadStepContent({ error, file, setFile }: IUploadStepContentProps) {
   const { selectedBank, setSelectedBank } = useTransactionImportContext();
 
+  const handleDownloadTemplate = () => {
+    const link = document.createElement("a");
+    link.href = "/transaction-template.csv";
+    link.download = "transaction-template.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const showDefaultTemplateHint = selectedBank === "DEFAULT";
+
   return (
     <div className="space-y-4">
       <div>
@@ -38,6 +51,21 @@ function UploadStepContent({ error, file, setFile }: IUploadStepContentProps) {
           helperText="Selecting a bank applies tailored column defaults during mapping."
         />
       </div>
+      {showDefaultTemplateHint && (
+        <Alert variant="primary">
+          <div className="space-y-1">
+            <p>
+              Using the default template with structured columns. Download the
+              template CSV file to see the required column format.
+            </p>
+            <LinkButton
+              clicked={handleDownloadTemplate}
+              variant="primary">
+              Download CSV Template
+            </LinkButton>
+          </div>
+        </Alert>
+      )}
       {error && (
         <div className="p-3 bg-danger/10 border border-danger rounded-2xl">
           <p className="text-sm text-danger">

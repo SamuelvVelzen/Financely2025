@@ -2,6 +2,7 @@ import type { BankEnum } from "../config/banks";
 import type { IPaymentMethod } from "../config/payment-methods";
 import type { ITransactionFieldName } from "../config/transaction-fields";
 import { americanExpressProfile } from "./banks/american-express.profile";
+import { defaultProfile } from "./banks/default.profile";
 import { ingProfile } from "./banks/ing.profile";
 import { n26Profile } from "./banks/n26.profile";
 
@@ -16,6 +17,7 @@ export interface BankProfile {
 }
 
 const BANK_REGISTRY: Record<BankEnum, BankProfile> = {
+  DEFAULT: defaultProfile,
   AMERICAN_EXPRESS: americanExpressProfile,
   ING: ingProfile,
   N26: n26Profile,

@@ -13,8 +13,8 @@ type BankSelectForm = {
 };
 
 type BankSelectProps = {
-  value: BankEnum | null;
-  onChange: (bank: BankEnum | null) => void;
+  value: BankEnum;
+  onChange: (bank: BankEnum) => void;
   disabled?: boolean;
   label?: string;
   helperText?: string;
@@ -29,12 +29,12 @@ export function BankSelect({
 }: BankSelectProps) {
   const form = useFinForm<BankSelectForm>({
     defaultValues: {
-      bank: value || undefined,
+      bank: value,
     },
   });
 
   useEffect(() => {
-    form.setValue("bank", value || undefined, {
+    form.setValue("bank", value, {
       shouldDirty: false,
       shouldTouch: false,
       shouldValidate: false,
@@ -43,11 +43,13 @@ export function BankSelect({
 
   useEffect(() => {
     const subscription = form.watch((data) => {
-      onChange(data.bank || null);
+      // Since bank is required, data.bank should always be defined
+      // But we provide a fallback to DEFAULT to ensure we always have a value
+      onChange(data.bank || "DEFAULT");
     });
 
     return () => subscription.unsubscribe();
-  }, [form, name, onChange]);
+  }, [form, onChange]);
 
   return (
     <div className={disabled ? "opacity-50 pointer-events-none" : ""}>
@@ -60,6 +62,8 @@ export function BankSelect({
           placeholder={DEFAULT_BANK_OPTION_PLACEHOLDER}
           options={BANK_OPTIONS}
           multiple={false}
+          required={true}
+          showClearButton={false}
         />
       </Form>
       {helperText && (

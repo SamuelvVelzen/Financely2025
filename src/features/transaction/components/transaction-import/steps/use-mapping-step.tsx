@@ -106,13 +106,15 @@ function MappingStepContent() {
   );
 
   const bankDisplayName =
-    selectedBank === "AMERICAN_EXPRESS"
-      ? "American Express"
-      : selectedBank === "ING"
-        ? "ING"
-        : selectedBank === "N26"
-          ? "N26"
-          : null;
+    selectedBank === "DEFAULT"
+      ? "Default"
+      : selectedBank === "AMERICAN_EXPRESS"
+        ? "American Express"
+        : selectedBank === "ING"
+          ? "ING"
+          : selectedBank === "N26"
+            ? "N26"
+            : null;
 
   return (
     <div className="space-y-6">

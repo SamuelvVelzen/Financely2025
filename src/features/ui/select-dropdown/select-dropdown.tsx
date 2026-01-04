@@ -241,7 +241,13 @@ export function SelectDropdown<
 
     return (
       <div className={cn("relative", className)}>
-        {label && <Label className="mb-1">{label}</Label>}
+        {label && (
+          <Label
+            className="mb-1"
+            required={required}>
+            {label}
+          </Label>
+        )}
         <Dropdown
           dropdownSelector={selectorButton}
           open={isOpen}

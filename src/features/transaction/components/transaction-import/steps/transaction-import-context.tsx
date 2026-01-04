@@ -33,7 +33,7 @@ import { getDefaultStrategyForBank } from "../../../services/csv-type-detection"
  * Currency is required if no default currency is set
  */
 function getRequiredMappingFields(
-  bank: BankEnum | null,
+  bank: BankEnum,
   hasDefaultCurrency: boolean
 ): ITransactionFieldName[] {
   // Base required fields (always needed in mapping)
@@ -72,7 +72,7 @@ export interface ITransactionImportContext {
   selectedRows: Set<number>;
   currentPage: number;
   transformResponse: ITransformResponse | null;
-  selectedBank: BankEnum | null;
+  selectedBank: BankEnum;
   currentStep: IStep;
   defaultCurrency: ICurrency;
   suggestedMapping: ICsvFieldMapping | undefined;
@@ -92,7 +92,7 @@ export interface ITransactionImportContext {
   setSelectedRows: (rows: Set<number>) => void;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   setTransformResponse: (response: ITransformResponse | null) => void;
-  setSelectedBank: (bank: BankEnum | null) => void;
+  setSelectedBank: (bank: BankEnum) => void;
   setCurrentStep: (step: IStep) => void;
 
   setIsPending: (isPending: boolean) => void;
@@ -150,7 +150,7 @@ export function TransactionImportProvider({
   const [currentPage, setCurrentPage] = useState(1);
   const [transformResponse, setTransformResponse] =
     useState<ITransformResponse | null>(null);
-  const [selectedBank, setSelectedBank] = useState<BankEnum | null>(null);
+  const [selectedBank, setSelectedBank] = useState<BankEnum>("DEFAULT");
   const [currentStep, setCurrentStep] = useState<IStep>("upload");
 
   // Derive strategy from bank selection
@@ -193,7 +193,7 @@ export function TransactionImportProvider({
     setSelectedRows(new Set());
     setCurrentPage(1);
     setTransformResponse(null);
-    setSelectedBank(null);
+    setSelectedBank("DEFAULT");
     mappingForm.reset({
       defaultCurrency: "EUR",
       mappings: {},
@@ -209,7 +209,7 @@ export function TransactionImportProvider({
       candidates.length > 0 ||
       selectedRows.size > 0 ||
       currentPage !== 1 ||
-      selectedBank !== null ||
+      selectedBank !== "DEFAULT" ||
       mappingFormDirty
     );
   }, [
