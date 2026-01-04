@@ -329,11 +329,8 @@ export function TransactionImportProvider({
         totalInvalid: transformResult.totalInvalid,
       });
 
-      // Select all valid rows by default
-      const validIndices = candidatesWithDefaults
-        .filter((c) => c.status === "valid")
-        .map((c) => c.rowIndex);
-      setSelectedRows(new Set(validIndices));
+      // Start with no rows selected by default
+      setSelectedRows(new Set());
 
       goToStep("review");
     } catch (error) {
