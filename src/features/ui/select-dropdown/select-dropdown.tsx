@@ -14,29 +14,22 @@ import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import { NativeSelect } from "../select/native-select";
+import { ISelectOption } from "../select/select";
 import { Label } from "../typography/label";
-
-export type ISelectOption<TData = unknown> = {
-  value: string | number;
-  label: string;
-  data?: TData;
-};
 
 // Helper type to extract data type from options array
 type ExtractDataFromOptions<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[],
+  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
 > = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
 
 type ExtractValueFromOptions<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[],
-> =
-  TOptions[number] extends ISelectOption<infer TData>
-    ? TOptions[number]["value"]
-    : string | number;
+  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
+> = TOptions[number] extends ISelectOption
+  ? TOptions[number]["value"]
+  : string | number;
 
 export type ISelectDropdownProps<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
-    ISelectOption[],
+  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
   TValue extends string | number | (string | number)[] =
     ExtractValueFromOptions<TOptions>,

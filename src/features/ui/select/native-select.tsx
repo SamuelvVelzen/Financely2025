@@ -9,17 +9,10 @@ import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { SelectHTMLAttributes } from "react";
 import { Controller } from "react-hook-form";
-import { ISelectOption } from "../select-dropdown/select-dropdown";
-
-// Helper type to extract data type from options array
-type ExtractDataFromOptions<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[],
-> = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
+import { ISelectOption } from "./select";
 
 export type ISelectInputProps<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
-    ISelectOption[],
-  TData = ExtractDataFromOptions<TOptions>,
+  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
 > = IPropsWithClassName &
   Omit<SelectHTMLAttributes<HTMLSelectElement>, "value" | "onChange"> & {
     options: TOptions;
@@ -30,9 +23,7 @@ export type ISelectInputProps<
   } & IFormOrControlledMode<string | string[]>;
 
 export function NativeSelect<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
-    ISelectOption[],
-  TData = ExtractDataFromOptions<TOptions>,
+  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
 >({
   className = "",
   name,
@@ -44,7 +35,7 @@ export function NativeSelect<
   value: controlledValue,
   onChange: controlledOnChange,
   ...props
-}: ISelectInputProps<TOptions, TData>) {
+}: ISelectInputProps<TOptions>) {
   const form = useFormContextOptional();
 
   // Determine mode

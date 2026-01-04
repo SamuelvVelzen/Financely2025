@@ -27,12 +27,11 @@ export type ISelectOption<TData = unknown> = {
 
 // Helper type to extract data type from options array
 type ExtractDataFromOptions<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[],
+  TOptions extends ISelectOption[] | readonly ISelectOption[],
 > = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
 
 export type ISelectProps<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
-    ISelectOption[],
+  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
   TData = ExtractDataFromOptions<TOptions>,
 > = IPropsWithClassName & {
   options: TOptions;
