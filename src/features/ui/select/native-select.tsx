@@ -11,20 +11,17 @@ import { SelectHTMLAttributes } from "react";
 import { Controller } from "react-hook-form";
 import { ISelectOption } from "./select";
 
-export type ISelectInputProps<
-  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
-> = IPropsWithClassName &
-  Omit<SelectHTMLAttributes<HTMLSelectElement>, "value" | "onChange"> & {
-    options: TOptions;
-    multiple?: boolean;
-    placeholder?: string;
-    label?: string;
-    disabled?: boolean;
-  } & IFormOrControlledMode<string | string[]>;
+export type ISelectInputProps<TOption extends ISelectOption = ISelectOption> =
+  IPropsWithClassName &
+    Omit<SelectHTMLAttributes<HTMLSelectElement>, "value" | "onChange"> & {
+      options: TOption[] | readonly TOption[];
+      multiple?: boolean;
+      placeholder?: string;
+      label?: string;
+      disabled?: boolean;
+    } & IFormOrControlledMode<string | string[]>;
 
-export function NativeSelect<
-  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
->({
+export function NativeSelect<TOption extends ISelectOption = ISelectOption>({
   className = "",
   name,
   options,
@@ -35,7 +32,7 @@ export function NativeSelect<
   value: controlledValue,
   onChange: controlledOnChange,
   ...props
-}: ISelectInputProps<TOptions>) {
+}: ISelectInputProps<TOption>) {
   const form = useFormContextOptional();
 
   // Determine mode

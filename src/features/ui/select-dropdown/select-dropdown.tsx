@@ -17,31 +17,17 @@ import { NativeSelect } from "../select/native-select";
 import { ISelectOption } from "../select/select";
 import { Label } from "../typography/label";
 
-// Helper type to extract data type from options array
-type ExtractDataFromOptions<
-  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
-> = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
-
-type ExtractValueFromOptions<
-  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
-> = TOptions[number] extends ISelectOption
-  ? TOptions[number]["value"]
-  : string | number;
-
 export type ISelectDropdownProps<
-  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
-  TData = ExtractDataFromOptions<TOptions>,
-  TValue extends string | number | (string | number)[] =
-    ExtractValueFromOptions<TOptions>,
+  TOption extends ISelectOption = ISelectOption,
 > = IPropsWithClassName & {
-  options: TOptions;
+  options: TOption[] | readonly TOption[];
   multiple?: boolean;
   placeholder?: string;
   label?: string;
   maxDisplayItems?: number;
   showClearButton?: boolean;
   children?: (
-    option: ISelectOption<TData>,
+    option: TOption,
     index: number,
     context: {
       isSelected: boolean;
@@ -51,15 +37,9 @@ export type ISelectDropdownProps<
   ) => ReactNode;
   disabled?: boolean;
   required?: boolean;
-} & IFormOrControlledMode<TValue>;
+} & IFormOrControlledMode<TOption["value"] | TOption["value"][]>;
 
-export function SelectDropdown<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
-    ISelectOption[],
-  TData = ExtractDataFromOptions<TOptions>,
-  TValue extends string | number | (string | number)[] =
-    ExtractValueFromOptions<TOptions>,
->({
+export function SelectDropdown<TOption extends ISelectOption = ISelectOption>({
   className = "",
   name,
   options,
@@ -73,7 +53,9 @@ export function SelectDropdown<
   required = false,
   value: controlledValue,
   onChange: controlledOnChange,
-}: ISelectDropdownProps<TOptions, TData, TValue>) {
+}: ISelectDropdownProps<TOption>) {
+  type TValue = TOption["value"] | TOption["value"][];
+
   const { isMobile } = useResponsive();
   const form = useFormContextOptional();
 
@@ -103,7 +85,7 @@ export function SelectDropdown<
     if (multiple && Array.isArray(val)) {
       const selectedOptions = val
         .map((v) => options.find((opt) => opt.value === v))
-        .filter((opt): opt is ISelectOption<TData> => opt !== undefined);
+        .filter((opt): opt is TOption => opt !== undefined);
 
       if (selectedOptions.length <= maxDisplayItems) {
         return selectedOptions.map((opt) => opt.label).join(", ");

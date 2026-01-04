@@ -25,44 +25,33 @@ export type ISelectOption<TData = unknown> = {
   data?: TData;
 };
 
-// Helper type to extract data type from options array
-type ExtractDataFromOptions<
-  TOptions extends ISelectOption[] | readonly ISelectOption[],
-> = TOptions[number] extends ISelectOption<infer TData> ? TData : unknown;
+export type ISelectProps<TOption extends ISelectOption = ISelectOption> =
+  IPropsWithClassName & {
+    options: TOption[] | readonly TOption[];
+    multiple?: boolean;
+    placeholder?: string;
+    label?: string;
+    searchPlaceholder?: string;
+    disabled?: boolean;
+    hint?: string;
+    children?: (
+      option: TOption,
+      index: number,
+      context: {
+        isSelected: boolean;
+        handleClick: () => void;
+        multiple: boolean;
+        searchQuery: string;
+      }
+    ) => ReactNode;
+    onCreateNew?: (searchQuery: string) => void;
+    createNewLabel?: string | ((searchQuery: string) => string);
+    getOptionSearchValue?: (option: TOption) => string;
+    forcePlacement?: IPlacementOption[];
+    required?: boolean;
+  } & IFormOrControlledMode<string | string[]>;
 
-export type ISelectProps<
-  TOptions extends ISelectOption[] | readonly ISelectOption[] = ISelectOption[],
-  TData = ExtractDataFromOptions<TOptions>,
-> = IPropsWithClassName & {
-  options: TOptions;
-  multiple?: boolean;
-  placeholder?: string;
-  label?: string;
-  searchPlaceholder?: string;
-  disabled?: boolean;
-  hint?: string;
-  children?: (
-    option: ISelectOption<TData>,
-    index: number,
-    context: {
-      isSelected: boolean;
-      handleClick: () => void;
-      multiple: boolean;
-      searchQuery: string;
-    }
-  ) => ReactNode;
-  onCreateNew?: (searchQuery: string) => void;
-  createNewLabel?: string | ((searchQuery: string) => string);
-  getOptionSearchValue?: (option: ISelectOption<TData>) => string;
-  forcePlacement?: IPlacementOption[];
-  required?: boolean;
-} & IFormOrControlledMode<string | string[]>;
-
-export function Select<
-  TOptions extends ISelectOption<any>[] | readonly ISelectOption<any>[] =
-    ISelectOption[],
-  TData = ExtractDataFromOptions<TOptions>,
->({
+export function Select<TOption extends ISelectOption = ISelectOption>({
   className = "",
   name,
   options,
@@ -80,7 +69,7 @@ export function Select<
   required = false,
   value: controlledValue,
   onChange: controlledOnChange,
-}: ISelectProps<TOptions, TData>) {
+}: ISelectProps<TOption>) {
   const { isMobile } = useResponsive();
   const form = useFormContextOptional();
 
@@ -159,14 +148,14 @@ export function Select<
   // Get selected options
   const getSelectedOptions = (
     value: string | number | string[] | number[] | undefined
-  ): ISelectOption<TData>[] => {
+  ): TOption[] => {
     console.log("value", value);
     if (!value) return [];
     if (multiple && Array.isArray(value)) {
       // Preserve the order from the value array (FIFO)
       return value
         .map((val) => options.find((opt) => opt.value === val))
-        .filter((opt): opt is ISelectOption<TData> => opt !== undefined);
+        .filter((opt): opt is TOption => opt !== undefined);
     }
     if (!multiple) {
       console.log("options", options);

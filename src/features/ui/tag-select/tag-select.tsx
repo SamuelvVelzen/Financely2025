@@ -54,9 +54,7 @@ export function TagSelect({
     if (!transactionType) {
       return orderedTags;
     }
-    return orderedTags.filter(
-      (tag) => tag.transactionType === transactionType
-    );
+    return orderedTags.filter((tag) => tag.transactionType === transactionType);
   }, [orderedTags, transactionType]);
 
   // Convert tags to SelectOption format
@@ -126,7 +124,7 @@ export function TagSelect({
 
   return (
     <>
-      <Select<ISelectOption<ITag>[], ITag>
+      <Select<ISelectOption<ITag>>
         className={className}
         name={name}
         options={tagOptions}

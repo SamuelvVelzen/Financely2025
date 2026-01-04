@@ -8,6 +8,7 @@ import {
   SelectDropdown,
   type ISelectDropdownProps,
 } from "@/features/ui/select-dropdown/select-dropdown";
+import { ISelectOption } from "@/features/ui/select/select";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type IconType } from "react-icons";
 import {
@@ -28,22 +29,18 @@ const CURRENCY_ICONS: Partial<Record<ICurrency, IconType>> = {
   JPY: PiCurrencyCnyDuotone,
 };
 
-const currencyOptions = getCurrencyOptions();
+const currencyOptions: ISelectOption<ICurrency>[] = getCurrencyOptions();
 
 type ICurrencySelectProps = Omit<
-  ISelectDropdownProps<typeof currencyOptions, unknown, ICurrency>,
+  ISelectDropdownProps<ISelectOption<ICurrency>>,
   "options" | "children" | "placeholder"
 > &
   IPropsWithClassName;
 
 export function CurrencySelect({ className, ...props }: ICurrencySelectProps) {
   return (
-    <SelectDropdown<typeof currencyOptions, unknown, ICurrency>
-      {...(props as ISelectDropdownProps<
-        typeof currencyOptions,
-        unknown,
-        ICurrency
-      >)}
+    <SelectDropdown<ISelectOption<ICurrency>>
+      {...(props as ISelectDropdownProps<ISelectOption<ICurrency>>)}
       className={className}
       options={currencyOptions}
       placeholder="Select currency"

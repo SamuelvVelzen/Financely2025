@@ -3,6 +3,8 @@
  * Single source of truth for supported currencies in the application
  */
 
+import { ISelectOption } from "@/features/ui/select/select";
+
 /**
  * Supported currencies array
  * Add or remove currencies here - no database migration needed!
@@ -25,10 +27,7 @@ export type ICurrency = (typeof SUPPORTED_CURRENCIES)[number];
  * Get currency options for select inputs
  * Returns formatted options array for UI components
  */
-export function getCurrencyOptions(): Array<{
-  value: ICurrency;
-  label: string;
-}> {
+export function getCurrencyOptions(): ISelectOption<ICurrency>[] {
   return SUPPORTED_CURRENCIES.map((value) => ({
     value,
     label: value,
