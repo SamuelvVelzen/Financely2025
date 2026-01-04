@@ -115,7 +115,7 @@ export interface ITransactionImportContext {
   importMutation: ReturnType<typeof useImportCsvTransactions>;
 
   // Other
-  onClose: () => void;
+  onCloseSuccessful: () => void;
 }
 
 const TransactionImportContext =
@@ -443,7 +443,7 @@ export function TransactionImportProvider({
     importMutation,
 
     // Other
-    onClose,
+    onCloseSuccessful: onClose,
   };
 
   return (

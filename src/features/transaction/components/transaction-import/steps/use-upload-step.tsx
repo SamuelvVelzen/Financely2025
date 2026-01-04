@@ -4,7 +4,7 @@ import type {
 } from "@/features/ui/dialog/multi-step-dialog";
 import { FileUploadInput } from "@/features/ui/input/file-upload-input";
 import { useToast } from "@/features/ui/toast";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUploadCsvFile } from "../../../hooks/useCsvImport";
 import { BankSelect } from "../../bank-select";
 import {
@@ -50,11 +50,19 @@ function UploadStepContent({ error, file, setFile }: IUploadStepContentProps) {
 }
 
 export function useUploadStep(): IStepConfig<IStep> {
-  const { setColumns, setRows, setIsPending } = useTransactionImportContext();
+  const { setColumns, setRows, setIsPending, rows, columns, currentStep } =
+    useTransactionImportContext();
   const toast = useToast();
 
   // Local file state - only needed for upload, not stored in context
   const [file, setFile] = useState<File | null>(null);
+
+  // Reset file when data is cleared (indicating resetAllState was called)
+  useEffect(() => {
+    if (currentStep === "upload" && rows.length === 0 && columns.length === 0) {
+      setFile(null);
+    }
+  }, [rows.length, columns.length, currentStep]);
 
   const uploadMutation = useUploadCsvFile();
 

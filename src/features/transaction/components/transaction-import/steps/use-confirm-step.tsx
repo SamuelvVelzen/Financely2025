@@ -47,7 +47,7 @@ export function useConfirmStep(): IStepConfig<IStep> {
     defaultCurrency,
     candidates,
     resetAllState,
-    onClose,
+    onCloseSuccessful,
   } = useTransactionImportContext();
 
   const toast = useToast();
@@ -86,7 +86,7 @@ export function useConfirmStep(): IStepConfig<IStep> {
         `Successfully imported ${transactionsToImport.length} transactions`
       );
       resetAllState();
-      onClose();
+      onCloseSuccessful();
     } catch (error) {
       console.error("Import failed:", error);
       toast.error("Failed to import transactions");
