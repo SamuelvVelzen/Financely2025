@@ -1,4 +1,6 @@
+import { Alert } from "@/features/ui/alert/alert";
 import { Button } from "@/features/ui/button/button";
+import { LinkButton } from "@/features/ui/button/link-button";
 import type {
   IStepConfig,
   IStepNavigation,
@@ -10,7 +12,7 @@ import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/features/util/cn";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { HiExclamationCircle } from "react-icons/hi";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
 import {
@@ -48,6 +50,26 @@ function ReviewStepContent({
   // Sync pagination state with context (context manages the currentPage state)
   const paginatedCandidates = pagination.paginate(candidates);
 
+  // Calculate if all visible rows are selected (for Pattern 2 banner)
+  const allVisibleRowsSelected = useMemo(() => {
+    if (paginatedCandidates.length === 0) return false;
+    return paginatedCandidates.every((candidate) =>
+      selectedRows.has(candidate.rowIndex)
+    );
+  }, [paginatedCandidates, selectedRows]);
+
+  // Calculate total valid transactions across all pages
+  const totalValidTransactions = useMemo(() => {
+    return candidates.filter((c) => c.status === "valid").length;
+  }, [candidates]);
+
+  // Calculate how many valid transactions are already selected
+  const selectedValidCount = useMemo(() => {
+    return candidates.filter(
+      (c) => c.status === "valid" && selectedRows.has(c.rowIndex)
+    ).length;
+  }, [candidates, selectedRows]);
+
   if (transformMutation.isPending) {
     return <div className="text-center py-8">Processing CSV...</div>;
   }
@@ -79,20 +101,46 @@ function ReviewStepContent({
           {transformResponse?.total || candidates.length} transactions (
           {transformResponse?.totalValid || 0} valid,{" "}
           {transformResponse?.totalInvalid || 0} invalid)
+          {selectedRows.size > 0 && (
+            <span className="ml-2 font-medium">
+              • {selectedRows.size} selected
+            </span>
+          )}
         </div>
-        <div className="flex gap-2">
-          <Button
+        <div className="flex gap-2 text-white">
+          <LinkButton
+            size="sm"
             clicked={handleSelectAllValid}
-            buttonContent="Select All Valid"
-            className="px-3 py-1 text-sm"
+            buttonContent="Select all valid"
           />
+          |
           <Button
+            size="sm"
             clicked={handleExcludeAllInvalid}
-            buttonContent="Exclude Invalid"
-            className="px-3 py-1 text-sm"
+            buttonContent="Exclude invalid"
           />
         </div>
       </div>
+
+      {/* Pattern 2: Banner when all visible rows are selected */}
+      {allVisibleRowsSelected &&
+        selectedValidCount < totalValidTransactions &&
+        totalValidTransactions > paginatedCandidates.length && (
+          <Alert variant="info">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                All {paginatedCandidates.length} visible transactions selected.{" "}
+                Select all {totalValidTransactions} valid transactions?
+              </div>
+              <LinkButton
+                size="sm"
+                clicked={handleSelectAllValid}
+                buttonContent="Select all valid"
+                className="whitespace-nowrap"
+              />
+            </div>
+          </Alert>
+        )}
 
       <SelectableTable
         selectedRows={selectedRows}
@@ -238,7 +286,7 @@ export function useReviewStep(): IStepConfig<IStep> {
         },
         variant: "primary",
         disabled: ctx.selectedRows.size === 0,
-        buttonContent: "Continue to Import",
+        buttonContent: `Continue to import ${ctx.selectedRows.size} transaction${ctx.selectedRows.size !== 1 ? "s" : ""}`,
       },
     ],
   };

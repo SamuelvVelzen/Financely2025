@@ -27,13 +27,52 @@ export function SelectableTable<T = unknown>({
   headerCells,
   data,
 }: ISelectableTableProps<T>) {
+  // Check if all visible rows are selected (not just compare sizes, since
+  // selectedRows might contain rows from other pages)
   const allSelected = useMemo(() => {
-    return rowCount > 0 && selectedRows.size === rowCount;
-  }, [selectedRows.size, rowCount]);
+    if (rowCount === 0) return false;
+
+    // Collect all visible row indices
+    const visibleIndices = new Set<number>();
+    React.Children.forEach(children, (row) => {
+      if (React.isValidElement(row)) {
+        const rowIndex = getRowIndex(row);
+        if (rowIndex !== undefined && rowIndex >= 0) {
+          visibleIndices.add(rowIndex);
+        }
+      }
+    });
+
+    // Check if all visible row indices are in selectedRows
+    return (
+      visibleIndices.size > 0 &&
+      Array.from(visibleIndices).every((index) => selectedRows.has(index))
+    );
+  }, [children, selectedRows, getRowIndex, rowCount]);
 
   const someSelected = useMemo(() => {
-    return selectedRows.size > 0 && selectedRows.size < rowCount;
-  }, [selectedRows.size, rowCount]);
+    if (rowCount === 0) return false;
+
+    // Collect all visible row indices
+    const visibleIndices = new Set<number>();
+    React.Children.forEach(children, (row) => {
+      if (React.isValidElement(row)) {
+        const rowIndex = getRowIndex(row);
+        if (rowIndex !== undefined && rowIndex >= 0) {
+          visibleIndices.add(rowIndex);
+        }
+      }
+    });
+
+    // Check if some (but not all) visible rows are selected
+    const selectedVisibleCount = Array.from(visibleIndices).filter((index) =>
+      selectedRows.has(index)
+    ).length;
+
+    return (
+      selectedVisibleCount > 0 && selectedVisibleCount < visibleIndices.size
+    );
+  }, [children, selectedRows, getRowIndex, rowCount]);
 
   const handleSelectAll = () => {
     if (allSelected) {
