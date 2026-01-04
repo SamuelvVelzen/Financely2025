@@ -1,5 +1,3 @@
-"use client";
-
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type {
   IBudget,

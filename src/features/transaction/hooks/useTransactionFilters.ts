@@ -1,5 +1,3 @@
-"use client";
-
 import { useFinForm } from "@/features/ui/form/useForm";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -175,7 +173,9 @@ export function useTransactionFilters(
           (v): v is string => v !== undefined
         );
         const formValueStr = JSON.stringify([...formValue].sort());
-        const typeFilterStr = JSON.stringify([...transactionTypeFilterRef.current].sort());
+        const typeFilterStr = JSON.stringify(
+          [...transactionTypeFilterRef.current].sort()
+        );
         if (formValueStr !== typeFilterStr) {
           setFilterStateInternal((current) => {
             const updated = { ...current, transactionTypeFilter: formValue };
@@ -190,7 +190,9 @@ export function useTransactionFilters(
           (v): v is string => v !== undefined
         );
         const formValueStr = JSON.stringify([...formValue].sort());
-        const methodFilterStr = JSON.stringify([...paymentMethodFilterRef.current].sort());
+        const methodFilterStr = JSON.stringify(
+          [...paymentMethodFilterRef.current].sort()
+        );
         if (formValueStr !== methodFilterStr) {
           setFilterStateInternal((current) => {
             const updated = { ...current, paymentMethodFilter: formValue };
@@ -205,7 +207,9 @@ export function useTransactionFilters(
           (v): v is string => v !== undefined
         );
         const formValueStr = JSON.stringify([...formValue].sort());
-        const currencyFilterStr = JSON.stringify([...currencyFilterRef.current].sort());
+        const currencyFilterStr = JSON.stringify(
+          [...currencyFilterRef.current].sort()
+        );
         if (formValueStr !== currencyFilterStr) {
           setFilterStateInternal((current) => {
             const updated = { ...current, currencyFilter: formValue };
@@ -243,20 +247,34 @@ export function useTransactionFilters(
   }, [filterState.tagFilter, form]);
 
   useEffect(() => {
-    const currentFormTransactionTypeFilter = form.getValues("transactionTypeFilter") ?? [];
-    const currentFormTypeFilterStr = JSON.stringify([...currentFormTransactionTypeFilter].sort());
-    const typeFilterStr = JSON.stringify([...filterState.transactionTypeFilter].sort());
+    const currentFormTransactionTypeFilter =
+      form.getValues("transactionTypeFilter") ?? [];
+    const currentFormTypeFilterStr = JSON.stringify(
+      [...currentFormTransactionTypeFilter].sort()
+    );
+    const typeFilterStr = JSON.stringify(
+      [...filterState.transactionTypeFilter].sort()
+    );
     if (typeFilterStr !== currentFormTypeFilterStr) {
-      form.setValue("transactionTypeFilter", filterState.transactionTypeFilter, {
-        shouldDirty: false,
-      });
+      form.setValue(
+        "transactionTypeFilter",
+        filterState.transactionTypeFilter,
+        {
+          shouldDirty: false,
+        }
+      );
     }
   }, [filterState.transactionTypeFilter, form]);
 
   useEffect(() => {
-    const currentFormPaymentMethodFilter = form.getValues("paymentMethodFilter") ?? [];
-    const currentFormMethodFilterStr = JSON.stringify([...currentFormPaymentMethodFilter].sort());
-    const methodFilterStr = JSON.stringify([...filterState.paymentMethodFilter].sort());
+    const currentFormPaymentMethodFilter =
+      form.getValues("paymentMethodFilter") ?? [];
+    const currentFormMethodFilterStr = JSON.stringify(
+      [...currentFormPaymentMethodFilter].sort()
+    );
+    const methodFilterStr = JSON.stringify(
+      [...filterState.paymentMethodFilter].sort()
+    );
     if (methodFilterStr !== currentFormMethodFilterStr) {
       form.setValue("paymentMethodFilter", filterState.paymentMethodFilter, {
         shouldDirty: false,
@@ -266,8 +284,12 @@ export function useTransactionFilters(
 
   useEffect(() => {
     const currentFormCurrencyFilter = form.getValues("currencyFilter") ?? [];
-    const currentFormCurrencyFilterStr = JSON.stringify([...currentFormCurrencyFilter].sort());
-    const currencyFilterStr = JSON.stringify([...filterState.currencyFilter].sort());
+    const currentFormCurrencyFilterStr = JSON.stringify(
+      [...currentFormCurrencyFilter].sort()
+    );
+    const currencyFilterStr = JSON.stringify(
+      [...filterState.currencyFilter].sort()
+    );
     if (currencyFilterStr !== currentFormCurrencyFilterStr) {
       form.setValue("currencyFilter", filterState.currencyFilter, {
         shouldDirty: false,
@@ -350,12 +372,20 @@ export function useTransactionFilters(
     form.setValue("tagFilter", DEFAULT_FILTER_STATE.tagFilter, {
       shouldDirty: false,
     });
-    form.setValue("transactionTypeFilter", DEFAULT_FILTER_STATE.transactionTypeFilter, {
-      shouldDirty: false,
-    });
-    form.setValue("paymentMethodFilter", DEFAULT_FILTER_STATE.paymentMethodFilter, {
-      shouldDirty: false,
-    });
+    form.setValue(
+      "transactionTypeFilter",
+      DEFAULT_FILTER_STATE.transactionTypeFilter,
+      {
+        shouldDirty: false,
+      }
+    );
+    form.setValue(
+      "paymentMethodFilter",
+      DEFAULT_FILTER_STATE.paymentMethodFilter,
+      {
+        shouldDirty: false,
+      }
+    );
     form.setValue("currencyFilter", DEFAULT_FILTER_STATE.currencyFilter, {
       shouldDirty: false,
     });

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { HiEye, HiEyeSlash } from "react-icons/hi2";
 import { BaseInput, type IBaseInputProps } from "./input";

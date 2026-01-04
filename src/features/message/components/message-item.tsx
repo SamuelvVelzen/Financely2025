@@ -1,5 +1,3 @@
-"use client";
-
 import type { IMessage } from "@/features/shared/validation/schemas";
 import { Badge } from "@/features/ui/badge/badge";
 import { IconButton } from "@/features/ui/button/icon-button";

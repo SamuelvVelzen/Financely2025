@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/features/util/cn";
 import { Button, IButtonProps, IVariant } from "./button";
 

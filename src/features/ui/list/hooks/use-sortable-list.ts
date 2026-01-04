@@ -1,5 +1,3 @@
-"use client";
-
 import { useOptimisticData } from "@/features/shared/hooks/use-optimistic-data";
 import { useState } from "react";
 

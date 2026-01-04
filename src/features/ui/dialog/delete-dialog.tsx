@@ -1,5 +1,3 @@
-"use client";
-
 import { Dialog } from "./dialog/dialog";
 import { IDialogProps } from "./dialog/types";
 

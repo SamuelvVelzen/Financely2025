@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback, useMemo, useState } from "react";
 import type { SortDirection } from "../header-cell";
 
@@ -24,22 +22,25 @@ export function useTableSort<T>({
     defaultSort || null
   );
 
-  const handleSort = useCallback((
-    sortKey: string,
-    direction: SortDirection,
-    customSortFn?: (a: T, b: T) => number
-  ) => {
-    if (!direction) {
-      setSortConfig(null);
-      return;
-    }
+  const handleSort = useCallback(
+    (
+      sortKey: string,
+      direction: SortDirection,
+      customSortFn?: (a: T, b: T) => number
+    ) => {
+      if (!direction) {
+        setSortConfig(null);
+        return;
+      }
 
-    setSortConfig({
-      sortKey,
-      direction,
-      sortFn: customSortFn,
-    });
-  }, []);
+      setSortConfig({
+        sortKey,
+        direction,
+        sortFn: customSortFn,
+      });
+    },
+    []
+  );
 
   const sortedData = useMemo(() => {
     if (!sortConfig || !sortConfig.direction) {
@@ -97,12 +98,15 @@ export function useTableSort<T>({
     return sorted;
   }, [data, sortConfig, sortFns]);
 
-  const getSortDirection = useCallback((sortKey: string): SortDirection => {
-    if (sortConfig?.sortKey === sortKey) {
-      return sortConfig.direction;
-    }
-    return null;
-  }, [sortConfig]);
+  const getSortDirection = useCallback(
+    (sortKey: string): SortDirection => {
+      if (sortConfig?.sortKey === sortKey) {
+        return sortConfig.direction;
+      }
+      return null;
+    },
+    [sortConfig]
+  );
 
   return {
     sortedData,

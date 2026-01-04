@@ -1,5 +1,3 @@
-"use client";
-
 import { BudgetSummaryCards } from "@/features/budget/components/overview/budget-summary-cards";
 import { useBudgetsOverview } from "@/features/budget/hooks/useBudgets";
 import { Container } from "@/features/ui/container/container";
@@ -31,4 +29,3 @@ export function DashboardOverview() {
     </>
   );
 }
-

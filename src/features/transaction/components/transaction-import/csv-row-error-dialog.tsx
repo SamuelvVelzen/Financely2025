@@ -1,5 +1,3 @@
-"use client";
-
 import type { ICsvCandidateTransaction } from "@/features/shared/validation/schemas";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 

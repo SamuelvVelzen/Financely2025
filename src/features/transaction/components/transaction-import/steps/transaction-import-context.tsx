@@ -1,5 +1,3 @@
-"use client";
-
 import type {
   ICreateTransactionInput,
   ICsvCandidateTransaction,
@@ -106,7 +104,10 @@ export interface ITransactionImportContext {
   handleExcludeAllInvalid: () => void;
   handleValidateMapping: (goToStep: (step: IStep) => void) => Promise<void>;
   handleConfirmImport: () => Promise<void>;
-  updateCandidate: (rowIndex: number, updates: Partial<ICreateTransactionInput>) => void;
+  updateCandidate: (
+    rowIndex: number,
+    updates: Partial<ICreateTransactionInput>
+  ) => void;
   resetAllState: () => void;
 
   // Mutations

@@ -1,5 +1,3 @@
-"use client";
-
 import { MessageList } from "@/features/message/components/message-list";
 import {
   useMarkAllAsRead,

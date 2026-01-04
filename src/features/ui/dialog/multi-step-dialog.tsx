@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Dialog } from "./dialog/dialog";
 import type { IDialogProps } from "./dialog/types";

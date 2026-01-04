@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/features/util/cn";
 import { Toast } from "./toast";
 import { useToastContext } from "./toast-context";

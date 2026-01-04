@@ -1,5 +1,3 @@
-"use client";
-
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useId, useMemo } from "react";
 import { IVariant } from "../button/button";

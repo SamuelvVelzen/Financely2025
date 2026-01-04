@@ -1,8 +1,6 @@
-"use client";
-
 import { useEffect } from "react";
-import { useDialogStack } from "./use-dialog-stack";
 import type { IDialogOverlayProps } from "./types";
+import { useDialogStack } from "./use-dialog-stack";
 
 /**
  * DialogOverlay component renders the backdrop behind dialog content

@@ -1,5 +1,3 @@
-"use client";
-
 import { Checkbox } from "@/features/ui/checkbox/checkbox";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useMemo } from "react";

@@ -1,5 +1,3 @@
-"use client";
-
 import { Spinner } from "@/features/ui/loading/spinner";
 import { cn } from "@/features/util/cn";
 import { type ButtonHTMLAttributes, type ReactNode } from "react";

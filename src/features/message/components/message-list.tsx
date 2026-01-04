@@ -1,5 +1,3 @@
-"use client";
-
 import type { IMessage } from "@/features/shared/validation/schemas";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { SkeletonText } from "@/features/ui/skeleton";

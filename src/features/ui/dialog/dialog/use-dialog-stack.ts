@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 
 // Track open dialogs and assign z-index values
@@ -33,4 +31,3 @@ export function useDialogStack(dialogId?: string) {
 
   return zIndex;
 }
-

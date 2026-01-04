@@ -1,5 +1,3 @@
-"use client";
-
 import { useScrollToElement } from "@/features/users/hooks/useScrollToElement";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";

@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext } from "react";
 
 interface ITabContext {
@@ -21,4 +19,3 @@ export function useTabContext() {
   }
   return context;
 }
-

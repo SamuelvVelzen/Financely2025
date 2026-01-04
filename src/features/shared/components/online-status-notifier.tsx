@@ -1,8 +1,6 @@
-"use client";
-
-import { useOnlineStatus } from "../hooks/use-online-status";
 import { useToast } from "@/features/ui/toast";
 import { useEffect, useRef } from "react";
+import { useOnlineStatus } from "../hooks/use-online-status";
 
 /**
  * Component that tracks online/offline status and shows toast notifications
@@ -52,4 +50,3 @@ export function OnlineStatusNotifier() {
 
   return null;
 }
-

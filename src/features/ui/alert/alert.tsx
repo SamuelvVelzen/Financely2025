@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/features/util/cn";
 import type { ReactNode } from "react";
 import { HiQuestionMarkCircle } from "react-icons/hi";

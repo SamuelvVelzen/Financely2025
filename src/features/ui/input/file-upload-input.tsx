@@ -1,5 +1,3 @@
-"use client";
-
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";

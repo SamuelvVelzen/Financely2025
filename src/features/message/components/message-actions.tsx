@@ -1,7 +1,5 @@
-"use client";
-
-import { Button } from "@/features/ui/button/button";
 import type { IMessageAction } from "@/features/shared/validation/schemas";
+import { Button } from "@/features/ui/button/button";
 import { useMessageActions } from "../hooks/useMessageActions";
 
 type IMessageActionsProps = {
@@ -25,8 +23,8 @@ export function MessageActions({ actions, messageId }: IMessageActionsProps) {
             action.variant === "primary"
               ? "primary"
               : action.variant === "danger"
-              ? "danger"
-              : "default"
+                ? "danger"
+                : "default"
           }
           size="sm"
           clicked={() => handleAction(action, messageId)}
@@ -36,4 +34,3 @@ export function MessageActions({ actions, messageId }: IMessageActionsProps) {
     </div>
   );
 }
-

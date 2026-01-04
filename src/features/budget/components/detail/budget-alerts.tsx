@@ -1,5 +1,3 @@
-"use client";
-
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type { IBudgetAlert } from "@/features/shared/validation/schemas";
 import { Alert } from "@/features/ui/alert/alert";

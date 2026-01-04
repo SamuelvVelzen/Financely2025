@@ -1,5 +1,3 @@
-"use client";
-
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { IconType } from "react-icons";
 import { Button, IButtonProps } from "../button/button";

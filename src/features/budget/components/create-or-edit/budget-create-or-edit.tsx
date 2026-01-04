@@ -1,5 +1,3 @@
-"use client";
-
 import { ROUTES } from "@/config/routes";
 import {
   useBudget,

@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/features/util/cn";
 import { ReactNode } from "react";
 import { Button, IButtonProps, IButtonSize } from "./button";

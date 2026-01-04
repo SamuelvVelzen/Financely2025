@@ -1,5 +1,3 @@
-"use client";
-
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITag } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
@@ -31,9 +29,7 @@ export function BudgetTagSelector({
     if (!transactionType) {
       return orderedTags;
     }
-    return orderedTags.filter(
-      (tag) => tag.transactionType === transactionType
-    );
+    return orderedTags.filter((tag) => tag.transactionType === transactionType);
   }, [orderedTags, transactionType]);
 
   // Separate tags into two sections

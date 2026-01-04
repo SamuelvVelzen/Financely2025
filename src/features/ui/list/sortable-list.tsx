@@ -1,5 +1,3 @@
-"use client";
-
 import { ReactNode } from "react";
 import { useSortableList } from "./hooks/use-sortable-list";
 import { IListProps, List } from "./list";

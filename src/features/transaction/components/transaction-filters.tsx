@@ -1,6 +1,3 @@
-// src/features/shared/components/transaction-filters.tsx
-"use client";
-
 import type { ITag } from "@/features/shared/validation/schemas";
 import { FilterBar } from "@/features/transaction/components/filter-bar";
 import { FilterSheet } from "@/features/transaction/components/filter-sheet";

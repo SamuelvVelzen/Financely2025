@@ -1,5 +1,3 @@
-"use client";
-
 import { MultiStepDialog } from "@/features/ui/dialog/multi-step-dialog";
 import {
   IStep,
@@ -22,7 +20,10 @@ export function TransactionCsvImportDialog({
 }: ICsvImportDialogProps) {
   return (
     <TransactionImportProvider onClose={() => onOpenChange(false)}>
-      <TransactionImportDialogContent open={open} onOpenChange={onOpenChange} />
+      <TransactionImportDialogContent
+        open={open}
+        onOpenChange={onOpenChange}
+      />
     </TransactionImportProvider>
   );
 }

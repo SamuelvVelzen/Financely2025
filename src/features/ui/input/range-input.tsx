@@ -1,5 +1,3 @@
-"use client";
-
 import { IconButton } from "@/features/ui/button/icon-button";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { cn } from "@/features/util/cn";

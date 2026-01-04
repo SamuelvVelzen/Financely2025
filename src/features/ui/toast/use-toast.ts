@@ -1,5 +1,3 @@
-"use client";
-
 import { useCallback } from "react";
 import { useToastContext } from "./toast-context";
 import type { IToastOptions } from "./types";

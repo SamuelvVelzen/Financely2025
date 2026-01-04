@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/features/ui/button/button";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";

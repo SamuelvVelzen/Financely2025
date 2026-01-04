@@ -1,5 +1,3 @@
-"use client";
-
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
   CreateTransactionInputSchema,

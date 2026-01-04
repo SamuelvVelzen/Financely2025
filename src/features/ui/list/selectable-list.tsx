@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/features/util/cn";
 import { ReactElement, ReactNode, cloneElement, isValidElement } from "react";
 import { IListProps } from "./list";

@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/features/util/cn";
 import { type ReactNode, useState } from "react";
 import { HiChevronDown } from "react-icons/hi2";

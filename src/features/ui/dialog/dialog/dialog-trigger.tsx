@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/features/util/cn";
 import { cloneElement, isValidElement, useEffect, useRef } from "react";
 import type { IDialogTriggerProps } from "./types";

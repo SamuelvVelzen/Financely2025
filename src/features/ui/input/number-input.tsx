@@ -1,5 +1,3 @@
-"use client";
-
 import { BaseInput, IBaseInputProps } from "./input";
 
 export type INumberInputProps = Omit<IBaseInputProps, "type"> & {
