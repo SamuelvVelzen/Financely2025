@@ -194,8 +194,8 @@ export function FilterBar({
                   name="tagFilter"
                   options={tagOptions}
                   multiple
-                  placeholder="Filter by tags"
-                  children={(option) => (
+                  placeholder="Filter by tags">
+                  {(option) => (
                     <>
                       {option.data?.emoticon && (
                         <span className="text-base shrink-0">
@@ -211,7 +211,7 @@ export function FilterBar({
                       <span>{option.label}</span>
                     </>
                   )}
-                />
+                </SelectDropdown>
               </div>
             </div>
 

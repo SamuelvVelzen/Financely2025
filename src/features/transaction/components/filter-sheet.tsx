@@ -1,7 +1,7 @@
 "use client";
 
-import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import type { ITag } from "@/features/shared/validation/schemas";
+import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import type { IButtonProps } from "@/features/ui/button/button";
@@ -148,11 +148,13 @@ export function FilterSheet({
               name="tagFilter"
               options={tagOptions}
               multiple
-              placeholder="Filter by tags"
-              children={(option) => (
+              placeholder="Filter by tags">
+              {(option) => (
                 <>
                   {option.data?.emoticon && (
-                    <span className="text-base shrink-0">{option.data.emoticon}</span>
+                    <span className="text-base shrink-0">
+                      {option.data.emoticon}
+                    </span>
                   )}
                   {option.data?.color && (
                     <div
@@ -163,7 +165,7 @@ export function FilterSheet({
                   <span>{option.label}</span>
                 </>
               )}
-            />
+            </SelectDropdown>
           </div>
         </Form>
       </div>

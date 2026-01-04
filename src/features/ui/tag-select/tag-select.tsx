@@ -95,36 +95,9 @@ export function TagSelect({
     }
   };
 
-  // Default rendering for tags (with emoticon and color indicator)
-  const children = (
-    option: ISelectOption<ITag>,
-    index: number,
-    context: {
-      isSelected: boolean;
-      handleClick: () => void;
-      multiple: boolean;
-      searchQuery: string;
-    }
-  ) => {
-    return (
-      <>
-        {option.data?.emoticon && (
-          <span className="text-base shrink-0">{option.data.emoticon}</span>
-        )}
-        {option.data?.color && (
-          <div
-            className="size-3 rounded-full shrink-0"
-            style={{ backgroundColor: option.data.color }}
-          />
-        )}
-        <span>{highlightText(option.label, context.searchQuery)}</span>
-      </>
-    );
-  };
-
   return (
     <>
-      <Select<ISelectOption<ITag>>
+      <Select
         className={className}
         name={name}
         options={tagOptions}
@@ -136,9 +109,22 @@ export function TagSelect({
         hint={hint}
         onCreateNew={handleCreateNew}
         createNewLabel={(query) => `Create tag "${query}"`}
-        forcePlacement={["bottom"]}
-        children={children}
-      />
+        forcePlacement={["bottom"]}>
+        {(option, index, context) => (
+          <>
+            {option.data?.emoticon && (
+              <span className="text-base shrink-0">{option.data.emoticon}</span>
+            )}
+            {option.data?.color && (
+              <div
+                className="size-3 rounded-full shrink-0"
+                style={{ backgroundColor: option.data.color }}
+              />
+            )}
+            <span>{highlightText(option.label, context.searchQuery)}</span>
+          </>
+        )}
+      </Select>
       <AddOrCreateTagDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
