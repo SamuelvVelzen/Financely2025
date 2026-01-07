@@ -236,7 +236,7 @@ export function Dropdown({
               <div
                 ref={dropdownContentRef}
                 className={cn(
-                  "bg-surface border border-border text-base font-normal flex flex-col",
+                  "bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
                   showExpanded ? "rounded-l-2xl" : "rounded-2xl"
                 )}
                 style={{
