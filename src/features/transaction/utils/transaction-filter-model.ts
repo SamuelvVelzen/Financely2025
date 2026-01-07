@@ -99,7 +99,7 @@ export interface ITransactionFilterState {
  * Default date filter state
  */
 const defaultDateFilter: IDateFilter = {
-  type: "thisMonth",
+  type: "allTime",
   from: getCurrentMonthStart(),
   to: getCurrentMonthEnd(),
 };
