@@ -121,14 +121,12 @@ export function BaseInput({
                 widthBaseClasses,
                 className
               )}
-              value={
-                field.value as string | number | readonly string[] | undefined
-              }
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              name={isControlled ? undefined : field.name}
+              name={field.name}
               ref={isControlled ? undefined : field.ref}
               {...(isControlled ? props : formModeProps)}
+              value={String(field.value ?? "")}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
             />
           )}
           {suffixIcon && (
@@ -194,11 +192,15 @@ export function BaseInput({
         const shouldShowError = error && form.formState.isSubmitted;
         const borderClass = shouldShowError ? "border-danger" : "border-border";
 
-        return renderInputContent(
-          field,
-          borderClass,
-          shouldShowError,
-          error?.message as string | undefined
+        return (
+          <>
+            {renderInputContent(
+              field,
+              borderClass,
+              shouldShowError,
+              error?.message as string | undefined
+            )}
+          </>
         );
       }}
     />
