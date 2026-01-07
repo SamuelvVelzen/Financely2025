@@ -91,6 +91,34 @@ export function Select<
 
   const { highlightText } = useHighlightText();
 
+  // Keep dropdown open when input is focused
+  // NOTE: This hook must be called before any early returns to maintain hook order
+  useEffect(() => {
+    if (
+      inputRef.current &&
+      document.activeElement === inputRef.current &&
+      !disabled
+    ) {
+      setIsOpen(true);
+    }
+  }, [searchQuery, disabled]);
+
+  // Filter options based on search query
+  // NOTE: This hook must be called before any early returns to maintain hook order
+  const filteredOptions = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return options;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return options.filter((option) => {
+      const searchValue = getOptionSearchValue
+        ? getOptionSearchValue(option)
+        : option.label;
+      return searchValue.toLowerCase().includes(query);
+    });
+  }, [options, searchQuery, getOptionSearchValue]);
+
   // On mobile, use native select (only supports form mode for now)
   if (isMobile && isFormMode && form) {
     return (
@@ -108,32 +136,6 @@ export function Select<
       />
     );
   }
-
-  // Keep dropdown open when input is focused
-  useEffect(() => {
-    if (
-      inputRef.current &&
-      document.activeElement === inputRef.current &&
-      !disabled
-    ) {
-      setIsOpen(true);
-    }
-  }, [searchQuery, disabled]);
-
-  // Filter options based on search query
-  const filteredOptions = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return options;
-    }
-
-    const query = searchQuery.toLowerCase();
-    return options.filter((option) => {
-      const searchValue = getOptionSearchValue
-        ? getOptionSearchValue(option)
-        : option.label;
-      return searchValue.toLowerCase().includes(query);
-    });
-  }, [options, searchQuery, getOptionSearchValue]);
 
   // Check if option is selected
   const isSelected = (
