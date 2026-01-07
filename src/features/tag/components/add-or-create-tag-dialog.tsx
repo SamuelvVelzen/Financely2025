@@ -117,7 +117,7 @@ export function AddOrCreateTagDialog({
       // Reset form when dialog closes to ensure clean state
       form.reset(getEmptyFormValues());
     }
-  }, [open, tag?.id, initialName, initialValues, form]);
+  }, [open, tag, initialName, initialValues, form]);
 
   const handleSubmit = async (data: FormData) => {
     setPending(true);
