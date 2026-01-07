@@ -535,16 +535,16 @@ export async function convertRowToTransaction(
         break;
       case "tags":
         if (rawValue) {
-          transaction.tagIds = await parseTags(rawValue, userId);
+          // Store tag names instead of resolving to IDs
+          // Tag names will be resolved during import confirmation
+          transaction.tagIds = parseTagNames(rawValue);
         }
         break;
       case "primaryTagId":
-        if (rawValue && transaction.type) {
-          transaction.primaryTagId = await parsePrimaryTag(
-            rawValue,
-            userId,
-            transaction.type
-          );
+        if (rawValue) {
+          // Store primary tag name instead of resolving to ID
+          // Tag name will be resolved during import confirmation
+          transaction.primaryTagId = rawValue.trim();
         }
         break;
     }
@@ -663,10 +663,73 @@ function parsePaymentMethod(value: string): IPaymentMethod {
 }
 
 /**
+ * Parse tag names (comma-separated) and return as array of names
+ * Tags will be resolved to IDs during import confirmation
+ */
+function parseTagNames(value: string): string[] {
+  if (!value) return [];
+
+  return value
+    .split(",")
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0);
+}
+
+/**
+ * Fetch tag metadata by names for a user
+ * Returns a map of tag name to tag metadata (color, emoticon, etc.)
+ */
+export async function fetchTagMetadataByNames(
+  userId: string,
+  tagNames: string[]
+): Promise<
+  Map<string, { id: string; color: string | null; emoticon: string | null }>
+> {
+  if (tagNames.length === 0) {
+    return new Map();
+  }
+
+  const tags = await prisma.tag.findMany({
+    where: {
+      userId,
+      name: {
+        in: tagNames,
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      color: true,
+      emoticon: true,
+    },
+  });
+
+  const metadataMap = new Map<
+    string,
+    { id: string; color: string | null; emoticon: string | null }
+  >();
+
+  for (const tag of tags) {
+    metadataMap.set(tag.name, {
+      id: tag.id,
+      color: tag.color,
+      emoticon: tag.emoticon,
+    });
+  }
+
+  return metadataMap;
+}
+
+/**
  * Parse tags (comma-separated names) and resolve to tagIds
  * Creates tags if they don't exist
+ * This is used during import confirmation, not during CSV parsing
  */
-async function parseTags(value: string, userId: string): Promise<string[]> {
+export async function parseTags(
+  value: string,
+  userId: string,
+  transactionType: ITransactionType
+): Promise<string[]> {
   if (!value) return [];
 
   const tagNames = value
@@ -693,6 +756,7 @@ async function parseTags(value: string, userId: string): Promise<string[]> {
       try {
         const newTag = await TagService.createTag(userId, {
           name: tagName,
+          transactionType,
         });
         tagIds.push(newTag.id);
       } catch (error) {
@@ -718,8 +782,9 @@ async function parseTags(value: string, userId: string): Promise<string[]> {
 /**
  * Parse a single primary tag name and resolve to tagId
  * Creates tag if it doesn't exist
+ * This is used during import confirmation, not during CSV parsing
  */
-async function parsePrimaryTag(
+export async function parsePrimaryTag(
   value: string,
   userId: string,
   transactionType: ITransactionType
@@ -728,15 +793,12 @@ async function parsePrimaryTag(
 
   const tagName = value.trim();
 
-  // Try to find existing tag matching name and transaction type (or null type for universal tags)
+  // Try to find existing tag matching name and transaction type
   const existingTags = await prisma.tag.findMany({
     where: {
       userId,
       name: tagName,
-      OR: [
-        { transactionType: null }, // Works with both
-        { transactionType }, // Matches transaction type
-      ],
+      transactionType,
     },
     take: 1,
   });
@@ -830,7 +892,10 @@ export async function convertRowsToCandidates(
   bank?: BankEnum | null
 ): Promise<ICsvCandidateTransaction[]> {
   const candidates: ICsvCandidateTransaction[] = [];
+  const allTagNames = new Set<string>();
+  const allPrimaryTagNames = new Set<string>();
 
+  // First pass: convert rows and collect tag names
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     try {
@@ -847,6 +912,21 @@ export async function convertRowsToCandidates(
         row,
         typeDetectionStrategy
       );
+
+      // Collect tag names for metadata lookup
+      if (transaction.tagIds && Array.isArray(transaction.tagIds)) {
+        transaction.tagIds.forEach((tagName) => {
+          if (tagName && typeof tagName === "string") {
+            allTagNames.add(tagName);
+          }
+        });
+      }
+      if (
+        transaction.primaryTagId &&
+        typeof transaction.primaryTagId === "string"
+      ) {
+        allPrimaryTagNames.add(transaction.primaryTagId);
+      }
 
       // Determine status
       let status: "valid" | "invalid" | "warning" = "valid";
@@ -887,5 +967,52 @@ export async function convertRowsToCandidates(
     }
   }
 
-  return candidates;
+  // Fetch tag metadata for all unique tag names
+  const allUniqueTagNames = Array.from(
+    new Set([...allTagNames, ...allPrimaryTagNames])
+  );
+  const tagMetadataMap = await fetchTagMetadataByNames(
+    userId,
+    allUniqueTagNames
+  );
+
+  // Second pass: add tag metadata to candidates
+  return candidates.map((candidate) => {
+    const tagMetadata: Record<
+      string,
+      { id: string; color: string | null; emoticon: string | null }
+    > = {};
+
+    // Add metadata for tags
+    if (candidate.data.tagIds && Array.isArray(candidate.data.tagIds)) {
+      candidate.data.tagIds.forEach((tagName) => {
+        if (tagName && typeof tagName === "string") {
+          const metadata = tagMetadataMap.get(tagName);
+          if (metadata) {
+            tagMetadata[tagName] = metadata;
+          }
+        }
+      });
+    }
+
+    // Add metadata for primary tag
+    if (
+      candidate.data.primaryTagId &&
+      typeof candidate.data.primaryTagId === "string"
+    ) {
+      const metadata = tagMetadataMap.get(candidate.data.primaryTagId);
+      if (metadata) {
+        tagMetadata[candidate.data.primaryTagId] = metadata;
+      }
+    }
+
+    // Store metadata in rawValues (will be used in review step)
+    return {
+      ...candidate,
+      rawValues: {
+        ...candidate.rawValues,
+        __tagMetadata: JSON.stringify(tagMetadata),
+      },
+    };
+  });
 }

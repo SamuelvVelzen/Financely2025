@@ -139,6 +139,7 @@ function ReviewStepContent({
           <HeaderCell key="amount">Amount</HeaderCell>,
           <HeaderCell key="currency">Currency</HeaderCell>,
           <HeaderCell key="type">Type</HeaderCell>,
+          <HeaderCell key="tags">Tags</HeaderCell>,
           <HeaderCell key="errors">Errors</HeaderCell>,
         ]}>
         {(paginatedCandidates) => {
@@ -295,6 +296,85 @@ function ReviewStepContent({
                     className="h-8 text-sm"
                     showClearButton={false}
                   />
+                </BodyCell>
+                <BodyCell>
+                  {(() => {
+                    // Parse tag metadata from rawValues
+                    let tagMetadata: Record<
+                      string,
+                      {
+                        id: string;
+                        color: string | null;
+                        emoticon: string | null;
+                      }
+                    > = {};
+                    try {
+                      const metadataStr = candidate.rawValues.__tagMetadata;
+                      if (metadataStr) {
+                        tagMetadata = JSON.parse(metadataStr);
+                      }
+                    } catch {
+                      // Ignore parse errors
+                    }
+
+                    const tagNames = (candidate.data.tagIds as string[]) || [];
+                    const primaryTagName =
+                      (candidate.data.primaryTagId as string) || null;
+
+                    if (tagNames.length === 0 && !primaryTagName) {
+                      return <span className="text-sm text-text-muted">—</span>;
+                    }
+
+                    return (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {/* Primary tag */}
+                        {primaryTagName && (
+                          <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-surface-hover border border-border">
+                            {tagMetadata[primaryTagName]?.emoticon && (
+                              <span className="text-sm">
+                                {tagMetadata[primaryTagName].emoticon}
+                              </span>
+                            )}
+                            {tagMetadata[primaryTagName]?.color && (
+                              <div
+                                className="size-2.5 rounded-full shrink-0"
+                                style={{
+                                  backgroundColor:
+                                    tagMetadata[primaryTagName].color,
+                                }}
+                              />
+                            )}
+                            <span className="font-medium">
+                              {primaryTagName}
+                            </span>
+                          </div>
+                        )}
+                        {/* Other tags */}
+                        {tagNames.map((tagName, idx) => {
+                          if (tagName === primaryTagName) return null; // Skip if it's the primary tag
+                          const metadata = tagMetadata[tagName];
+                          return (
+                            <div
+                              key={idx}
+                              className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-surface-hover border border-border">
+                              {metadata?.emoticon && (
+                                <span className="text-sm">
+                                  {metadata.emoticon}
+                                </span>
+                              )}
+                              {metadata?.color && (
+                                <div
+                                  className="size-2.5 rounded-full shrink-0"
+                                  style={{ backgroundColor: metadata.color }}
+                                />
+                              )}
+                              <span>{tagName}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </BodyCell>
                 <BodyCell>
                   {candidate.errors.length > 0 ? (
