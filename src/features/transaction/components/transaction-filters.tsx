@@ -1,7 +1,11 @@
 import type { ITag } from "@/features/shared/validation/schemas";
+import { ActiveFiltersRow } from "@/features/transaction/components/active-filters-row";
 import { FilterBar } from "@/features/transaction/components/filter-bar";
 import { FilterSheet } from "@/features/transaction/components/filter-sheet";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
+import { generateFilterBadges } from "@/features/transaction/utils/filter-badges";
+import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
+import { DEFAULT_FILTER_STATE } from "@/features/transaction/utils/transaction-filter-model";
 import { Button } from "@/features/ui/button/button";
 import {
   Datepicker,
@@ -10,11 +14,12 @@ import {
 import { Form } from "@/features/ui/form/form";
 import type { IPriceRange } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 export interface ITransactionFiltersProps {
   form: UseFormReturn<IFilterFormValues>;
+  filterState: ITransactionFilterState;
   dateFilter: IDateFilter;
   onDateFilterChange: (filter: IDateFilter) => void;
   priceFilter: IPriceRange;
@@ -22,11 +27,14 @@ export interface ITransactionFiltersProps {
   tags: ITag[];
   onClearAll: () => void;
   hasActiveFilters: boolean;
+  setSearchQuery: (query: string) => void;
+  setTagFilter: (tags: string[]) => void;
   className?: string;
 }
 
 export function TransactionFilters({
   form,
+  filterState,
   dateFilter,
   onDateFilterChange,
   priceFilter,
@@ -34,9 +42,34 @@ export function TransactionFilters({
   tags,
   onClearAll,
   hasActiveFilters,
+  setSearchQuery,
+  setTagFilter,
   className,
 }: ITransactionFiltersProps) {
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+
+  // Generate badges for active filters
+  const badges = useMemo(() => {
+    return generateFilterBadges({
+      filterState,
+      tags,
+      onRemoveDate: () => onDateFilterChange(DEFAULT_FILTER_STATE.dateFilter),
+      onRemoveTag: (tagId) => {
+        const currentTags = filterState.tagFilter;
+        setTagFilter(currentTags.filter((id) => id !== tagId));
+      },
+      onRemoveAmount: () =>
+        onPriceFilterChange(DEFAULT_FILTER_STATE.priceFilter),
+      onRemoveSearch: () => setSearchQuery(""),
+    });
+  }, [
+    filterState,
+    tags,
+    onDateFilterChange,
+    onPriceFilterChange,
+    setSearchQuery,
+    setTagFilter,
+  ]);
 
   return (
     <>
@@ -52,10 +85,14 @@ export function TransactionFilters({
           onClearAll={onClearAll}
           className={className}
         />
+        <ActiveFiltersRow
+          badges={badges}
+          onClearAll={onClearAll}
+        />
       </div>
 
       {/* Mobile: Search + Date inline */}
-      <div className="md:hidden flex gap-3 items-end">
+      <div className="md:hidden flex flex-col gap-3">
         <Form
           form={form}
           onSubmit={() => {}}>
@@ -75,6 +112,10 @@ export function TransactionFilters({
             />
           </div>
         </Form>
+        <ActiveFiltersRow
+          badges={badges}
+          onClearAll={onClearAll}
+        />
       </div>
 
       {/* Mobile Filter Sheet */}

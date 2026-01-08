@@ -216,7 +216,7 @@ export function FilterBar({
             <Dropdown.Footer className="p-4">
               <Button
                 clicked={onClearAll}
-                variant="default"
+                variant="primary"
                 size="sm"
                 buttonContent="Clear all"
                 className="flex-1"

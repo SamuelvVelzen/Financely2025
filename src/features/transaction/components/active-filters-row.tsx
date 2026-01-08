@@ -23,7 +23,7 @@ export function ActiveFiltersRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 px-2 py-2 overflow-x-auto md:overflow-x-visible md:flex-wrap",
+        "flex items-center gap-2 mt-2 overflow-x-auto md:overflow-x-visible md:flex-wrap",
         className
       )}>
       <div className={cn("flex items-center gap-2 flex-nowrap md:flex-wrap")}>

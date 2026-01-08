@@ -56,6 +56,7 @@ export function TransactionOverview({
     setDateFilter,
     setPriceFilter,
     setTagFilter,
+    setSearchQuery,
     clearAllFilters,
     hasActiveFilters,
   } = useTransactionFilters({ initialState });
@@ -273,6 +274,7 @@ export function TransactionOverview({
 
         <TransactionFilters
           form={form}
+          filterState={filterState}
           dateFilter={filterState.dateFilter}
           onDateFilterChange={setDateFilter}
           priceFilter={filterState.priceFilter}
@@ -280,6 +282,8 @@ export function TransactionOverview({
           tags={orderedTags}
           onClearAll={clearAllFilters}
           hasActiveFilters={hasActiveFilters}
+          setSearchQuery={setSearchQuery}
+          setTagFilter={setTagFilter}
         />
       </Container>
 
