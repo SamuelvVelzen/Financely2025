@@ -5,7 +5,7 @@ import {
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import React, { useId } from "react";
+import React, { forwardRef, useId } from "react";
 import { Controller, type ControllerRenderProps } from "react-hook-form";
 
 type RenderFieldParams = {
@@ -27,7 +27,7 @@ export type IBaseInputProps = Omit<
     renderField?: (params: RenderFieldParams) => React.ReactNode;
   } & IFormOrControlledMode<string | number>;
 
-export function BaseInput({
+export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(({
   className,
   type,
   label,
@@ -41,7 +41,7 @@ export function BaseInput({
   value: controlledValue,
   onChange: controlledOnChange,
   ...props
-}: IBaseInputProps) {
+}, ref) => {
   const generatedId = useId();
   const inputId = id || generatedId;
   const form = useFormContextOptional();
@@ -75,7 +75,8 @@ export function BaseInput({
     borderClass: string,
     showError?: boolean,
     errorMessage?: string,
-    isControlled?: boolean
+    isControlled?: boolean,
+    inputRef?: React.Ref<HTMLInputElement>
   ) => {
     return (
       <div className={label || hint ? "space-y-1" : ""}>
@@ -122,7 +123,7 @@ export function BaseInput({
                 className
               )}
               name={field.name}
-              ref={isControlled ? undefined : field.ref}
+              ref={isControlled ? inputRef : field.ref}
               {...(isControlled ? props : formModeProps)}
               value={String(field.value ?? "")}
               onChange={field.onChange}
@@ -173,7 +174,7 @@ export function BaseInput({
       ref: () => {},
     };
 
-    return renderInputContent(mockField, borderClass, false, undefined, true);
+    return renderInputContent(mockField, borderClass, false, undefined, true, ref);
   }
 
   // Render form mode
@@ -205,4 +206,4 @@ export function BaseInput({
       }}
     />
   );
-}
+});

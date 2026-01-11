@@ -1,13 +1,12 @@
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { TagSelectCell } from "@/features/tag/components/tag-select-cell";
+import { DateSelectCell } from "@/features/transaction/components/date-select-cell";
 import { Button } from "@/features/ui/button/button";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import type {
   IStepConfig,
   IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
-import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
@@ -16,14 +15,8 @@ import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/features/util/cn";
-import {
-  dateOnlyToIso,
-  datetimeLocalToIso,
-  isoToDateOnly,
-  isoToDatetimeLocal,
-} from "@/features/util/date/dateisohelpers";
 import { useMemo, useState } from "react";
-import { HiClock, HiExclamationCircle } from "react-icons/hi";
+import { HiExclamationCircle } from "react-icons/hi";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
 import {
   useTransactionImportContext,
@@ -174,93 +167,16 @@ function ReviewStepContent({
                   </span>
                 </BodyCell>
                 <BodyCell>
-                  {candidate.data.transactionDate ? (
-                    <div
-                      className="flex items-center justify-between gap-1"
-                      onClick={(e) => e.stopPropagation()}>
-                      <DateInput
-                        value={
-                          candidate.data.timePrecision === "DateTime"
-                            ? isoToDatetimeLocal(candidate.data.transactionDate)
-                            : isoToDateOnly(candidate.data.transactionDate)
-                        }
-                        type={
-                          candidate.data.timePrecision === "DateTime"
-                            ? "datetime-local"
-                            : "date"
-                        }
-                        onChange={(value) => {
-                          if (value) {
-                            const isoDate =
-                              candidate.data.timePrecision === "DateTime"
-                                ? datetimeLocalToIso(String(value))
-                                : dateOnlyToIso(String(value));
-                            updateCandidate(candidate.rowIndex, {
-                              transactionDate: isoDate,
-                            });
-                          }
-                        }}
-                        className="h-8 text-sm flex-1"
-                      />
-                      <IconButton
-                        size="sm"
-                        clicked={(e) => {
-                          e?.stopPropagation();
-                          const currentPrecision =
-                            candidate.data.timePrecision || "DateOnly";
-                          const newPrecision =
-                            currentPrecision === "DateTime"
-                              ? "DateOnly"
-                              : "DateTime";
-                          const currentDate = candidate.data.transactionDate;
-
-                          // When switching modes, preserve the date part
-                          let newDate: string;
-                          if (newPrecision === "DateOnly") {
-                            // Switching to DateOnly: extract date part and normalize to noon UTC
-                            newDate = dateOnlyToIso(isoToDateOnly(currentDate));
-                          } else {
-                            // Switching to DateTime: if current is DateOnly, use current time, otherwise keep existing
-                            if (currentPrecision === "DateOnly") {
-                              // Convert date-only to datetime-local with current time, then to ISO
-                              const dateOnly = isoToDateOnly(currentDate);
-                              const now = new Date();
-                              const hours = String(now.getHours()).padStart(
-                                2,
-                                "0"
-                              );
-                              const minutes = String(now.getMinutes()).padStart(
-                                2,
-                                "0"
-                              );
-                              const datetimeLocal = `${dateOnly}T${hours}:${minutes}`;
-                              newDate = datetimeLocalToIso(datetimeLocal);
-                            } else {
-                              newDate = currentDate;
-                            }
-                          }
-
-                          updateCandidate(candidate.rowIndex, {
-                            transactionDate: newDate,
-                            timePrecision: newPrecision,
-                          });
-                        }}
-                        className={cn(
-                          "shrink-0",
-                          candidate.data.timePrecision === "DateTime" &&
-                            "text-primary"
-                        )}
-                        aria-label={
-                          candidate.data.timePrecision === "DateTime"
-                            ? "Remove time (switch to date only)"
-                            : "Add time (switch to date and time)"
-                        }>
-                        <HiClock className="size-5" />
-                      </IconButton>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-text-muted">—</span>
-                  )}
+                  <DateSelectCell
+                    value={candidate.data.transactionDate}
+                    timePrecision={candidate.data.timePrecision || "DateOnly"}
+                    onChange={(value, precision) => {
+                      updateCandidate(candidate.rowIndex, {
+                        transactionDate: value,
+                        timePrecision: precision,
+                      });
+                    }}
+                  />
                 </BodyCell>
                 <BodyCell>
                   <div onClick={(e) => e.stopPropagation()}>

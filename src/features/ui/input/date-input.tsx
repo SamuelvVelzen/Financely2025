@@ -1,14 +1,18 @@
 import { BaseInput, IBaseInputProps } from "./input";
+import { forwardRef } from "react";
 
 export type IDateInputProps = Omit<IBaseInputProps, "type"> & {
   type?: "date" | "datetime-local";
 };
 
-export function DateInput({ type = "date", ...props }: IDateInputProps) {
-  return (
-    <BaseInput
-      type={type}
-      {...props}
-    />
-  );
-}
+export const DateInput = forwardRef<HTMLInputElement, IDateInputProps>(
+  ({ type = "date", ...props }, ref) => {
+    return (
+      <BaseInput
+        ref={ref}
+        type={type}
+        {...props}
+      />
+    );
+  }
+);
