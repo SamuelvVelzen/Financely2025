@@ -836,7 +836,6 @@ export async function parsePrimaryTag(
  */
 export function validateCandidateTransaction(
   candidate: Partial<ICreateTransactionInput>,
-  rawValues: Record<string, string>,
   typeDetectionStrategy?: string
 ): Array<{ field: string; message: string }> {
   const errors: Array<{ field: string; message: string }> = [];
@@ -909,7 +908,6 @@ export async function convertRowsToCandidates(
       );
       const errors = validateCandidateTransaction(
         transaction,
-        row,
         typeDetectionStrategy
       );
 
@@ -938,7 +936,8 @@ export async function convertRowsToCandidates(
         rowIndex: i,
         status,
         data: transaction as ICreateTransactionInput,
-        rawValues: row,
+        primaryTagMetadata: null,
+        tagsMetadata: [],
         errors,
       });
     } catch (error) {
@@ -955,7 +954,8 @@ export async function convertRowsToCandidates(
           paymentMethod: "OTHER",
           tagIds: [],
         } as ICreateTransactionInput,
-        rawValues: row,
+        primaryTagMetadata: null,
+        tagsMetadata: [],
         errors: [
           {
             field: "general",
@@ -967,52 +967,97 @@ export async function convertRowsToCandidates(
     }
   }
 
-  // Fetch tag metadata for all unique tag names
-  const allUniqueTagNames = Array.from(
-    new Set([...allTagNames, ...allPrimaryTagNames])
-  );
-  const tagMetadataMap = await fetchTagMetadataByNames(
+  // Fetch tag metadata separately for primary tags and other tags
+  const primaryTagNamesArray = Array.from(allPrimaryTagNames);
+  const tagNamesArray = Array.from(allTagNames);
+
+  const primaryTagMetadataMap = await fetchTagMetadataByNames(
     userId,
-    allUniqueTagNames
+    primaryTagNamesArray
   );
+  const tagsMetadataMap = await fetchTagMetadataByNames(userId, tagNamesArray);
 
   // Second pass: add tag metadata to candidates
   return candidates.map((candidate) => {
-    const tagMetadata: Record<
-      string,
-      { id: string; color: string | null; emoticon: string | null }
-    > = {};
+    // Populate primary tag metadata
+    let primaryTagMetadata: {
+      id?: string;
+      name: string;
+      color: string | null;
+      emoticon: string | null;
+    } | null = null;
 
-    // Add metadata for tags
+    if (
+      candidate.data.primaryTagId &&
+      typeof candidate.data.primaryTagId === "string"
+    ) {
+      const primaryTagName = candidate.data.primaryTagId;
+      const metadata = primaryTagMetadataMap.get(primaryTagName);
+          if (metadata) {
+        // Tag exists: include id, name, color, emoticon
+        primaryTagMetadata = {
+          id: metadata.id,
+          name: primaryTagName,
+          color: metadata.color,
+          emoticon: metadata.emoticon,
+        };
+      } else {
+        // Tag doesn't exist: include name only (no id)
+        primaryTagMetadata = {
+          name: primaryTagName,
+          color: null,
+          emoticon: null,
+        };
+      }
+    }
+
+    // Populate tags metadata (excluding primary tag)
+    const tagsMetadata: Array<{
+      id?: string;
+      name: string;
+      color: string | null;
+      emoticon: string | null;
+    }> = [];
+
     if (candidate.data.tagIds && Array.isArray(candidate.data.tagIds)) {
+      const primaryTagName =
+      candidate.data.primaryTagId &&
+      typeof candidate.data.primaryTagId === "string"
+          ? candidate.data.primaryTagId
+          : null;
+
       candidate.data.tagIds.forEach((tagName) => {
         if (tagName && typeof tagName === "string") {
-          const metadata = tagMetadataMap.get(tagName);
-          if (metadata) {
-            tagMetadata[tagName] = metadata;
+          // Exclude primary tag from tags metadata
+          if (tagName === primaryTagName) {
+            return;
+          }
+
+          const metadata = tagsMetadataMap.get(tagName);
+      if (metadata) {
+            // Tag exists: include id, name, color, emoticon
+            tagsMetadata.push({
+              id: metadata.id,
+              name: tagName,
+              color: metadata.color,
+              emoticon: metadata.emoticon,
+            });
+          } else {
+            // Tag doesn't exist: include name only (no id)
+            tagsMetadata.push({
+              name: tagName,
+              color: null,
+              emoticon: null,
+            });
           }
         }
       });
     }
 
-    // Add metadata for primary tag
-    if (
-      candidate.data.primaryTagId &&
-      typeof candidate.data.primaryTagId === "string"
-    ) {
-      const metadata = tagMetadataMap.get(candidate.data.primaryTagId);
-      if (metadata) {
-        tagMetadata[candidate.data.primaryTagId] = metadata;
-      }
-    }
-
-    // Store metadata in rawValues (will be used in review step)
     return {
       ...candidate,
-      rawValues: {
-        ...candidate.rawValues,
-        __tagMetadata: JSON.stringify(tagMetadata),
-      },
+      primaryTagMetadata,
+      tagsMetadata,
     };
   });
 }

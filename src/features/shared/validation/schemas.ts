@@ -244,6 +244,18 @@ export const CreateTagInputSchema = z.object({
 
 export const UpdateTagInputSchema = CreateTagInputSchema.partial();
 
+/**
+ * Tag metadata schema for CSV import
+ * Used to store tag information (id, name, color, emoticon) for tags that may or may not exist
+ * If id is missing, the tag doesn't exist in the database
+ */
+export const TagMetadataSchema = z.object({
+  id: z.string().optional(),
+  name: z.string(),
+  color: z.string().nullable(),
+  emoticon: z.string().nullable(),
+});
+
 export const ReorderTagsInputSchema = z.object({
   tagIds: z.array(z.string()),
 });
@@ -466,7 +478,8 @@ export const CsvCandidateTransactionSchema = z.object({
   rowIndex: z.number().int().min(0),
   status: z.enum(["valid", "invalid", "warning"]),
   data: CreateTransactionInputSchema,
-  rawValues: z.record(z.string(), z.string()),
+  primaryTagMetadata: TagMetadataSchema.nullable(),
+  tagsMetadata: z.array(TagMetadataSchema),
   errors: z.array(CsvCandidateTransactionErrorSchema),
 });
 
@@ -834,6 +847,7 @@ export const ErrorResponseSchema = z.object({
 // ============================================================================
 
 export type ITag = z.infer<typeof TagSchema>;
+export type ITagMetadata = z.infer<typeof TagMetadataSchema>;
 export type ITransaction = z.infer<typeof TransactionSchema>;
 export type IUser = z.infer<typeof UserSchema>;
 export type ICreateTagInput = z.infer<typeof CreateTagInputSchema>;

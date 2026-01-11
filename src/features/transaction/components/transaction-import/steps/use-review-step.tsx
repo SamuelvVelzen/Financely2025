@@ -301,32 +301,16 @@ function ReviewStepContent({
                 </BodyCell>
                 <BodyCell>
                   {(() => {
-                    // Parse tag metadata from rawValues (once per candidate)
-                    let tagMetadata: Record<
-                      string,
-                      {
-                        id: string;
-                        color: string | null;
-                        emoticon: string | null;
-                      }
-                    > = {};
-                    try {
-                      const metadataStr = candidate.rawValues.__tagMetadata;
-                      if (metadataStr) {
-                        tagMetadata = JSON.parse(metadataStr);
-                      }
-                    } catch {
-                      // Ignore parse errors
-                    }
-
-                    const primaryTagId =
-                      (candidate.data.primaryTagId as string) || undefined;
+                    // Convert primaryTagMetadata to array format expected by TagSelectCell
+                    const tagMetadata = candidate.primaryTagMetadata
+                      ? [candidate.primaryTagMetadata]
+                      : [];
 
                     return (
                       <TagSelectCell
                         tagMetadata={tagMetadata}
                         transactionType={candidate.data.type}
-                        value={primaryTagId}
+                        value={candidate.data.primaryTagId ?? undefined}
                         onChange={(value) => {
                           updateCandidate(candidate.rowIndex, {
                             primaryTagId: (value as string) || null,
@@ -340,23 +324,8 @@ function ReviewStepContent({
                 </BodyCell>
                 <BodyCell>
                   {(() => {
-                    // Parse tag metadata from rawValues (once per candidate)
-                    let tagMetadata: Record<
-                      string,
-                      {
-                        id: string;
-                        color: string | null;
-                        emoticon: string | null;
-                      }
-                    > = {};
-                    try {
-                      const metadataStr = candidate.rawValues.__tagMetadata;
-                      if (metadataStr) {
-                        tagMetadata = JSON.parse(metadataStr);
-                      }
-                    } catch {
-                      // Ignore parse errors
-                    }
+                    // tagsMetadata is already in the correct array format
+                    const tagMetadata = candidate.tagsMetadata;
 
                     const { tagIds, primaryTagId } = candidate.data;
 

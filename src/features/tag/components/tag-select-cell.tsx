@@ -1,6 +1,7 @@
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
   ITag,
+  ITagMetadata,
   ITransactionType,
 } from "@/features/shared/validation/schemas";
 import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-create-tag-dialog";
@@ -10,15 +11,9 @@ import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-interface ITagMetadata {
-  id: string;
-  color: string | null;
-  emoticon: string | null;
-}
-
 interface ITagSelectCellProps extends IPropsWithClassName {
-  // Tag metadata (parsed from JSON)
-  tagMetadata?: Record<string, ITagMetadata>;
+  // Tag metadata array
+  tagMetadata?: ITagMetadata[];
   // Transaction type for filtering tags
   transactionType?: ITransactionType;
   // Controlled value (tag IDs for found tags, tag names for not-found)
@@ -33,7 +28,7 @@ interface ITagSelectCellProps extends IPropsWithClassName {
 
 export function TagSelectCell({
   className = "",
-  tagMetadata = {},
+  tagMetadata = [],
   transactionType,
   value,
   onChange,
@@ -56,6 +51,15 @@ export function TagSelectCell({
     return map;
   }, [tags]);
 
+  // Build a map of tag names to metadata for quick lookup
+  const tagMetadataMap = useMemo(() => {
+    const map = new Map<string, ITagMetadata>();
+    tagMetadata.forEach((metadata) => {
+      map.set(metadata.name, metadata);
+    });
+    return map;
+  }, [tagMetadata]);
+
   // Separate found tags (with IDs) from not-found tags (names only)
   const { foundTagIds, notFoundTagNames } = useMemo(() => {
     const foundIds: string[] = [];
@@ -72,8 +76,9 @@ export function TagSelectCell({
       for (const val of value) {
         if (typeof val === "string") {
           // Check if it's a tag name with metadata (found tag)
-          if (tagMetadata[val]) {
-            foundIds.push(tagMetadata[val].id);
+          const metadata = tagMetadataMap.get(val);
+          if (metadata && metadata.id) {
+            foundIds.push(metadata.id);
           } else {
             // Check if it's already a tag ID (check if it exists in tags)
             const isTagId = tags.some((tag) => tag.id === val);
@@ -93,8 +98,9 @@ export function TagSelectCell({
         }
       }
     } else if (!multiple && typeof value === "string") {
-      if (tagMetadata[value]) {
-        foundIds.push(tagMetadata[value].id);
+      const metadata = tagMetadataMap.get(value);
+      if (metadata && metadata.id) {
+        foundIds.push(metadata.id);
       } else {
         const isTagId = tags.some((tag) => tag.id === value);
         if (isTagId) {
@@ -117,7 +123,7 @@ export function TagSelectCell({
       foundTagIds: string | string[] | undefined;
       notFoundTagNames: string[];
     };
-  }, [value, tagMetadata, tags, tagNameToIdMap, multiple]);
+  }, [value, tagMetadataMap, tags, tagNameToIdMap, multiple]);
 
   // Handle create new tag
   const handleCreateNew = (searchQuery: string) => {
