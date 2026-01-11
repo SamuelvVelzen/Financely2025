@@ -175,7 +175,9 @@ function ReviewStepContent({
                 </BodyCell>
                 <BodyCell>
                   {candidate.data.transactionDate ? (
-                    <div className="flex items-center justify-between gap-1">
+                    <div
+                      className="flex items-center justify-between gap-1"
+                      onClick={(e) => e.stopPropagation()}>
                       <DateInput
                         value={
                           candidate.data.timePrecision === "DateTime"
@@ -202,7 +204,8 @@ function ReviewStepContent({
                       />
                       <IconButton
                         size="sm"
-                        clicked={() => {
+                        clicked={(e) => {
+                          e?.stopPropagation();
                           const currentPrecision =
                             candidate.data.timePrecision || "DateOnly";
                           const newPrecision =
@@ -260,51 +263,61 @@ function ReviewStepContent({
                   )}
                 </BodyCell>
                 <BodyCell>
-                  <TextInput
-                    value={candidate.data.name || ""}
-                    onChange={(value) => {
-                      updateCandidate(candidate.rowIndex, {
-                        name: String(value || ""),
-                      });
-                    }}
-                    className="h-8 text-sm"
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <TextInput
+                      value={candidate.data.name || ""}
+                      onChange={(value) => {
+                        updateCandidate(candidate.rowIndex, {
+                          name: String(value || ""),
+                        });
+                      }}
+                      className="h-8 text-sm"
+                    />
+                  </div>
                 </BodyCell>
                 <BodyCell>
-                  <DecimalInput
-                    value={candidate.data.amount || ""}
-                    onValueChange={(normalizedValue) => {
-                      updateCandidate(candidate.rowIndex, {
-                        amount: normalizedValue,
-                      });
-                    }}
-                    className="h-8 text-sm"
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <DecimalInput
+                      value={candidate.data.amount || ""}
+                      onValueChange={(normalizedValue) => {
+                        updateCandidate(candidate.rowIndex, {
+                          amount: normalizedValue,
+                        });
+                      }}
+                      className="h-8 text-sm"
+                    />
+                  </div>
                 </BodyCell>
                 <BodyCell>
-                  <CurrencySelect
-                    value={(candidate.data.currency || defaultCurrency) as any}
-                    onChange={(value) => {
-                      updateCandidate(candidate.rowIndex, {
-                        currency: value || defaultCurrency || ("EUR" as any),
-                      });
-                    }}
-                    className="h-8 text-sm"
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <CurrencySelect
+                      value={
+                        (candidate.data.currency || defaultCurrency) as any
+                      }
+                      onChange={(value) => {
+                        updateCandidate(candidate.rowIndex, {
+                          currency: value || defaultCurrency || ("EUR" as any),
+                        });
+                      }}
+                      className="h-8 text-sm"
+                    />
+                  </div>
                 </BodyCell>
                 <BodyCell>
-                  <SelectDropdown
-                    options={TRANSACTION_TYPE_OPTIONS}
-                    value={candidate.data.type || undefined}
-                    onChange={(value) => {
-                      updateCandidate(candidate.rowIndex, {
-                        type: value as any,
-                      });
-                    }}
-                    placeholder="Select type"
-                    className="h-8 text-sm"
-                    showClearButton={false}
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <SelectDropdown
+                      options={TRANSACTION_TYPE_OPTIONS}
+                      value={candidate.data.type || undefined}
+                      onChange={(value) => {
+                        updateCandidate(candidate.rowIndex, {
+                          type: value as any,
+                        });
+                      }}
+                      placeholder="Select type"
+                      className="h-8 text-sm"
+                      showClearButton={false}
+                    />
+                  </div>
                 </BodyCell>
                 <BodyCell>
                   {(() => {
@@ -314,18 +327,20 @@ function ReviewStepContent({
                       : [];
 
                     return (
-                      <TagSelectCell
-                        tagMetadata={tagMetadata}
-                        transactionType={candidate.data.type}
-                        value={candidate.data.primaryTagId ?? undefined}
-                        onChange={(value) => {
-                          updateCandidate(candidate.rowIndex, {
-                            primaryTagId: (value as string) || null,
-                          });
-                        }}
-                        multiple={false}
-                        placeholder="Select primary tag..."
-                      />
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <TagSelectCell
+                          tagMetadata={tagMetadata}
+                          transactionType={candidate.data.type}
+                          value={candidate.data.primaryTagId ?? undefined}
+                          onChange={(value) => {
+                            updateCandidate(candidate.rowIndex, {
+                              primaryTagId: (value as string) || null,
+                            });
+                          }}
+                          multiple={false}
+                          placeholder="Select primary tag..."
+                        />
+                      </div>
                     );
                   })()}
                 </BodyCell>
@@ -342,20 +357,24 @@ function ReviewStepContent({
                     );
 
                     return (
-                      <TagSelectCell
-                        tagMetadata={tagMetadata}
-                        transactionType={candidate.data.type}
-                        value={otherTagIds.length > 0 ? otherTagIds : undefined}
-                        onChange={(value) => {
-                          // Update other tags (don't include primary tag)
-                          const newTagIds = Array.isArray(value) ? value : [];
-                          updateCandidate(candidate.rowIndex, {
-                            tagIds: newTagIds,
-                          });
-                        }}
-                        multiple={true}
-                        placeholder="Select tags..."
-                      />
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <TagSelectCell
+                          tagMetadata={tagMetadata}
+                          transactionType={candidate.data.type}
+                          value={
+                            otherTagIds.length > 0 ? otherTagIds : undefined
+                          }
+                          onChange={(value) => {
+                            // Update other tags (don't include primary tag)
+                            const newTagIds = Array.isArray(value) ? value : [];
+                            updateCandidate(candidate.rowIndex, {
+                              tagIds: newTagIds,
+                            });
+                          }}
+                          multiple={true}
+                          placeholder="Select tags..."
+                        />
+                      </div>
                     );
                   })()}
                 </BodyCell>
@@ -363,9 +382,10 @@ function ReviewStepContent({
                   <BodyCell>
                     {candidate.errors.length > 0 ? (
                       <Button
-                        clicked={() =>
-                          setErrorDialogRowIndex(candidate.rowIndex)
-                        }
+                        clicked={(e) => {
+                          e?.stopPropagation();
+                          setErrorDialogRowIndex(candidate.rowIndex);
+                        }}
                         buttonContent={
                           <div className="flex items-center gap-2">
                             <HiExclamationCircle className="size-4 text-danger" />

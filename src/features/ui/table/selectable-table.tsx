@@ -162,15 +162,26 @@ export function SelectableTable<T = unknown>({
     onSelectionChange(newSelection);
   };
 
+  const handleRowClick = (
+    rowIndex: number,
+    e: React.MouseEvent<HTMLTableRowElement>
+  ) => {
+    handleRowToggle(rowIndex);
+  };
+
   // Add checkbox to header (prepend to headerCells)
   const headerCellsWithCheckbox = [
     <HeaderCell
       key="select-all-checkbox"
-      sortable={false}>
+      sortable={false}
+      sticky={true}>
       <Checkbox
         checked={allSelected}
         indeterminate={someSelected}
-        onChange={() => handleSelectAll()}
+        onChange={(e) => {
+          e.stopPropagation();
+          handleSelectAll();
+        }}
       />
     </HeaderCell>,
     ...headerCells,
@@ -268,11 +279,15 @@ export function SelectableTable<T = unknown>({
     const headerCellsWithPageCheckbox = [
       <HeaderCell
         key="select-all-checkbox"
-        sortable={false}>
+        sortable={false}
+        sticky={true}>
         <Checkbox
           checked={pageAllSelected}
           indeterminate={pageSomeSelected}
-          onChange={handleSelectAllPage}
+          onChange={(e) => {
+            e.stopPropagation();
+            handleSelectAllPage();
+          }}
         />
       </HeaderCell>,
       ...headerCells,
@@ -343,22 +358,42 @@ export function SelectableTable<T = unknown>({
                 return row;
               }
 
-              const rowProps = row.props as { children?: React.ReactNode };
+              const rowProps = row.props as {
+                children?: React.ReactNode;
+                onClick?: (e: React.MouseEvent<HTMLTableRowElement>) => void;
+              };
               const rowChildren = React.Children.toArray(rowProps.children);
               const isSelected = selectedRows.has(rowIndex);
               const checkboxCell = (
-                <BodyCell key="row-checkbox" sticky={true}>
+                <BodyCell
+                  key="row-checkbox"
+                  sticky={true}>
                   <Checkbox
                     checked={isSelected}
-                    onChange={() => handleRowToggle(rowIndex)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleRowToggle(rowIndex);
+                    }}
                   />
                 </BodyCell>
               );
+
+              // Combine existing onClick with row selection handler
+              const existingOnClick = rowProps.onClick;
+              const combinedOnClick = (
+                e: React.MouseEvent<HTMLTableRowElement>
+              ) => {
+                if (existingOnClick) {
+                  existingOnClick(e);
+                }
+                handleRowClick(rowIndex, e);
+              };
 
               return React.cloneElement(
                 row as React.ReactElement<any>,
                 {
                   key: row.key || rowIndex,
+                  onClick: combinedOnClick,
                 },
                 [checkboxCell, ...rowChildren]
               );
@@ -386,22 +421,40 @@ export function SelectableTable<T = unknown>({
       return row;
     }
 
-    const rowProps = row.props as { children?: React.ReactNode };
+    const rowProps = row.props as {
+      children?: React.ReactNode;
+      onClick?: (e: React.MouseEvent<HTMLTableRowElement>) => void;
+    };
     const rowChildren = React.Children.toArray(rowProps.children);
     const isSelected = selectedRows.has(rowIndex);
     const checkboxCell = (
-      <BodyCell key="row-checkbox">
+      <BodyCell
+        key="row-checkbox"
+        sticky={true}>
         <Checkbox
           checked={isSelected}
-          onChange={() => handleRowToggle(rowIndex)}
+          onChange={(e) => {
+            e.stopPropagation();
+            handleRowToggle(rowIndex);
+          }}
         />
       </BodyCell>
     );
+
+    // Combine existing onClick with row selection handler
+    const existingOnClick = rowProps.onClick;
+    const combinedOnClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
+      if (existingOnClick) {
+        existingOnClick(e);
+      }
+      handleRowClick(rowIndex, e);
+    };
 
     return React.cloneElement(
       row as React.ReactElement<any>,
       {
         key: row.key || rowIndex,
+        onClick: combinedOnClick,
       },
       [checkboxCell, ...rowChildren]
     );
