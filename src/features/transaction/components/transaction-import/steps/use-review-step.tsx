@@ -17,6 +17,7 @@ import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/features/util/cn";
 import { useMemo, useState } from "react";
 import { HiExclamationCircle } from "react-icons/hi";
+import { BankProfileFactory } from "../../../services/bank.factory";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
 import {
   useTransactionImportContext,
@@ -45,7 +46,14 @@ function ReviewStepContent({
     handleSelectAllValid,
     handleExcludeAllInvalid,
     updateCandidate,
+    selectedBank,
   } = useTransactionImportContext();
+
+  const hiddenFields = useMemo(
+    () => BankProfileFactory.getHiddenFields(selectedBank),
+    [selectedBank]
+  );
+  const isTagsHidden = hiddenFields.includes("tags");
 
   // Calculate total valid transactions across all pages
   const totalValidTransactions = useMemo(() => {
@@ -139,7 +147,7 @@ function ReviewStepContent({
           <HeaderCell key="currency">Currency</HeaderCell>,
           <HeaderCell key="type">Type</HeaderCell>,
           <HeaderCell key="primaryTag">Primary Tag</HeaderCell>,
-          <HeaderCell key="tags">Tags</HeaderCell>,
+          ...(isTagsHidden ? [] : [<HeaderCell key="tags">Tags</HeaderCell>]),
           ...(hasAnyErrors
             ? [<HeaderCell key="errors">Errors</HeaderCell>]
             : []),
@@ -260,40 +268,44 @@ function ReviewStepContent({
                     );
                   })()}
                 </BodyCell>
-                <BodyCell>
-                  {(() => {
-                    // tagsMetadata is already in the correct array format
-                    const tagMetadata = candidate.tagsMetadata;
+                {!isTagsHidden && (
+                  <BodyCell>
+                    {(() => {
+                      // tagsMetadata is already in the correct array format
+                      const tagMetadata = candidate.tagsMetadata;
 
-                    const { tagIds, primaryTagId } = candidate.data;
+                      const { tagIds, primaryTagId } = candidate.data;
 
-                    // Filter out primary tag from other tags
-                    const otherTagIds = tagIds.filter(
-                      (tagId) => tagId !== primaryTagId
-                    );
+                      // Filter out primary tag from other tags
+                      const otherTagIds = tagIds.filter(
+                        (tagId) => tagId !== primaryTagId
+                      );
 
-                    return (
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <TagSelectCell
-                          tagMetadata={tagMetadata}
-                          transactionType={candidate.data.type}
-                          value={
-                            otherTagIds.length > 0 ? otherTagIds : undefined
-                          }
-                          onChange={(value) => {
-                            // Update other tags (don't include primary tag)
-                            const newTagIds = Array.isArray(value) ? value : [];
-                            updateCandidate(candidate.rowIndex, {
-                              tagIds: newTagIds,
-                            });
-                          }}
-                          multiple={true}
-                          placeholder="Select tags..."
-                        />
-                      </div>
-                    );
-                  })()}
-                </BodyCell>
+                      return (
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <TagSelectCell
+                            tagMetadata={tagMetadata}
+                            transactionType={candidate.data.type}
+                            value={
+                              otherTagIds.length > 0 ? otherTagIds : undefined
+                            }
+                            onChange={(value) => {
+                              // Update other tags (don't include primary tag)
+                              const newTagIds = Array.isArray(value)
+                                ? value
+                                : [];
+                              updateCandidate(candidate.rowIndex, {
+                                tagIds: newTagIds,
+                              });
+                            }}
+                            multiple={true}
+                            placeholder="Select tags..."
+                          />
+                        </div>
+                      );
+                    })()}
+                  </BodyCell>
+                )}
                 {hasAnyErrors && (
                   <BodyCell>
                     {candidate.errors.length > 0 ? (

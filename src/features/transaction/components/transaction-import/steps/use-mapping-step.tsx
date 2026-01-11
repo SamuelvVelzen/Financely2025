@@ -17,6 +17,7 @@ import {
   hasDescriptionExtraction,
   supportsDateTimeExtraction,
 } from "../../../services/csv-description-extraction";
+import { BankProfileFactory } from "../../../services/bank.factory";
 import { BankSelect } from "../../bank-select";
 import {
   useTransactionImportContext,
@@ -98,11 +99,17 @@ function MappingStepContent() {
     transformMutation,
   } = useTransactionImportContext();
 
-  const requiredFields = TRANSACTION_FIELDS.filter((f) =>
-    requiredMappingFields.includes(f.name)
+  const hiddenFields = BankProfileFactory.getHiddenFields(selectedBank);
+
+  const requiredFields = TRANSACTION_FIELDS.filter(
+    (f) =>
+      requiredMappingFields.includes(f.name) &&
+      !hiddenFields.includes(f.name)
   );
   const optionalFields = TRANSACTION_FIELDS.filter(
-    (f) => !requiredMappingFields.includes(f.name)
+    (f) =>
+      !requiredMappingFields.includes(f.name) &&
+      !hiddenFields.includes(f.name)
   );
 
   const bankDisplayName =

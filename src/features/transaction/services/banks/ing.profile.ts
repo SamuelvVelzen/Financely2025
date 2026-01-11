@@ -53,11 +53,13 @@ export const ingProfile: BankProfile = {
   requiredFields: ["type"],
   // ING is a Dutch bank, typically uses debit cards
   defaultPaymentMethod: "DEBIT_CARD",
+  // ING only uses primary tags, not multiple tags
+  hiddenFields: ["tags"],
   // ING filename pattern: NL[IBAN digits]INGB[account digits]_[start date]_[end date].csv
-  // Examples: NL06INGB0001829429_01-01-2026_03-01-2026.csv, NL25INGB0391496905_01-01-2025_21-12-2025
   detectBankByFilename: (filename: string) => {
     // Pattern: NL[0-9]{2}INGB[0-9]+_[0-9]{2}-[0-9]{2}-[0-9]{4}_[0-9]{2}-[0-9]{2}-[0-9]{4}(\.csv)?$
-    const ingPattern = /^NL\d{2}INGB\d+_\d{2}-\d{2}-\d{4}_\d{2}-\d{2}-\d{4}(\.csv)?$/i;
+    const ingPattern =
+      /^NL\d{2}INGB\d+_\d{2}-\d{2}-\d{4}_\d{2}-\d{2}-\d{4}(\.csv)?$/i;
     return ingPattern.test(filename);
   },
 };
