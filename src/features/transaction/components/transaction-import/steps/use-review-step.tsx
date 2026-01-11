@@ -300,8 +300,8 @@ function ReviewStepContent({
                 </BodyCell>
                 <BodyCell>
                   <TagSelectCell
-                    tagIds={candidate.data.tagIds as string[]}
-                    primaryTagId={candidate.data.primaryTagId as string | null}
+                    tagIds={candidate.data.tagIds}
+                    primaryTagId={candidate.data.primaryTagId}
                     tagMetadataJson={candidate.rawValues.__tagMetadata}
                   />
                 </BodyCell>
