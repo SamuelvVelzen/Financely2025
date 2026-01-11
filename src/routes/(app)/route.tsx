@@ -32,7 +32,7 @@ function AppLayout() {
         <SidebarProvider>
           <MobileTopNav />
           <Sidebar />
-          <main className="flex-1 overflow-y-auto bg-background p-4 pt-20 md:pt-4 pb-20 md:pb-4">
+          <main className="flex-1 overflow-y-auto bg-background p-4 md:pt-4 md:pb-4">
             <Outlet />
           </main>
           <MobileBottomNav />
