@@ -11,7 +11,7 @@ type NativeInputProps = Omit<
 
 type SharedProps = NativeInputProps & {
   label?: string;
-  helperText?: string;
+  hint?: string;
   allowClear?: boolean;
 };
 
@@ -34,7 +34,7 @@ export type FileUploadInputProps = SingleFileProps | MultiFileProps;
 export function FileUploadInput(props: FileUploadInputProps) {
   const {
     label,
-    helperText,
+    hint,
     accept = ".csv",
     disabled,
     className,
@@ -129,7 +129,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
         )}
         {...rest}
       />
-      {helperText && <p className="text-xs text-text-muted">{helperText}</p>}
+      {hint && <p className="text-xs text-text-muted">{hint}</p>}
       {formattedFiles.length > 0 && (
         <div className="space-y-2">
           {formattedFiles.map((file, index) => (
