@@ -108,7 +108,7 @@ function ReviewStepContent({
             buttonContent="Select all valid"
           />
           |
-          <Button
+          <LinkButton
             size="sm"
             clicked={handleExcludeAllInvalid}
             buttonContent="Exclude invalid"
