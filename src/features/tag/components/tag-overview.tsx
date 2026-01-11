@@ -1,4 +1,5 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
+import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import type {
   ICreateTagInput,
   ITag,
@@ -10,31 +11,21 @@ import {
   useReorderTags,
   useTags,
 } from "@/features/tag/hooks/useTags";
-import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
-import { Dropdown } from "@/features/ui/dropdown/dropdown";
-import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { Form } from "@/features/ui/form/form";
-import { SearchInput } from "@/features/ui/input/search-input";
 import { Loading } from "@/features/ui/loading/loading";
 import { Tab } from "@/features/ui/tab/tab";
 import { TabContent } from "@/features/ui/tab/tab-content";
 import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
-import { Title } from "@/features/ui/typography/title";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { HiArrowDownTray, HiOutlineTag, HiPlus } from "react-icons/hi2";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { HiOutlineTag } from "react-icons/hi2";
 import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
 import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 import { TagList } from "./tag-list";
-
-type ITagSearchFormValues = {
-  searchQuery: string;
-};
+import { TagOverviewHeader } from "./tag-overview-header";
 
 interface ITagOverviewProps {
   initialSearchQuery?: string;
@@ -42,20 +33,24 @@ interface ITagOverviewProps {
 
 export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const navigate = useNavigate();
-  const form = useForm<ITagSearchFormValues>({
-    defaultValues: {
-      searchQuery: initialSearchQuery,
-    },
-  });
+  const expandedHeaderRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setExpandedHeaderElement] = useScrollPosition();
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
 
-  // Update form when initialSearchQuery changes (e.g., from URL navigation)
+  // Set up scroll detection for expanded header
   useEffect(() => {
-    if (form.getValues("searchQuery") !== initialSearchQuery) {
-      form.setValue("searchQuery", initialSearchQuery, { shouldDirty: false });
+    if (expandedHeaderRef.current) {
+      setExpandedHeaderElement(expandedHeaderRef.current);
     }
-  }, [initialSearchQuery, form]);
+  }, [setExpandedHeaderElement]);
 
-  const searchQuery = form.watch("searchQuery") ?? "";
+  // Update search query when initialSearchQuery changes (e.g., from URL navigation)
+  useEffect(() => {
+    if (searchQuery !== initialSearchQuery) {
+      setSearchQuery(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
+
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
 
   // Sync search query changes to query params
@@ -131,6 +126,16 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
         },
       }
     );
+  };
+
+  // Calculate filter count
+  const filterCount = useMemo(() => {
+    return searchQuery.trim().length > 0 ? 1 : 0;
+  }, [searchQuery]);
+
+  const handleStickyFiltersClick = () => {
+    // Scroll to top to show the search input
+    expandedHeaderRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleCreateTag = () => {
@@ -235,42 +240,27 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
     });
   };
 
+  const actions = useMemo(
+    () => ({
+      onCreateTag: handleCreateTag,
+      onCsvImportClick: () => setIsCsvImportDialogOpen(true),
+    }),
+    [handleCreateTag]
+  );
+
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface">
-        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
-          <div className="flex gap-2 items-center">
-            <HiOutlineTag />
-            <span>Tags</span>
-          </div>
+      {/* Sentinel element - used to detect when header should become sticky */}
+      <div ref={expandedHeaderRef} className="h-0" />
 
-          <div className="flex gap-2 items-center">
-            <Button
-              clicked={handleCreateTag}
-              variant="primary"
-              size="sm">
-              <HiPlus className="size-6" /> Add
-            </Button>
-
-            <Dropdown>
-              <DropdownItem
-                icon={<HiArrowDownTray />}
-                clicked={() => setIsCsvImportDialogOpen(true)}>
-                Import from CSV
-              </DropdownItem>
-            </Dropdown>
-          </div>
-        </Title>
-
-        <Form
-          form={form}
-          onSubmit={() => {}}>
-          <SearchInput
-            name="searchQuery"
-            placeholder="Search tags by name, description, or color..."
-          />
-        </Form>
-      </Container>
+      <TagOverviewHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        actions={actions}
+        isSticky={isSticky}
+        filterCount={filterCount}
+        onFiltersClick={handleStickyFiltersClick}
+      />
 
       {isLoading && (
         <Container>

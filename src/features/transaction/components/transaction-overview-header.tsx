@@ -77,21 +77,31 @@ export function TransactionOverviewHeader({
 
         <div className="flex gap-2 items-center">
           {isSticky ? (
-            // Sticky: Show Filters button
-            <Button
-              clicked={onFiltersClick}
-              variant={filterProps.hasActiveFilters ? "primary" : "default"}
-              size="sm"
-              buttonContent={
-                <div className="flex items-center gap-2">
-                  <HiFunnel className="size-4" />
-                  <span>
-                    Filters
-                    {filterProps.hasActiveFilters ? ` (${filterCount})` : ""}
-                  </span>
-                </div>
-              }
-            />
+            // Sticky: Show Add button (desktop only) + Filters button
+            <>
+              {!isMobile && (
+                <Button
+                  clicked={actions.onCreateTransaction}
+                  variant="primary"
+                  size="sm">
+                  <HiPlus className="size-5" /> Add
+                </Button>
+              )}
+              <Button
+                clicked={onFiltersClick}
+                variant={filterProps.hasActiveFilters ? "primary" : "default"}
+                size="sm"
+                buttonContent={
+                  <div className="flex items-center gap-2">
+                    <HiFunnel className="size-4" />
+                    <span>
+                      Filters
+                      {filterProps.hasActiveFilters ? ` (${filterCount})` : ""}
+                    </span>
+                  </div>
+                }
+              />
+            </>
           ) : (
             // Expanded: Show Add button and Dropdown
             <>

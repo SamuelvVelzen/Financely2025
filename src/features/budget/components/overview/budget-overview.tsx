@@ -3,24 +3,33 @@ import {
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
 import type { IBudget } from "@/features/shared/validation/schemas";
-import { Button } from "@/features/ui/button/button";
+import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { List } from "@/features/ui/list/list";
 import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
-import { Title } from "@/features/ui/typography/title";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { HiOutlineCurrencyEuro, HiPlus } from "react-icons/hi2";
-import { SearchInput } from "@/features/ui/input/search-input";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { HiOutlineCurrencyEuro } from "react-icons/hi2";
 import { BudgetListItem } from "./budget-list-item";
+import { BudgetOverviewHeader } from "./budget-overview-header";
 
 export function BudgetOverview() {
+  const navigate = useNavigate();
+  const expandedHeaderRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setExpandedHeaderElement] = useScrollPosition();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+
+  // Set up scroll detection for expanded header
+  useEffect(() => {
+    if (expandedHeaderRef.current) {
+      setExpandedHeaderElement(expandedHeaderRef.current);
+    }
+  }, [setExpandedHeaderElement]);
 
   const query = useMemo(
     () => ({
@@ -37,12 +46,21 @@ export function BudgetOverview() {
   const budgets = budgetsData?.data ?? [];
   const { mutate: deleteBudget } = useDeleteBudget();
   const toast = useToast();
-  const navigate = useNavigate();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<IBudget | undefined>(
     undefined
   );
+
+  // Calculate filter count
+  const filterCount = useMemo(() => {
+    return searchQuery.trim().length > 0 ? 1 : 0;
+  }, [searchQuery]);
+
+  const handleStickyFiltersClick = () => {
+    // Scroll to top to show the search input
+    expandedHeaderRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleCreateBudget = () => {
     navigate({ to: "/budgets/new" });
@@ -87,31 +105,26 @@ export function BudgetOverview() {
     setSelectedBudget(undefined);
   };
 
+  const actions = useMemo(
+    () => ({
+      onCreateBudget: handleCreateBudget,
+    }),
+    [handleCreateBudget]
+  );
+
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface">
-        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
-          <div className="flex gap-2 items-center">
-            <HiOutlineCurrencyEuro />
-            <span>Budgets</span>
-          </div>
+      {/* Sentinel element - used to detect when header should become sticky */}
+      <div ref={expandedHeaderRef} className="h-0" />
 
-          <div className="flex gap-2 items-center">
-            <Button
-              clicked={handleCreateBudget}
-              variant="primary"
-              size="sm">
-              <HiPlus className="size-6" /> Add
-            </Button>
-          </div>
-        </Title>
-
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search budgets by name..."
-        />
-      </Container>
+      <BudgetOverviewHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        actions={actions}
+        isSticky={isSticky}
+        filterCount={filterCount}
+        onFiltersClick={handleStickyFiltersClick}
+      />
 
       <Container>
         {isLoadingBudgets && (
