@@ -1,4 +1,6 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
+import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
+import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import type {
   ICurrency,
   IPaymentMethod,
@@ -6,37 +8,28 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
+import { useTransactionFilterProps } from "@/features/transaction/hooks/use-transaction-filter-props";
 import { useTransactionFilters } from "@/features/transaction/hooks/useTransactionFilters";
 import {
   useDeleteTransaction,
   useInfiniteTransactions,
 } from "@/features/transaction/hooks/useTransactions";
+import { calculateFilterCount } from "@/features/transaction/utils/filter-count";
 import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
 import { serializeFilterStateToQuery } from "@/features/transaction/utils/transaction-filter-model";
-import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
-import { Dropdown } from "@/features/ui/dropdown/dropdown";
-import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
-import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { Loading } from "@/features/ui/loading/loading";
 import { useToast } from "@/features/ui/toast";
-import { Title } from "@/features/ui/typography/title";
-import { formatMonthYear } from "@/features/util/date/date-helpers";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import {
-  HiArrowDownTray,
-  HiArrowsRightLeft,
-  HiArrowUpTray,
-  HiPlus,
-} from "react-icons/hi2";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { HiArrowsRightLeft } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../utils/export-csv";
 import { AddOrCreateTransactionDialog } from "./add-or-create-transaction-dialog";
-import { TransactionFilters } from "./transaction-filters";
 import { TransactionListGrouped } from "./transaction-list-grouped";
+import { TransactionOverviewHeader } from "./transaction-overview-header";
 
 const PAGE_SIZE = 20;
 
@@ -48,6 +41,10 @@ export function TransactionOverview({
   initialState,
 }: ITransactionOverviewProps) {
   const navigate = useNavigate();
+  const { isMobile } = useResponsive();
+  const expandedHeaderRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setExpandedHeaderElement] = useScrollPosition();
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
 
   // Use shared filter state hook (includes form)
   const {
@@ -60,6 +57,19 @@ export function TransactionOverview({
     clearAllFilters,
     hasActiveFilters,
   } = useTransactionFilters({ initialState });
+
+  // Calculate filter count for sticky header
+  const filterCount = useMemo(
+    () => calculateFilterCount(filterState),
+    [filterState]
+  );
+
+  // Set up scroll detection for expanded header
+  useEffect(() => {
+    if (expandedHeaderRef.current) {
+      setExpandedHeaderElement(expandedHeaderRef.current);
+    }
+  }, [setExpandedHeaderElement]);
 
   const searchQuery = form.watch("searchQuery") ?? "";
 
@@ -160,6 +170,16 @@ export function TransactionOverview({
     setIsTransactionDialogOpen(true);
   };
 
+  const handleStickyFiltersClick = () => {
+    if (isMobile) {
+      // On mobile, open the filter sheet
+      setIsFilterSheetOpen(true);
+    } else {
+      // On desktop, scroll to top to show the filter dropdown
+      expandedHeaderRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleEditTransaction = (transaction: ITransaction) => {
     setSelectedTransaction(transaction);
     setIsTransactionDialogOpen(true);
@@ -192,31 +212,6 @@ export function TransactionOverview({
     setSelectedTransaction(undefined);
   };
 
-  // Get month display text from date filter
-  const getMonthDisplay = (): string => {
-    if (filterState.dateFilter.type === "allTime") {
-      return "All Time";
-    }
-    if (filterState.dateFilter.type === "thisMonth") {
-      return formatMonthYear(new Date());
-    }
-    if (filterState.dateFilter.type === "lastMonth") {
-      const lastMonth = new Date();
-      lastMonth.setMonth(lastMonth.getMonth() - 1);
-      return formatMonthYear(lastMonth);
-    }
-    if (
-      filterState.dateFilter.type === "custom" &&
-      filterState.dateFilter.from &&
-      filterState.dateFilter.to
-    ) {
-      const from = formatMonthYear(filterState.dateFilter.from);
-      const to = formatMonthYear(filterState.dateFilter.to);
-      return `${from} - ${to}`;
-    }
-    return formatMonthYear(new Date());
-  };
-
   const isEmpty = useMemo(() => {
     return (
       !isLoading && !error && transactions.length === 0 && !hasActiveFilters
@@ -229,63 +224,62 @@ export function TransactionOverview({
     );
   }, [transactions, isLoading, error, hasActiveFilters]);
 
+  const handleCsvExport = useCallback(() => {
+    exportTransactionsToCsv(
+      transactions,
+      ["Name", "Amount", "Date", "Description", "Tags", "Type"],
+      "transactions"
+    );
+  }, [transactions]);
+
+  const handleCsvImportClick = useCallback(() => {
+    setIsCsvImportDialogOpen(true);
+  }, []);
+
+  // Group filter props using hook
+  const filterProps = useTransactionFilterProps(
+    filterState,
+    form,
+    {
+      setDateFilter,
+      setPriceFilter,
+      setSearchQuery,
+      setTagFilter,
+      clearAllFilters,
+    },
+    orderedTags,
+    {
+      filterSheetOpen: isFilterSheetOpen,
+      onFilterSheetOpenChange: setIsFilterSheetOpen,
+    },
+    hasActiveFilters
+  );
+
+  // Group action handlers
+  const actions = useMemo(
+    () => ({
+      onCreateTransaction: handleCreateTransaction,
+      onCsvImportClick: handleCsvImportClick,
+      onCsvExportClick: handleCsvExport,
+    }),
+    [handleCreateTransaction, handleCsvImportClick, handleCsvExport]
+  );
+
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface">
-        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
-          <div className="flex gap-2 items-center">
-            <HiArrowsRightLeft />
-            <span>Transactions</span>
-            <span className="text-sm text-text-muted font-normal self-end">
-              ({getMonthDisplay()})
-            </span>
-          </div>
+      {/* Sentinel element - used to detect when header should become sticky */}
+      <div
+        ref={expandedHeaderRef}
+        className="h-0"
+      />
 
-          <div className="flex gap-2 items-center">
-            <Button
-              clicked={handleCreateTransaction}
-              variant="primary"
-              size="sm">
-              <HiPlus className="size-6" /> Add
-            </Button>
-
-            <Dropdown>
-              <DropdownItem
-                icon={<HiArrowDownTray />}
-                clicked={() => setIsCsvImportDialogOpen(true)}>
-                Import from CSV
-              </DropdownItem>
-
-              <DropdownDivider />
-              <DropdownItem
-                icon={<HiArrowUpTray />}
-                clicked={() =>
-                  exportTransactionsToCsv(
-                    transactions,
-                    ["Name", "Amount", "Date", "Description", "Tags", "Type"],
-                    "transactions"
-                  )
-                }>
-                Export to CSV
-              </DropdownItem>
-            </Dropdown>
-          </div>
-        </Title>
-
-        <TransactionFilters
-          form={form}
-          filterState={filterState}
-          dateFilter={filterState.dateFilter}
-          onDateFilterChange={setDateFilter}
-          priceFilter={filterState.priceFilter}
-          onPriceFilterChange={setPriceFilter}
-          tags={orderedTags}
-          onClearAll={clearAllFilters}
-          hasActiveFilters={hasActiveFilters}
-          setSearchQuery={setSearchQuery}
-          setTagFilter={setTagFilter}
-        />
-      </Container>
+      <TransactionOverviewHeader
+        filterProps={filterProps}
+        actions={actions}
+        isSticky={isSticky}
+        filterCount={filterCount}
+        onFiltersClick={handleStickyFiltersClick}
+      />
 
       <Container>
         {isLoading && (

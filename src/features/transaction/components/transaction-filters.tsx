@@ -30,6 +30,8 @@ export interface ITransactionFiltersProps {
   setSearchQuery: (query: string) => void;
   setTagFilter: (tags: string[]) => void;
   className?: string;
+  filterSheetOpen?: boolean;
+  onFilterSheetOpenChange?: (open: boolean) => void;
 }
 
 export function TransactionFilters({
@@ -45,8 +47,15 @@ export function TransactionFilters({
   setSearchQuery,
   setTagFilter,
   className,
+  filterSheetOpen: externalFilterSheetOpen,
+  onFilterSheetOpenChange: externalOnFilterSheetOpenChange,
 }: ITransactionFiltersProps) {
-  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [internalFilterSheetOpen, setInternalFilterSheetOpen] = useState(false);
+
+  // Use external state if provided, otherwise use internal state
+  const isFilterSheetOpen = externalFilterSheetOpen ?? internalFilterSheetOpen;
+  const setIsFilterSheetOpen =
+    externalOnFilterSheetOpenChange ?? setInternalFilterSheetOpen;
 
   // Generate badges for active filters
   const badges = useMemo(() => {
@@ -84,6 +93,13 @@ export function TransactionFilters({
           tags={tags}
           onClearAll={onClearAll}
           className={className}
+          filterState={{
+            tagFilter: filterState.tagFilter,
+            transactionTypeFilter: filterState.transactionTypeFilter,
+            paymentMethodFilter: filterState.paymentMethodFilter,
+            currencyFilter: filterState.currencyFilter,
+            priceFilter: filterState.priceFilter,
+          }}
         />
         <ActiveFiltersRow
           badges={badges}

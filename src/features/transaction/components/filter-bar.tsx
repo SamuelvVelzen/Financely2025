@@ -2,6 +2,7 @@ import type { ITag } from "@/features/shared/validation/schemas";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
+import { calculateFilterCount } from "@/features/transaction/utils/filter-count";
 import { Button } from "@/features/ui/button/button";
 import {
   Datepicker,
@@ -27,6 +28,13 @@ export interface IFilterBarProps {
   tags: ITag[];
   onClearAll: () => void;
   className?: string;
+  filterState?: {
+    tagFilter: string[];
+    transactionTypeFilter: string[];
+    paymentMethodFilter: string[];
+    currencyFilter: string[];
+    priceFilter: IPriceRange;
+  };
 }
 
 export function FilterBar({
@@ -38,6 +46,7 @@ export function FilterBar({
   tags,
   onClearAll,
   className,
+  filterState: externalFilterState,
 }: IFilterBarProps) {
   const { isMobile } = useResponsive();
 
@@ -53,41 +62,40 @@ export function FilterBar({
     data: tag,
   }));
 
+  // Use external filter state if provided, otherwise use form values
+  const effectiveFilterState = externalFilterState ?? {
+    tagFilter,
+    transactionTypeFilter,
+    paymentMethodFilter,
+    currencyFilter,
+    priceFilter,
+  };
+
   const hasSecondaryFilters = useMemo(() => {
     const hasTransactionTypeFilter =
-      transactionTypeFilter.length > 0 && transactionTypeFilter.length < 2;
+      effectiveFilterState.transactionTypeFilter.length > 0 &&
+      effectiveFilterState.transactionTypeFilter.length < 2;
     return (
-      priceFilter.min !== undefined ||
-      priceFilter.max !== undefined ||
-      tagFilter.length > 0 ||
+      effectiveFilterState.priceFilter.min !== undefined ||
+      effectiveFilterState.priceFilter.max !== undefined ||
+      effectiveFilterState.tagFilter.length > 0 ||
       hasTransactionTypeFilter ||
-      paymentMethodFilter.length > 0 ||
-      currencyFilter.length > 0
+      effectiveFilterState.paymentMethodFilter.length > 0 ||
+      effectiveFilterState.currencyFilter.length > 0
     );
-  }, [
-    priceFilter,
-    tagFilter,
-    transactionTypeFilter,
-    paymentMethodFilter,
-    currencyFilter,
-  ]);
+  }, [effectiveFilterState]);
 
   const filterCount = useMemo(() => {
-    let count = 0;
-    if (priceFilter.min !== undefined || priceFilter.max !== undefined) count++;
-    if (tagFilter.length > 0) count++;
-    if (transactionTypeFilter.length > 0 && transactionTypeFilter.length < 2)
-      count++;
-    if (paymentMethodFilter.length > 0) count++;
-    if (currencyFilter.length > 0) count++;
-    return count;
-  }, [
-    priceFilter,
-    tagFilter,
-    transactionTypeFilter,
-    paymentMethodFilter,
-    currencyFilter,
-  ]);
+    return calculateFilterCount({
+      priceFilter: effectiveFilterState.priceFilter,
+      tagFilter: effectiveFilterState.tagFilter,
+      transactionTypeFilter: effectiveFilterState.transactionTypeFilter,
+      paymentMethodFilter: effectiveFilterState.paymentMethodFilter,
+      currencyFilter: effectiveFilterState.currencyFilter,
+      dateFilter: { type: "allTime" },
+      searchQuery: "",
+    });
+  }, [effectiveFilterState]);
 
   const currencyOptions = useMemo(() => getCurrencyOptions(), []);
   const paymentMethodOptions = useMemo(() => PAYMENT_METHOD_OPTIONS, []);
