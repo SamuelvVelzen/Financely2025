@@ -91,18 +91,6 @@ export function Select<
 
   const { highlightText } = useHighlightText();
 
-  // Keep dropdown open when input is focused
-  // NOTE: This hook must be called before any early returns to maintain hook order
-  useEffect(() => {
-    if (
-      inputRef.current &&
-      document.activeElement === inputRef.current &&
-      !disabled
-    ) {
-      setIsOpen(true);
-    }
-  }, [searchQuery, disabled]);
-
   // Filter options based on search query
   // NOTE: This hook must be called before any early returns to maintain hook order
   const filteredOptions = useMemo(() => {
@@ -173,6 +161,66 @@ export function Select<
     return [];
   };
 
+  // Get unmatched values (values that don't exist in options)
+  const getUnmatchedValues = (
+    value: TValue | TValue[] | undefined
+  ): TValue[] => {
+    if (!value) {
+      return [];
+    }
+    if (multiple && Array.isArray(value)) {
+      const unmatched = value.filter(
+        (val) => !options.some((opt) => opt.value === val)
+      );
+      return unmatched;
+    }
+    if (!multiple && typeof value === "string") {
+      const exists = options.some((opt) => opt.value === value);
+      return exists ? [] : [value];
+    }
+    return [];
+  };
+
+  // Compute initial search query from unmatched values
+  // Only used when onCreateNew is available and searchQuery is empty
+  const computedInitialSearchQuery = useMemo(() => {
+    if (!onCreateNew || searchQuery.trim()) {
+      return null; // Don't override if user has typed something
+    }
+
+    const currentValue = isControlledMode
+      ? controlledValue
+      : isFormMode && form && name
+        ? (form.getValues(name) as TValue | TValue[] | undefined)
+        : undefined;
+
+    const unmatchedValues = getUnmatchedValues(currentValue);
+    if (unmatchedValues.length > 0) {
+      return String(unmatchedValues[0]);
+    }
+    return null;
+  }, [
+    onCreateNew,
+    searchQuery,
+    isControlledMode,
+    controlledValue,
+    isFormMode,
+    form,
+    name,
+    multiple,
+    options,
+  ]);
+
+  // Sync computed initial search query to state
+  useEffect(() => {
+    if (
+      computedInitialSearchQuery !== null &&
+      computedInitialSearchQuery !== searchQuery
+    ) {
+      setSearchQuery(computedInitialSearchQuery);
+    }
+  }, [computedInitialSearchQuery, searchQuery]);
+
   // Shared rendering logic
   const renderSelectContent = (
     value: TValue | TValue[] | undefined,
@@ -219,6 +267,38 @@ export function Select<
       if (onCreateNew && searchQuery.trim()) {
         onCreateNew(searchQuery.trim());
         setSearchQuery("");
+      }
+    };
+
+    // Handle dropdown open/close
+    const handleOpenChange = (open: boolean) => {
+      if (!disabled) {
+        setIsOpen(open);
+
+        // Pre-fill search query when opening dropdown with unmatched values
+        if (open && onCreateNew) {
+          const currentValue = isControlledMode
+            ? controlledValue
+            : isFormMode && form && name
+              ? (form.getValues(name) as TValue | TValue[] | undefined)
+              : undefined;
+
+          const unmatchedValues = getUnmatchedValues(currentValue);
+          if (unmatchedValues.length > 0 && !searchQuery.trim()) {
+            const firstUnmatched = String(unmatchedValues[0]);
+            setSearchQuery(firstUnmatched);
+            // Focus the input so the user can see the pre-filled value
+            setTimeout(() => {
+              const input = inputRef.current;
+              if (input) {
+                input.focus();
+                // Move cursor to end of input
+                const length = input.value.length;
+                input.setSelectionRange(length, length);
+              }
+            }, 0);
+          }
+        }
       }
     };
 
@@ -300,7 +380,7 @@ export function Select<
         <Dropdown
           dropdownSelector={selectorContent}
           open={disabled ? false : isOpen}
-          onOpenChange={(open) => !disabled && setIsOpen(open)}
+          onOpenChange={handleOpenChange}
           placement={forcePlacement}
           closeOnItemClick={!multiple}>
           {filteredOptions.length > 0 && (
