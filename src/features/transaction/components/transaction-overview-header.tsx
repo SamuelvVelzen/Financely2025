@@ -136,7 +136,7 @@ export function TransactionOverviewHeader({
           "grid transition-[grid-template-rows,opacity]  ease-out",
           isSticky ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
         )}>
-        <div className="overflow-hidden">
+        <div className={cn(isSticky && "overflow-hidden")}>
           <TransactionFilters {...filterProps} />
         </div>
       </div>
