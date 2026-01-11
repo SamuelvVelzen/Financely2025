@@ -1,4 +1,5 @@
 import { CurrencySelect } from "@/features/currency/components/currency-select";
+import { TagSelectCell } from "@/features/tag/components/tag-select-cell";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { LinkButton } from "@/features/ui/button/link-button";
@@ -298,83 +299,11 @@ function ReviewStepContent({
                   />
                 </BodyCell>
                 <BodyCell>
-                  {(() => {
-                    // Parse tag metadata from rawValues
-                    let tagMetadata: Record<
-                      string,
-                      {
-                        id: string;
-                        color: string | null;
-                        emoticon: string | null;
-                      }
-                    > = {};
-                    try {
-                      const metadataStr = candidate.rawValues.__tagMetadata;
-                      if (metadataStr) {
-                        tagMetadata = JSON.parse(metadataStr);
-                      }
-                    } catch {
-                      // Ignore parse errors
-                    }
-
-                    const tagNames = (candidate.data.tagIds as string[]) || [];
-                    const primaryTagName =
-                      (candidate.data.primaryTagId as string) || null;
-
-                    if (tagNames.length === 0 && !primaryTagName) {
-                      return <span className="text-sm text-text-muted">—</span>;
-                    }
-
-                    return (
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {/* Primary tag */}
-                        {primaryTagName && (
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-surface-hover border border-border">
-                            {tagMetadata[primaryTagName]?.emoticon && (
-                              <span className="text-sm">
-                                {tagMetadata[primaryTagName].emoticon}
-                              </span>
-                            )}
-                            {tagMetadata[primaryTagName]?.color && (
-                              <div
-                                className="size-2.5 rounded-full shrink-0"
-                                style={{
-                                  backgroundColor:
-                                    tagMetadata[primaryTagName].color,
-                                }}
-                              />
-                            )}
-                            <span className="font-medium">
-                              {primaryTagName}
-                            </span>
-                          </div>
-                        )}
-                        {/* Other tags */}
-                        {tagNames.map((tagName, idx) => {
-                          if (tagName === primaryTagName) return null; // Skip if it's the primary tag
-                          const metadata = tagMetadata[tagName];
-                          return (
-                            <div
-                              key={idx}
-                              className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-surface-hover border border-border">
-                              {metadata?.emoticon && (
-                                <span className="text-sm">
-                                  {metadata.emoticon}
-                                </span>
-                              )}
-                              {metadata?.color && (
-                                <div
-                                  className="size-2.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: metadata.color }}
-                                />
-                              )}
-                              <span>{tagName}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
+                  <TagSelectCell
+                    tagIds={candidate.data.tagIds as string[]}
+                    primaryTagId={candidate.data.primaryTagId as string | null}
+                    tagMetadataJson={candidate.rawValues.__tagMetadata}
+                  />
                 </BodyCell>
                 <BodyCell>
                   {candidate.errors.length > 0 ? (
