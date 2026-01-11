@@ -16,11 +16,10 @@ export const defaultProfile: BankProfile = {
     notes: ["Notes"],
     externalId: ["External ID"],
     tags: ["Tags"],
-    primaryTagId: ["Primary Tag ID"],
+    primaryTag: ["Primary Tag"],
   },
   // No bank-specific required fields
   requiredFields: [],
   // Default payment method
   defaultPaymentMethod: "DEBIT_CARD",
 };
-

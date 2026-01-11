@@ -23,7 +23,7 @@ export type ITransactionFieldName =
   | "externalId"
   | "paymentMethod"
   | "tags"
-  | "primaryTagId";
+  | "primaryTag";
 
 export interface ITransactionFieldMetadata {
   name: ITransactionFieldName;
@@ -98,7 +98,7 @@ export const TRANSACTION_FIELDS: ITransactionFieldMetadata[] = [
     description: "Comma-separated tag names",
   },
   {
-    name: "primaryTagId",
+    name: "primaryTag",
     label: "Primary Tag",
     required: false,
     type: "string",

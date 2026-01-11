@@ -70,7 +70,7 @@ const FIELD_NAME_PATTERNS: Record<string, string[]> = {
     "paymethod",
   ],
   tags: ["tags", "categories"],
-  primaryTagId: [
+  primaryTag: [
     "tag",
     "category",
     "primary_tag",
@@ -342,7 +342,19 @@ export function autoDetectMapping(
   applyHints(bankHints);
 
   // Fallback to generic heuristics for remaining fields
-  Object.entries(FIELD_NAME_PATTERNS).forEach(([field, patterns]) => {
+  // Process primaryTag before tags to ensure "Tag" column maps to primaryTag, not tags
+  const fallbackFields = Object.entries(FIELD_NAME_PATTERNS);
+  const primaryTagEntry = fallbackFields.find(
+    ([field]) => field === "primaryTag"
+  );
+  const otherFields = fallbackFields.filter(
+    ([field]) => field !== "primaryTag"
+  );
+  const orderedFields = primaryTagEntry
+    ? [primaryTagEntry, ...otherFields]
+    : fallbackFields;
+
+  orderedFields.forEach(([field, patterns]) => {
     if (mapping[field as ITransactionFieldName]) {
       return;
     }
@@ -351,12 +363,23 @@ export function autoDetectMapping(
     for (let i = 0; i < normalizedColumns.length; i++) {
       if (usedColumnIndexes.has(i)) continue;
       const normalizedCol = normalizedColumns[i].normalized;
-      if (
+
+      // First check for exact match (highest priority)
+      const exactMatch = normalizedPatterns.some(
+        (pattern) => normalizedCol === pattern
+      );
+
+      // Then check for substring matches (only if no exact match)
+      const substringMatch =
+        !exactMatch &&
         normalizedPatterns.some(
           (pattern) =>
-            normalizedCol === pattern || normalizedCol.includes(pattern)
-        )
-      ) {
+            normalizedCol.includes(pattern) ||
+            (pattern.length > normalizedCol.length &&
+              pattern.includes(normalizedCol))
+        );
+
+      if (exactMatch || substringMatch) {
         mapping[field as ITransactionFieldName] = normalizedColumns[i].original;
         usedColumnIndexes.add(i);
         break;
@@ -540,7 +563,7 @@ export async function convertRowToTransaction(
           transaction.tagIds = parseTagNames(rawValue);
         }
         break;
-      case "primaryTagId":
+      case "primaryTag":
         if (rawValue) {
           // Store primary tag name instead of resolving to ID
           // Tag name will be resolved during import confirmation
@@ -993,7 +1016,7 @@ export async function convertRowsToCandidates(
     ) {
       const primaryTagName = candidate.data.primaryTagId;
       const metadata = primaryTagMetadataMap.get(primaryTagName);
-          if (metadata) {
+      if (metadata) {
         // Tag exists: include id, name, color, emoticon
         primaryTagMetadata = {
           id: metadata.id,
@@ -1021,8 +1044,8 @@ export async function convertRowsToCandidates(
 
     if (candidate.data.tagIds && Array.isArray(candidate.data.tagIds)) {
       const primaryTagName =
-      candidate.data.primaryTagId &&
-      typeof candidate.data.primaryTagId === "string"
+        candidate.data.primaryTagId &&
+        typeof candidate.data.primaryTagId === "string"
           ? candidate.data.primaryTagId
           : null;
 
@@ -1034,7 +1057,7 @@ export async function convertRowsToCandidates(
           }
 
           const metadata = tagsMetadataMap.get(tagName);
-      if (metadata) {
+          if (metadata) {
             // Tag exists: include id, name, color, emoticon
             tagsMetadata.push({
               id: metadata.id,
