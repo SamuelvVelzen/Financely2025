@@ -1,9 +1,10 @@
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { TagSelectCell } from "@/features/tag/components/tag-select-cell";
 import { DateSelectCell } from "@/features/transaction/components/date-select-cell";
+import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { LinkButton } from "@/features/ui/button/link-button";
-import type {
+import {
   IStepConfig,
   IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
@@ -20,8 +21,8 @@ import { HiExclamationCircle } from "react-icons/hi";
 import { BankProfileFactory } from "../../../services/bank.factory";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
 import {
+  IStep,
   useTransactionImportContext,
-  type IStep,
 } from "./transaction-import-context";
 
 const TRANSACTION_TYPE_OPTIONS = [
@@ -147,10 +148,17 @@ function ReviewStepContent({
           <HeaderCell key="currency">Currency</HeaderCell>,
           <HeaderCell key="type">Type</HeaderCell>,
           <HeaderCell key="primaryTag">Primary Tag</HeaderCell>,
-          ...(isTagsHidden ? [] : [<HeaderCell key="tags">Tags</HeaderCell>]),
-          ...(hasAnyErrors
-            ? [<HeaderCell key="errors">Errors</HeaderCell>]
-            : []),
+          <HeaderCell
+            key="tags"
+            hidden={isTagsHidden}>
+            Tags
+          </HeaderCell>,
+          <HeaderCell
+            key="errors"
+            hidden={!hasAnyErrors}
+            align="center">
+            Errors
+          </HeaderCell>,
         ]}>
         {(paginatedCandidates) => {
           return paginatedCandidates.map((candidate) => {
@@ -163,16 +171,12 @@ function ReviewStepContent({
                   candidate.status === "invalid" && "bg-danger/5"
                 )}>
                 <BodyCell>
-                  <span
-                    className={cn(
-                      "px-2 py-1 rounded text-xs",
-                      candidate.status === "valid" &&
-                        "bg-success/20 text-success",
-                      candidate.status === "invalid" &&
-                        "bg-danger/20 text-danger"
-                    )}>
+                  <Badge
+                    variant={
+                      candidate.status === "valid" ? "success" : "danger"
+                    }>
                     {candidate.status}
-                  </span>
+                  </Badge>
                 </BodyCell>
                 <BodyCell>
                   <DateSelectCell
@@ -187,150 +191,115 @@ function ReviewStepContent({
                   />
                 </BodyCell>
                 <BodyCell>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <TextInput
-                      value={candidate.data.name || ""}
-                      onChange={(value) => {
-                        updateCandidate(candidate.rowIndex, {
-                          name: String(value || ""),
-                        });
-                      }}
-                      className="h-8 text-sm"
-                    />
-                  </div>
+                  <TextInput
+                    value={candidate.data.name || ""}
+                    onChange={(value) => {
+                      updateCandidate(candidate.rowIndex, {
+                        name: String(value || ""),
+                      });
+                    }}
+                  />
                 </BodyCell>
                 <BodyCell>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <DecimalInput
-                      value={candidate.data.amount || ""}
-                      onValueChange={(normalizedValue) => {
-                        updateCandidate(candidate.rowIndex, {
-                          amount: normalizedValue,
-                        });
-                      }}
-                      className="h-8 text-sm"
-                    />
-                  </div>
+                  <DecimalInput
+                    value={candidate.data.amount || ""}
+                    onValueChange={(normalizedValue) => {
+                      updateCandidate(candidate.rowIndex, {
+                        amount: normalizedValue,
+                      });
+                    }}
+                  />
                 </BodyCell>
                 <BodyCell>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <CurrencySelect
-                      value={
-                        (candidate.data.currency || defaultCurrency) as any
-                      }
-                      onChange={(value) => {
-                        updateCandidate(candidate.rowIndex, {
-                          currency: value || defaultCurrency || ("EUR" as any),
-                        });
-                      }}
-                      className="h-8 text-sm"
-                    />
-                  </div>
+                  <CurrencySelect
+                    value={(candidate.data.currency || defaultCurrency) as any}
+                    onChange={(value) => {
+                      updateCandidate(candidate.rowIndex, {
+                        currency: value || defaultCurrency || ("EUR" as any),
+                      });
+                    }}
+                  />
                 </BodyCell>
                 <BodyCell>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <SelectDropdown
-                      options={TRANSACTION_TYPE_OPTIONS}
-                      value={candidate.data.type || undefined}
-                      onChange={(value) => {
-                        updateCandidate(candidate.rowIndex, {
-                          type: value as any,
-                        });
-                      }}
-                      placeholder="Select type"
-                      className="h-8 text-sm"
-                      showClearButton={false}
-                    />
-                  </div>
+                  <SelectDropdown
+                    options={TRANSACTION_TYPE_OPTIONS}
+                    value={candidate.data.type || undefined}
+                    onChange={(value) => {
+                      updateCandidate(candidate.rowIndex, {
+                        type: value as any,
+                      });
+                    }}
+                    placeholder="Select type"
+                    showClearButton={false}
+                  />
                 </BodyCell>
                 <BodyCell>
+                  <TagSelectCell
+                    tagMetadata={
+                      candidate.primaryTagMetadata
+                        ? [candidate.primaryTagMetadata]
+                        : []
+                    }
+                    transactionType={candidate.data.type}
+                    value={candidate.data.primaryTagId ?? undefined}
+                    onChange={(value) => {
+                      updateCandidate(candidate.rowIndex, {
+                        primaryTagId: (value as string) || null,
+                      });
+                    }}
+                    multiple={false}
+                    placeholder="Select primary tag..."
+                  />
+                </BodyCell>
+                <BodyCell hidden={isTagsHidden}>
                   {(() => {
-                    // Convert primaryTagMetadata to array format expected by TagSelectCell
-                    const tagMetadata = candidate.primaryTagMetadata
-                      ? [candidate.primaryTagMetadata]
-                      : [];
+                    const { tagIds, primaryTagId } = candidate.data;
+
+                    // Filter out primary tag from other tags
+                    const otherTagIds = tagIds.filter(
+                      (tagId) => tagId !== primaryTagId
+                    );
 
                     return (
-                      <div onClick={(e) => e.stopPropagation()}>
-                        <TagSelectCell
-                          tagMetadata={tagMetadata}
-                          transactionType={candidate.data.type}
-                          value={candidate.data.primaryTagId ?? undefined}
-                          onChange={(value) => {
-                            updateCandidate(candidate.rowIndex, {
-                              primaryTagId: (value as string) || null,
-                            });
-                          }}
-                          multiple={false}
-                          placeholder="Select primary tag..."
-                        />
-                      </div>
+                      <TagSelectCell
+                        tagMetadata={candidate.tagsMetadata}
+                        transactionType={candidate.data.type}
+                        value={otherTagIds.length > 0 ? otherTagIds : undefined}
+                        onChange={(value) => {
+                          // Update other tags (don't include primary tag)
+                          const newTagIds = Array.isArray(value) ? value : [];
+                          updateCandidate(candidate.rowIndex, {
+                            tagIds: newTagIds,
+                          });
+                        }}
+                        multiple={true}
+                        placeholder="Select tags..."
+                      />
                     );
                   })()}
                 </BodyCell>
-                {!isTagsHidden && (
-                  <BodyCell>
-                    {(() => {
-                      // tagsMetadata is already in the correct array format
-                      const tagMetadata = candidate.tagsMetadata;
-
-                      const { tagIds, primaryTagId } = candidate.data;
-
-                      // Filter out primary tag from other tags
-                      const otherTagIds = tagIds.filter(
-                        (tagId) => tagId !== primaryTagId
-                      );
-
-                      return (
-                        <div onClick={(e) => e.stopPropagation()}>
-                          <TagSelectCell
-                            tagMetadata={tagMetadata}
-                            transactionType={candidate.data.type}
-                            value={
-                              otherTagIds.length > 0 ? otherTagIds : undefined
-                            }
-                            onChange={(value) => {
-                              // Update other tags (don't include primary tag)
-                              const newTagIds = Array.isArray(value)
-                                ? value
-                                : [];
-                              updateCandidate(candidate.rowIndex, {
-                                tagIds: newTagIds,
-                              });
-                            }}
-                            multiple={true}
-                            placeholder="Select tags..."
-                          />
+                <BodyCell hidden={!hasAnyErrors}>
+                  {candidate.errors.length > 0 ? (
+                    <Button
+                      clicked={() => {
+                        setErrorDialogRowIndex(candidate.rowIndex);
+                      }}
+                      buttonContent={
+                        <div className="flex items-center gap-2">
+                          <HiExclamationCircle className="size-4 text-danger" />
+                          <span className="text-sm text-danger">
+                            {candidate.errors.length} error
+                            {candidate.errors.length !== 1 ? "s" : ""}
+                          </span>
                         </div>
-                      );
-                    })()}
-                  </BodyCell>
-                )}
-                {hasAnyErrors && (
-                  <BodyCell>
-                    {candidate.errors.length > 0 ? (
-                      <Button
-                        clicked={(e) => {
-                          e?.stopPropagation();
-                          setErrorDialogRowIndex(candidate.rowIndex);
-                        }}
-                        buttonContent={
-                          <div className="flex items-center gap-2">
-                            <HiExclamationCircle className="size-4 text-danger" />
-                            <span className="text-sm text-danger">
-                              {candidate.errors.length} error
-                              {candidate.errors.length !== 1 ? "s" : ""}
-                            </span>
-                          </div>
-                        }
-                        className="px-2 py-1 text-sm border-0 bg-transparent hover:bg-danger/10"
-                        variant="default"
-                      />
-                    ) : (
-                      <span className="text-sm text-text-muted">—</span>
-                    )}
-                  </BodyCell>
-                )}
+                      }
+                      className="px-2 py-1 text-sm border-0 bg-transparent hover:bg-danger/10"
+                      variant="default"
+                    />
+                  ) : (
+                    <span className="text-sm text-text-muted">—</span>
+                  )}
+                </BodyCell>
               </TableRow>
             );
           });

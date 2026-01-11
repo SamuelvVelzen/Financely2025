@@ -1,15 +1,16 @@
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren } from "react";
+import { IBaseCellProps } from "./table";
 
 export type IBodyCellProps = {
   autoFit?: boolean;
   wrap?: boolean;
   colSpan?: number;
-  size?: "sm" | "md" | "lg";
-  sticky?: boolean;
+  stopPropagation?: boolean;
 } & IPropsWithClassName &
-  PropsWithChildren;
+  PropsWithChildren &
+  IBaseCellProps;
 
 export function BodyCell({
   className,
@@ -19,12 +20,18 @@ export function BodyCell({
   colSpan,
   size = "md",
   sticky = false,
+  hidden = false,
+  stopPropagation = true,
 }: IBodyCellProps) {
   const sizeClasses = {
     sm: "px-3 py-1",
     md: "px-3 py-1.5",
     lg: "px-3 py-2",
   };
+
+  if (hidden) {
+    return null;
+  }
 
   return (
     <td
@@ -36,7 +43,12 @@ export function BodyCell({
         !wrap && "whitespace-nowrap",
         sticky && "sticky left-0 z-10 bg-surface border-r border-border",
         className
-      )}>
+      )}
+      onClick={(e) => {
+        if (stopPropagation) {
+          e.stopPropagation();
+        }
+      }}>
       {children}
     </td>
   );

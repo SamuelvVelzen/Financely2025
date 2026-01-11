@@ -15,6 +15,12 @@ import { TableBody } from "./table-body";
 import { TableHeader } from "./table-header";
 import { TableRow } from "./table-row";
 
+export type IBaseCellProps = {
+  sticky?: boolean;
+  hidden?: boolean;
+  size?: "sm" | "md" | "lg";
+};
+
 export type ITableProps<T = unknown> = {
   headerCells: React.ReactNode[];
   data?: T[];
