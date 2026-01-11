@@ -311,7 +311,8 @@ export function Select<
                 return (
                   <DropdownItem
                     key={String(option.value)}
-                    clicked={handleClick}>
+                    clicked={handleClick}
+                    selected={optionIsSelected}>
                     <div className="flex items-center gap-2 w-full">
                       {multiple && (
                         <Checkbox
