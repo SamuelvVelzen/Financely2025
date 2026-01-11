@@ -126,6 +126,17 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing by modifying files in the `src/routes` directory. The page auto-updates as you edit the file.
 
+## Features
+
+### CSV Transaction Import
+
+The application supports importing transactions from CSV files with automatic bank detection. When you upload a CSV file, the system automatically detects the bank based on the filename pattern:
+
+- **ING**: Files matching pattern `NL[digits]INGB[digits]_[date]_[date].csv` (e.g., `NL06INGB0001829429_01-01-2026_03-01-2026.csv`)
+- **American Express**: Files starting with `activity` or `activiteit` (e.g., `activity-7.csv`, `activiteit.csv`)
+
+The detected bank is automatically selected, but you can manually change it if needed. See `docs/adding-a-new-bank.md` for information on adding support for additional banks.
+
 ## Learn More
 
 To learn more about the technologies used, take a look at the following resources:

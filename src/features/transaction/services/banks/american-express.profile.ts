@@ -13,4 +13,11 @@ export const americanExpressProfile: BankProfile = {
   requiredFields: [],
   // American Express is a credit card company
   defaultPaymentMethod: "CREDIT_CARD",
+  // American Express filename pattern: starts with "activity" or "activiteit" (case-insensitive)
+  // Examples: activity-7.csv, activiteit.csv, activity-6.csv, activiteit.xlsx
+  detectBankByFilename: (filename: string) => {
+    // Pattern: filename starts with "activity" or "activiteit" (case-insensitive)
+    const amexPattern = /^(activity|activiteit)/i;
+    return amexPattern.test(filename);
+  },
 };

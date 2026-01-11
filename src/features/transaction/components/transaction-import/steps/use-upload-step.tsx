@@ -8,6 +8,7 @@ import { FileUploadInput } from "@/features/ui/input/file-upload-input";
 import { useToast } from "@/features/ui/toast";
 import { useEffect, useState } from "react";
 import { useUploadCsvFile } from "../../../hooks/useCsvImport";
+import { BankProfileFactory } from "../../../services/bank.factory";
 import { BankSelect } from "../../bank-select";
 import {
   useTransactionImportContext,
@@ -22,6 +23,21 @@ type IUploadStepContentProps = {
 
 function UploadStepContent({ error, file, setFile }: IUploadStepContentProps) {
   const { selectedBank, setSelectedBank } = useTransactionImportContext();
+
+  const handleFileChange = (newFile: File | null) => {
+    setFile(newFile);
+    
+    if (newFile) {
+      // Auto-detect bank from filename when file is selected
+      const detectedBank = BankProfileFactory.detectBankByFilename(newFile.name);
+      if (detectedBank) {
+        setSelectedBank(detectedBank);
+      }
+    } else {
+      // Reset bank to default when file is removed
+      setSelectedBank("DEFAULT");
+    }
+  };
 
   const handleDownloadTemplate = () => {
     const link = document.createElement("a");
@@ -41,7 +57,7 @@ function UploadStepContent({ error, file, setFile }: IUploadStepContentProps) {
           label="Select CSV File"
           accept=".csv"
           files={file}
-          onFilesChange={setFile}
+          onFilesChange={handleFileChange}
         />
       </div>
       <div>
