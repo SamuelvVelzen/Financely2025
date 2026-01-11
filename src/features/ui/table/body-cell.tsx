@@ -43,13 +43,13 @@ export function BodyCell({
         !wrap && "whitespace-nowrap",
         sticky && "sticky left-0 z-10 bg-surface border-r border-border",
         className
-      )}
-      onClick={(e) => {
-        if (stopPropagation) {
-          e.stopPropagation();
-        }
-      }}>
-      {children}
+      )}>
+      <span
+        onClick={(e) => {
+          if (stopPropagation) e.stopPropagation();
+        }}>
+        {children}
+      </span>
     </td>
   );
 }
