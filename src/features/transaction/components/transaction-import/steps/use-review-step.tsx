@@ -66,6 +66,11 @@ function ReviewStepContent({
     ).length;
   }, [candidates, selectedRows]);
 
+  // Check if any candidate has errors
+  const hasAnyErrors = useMemo(() => {
+    return candidates.some((c) => c.errors.length > 0);
+  }, [candidates]);
+
   if (transformMutation.isPending) {
     return <div className="text-center py-8">Processing CSV...</div>;
   }
@@ -142,7 +147,9 @@ function ReviewStepContent({
           <HeaderCell key="type">Type</HeaderCell>,
           <HeaderCell key="primaryTag">Primary Tag</HeaderCell>,
           <HeaderCell key="tags">Tags</HeaderCell>,
-          <HeaderCell key="errors">Errors</HeaderCell>,
+          ...(hasAnyErrors
+            ? [<HeaderCell key="errors">Errors</HeaderCell>]
+            : []),
         ]}>
         {(paginatedCandidates) => {
           return paginatedCandidates.map((candidate) => {
@@ -352,26 +359,30 @@ function ReviewStepContent({
                     );
                   })()}
                 </BodyCell>
-                <BodyCell>
-                  {candidate.errors.length > 0 ? (
-                    <Button
-                      clicked={() => setErrorDialogRowIndex(candidate.rowIndex)}
-                      buttonContent={
-                        <div className="flex items-center gap-2">
-                          <HiExclamationCircle className="size-4 text-danger" />
-                          <span className="text-sm text-danger">
-                            {candidate.errors.length} error
-                            {candidate.errors.length !== 1 ? "s" : ""}
-                          </span>
-                        </div>
-                      }
-                      className="px-2 py-1 text-sm border-0 bg-transparent hover:bg-danger/10"
-                      variant="default"
-                    />
-                  ) : (
-                    <span className="text-sm text-text-muted">—</span>
-                  )}
-                </BodyCell>
+                {hasAnyErrors && (
+                  <BodyCell>
+                    {candidate.errors.length > 0 ? (
+                      <Button
+                        clicked={() =>
+                          setErrorDialogRowIndex(candidate.rowIndex)
+                        }
+                        buttonContent={
+                          <div className="flex items-center gap-2">
+                            <HiExclamationCircle className="size-4 text-danger" />
+                            <span className="text-sm text-danger">
+                              {candidate.errors.length} error
+                              {candidate.errors.length !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                        }
+                        className="px-2 py-1 text-sm border-0 bg-transparent hover:bg-danger/10"
+                        variant="default"
+                      />
+                    ) : (
+                      <span className="text-sm text-text-muted">—</span>
+                    )}
+                  </BodyCell>
+                )}
               </TableRow>
             );
           });
