@@ -1,4 +1,5 @@
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
+import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type {
   IBudget,
   IBudgetComparison,
@@ -13,6 +14,7 @@ import { HiEye, HiPencil, HiTrash } from "react-icons/hi2";
 type IBudgetListItemProps = {
   budget: IBudget;
   totals?: IBudgetComparison["totals"];
+  searchQuery?: string;
   onView?: (budget: IBudget) => void;
   onEdit?: (budget: IBudget) => void;
   onDelete?: (budget: IBudget) => void;
@@ -21,10 +23,12 @@ type IBudgetListItemProps = {
 export function BudgetListItem({
   budget,
   totals,
+  searchQuery,
   onView,
   onEdit,
   onDelete,
 }: IBudgetListItemProps) {
+  const { highlightText } = useHighlightText();
   const percentage =
     totals && parseFloat(totals.totalExpected) > 0
       ? (parseFloat(totals.totalActual) / parseFloat(totals.totalExpected)) *
@@ -61,7 +65,9 @@ export function BudgetListItem({
       {/* Top row: Name, Date, Status, Actions, Amount */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="text-text font-medium truncate">{budget.name}</span>
+          <span className="text-text font-medium truncate">
+            {highlightText(budget.name, searchQuery)}
+          </span>
           <span className="text-text-muted">|</span>
           <span className="text-sm text-text-muted whitespace-nowrap">
             {formatDateRange(budget.startDate, budget.endDate)}

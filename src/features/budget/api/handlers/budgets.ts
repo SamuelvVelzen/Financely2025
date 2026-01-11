@@ -19,6 +19,7 @@ export async function GET({ request }: { request: Request }) {
       const query = {
         from: url.searchParams.get("from") ?? undefined,
         to: url.searchParams.get("to") ?? undefined,
+        q: url.searchParams.get("q") ?? undefined,
       };
 
       const validated = BudgetsQuerySchema.parse(query);

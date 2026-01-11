@@ -59,6 +59,13 @@ export class BudgetService {
               ],
             }
           : {}),
+        ...(validated.q
+          ? {
+              name: {
+                contains: validated.q,
+              },
+            }
+          : {}),
       },
       include: {
         items: {

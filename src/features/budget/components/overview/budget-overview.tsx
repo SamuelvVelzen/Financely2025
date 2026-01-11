@@ -11,17 +11,29 @@ import { List } from "@/features/ui/list/list";
 import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { HiOutlineCurrencyEuro, HiPlus } from "react-icons/hi2";
+import { SearchInput } from "@/features/ui/input/search-input";
 import { BudgetListItem } from "./budget-list-item";
 
 export function BudgetOverview() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+
+  const query = useMemo(
+    () => ({
+      q: debouncedSearchQuery.trim() || undefined,
+    }),
+    [debouncedSearchQuery]
+  );
+
   const {
     data: budgetsData,
     isLoading: isLoadingBudgets,
     error: errorBudgets,
-  } = useBudgets();
+  } = useBudgets(query);
   const budgets = budgetsData?.data ?? [];
   const { mutate: deleteBudget } = useDeleteBudget();
   const toast = useToast();
@@ -78,20 +90,27 @@ export function BudgetOverview() {
   return (
     <>
       <Container className="sticky top-0 z-10 bg-surface">
-        <div className="flex items-center justify-between">
-          <Title>
-            <div className="flex gap-2 items-center">
-              <HiOutlineCurrencyEuro />
-              <span>Budgets</span>
-            </div>
-          </Title>
-          <Button
-            clicked={handleCreateBudget}
-            variant="primary"
-            size="sm">
-            <HiPlus className="size-4" /> Add Budget
-          </Button>
-        </div>
+        <Title className="grid grid-cols-[1fr_auto] gap-2 items-center mb-3">
+          <div className="flex gap-2 items-center">
+            <HiOutlineCurrencyEuro />
+            <span>Budgets</span>
+          </div>
+
+          <div className="flex gap-2 items-center">
+            <Button
+              clicked={handleCreateBudget}
+              variant="primary"
+              size="sm">
+              <HiPlus className="size-6" /> Add
+            </Button>
+          </div>
+        </Title>
+
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search budgets by name..."
+        />
       </Container>
 
       <Container>
@@ -123,6 +142,7 @@ export function BudgetOverview() {
               <BudgetListItem
                 key={budget.id}
                 budget={budget}
+                searchQuery={searchQuery}
                 onView={handleViewBudget}
                 onEdit={handleEditBudget}
                 onDelete={handleDeleteClick}

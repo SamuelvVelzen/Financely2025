@@ -745,6 +745,7 @@ export const UpdateBudgetInputSchema = z
 export const BudgetsQuerySchema = z.object({
   from: ISODateStringSchema.optional(),
   to: ISODateStringSchema.optional(),
+  q: z.string().optional(),
 });
 
 export const BudgetsResponseSchema = z.object({
