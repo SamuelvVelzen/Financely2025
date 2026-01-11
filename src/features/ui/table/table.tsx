@@ -59,7 +59,11 @@ function TableContent<T>({
   return (
     <div className="border border-border rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
-        <table className={cn("w-full text-sm", className)}>
+        <table
+          className={cn(
+            "w-full text-sm border-separate border-spacing-0",
+            className
+          )}>
           <TableHeader>
             <TableRow>
               {headerCells.map((cell, index) => {

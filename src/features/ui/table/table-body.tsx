@@ -5,7 +5,11 @@ import { PropsWithChildren } from "react";
 export type ITableBodyProps = IPropsWithClassName & PropsWithChildren;
 
 export function TableBody({ className, children }: ITableBodyProps) {
-  return <tbody className={cn(className)}>{children}</tbody>;
+  return (
+    <tbody className={cn("[&>tr:last-child>td]:border-b-0", className)}>
+      {children}
+    </tbody>
+  );
 }
 
 TableBody.displayName = "TableBody";

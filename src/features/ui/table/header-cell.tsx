@@ -13,6 +13,7 @@ export type IHeaderCellProps<T = unknown> = {
   sortFn?: (a: T, b: T) => number;
   autoFit?: boolean;
   size?: "sm" | "md" | "lg";
+  sticky?: boolean;
 } & IPropsWithClassName &
   PropsWithChildren;
 
@@ -25,6 +26,7 @@ export function HeaderCell<T = unknown>({
   sortFn,
   autoFit = true,
   size = "md",
+  sticky = false,
 }: IHeaderCellProps<T>) {
   const sortContext = useTableSortContext<T>();
   const sizeClasses = {
@@ -83,6 +85,8 @@ export function HeaderCell<T = unknown>({
           sortKey &&
           sortContext &&
           "cursor-pointer select-none hover:bg-surface-hover motion-safe:transition-colors",
+        sticky &&
+          "sticky left-0 top-0 z-20 bg-surface-hover border-r border-border",
         className
       )}
       onClick={handleClick}

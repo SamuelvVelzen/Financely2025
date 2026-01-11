@@ -7,6 +7,7 @@ export type IBodyCellProps = {
   wrap?: boolean;
   colSpan?: number;
   size?: "sm" | "md" | "lg";
+  sticky?: boolean;
 } & IPropsWithClassName &
   PropsWithChildren;
 
@@ -17,6 +18,7 @@ export function BodyCell({
   wrap = false,
   colSpan,
   size = "md",
+  sticky = false,
 }: IBodyCellProps) {
   const sizeClasses = {
     sm: "px-3 py-1",
@@ -28,9 +30,11 @@ export function BodyCell({
     <td
       colSpan={colSpan}
       className={cn(
+        "group-hover:bg-surface-hover border-b border-border",
         sizeClasses[size],
         autoFit ? "w-auto" : "w-full min-w-0",
         !wrap && "whitespace-nowrap",
+        sticky && "sticky left-0 z-10 bg-surface border-r border-border",
         className
       )}>
       {children}

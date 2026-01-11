@@ -347,7 +347,7 @@ export function SelectableTable<T = unknown>({
               const rowChildren = React.Children.toArray(rowProps.children);
               const isSelected = selectedRows.has(rowIndex);
               const checkboxCell = (
-                <BodyCell key="row-checkbox">
+                <BodyCell key="row-checkbox" sticky={true}>
                   <Checkbox
                     checked={isSelected}
                     onChange={() => handleRowToggle(rowIndex)}
