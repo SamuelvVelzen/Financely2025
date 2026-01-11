@@ -86,10 +86,6 @@ export function FileUploadInput(props: FileUploadInputProps) {
     const chosenFiles = Array.from(event.target.files ?? []);
     const nextFiles = multiple ? chosenFiles : chosenFiles.slice(0, 1);
     handleFilesChange(nextFiles);
-    // Allow selecting the same file again after clearing
-    if (inputRef.current) {
-      inputRef.current.value = "";
-    }
   };
 
   const handleRemoveFile = (index: number) => {
@@ -128,6 +124,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
         onChange={handleInputChange}
         className={cn(
           "block w-full text-sm text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-2xl file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover disabled:opacity-60",
+          "text-transparent file:text-white",
           disabled && "cursor-not-allowed opacity-60"
         )}
         {...rest}
