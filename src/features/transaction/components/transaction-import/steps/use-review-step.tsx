@@ -140,6 +140,7 @@ function ReviewStepContent({
           <HeaderCell key="amount">Amount</HeaderCell>,
           <HeaderCell key="currency">Currency</HeaderCell>,
           <HeaderCell key="type">Type</HeaderCell>,
+          <HeaderCell key="primaryTag">Primary Tag</HeaderCell>,
           <HeaderCell key="tags">Tags</HeaderCell>,
           <HeaderCell key="errors">Errors</HeaderCell>,
         ]}>
@@ -299,11 +300,88 @@ function ReviewStepContent({
                   />
                 </BodyCell>
                 <BodyCell>
-                  <TagSelectCell
-                    tagIds={candidate.data.tagIds}
-                    primaryTagId={candidate.data.primaryTagId}
-                    tagMetadataJson={candidate.rawValues.__tagMetadata}
-                  />
+                  {(() => {
+                    // Parse tag metadata from rawValues (once per candidate)
+                    let tagMetadata: Record<
+                      string,
+                      {
+                        id: string;
+                        color: string | null;
+                        emoticon: string | null;
+                      }
+                    > = {};
+                    try {
+                      const metadataStr = candidate.rawValues.__tagMetadata;
+                      if (metadataStr) {
+                        tagMetadata = JSON.parse(metadataStr);
+                      }
+                    } catch {
+                      // Ignore parse errors
+                    }
+
+                    const primaryTagId =
+                      (candidate.data.primaryTagId as string) || undefined;
+
+                    return (
+                      <TagSelectCell
+                        tagMetadata={tagMetadata}
+                        transactionType={candidate.data.type}
+                        value={primaryTagId}
+                        onChange={(value) => {
+                          updateCandidate(candidate.rowIndex, {
+                            primaryTagId: (value as string) || null,
+                          });
+                        }}
+                        multiple={false}
+                        placeholder="Select primary tag..."
+                      />
+                    );
+                  })()}
+                </BodyCell>
+                <BodyCell>
+                  {(() => {
+                    // Parse tag metadata from rawValues (once per candidate)
+                    let tagMetadata: Record<
+                      string,
+                      {
+                        id: string;
+                        color: string | null;
+                        emoticon: string | null;
+                      }
+                    > = {};
+                    try {
+                      const metadataStr = candidate.rawValues.__tagMetadata;
+                      if (metadataStr) {
+                        tagMetadata = JSON.parse(metadataStr);
+                      }
+                    } catch {
+                      // Ignore parse errors
+                    }
+
+                    const { tagIds, primaryTagId } = candidate.data;
+
+                    // Filter out primary tag from other tags
+                    const otherTagIds = tagIds.filter(
+                      (tagId) => tagId !== primaryTagId
+                    );
+
+                    return (
+                      <TagSelectCell
+                        tagMetadata={tagMetadata}
+                        transactionType={candidate.data.type}
+                        value={otherTagIds.length > 0 ? otherTagIds : undefined}
+                        onChange={(value) => {
+                          // Update other tags (don't include primary tag)
+                          const newTagIds = Array.isArray(value) ? value : [];
+                          updateCandidate(candidate.rowIndex, {
+                            tagIds: newTagIds,
+                          });
+                        }}
+                        multiple={true}
+                        placeholder="Select tags..."
+                      />
+                    );
+                  })()}
                 </BodyCell>
                 <BodyCell>
                   {candidate.errors.length > 0 ? (

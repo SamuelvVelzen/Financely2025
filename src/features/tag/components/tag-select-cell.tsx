@@ -1,79 +1,191 @@
+import { queryKeys } from "@/features/shared/query/keys";
+import type {
+  ITag,
+  ITransactionType,
+} from "@/features/shared/validation/schemas";
+import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-create-tag-dialog";
+import { useTags } from "@/features/tag/hooks/useTags";
+import { TagSelect } from "@/features/ui/tag-select/tag-select";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+
 interface ITagMetadata {
   id: string;
   color: string | null;
   emoticon: string | null;
 }
 
-interface ITagSelectCellProps {
-  tagIds?: string[];
-  primaryTagId?: string | null;
-  tagMetadataJson?: string;
+interface ITagSelectCellProps extends IPropsWithClassName {
+  // Tag metadata (parsed from JSON)
+  tagMetadata?: Record<string, ITagMetadata>;
+  // Transaction type for filtering tags
+  transactionType?: ITransactionType;
+  // Controlled value (tag IDs for found tags, tag names for not-found)
+  value?: string | string[];
+  // Callback when selection changes
+  onChange?: (value: string | string[] | undefined) => void;
+  // Single or multiple selection
+  multiple?: boolean;
+  // Placeholder text
+  placeholder?: string;
 }
 
 export function TagSelectCell({
-  tagIds = [],
-  primaryTagId = null,
-  tagMetadataJson,
+  className = "",
+  tagMetadata = {},
+  transactionType,
+  value,
+  onChange,
+  multiple = false,
+  placeholder = multiple ? "Select tags..." : "Select tag...",
 }: ITagSelectCellProps) {
-  // Parse tag metadata from rawValues
-  let tagMetadata: Record<string, ITagMetadata> = {};
-  try {
-    if (tagMetadataJson) {
-      tagMetadata = JSON.parse(tagMetadataJson);
+  const { data: tagsData } = useTags();
+  const tags = tagsData?.data ?? [];
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [pendingTagName, setPendingTagName] = useState<string>("");
+
+  const queryClient = useQueryClient();
+
+  // Build a map of tag names to tag IDs for quick lookup
+  const tagNameToIdMap = useMemo(() => {
+    const map = new Map<string, string>();
+    tags.forEach((tag) => {
+      map.set(tag.name, tag.id);
+    });
+    return map;
+  }, [tags]);
+
+  // Separate found tags (with IDs) from not-found tags (names only)
+  const { foundTagIds, notFoundTagNames } = useMemo(() => {
+    const foundIds: string[] = [];
+    const notFoundNames: string[] = [];
+
+    if (!value) {
+      return {
+        foundTagIds: multiple ? [] : undefined,
+        notFoundTagNames: [],
+      };
     }
-  } catch {
-    // Ignore parse errors
-  }
 
-  const tagNames = tagIds || [];
-  const primaryTagName = primaryTagId || null;
+    if (multiple && Array.isArray(value)) {
+      for (const val of value) {
+        if (typeof val === "string") {
+          // Check if it's a tag name with metadata (found tag)
+          if (tagMetadata[val]) {
+            foundIds.push(tagMetadata[val].id);
+          } else {
+            // Check if it's already a tag ID (check if it exists in tags)
+            const isTagId = tags.some((tag) => tag.id === val);
+            if (isTagId) {
+              foundIds.push(val);
+            } else {
+              // Check if tag name exists in database (but wasn't in metadata)
+              const tagIdFromName = tagNameToIdMap.get(val);
+              if (tagIdFromName) {
+                foundIds.push(tagIdFromName);
+              } else {
+                // It's a tag name without metadata and not in database (not found)
+                notFoundNames.push(val);
+              }
+            }
+          }
+        }
+      }
+    } else if (!multiple && typeof value === "string") {
+      if (tagMetadata[value]) {
+        foundIds.push(tagMetadata[value].id);
+      } else {
+        const isTagId = tags.some((tag) => tag.id === value);
+        if (isTagId) {
+          foundIds.push(value);
+        } else {
+          const tagIdFromName = tagNameToIdMap.get(value);
+          if (tagIdFromName) {
+            foundIds.push(tagIdFromName);
+          } else {
+            notFoundNames.push(value);
+          }
+        }
+      }
+    }
 
-  if (tagNames.length === 0 && !primaryTagName) {
-    return <span className="text-sm text-text-muted">—</span>;
-  }
+    return {
+      foundTagIds: multiple ? foundIds : (foundIds[0] as string | undefined),
+      notFoundTagNames: notFoundNames,
+    } as {
+      foundTagIds: string | string[] | undefined;
+      notFoundTagNames: string[];
+    };
+  }, [value, tagMetadata, tags, tagNameToIdMap, multiple]);
+
+  // Handle create new tag
+  const handleCreateNew = (searchQuery: string) => {
+    setPendingTagName(searchQuery);
+    setIsCreateDialogOpen(true);
+  };
+
+  // Handle tag creation success
+  const handleTagCreated = (createdTag?: ITag) => {
+    // Invalidate tags query to refresh the list
+    queryClient.invalidateQueries({ queryKey: queryKeys.tags() });
+    setIsCreateDialogOpen(false);
+    setPendingTagName("");
+
+    // Auto-select the newly created tag and remove the not-found tag name
+    if (createdTag) {
+      if (multiple) {
+        const currentValues = Array.isArray(value) ? value : [];
+        // Remove the pending tag name and add the new tag ID
+        const updatedValues = currentValues
+          .filter((val) => val !== pendingTagName)
+          .concat(createdTag.id);
+        onChange?.(updatedValues);
+      } else {
+        onChange?.(createdTag.id);
+      }
+    }
+  };
+
+  // Handle value change from Select
+  const handleChange = (newValue: string | string[] | undefined) => {
+    if (!onChange) return;
+    onChange(newValue);
+  };
+
+  // Combine found tag IDs with not-found tag names for the value prop
+  const combinedValue = useMemo(() => {
+    if (multiple) {
+      const foundIds = Array.isArray(foundTagIds) ? foundTagIds : [];
+      return [...foundIds, ...notFoundTagNames];
+    } else {
+      // For single select, prefer found tag ID, otherwise use not-found tag name
+      return foundTagIds ?? (notFoundTagNames[0] || undefined);
+    }
+  }, [foundTagIds, notFoundTagNames, multiple]);
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {/* Primary tag */}
-      {primaryTagName && (
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-surface-hover border border-border">
-          {tagMetadata[primaryTagName]?.emoticon && (
-            <span className="text-sm">
-              {tagMetadata[primaryTagName].emoticon}
-            </span>
-          )}
-          {tagMetadata[primaryTagName]?.color && (
-            <div
-              className="size-2.5 rounded-full shrink-0"
-              style={{
-                backgroundColor: tagMetadata[primaryTagName].color,
-              }}
-            />
-          )}
-          <span className="font-medium">{primaryTagName}</span>
-        </div>
-      )}
-      {/* Other tags */}
-      {tagNames.map((tagName, idx) => {
-        if (tagName === primaryTagName) return null; // Skip if it's the primary tag
-        const metadata = tagMetadata[tagName];
-        return (
-          <div
-            key={idx}
-            className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-surface-hover border border-border">
-            {metadata?.emoticon && (
-              <span className="text-sm">{metadata.emoticon}</span>
-            )}
-            {metadata?.color && (
-              <div
-                className="size-2.5 rounded-full shrink-0"
-                style={{ backgroundColor: metadata.color }}
-              />
-            )}
-            <span>{tagName}</span>
-          </div>
-        );
-      })}
+      {/* TagSelect component - not-found tags will be pre-filled in search input */}
+      <div className="flex-1 min-w-[120px]">
+        <TagSelect
+          className={className}
+          multiple={multiple}
+          placeholder={placeholder}
+          transactionType={transactionType}
+          value={combinedValue ?? (multiple ? [] : "")}
+          onChange={handleChange}
+        />
+      </div>
+      <AddOrCreateTagDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        initialName={pendingTagName}
+        initialValues={{
+          transactionType: transactionType || undefined,
+        }}
+        onSuccess={handleTagCreated}
+      />
     </div>
   );
 }
