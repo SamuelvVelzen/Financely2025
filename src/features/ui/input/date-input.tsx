@@ -43,6 +43,7 @@ export function DateInput({
   name,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
 }: IDateInputProps) {
   const form = useFormContextOptional();
   const [isOpen, setIsOpen] = useState(false);
@@ -54,12 +55,27 @@ export function DateInput({
     !isFormMode &&
     (controlledValue !== undefined || controlledOnChange !== undefined);
 
-  // Get current value based on mode - will be overridden in Controller render
-  const getCurrentValue = () => {
-    if (isFormMode && form) {
-      return form.getValues(name) || undefined;
+  // Helper to convert value based on mode
+  const convertToFormFormat = (
+    isoValue: string | undefined
+  ): string | undefined => {
+    if (!isoValue) return undefined;
+    if (mode === "dateOnly") {
+      return isoToDateOnly(isoValue);
     }
-    return controlledValue;
+    return isoValue;
+  };
+
+  // Helper to convert from form format
+  const convertFromFormFormat = (
+    formValue: string | undefined
+  ): string | undefined => {
+    if (!formValue) return undefined;
+    if (mode === "dateOnly") {
+      // Form value is YYYY-MM-DD, convert to ISO
+      return dateOnlyToIso(formValue.split("T")[0]);
+    }
+    return formValue;
   };
 
   // Helper to parse ISO string to Date object
@@ -91,10 +107,16 @@ export function DateInput({
     onChange: (value: string | undefined) => void,
     borderClass: string,
     showError?: boolean,
-    errorMessage?: string
+    errorMessage?: string,
+    isFormModeRender?: boolean
   ) => {
-    const selectedDate = parseDate(value);
-    const displayText = formatDisplayText(value);
+    // Convert form value to ISO for internal use (calendar/time picker)
+    const isoValue =
+      isFormModeRender && mode === "dateOnly"
+        ? convertFromFormFormat(value)
+        : value;
+    const selectedDate = parseDate(isoValue);
+    const displayText = formatDisplayText(isoValue);
 
     // Handle date selection from calendar
     const handleDateSelect = (date: Date | null) => {
@@ -116,7 +138,15 @@ export function DateInput({
         // Keep dropdown open in dateTime mode so user can set time
       }
 
-      onChange(newIsoValue);
+      // Convert to form format if needed
+      const formValue =
+        isFormModeRender && mode === "dateOnly"
+          ? convertToFormFormat(newIsoValue)
+          : newIsoValue;
+
+      onChange(formValue);
+      // Call onValueChange with the form format value
+      onValueChange?.(formValue);
     };
 
     // Handle time change from time picker
@@ -130,7 +160,14 @@ export function DateInput({
       // The TimePicker handles day increments/decrements when hours wrap
       const isoString = date.toISOString();
       if (isoString) {
-        onChange(isoString);
+        // Convert to form format if needed
+        const formValue =
+          isFormModeRender && mode === "dateOnly"
+            ? convertToFormFormat(isoString)
+            : isoString;
+        onChange(formValue);
+        // Call onValueChange with the form format value
+        onValueChange?.(formValue);
       }
     };
 
@@ -225,10 +262,14 @@ export function DateInput({
   if (isControlledMode) {
     return renderDateInput(
       controlledValue,
-      controlledOnChange,
+      (newValue) => {
+        controlledOnChange?.(newValue);
+        onValueChange?.(newValue);
+      },
       "border-border",
       false,
-      undefined
+      undefined,
+      false
     );
   }
 
@@ -252,10 +293,12 @@ export function DateInput({
           field.value as string | undefined,
           (newValue) => {
             field.onChange(newValue);
+            onValueChange?.(newValue);
           },
           borderClass,
           shouldShowError,
-          error?.message as string | undefined
+          error?.message as string | undefined,
+          true
         );
       }}
     />

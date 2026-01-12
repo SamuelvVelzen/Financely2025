@@ -117,6 +117,7 @@ export function EmoticonInput({
   disabled,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
   ...props
 }: IEmoticonInputProps) {
   const generatedId = useId();
@@ -162,8 +163,10 @@ export function EmoticonInput({
     setTextValue(newValue);
     if (isControlledMode) {
       controlledOnChange?.(newValue);
+      onValueChange?.(newValue);
     } else if (isFormMode && form) {
       form.setValue(name, newValue, { shouldDirty: true });
+      onValueChange?.(newValue);
     }
   };
 

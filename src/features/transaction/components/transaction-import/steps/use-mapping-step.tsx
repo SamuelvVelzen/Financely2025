@@ -41,6 +41,7 @@ function FieldMappingCard({
     mapping,
     suggestedMapping,
     handleResetToSuggested,
+    handleMappingFieldChange,
   } = useTransactionImportContext();
 
   const columnOptions = [
@@ -78,6 +79,10 @@ function FieldMappingCard({
           placeholder="Select column..."
           multiple={false}
           clearable={false}
+          onValueChange={(value) => {
+            const column = (value as string) || null;
+            handleMappingFieldChange(field.name, column);
+          }}
         />
       </Form>
       {fieldError && (

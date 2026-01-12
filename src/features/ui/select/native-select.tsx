@@ -44,6 +44,7 @@ export function NativeSelect<
   disabled = false,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
   valueToString,
   stringToValue,
   ...props
@@ -78,6 +79,10 @@ export function NativeSelect<
       onBlur?: () => void;
     }
   ) => {
+    const handleChange = (newValue: TValue | TValue[] | undefined) => {
+      onChange(newValue);
+      onValueChange?.(newValue);
+    };
     const stringValue = getStringValue(value, multiple, {
       valueToString,
       stringToValue,
@@ -111,13 +116,13 @@ export function NativeSelect<
                 (option) => option.value
               );
               const selectedValues = selectedStrings.map(convertStringToValue);
-              onChange(selectedValues as TValue[]);
+              handleChange(selectedValues as TValue[]);
             } else {
               const selectedString = e.target.value || "";
               if (selectedString === "") {
-                onChange(undefined);
+                handleChange(undefined);
               } else {
-                onChange(convertStringToValue(selectedString));
+                handleChange(convertStringToValue(selectedString));
               }
             }
           }}
@@ -150,6 +155,7 @@ export function NativeSelect<
   if (isControlledMode) {
     return renderSelect(controlledValue, (newValue) => {
       controlledOnChange?.(newValue);
+      onValueChange?.(newValue);
     });
   }
 
@@ -162,7 +168,10 @@ export function NativeSelect<
         render={({ field }) => {
           return renderSelect(
             field.value as TValue | TValue[] | undefined,
-            field.onChange,
+            (newValue) => {
+              field.onChange(newValue);
+              onValueChange?.(newValue);
+            },
             {
               name: field.name,
               ref: field.ref,

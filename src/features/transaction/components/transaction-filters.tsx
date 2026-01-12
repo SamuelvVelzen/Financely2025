@@ -29,6 +29,9 @@ export interface ITransactionFiltersProps {
   hasActiveFilters: boolean;
   setSearchQuery: (query: string) => void;
   setTagFilter: (tags: string[]) => void;
+  setTransactionTypeFilter?: (types: string[]) => void;
+  setPaymentMethodFilter?: (methods: string[]) => void;
+  setCurrencyFilter?: (currencies: string[]) => void;
   className?: string;
   filterSheetOpen?: boolean;
   onFilterSheetOpenChange?: (open: boolean) => void;
@@ -46,6 +49,9 @@ export function TransactionFilters({
   hasActiveFilters,
   setSearchQuery,
   setTagFilter,
+  setTransactionTypeFilter,
+  setPaymentMethodFilter,
+  setCurrencyFilter,
   className,
   filterSheetOpen: externalFilterSheetOpen,
   onFilterSheetOpenChange: externalOnFilterSheetOpenChange,
@@ -100,6 +106,11 @@ export function TransactionFilters({
             currencyFilter: filterState.currencyFilter,
             priceFilter: filterState.priceFilter,
           }}
+          setSearchQuery={setSearchQuery}
+          setTagFilter={setTagFilter}
+          setTransactionTypeFilter={setTransactionTypeFilter}
+          setPaymentMethodFilter={setPaymentMethodFilter}
+          setCurrencyFilter={setCurrencyFilter}
         />
         <ActiveFiltersRow
           badges={badges}
@@ -114,7 +125,13 @@ export function TransactionFilters({
           onSubmit={() => {}}>
           <div className="flex gap-3 items-end w-full">
             <div className="flex-1">
-              <SearchInput name="searchQuery" />
+              <SearchInput
+                name="searchQuery"
+                onValueChange={(value) => {
+                  const formValue = (value as string) ?? "";
+                  setSearchQuery(formValue);
+                }}
+              />
             </div>
             <Datepicker
               value={dateFilter}
@@ -148,6 +165,10 @@ export function TransactionFilters({
         onApply={() => {
           // Filters are applied instantly, just close the sheet
         }}
+        setTagFilter={setTagFilter}
+        setTransactionTypeFilter={setTransactionTypeFilter}
+        setPaymentMethodFilter={setPaymentMethodFilter}
+        setCurrencyFilter={setCurrencyFilter}
       />
     </>
   );

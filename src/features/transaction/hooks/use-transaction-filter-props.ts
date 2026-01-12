@@ -21,6 +21,9 @@ export interface IFilterProps {
   hasActiveFilters: boolean;
   setSearchQuery: (query: string) => void;
   setTagFilter: (tags: string[]) => void;
+  setTransactionTypeFilter?: (types: string[]) => void;
+  setPaymentMethodFilter?: (methods: string[]) => void;
+  setCurrencyFilter?: (currencies: string[]) => void;
   filterSheetOpen: boolean;
   onFilterSheetOpenChange: (open: boolean) => void;
 }
@@ -36,6 +39,9 @@ export function useTransactionFilterProps(
     setPriceFilter: (filter: IPriceRange) => void;
     setSearchQuery: (query: string) => void;
     setTagFilter: (tags: string[]) => void;
+    setTransactionTypeFilter?: (types: string[]) => void;
+    setPaymentMethodFilter?: (methods: string[]) => void;
+    setCurrencyFilter?: (currencies: string[]) => void;
     clearAllFilters: () => void;
   },
   tags: ITag[],
@@ -58,6 +64,9 @@ export function useTransactionFilterProps(
       hasActiveFilters,
       setSearchQuery: setters.setSearchQuery,
       setTagFilter: setters.setTagFilter,
+      setTransactionTypeFilter: setters.setTransactionTypeFilter,
+      setPaymentMethodFilter: setters.setPaymentMethodFilter,
+      setCurrencyFilter: setters.setCurrencyFilter,
       filterSheetOpen: filterSheetState.filterSheetOpen,
       onFilterSheetOpenChange: filterSheetState.onFilterSheetOpenChange,
     }),
@@ -68,6 +77,9 @@ export function useTransactionFilterProps(
       setters.setPriceFilter,
       setters.setSearchQuery,
       setters.setTagFilter,
+      setters.setTransactionTypeFilter,
+      setters.setPaymentMethodFilter,
+      setters.setCurrencyFilter,
       setters.clearAllFilters,
       tags,
       filterSheetState.filterSheetOpen,

@@ -22,6 +22,7 @@ export function SearchInput({
   label,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
 }: ISearchInputProps) {
   const form = useFormContextOptional();
 
@@ -43,8 +44,10 @@ export function SearchInput({
   const handleClear = () => {
     if (isControlledMode) {
       controlledOnChange?.("");
+      onValueChange?.("");
     } else if (isFormMode && form) {
       form.setValue(name, "");
+      onValueChange?.("");
     }
   };
 
@@ -102,10 +105,13 @@ export function SearchInput({
         )}>
         <TextInput
           {...(isFormMode
-            ? ({ name } as { name: string })
+            ? ({ name, onValueChange } as { name: string; onValueChange?: (value: string | number | undefined) => void })
             : ({
                 value: controlledValue,
-                onChange: controlledOnChange,
+                onChange: (value: string | number | undefined) => {
+                  controlledOnChange?.(value as string | undefined);
+                  onValueChange?.(value);
+                },
               } as {
                 value: string;
                 onChange: (value: string | number | undefined) => void;

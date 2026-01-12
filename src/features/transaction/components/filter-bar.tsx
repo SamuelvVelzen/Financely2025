@@ -35,6 +35,11 @@ export interface IFilterBarProps {
     currencyFilter: string[];
     priceFilter: IPriceRange;
   };
+  setSearchQuery?: (query: string) => void;
+  setTagFilter?: (tags: string[]) => void;
+  setTransactionTypeFilter?: (types: string[]) => void;
+  setPaymentMethodFilter?: (methods: string[]) => void;
+  setCurrencyFilter?: (currencies: string[]) => void;
 }
 
 export function FilterBar({
@@ -47,6 +52,11 @@ export function FilterBar({
   onClearAll,
   className,
   filterState: externalFilterState,
+  setSearchQuery,
+  setTagFilter,
+  setTransactionTypeFilter,
+  setPaymentMethodFilter,
+  setCurrencyFilter,
 }: IFilterBarProps) {
   const { isMobile } = useResponsive();
 
@@ -120,7 +130,13 @@ export function FilterBar({
         onSubmit={() => {}}>
         <div className="flex gap-3 items-end">
           {/* Primary filters - always visible */}
-          <SearchInput name="searchQuery" />
+          <SearchInput
+            name="searchQuery"
+            onValueChange={(value) => {
+              const formValue = (value as string) ?? "";
+              setSearchQuery?.(formValue);
+            }}
+          />
           <Datepicker
             value={dateFilter}
             onChange={onDateFilterChange}
@@ -154,6 +170,12 @@ export function FilterBar({
                   options={transactionTypeOptions}
                   multiple
                   placeholder="Filter by transaction type"
+                  onValueChange={(value) => {
+                    const formValue = (Array.isArray(value) ? value : []).filter(
+                      (v): v is string => v !== undefined
+                    );
+                    setTransactionTypeFilter?.(formValue);
+                  }}
                 />
               </div>
 
@@ -177,6 +199,12 @@ export function FilterBar({
                   options={paymentMethodOptions}
                   multiple
                   placeholder="Filter by payment method"
+                  onValueChange={(value) => {
+                    const formValue = (Array.isArray(value) ? value : []).filter(
+                      (v): v is string => v !== undefined
+                    );
+                    setPaymentMethodFilter?.(formValue);
+                  }}
                 />
               </div>
 
@@ -189,6 +217,12 @@ export function FilterBar({
                   options={currencyOptions}
                   multiple
                   placeholder="Filter by currency"
+                  onValueChange={(value) => {
+                    const formValue = (Array.isArray(value) ? value : []).filter(
+                      (v): v is string => v !== undefined
+                    );
+                    setCurrencyFilter?.(formValue);
+                  }}
                 />
               </div>
 
@@ -200,7 +234,13 @@ export function FilterBar({
                   name="tagFilter"
                   options={tagOptions}
                   multiple
-                  placeholder="Filter by tags">
+                  placeholder="Filter by tags"
+                  onValueChange={(value) => {
+                    const formValue = (Array.isArray(value) ? value : []).filter(
+                      (v): v is string => v !== undefined
+                    );
+                    setTagFilter?.(formValue);
+                  }}>
                   {(option) => (
                     <>
                       {option.data?.emoticon && (

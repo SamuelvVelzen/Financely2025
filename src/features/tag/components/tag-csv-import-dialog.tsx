@@ -164,22 +164,15 @@ export function TagCsvImportDialog({
     mappingForm.setValue(`mappings.${field}`, column || "");
   };
 
-  // Sync form mapping values back to mapping state
-  useEffect(() => {
-    const subscription = mappingForm.watch((value, { name }) => {
-      if (name?.startsWith("mappings.")) {
-        const field = name.replace("mappings.", "");
-        const column = value.mappings?.[field] || null;
-        if (mapping[field] !== column) {
-          setMapping((prev) => ({
-            ...prev,
-            [field]: column,
-          }));
-        }
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [mappingForm, mapping]);
+  // Handler for mapping field changes from form
+  const handleMappingFieldChange = (field: string, column: string | null) => {
+    if (mapping[field] !== column) {
+      setMapping((prev) => ({
+        ...prev,
+        [field]: column,
+      }));
+    }
+  };
 
   const handleValidateMapping = async (goToStep: (step: Step) => void) => {
     try {
@@ -282,6 +275,10 @@ export function TagCsvImportDialog({
                   options={columnOptions}
                   placeholder="Select column..."
                   multiple={false}
+                  onValueChange={(value) => {
+                    const column = (value as string) || null;
+                    handleMappingFieldChange(field.name, column);
+                  }}
                 />
               </Form>
               {field.description && (

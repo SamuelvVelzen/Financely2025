@@ -62,6 +62,7 @@ export function ColorInput({
   disabled,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
   ...props
 }: IColorInputProps) {
   const generatedId = useId();
@@ -199,7 +200,10 @@ export function ColorInput({
   if (isControlledMode) {
     return renderColorInput(
       controlledValue || "",
-      (value) => controlledOnChange?.(value),
+      (value) => {
+        controlledOnChange?.(value);
+        onValueChange?.(value);
+      },
       "border-border"
     );
   }
@@ -220,7 +224,10 @@ export function ColorInput({
 
           return renderColorInput(
             currentFieldValue,
-            field.onChange,
+            (value) => {
+              field.onChange(value);
+              onValueChange?.(value);
+            },
             borderClass,
             shouldShowError,
             error?.message as string | undefined

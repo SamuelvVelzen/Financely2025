@@ -57,6 +57,7 @@ export function SelectDropdown<
   required = false,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
   valueToString,
   stringToValue,
 }: ISelectDropdownProps<TValue, TOption>) {
@@ -153,6 +154,10 @@ export function SelectDropdown<
     onChange: (newValue: TValue | TValue[] | undefined) => void,
     isFormMode: boolean
   ) => {
+    const handleChange = (newValue: TValue | TValue[] | undefined) => {
+      onChange(newValue);
+      onValueChange?.(newValue);
+    };
     const displayText = getDisplayText(value);
     const hasSelection =
       value !== undefined &&
@@ -176,23 +181,23 @@ export function SelectDropdown<
           }
           // Remove the option
           const newValues = currentValues.filter((v) => v !== optionValue);
-          onChange(newValues);
+          handleChange(newValues);
         } else {
           // Add the option
           const newValues = [...currentValues, optionValue];
-          onChange(newValues);
+          handleChange(newValues);
         }
       } else {
         // Single select: toggle selection (allow deselecting only if clearable is true)
         if (value === optionValue) {
           // Deselect if already selected, but only if clearable is true
           if (clearable) {
-            onChange(undefined);
+            handleChange(undefined);
           }
           // If clearable is false, do nothing (prevent deselection)
         } else {
           // Select the option
-          onChange(optionValue);
+          handleChange(optionValue);
         }
         // Close dropdown after single selection
         setIsOpen(false);
@@ -204,13 +209,14 @@ export function SelectDropdown<
       e.stopPropagation(); // Prevent dropdown from opening
       if (disabled) return;
       if (multiple) {
-        onChange([]);
+        handleChange([]);
       } else {
         if (isFormMode && form && name) {
           // Reset to default value so React Hook Form recognizes it as set
           form.resetField(name);
+          onValueChange?.(undefined);
         } else {
-          onChange(undefined);
+          handleChange(undefined);
         }
       }
     };
@@ -322,7 +328,10 @@ export function SelectDropdown<
   if (isControlledMode) {
     return renderSelectContent(
       controlledValue,
-      (newValue) => controlledOnChange?.(newValue),
+      (newValue) => {
+        controlledOnChange?.(newValue);
+        onValueChange?.(newValue);
+      },
       false
     );
   }
@@ -346,7 +355,10 @@ export function SelectDropdown<
         const value = field.value as TValue | TValue[] | undefined;
         return renderSelectContent(
           value,
-          field.onChange as (newValue: TValue | TValue[] | undefined) => void,
+          (newValue) => {
+            field.onChange(newValue);
+            onValueChange?.(newValue);
+          },
           true
         );
       }}

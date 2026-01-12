@@ -39,6 +39,7 @@ export function TagSelect({
   hint,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
 }: ITagSelectProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
@@ -135,6 +136,7 @@ export function TagSelect({
           createNewLabel: (query: string) => `Create tag "${query}"`,
           forcePlacement,
           className,
+          onValueChange,
         }
       : {
           value: controlledValue ?? (multiple ? [] : ""),
@@ -150,6 +152,7 @@ export function TagSelect({
           createNewLabel: (query: string) => `Create tag "${query}"`,
           forcePlacement,
           className,
+          onValueChange,
         };
 
   return (

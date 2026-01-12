@@ -24,6 +24,10 @@ export interface IFilterSheetProps {
   tags: ITag[];
   onClearAll: () => void;
   onApply: () => void;
+  setTagFilter?: (tags: string[]) => void;
+  setTransactionTypeFilter?: (types: string[]) => void;
+  setPaymentMethodFilter?: (methods: string[]) => void;
+  setCurrencyFilter?: (currencies: string[]) => void;
 }
 
 export function FilterSheet({
@@ -37,6 +41,10 @@ export function FilterSheet({
   tags,
   onClearAll,
   onApply,
+  setTagFilter,
+  setTransactionTypeFilter,
+  setPaymentMethodFilter,
+  setCurrencyFilter,
 }: IFilterSheetProps) {
   const tagOptions = tags.map((tag) => ({
     value: tag.id,
@@ -91,6 +99,12 @@ export function FilterSheet({
               options={transactionTypeOptions}
               multiple
               placeholder="Filter by transaction type"
+              onValueChange={(value) => {
+                const formValue = (Array.isArray(value) ? value : []).filter(
+                  (v): v is string => v !== undefined
+                );
+                setTransactionTypeFilter?.(formValue);
+              }}
             />
           </div>
 
@@ -123,6 +137,12 @@ export function FilterSheet({
               options={paymentMethodOptions}
               multiple
               placeholder="Filter by payment method"
+              onValueChange={(value) => {
+                const formValue = (Array.isArray(value) ? value : []).filter(
+                  (v): v is string => v !== undefined
+                );
+                setPaymentMethodFilter?.(formValue);
+              }}
             />
           </div>
 
@@ -135,6 +155,12 @@ export function FilterSheet({
               options={currencyOptions}
               multiple
               placeholder="Filter by currency"
+              onValueChange={(value) => {
+                const formValue = (Array.isArray(value) ? value : []).filter(
+                  (v): v is string => v !== undefined
+                );
+                setCurrencyFilter?.(formValue);
+              }}
             />
           </div>
 
@@ -146,7 +172,13 @@ export function FilterSheet({
               name="tagFilter"
               options={tagOptions}
               multiple
-              placeholder="Filter by tags">
+              placeholder="Filter by tags"
+              onValueChange={(value) => {
+                const formValue = (Array.isArray(value) ? value : []).filter(
+                  (v): v is string => v !== undefined
+                );
+                setTagFilter?.(formValue);
+              }}>
               {(option) => (
                 <>
                   {option.data?.emoticon && (

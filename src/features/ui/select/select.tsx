@@ -73,6 +73,7 @@ export function Select<
   required = false,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
   valueToString,
   stringToValue,
 }: ISelectProps<TValue, TOption>) {
@@ -268,6 +269,10 @@ export function Select<
     value: TValue | TValue[] | undefined,
     onChange: (newValue: TValue | TValue[] | undefined) => void
   ) => {
+    const handleChange = (newValue: TValue | TValue[] | undefined) => {
+      onChange(newValue);
+      onValueChange?.(newValue);
+    };
     const selectedOptions = getSelectedOptions(value);
     const hasSelection = selectedOptions.length > 0;
 
@@ -284,10 +289,10 @@ export function Select<
         const newValues = currentValues.some((v) => v === optionValue)
           ? currentValues.filter((v) => v !== optionValue)
           : [...currentValues, optionValue];
-        onChange(newValues);
+        handleChange(newValues);
       } else {
         // Single select: set the value
-        onChange(optionValue);
+        handleChange(optionValue);
         setIsOpen(false);
         setSearchQuery("");
       }
@@ -298,9 +303,9 @@ export function Select<
       e.stopPropagation();
       if (multiple) {
         const currentValues = Array.isArray(value) ? value : [];
-        onChange(currentValues.filter((v) => v !== optionValue));
+        handleChange(currentValues.filter((v) => v !== optionValue));
       } else {
-        onChange(undefined);
+        handleChange(undefined);
       }
     };
 
@@ -515,6 +520,7 @@ export function Select<
   if (isControlledMode) {
     return renderSelectContent(controlledValue, (newValue) => {
       controlledOnChange?.(newValue);
+      onValueChange?.(newValue);
     });
   }
 
@@ -531,7 +537,10 @@ export function Select<
         render={({ field }) => {
           return renderSelectContent(
             field.value as TValue | TValue[] | undefined,
-            field.onChange
+            (newValue) => {
+              field.onChange(newValue);
+              onValueChange?.(newValue);
+            }
           );
         }}
       />
