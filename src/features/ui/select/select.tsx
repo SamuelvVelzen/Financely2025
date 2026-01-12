@@ -86,6 +86,9 @@ export function Select<
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [initializedUnmatchedValue, setInitializedUnmatchedValue] = useState<
+    string | null
+  >(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const error = isFormMode && form ? form.formState.errors[name] : undefined;
 
@@ -181,27 +184,15 @@ export function Select<
     return [];
   };
 
-  // Compute initial search query from unmatched values
-  // Only used when onCreateNew is available and searchQuery is empty
-  const computedInitialSearchQuery = useMemo(() => {
-    if (!onCreateNew || searchQuery.trim()) {
-      return null; // Don't override if user has typed something
-    }
-
+  // Get current unmatched values
+  const currentUnmatchedValues = useMemo(() => {
     const currentValue = isControlledMode
       ? controlledValue
       : isFormMode && form && name
         ? (form.getValues(name) as TValue | TValue[] | undefined)
         : undefined;
-
-    const unmatchedValues = getUnmatchedValues(currentValue);
-    if (unmatchedValues.length > 0) {
-      return String(unmatchedValues[0]);
-    }
-    return null;
+    return getUnmatchedValues(currentValue);
   }, [
-    onCreateNew,
-    searchQuery,
     isControlledMode,
     controlledValue,
     isFormMode,
@@ -211,15 +202,63 @@ export function Select<
     options,
   ]);
 
-  // Sync computed initial search query to state
+  // Reset initialized value if unmatched values changed to a different value
+  useEffect(() => {
+    const firstUnmatched =
+      currentUnmatchedValues.length > 0
+        ? String(currentUnmatchedValues[0])
+        : null;
+
+    // If the unmatched value changed to a different value, reset the initialized value
+    // This allows new unmatched values to be initialized when dropdown opens
+    if (
+      firstUnmatched !== null &&
+      firstUnmatched !== initializedUnmatchedValue
+    ) {
+      setInitializedUnmatchedValue(null);
+    }
+
+    // If there are no unmatched values, reset the initialized value
+    if (firstUnmatched === null && initializedUnmatchedValue !== null) {
+      setInitializedUnmatchedValue(null);
+    }
+  }, [currentUnmatchedValues, initializedUnmatchedValue]);
+
+  // Initialize search query when unmatched values change
+  // Note: We initialize even when dropdown is closed, so it's ready when user opens it
   useEffect(() => {
     if (
-      computedInitialSearchQuery !== null &&
-      computedInitialSearchQuery !== searchQuery
+      onCreateNew &&
+      currentUnmatchedValues.length > 0 &&
+      !searchQuery.trim()
     ) {
-      setSearchQuery(computedInitialSearchQuery);
+      const firstUnmatched = String(currentUnmatchedValues[0]);
+
+      // Only initialize if this is a different unmatched value than what we initialized before
+      if (initializedUnmatchedValue !== firstUnmatched) {
+        setSearchQuery(firstUnmatched);
+        setInitializedUnmatchedValue(firstUnmatched);
+        // Focus the input if dropdown is open
+        if (isOpen) {
+          setTimeout(() => {
+            const input = inputRef.current;
+            if (input) {
+              input.focus();
+              // Move cursor to end of input
+              const length = input.value.length;
+              input.setSelectionRange(length, length);
+            }
+          }, 0);
+        }
+      }
     }
-  }, [computedInitialSearchQuery, searchQuery]);
+  }, [
+    currentUnmatchedValues,
+    onCreateNew,
+    searchQuery,
+    initializedUnmatchedValue,
+    isOpen,
+  ]);
 
   // Shared rendering logic
   const renderSelectContent = (
@@ -277,27 +316,29 @@ export function Select<
 
         // Pre-fill search query when opening dropdown with unmatched values
         if (open && onCreateNew) {
-          const currentValue = isControlledMode
-            ? controlledValue
-            : isFormMode && form && name
-              ? (form.getValues(name) as TValue | TValue[] | undefined)
-              : undefined;
+          if (currentUnmatchedValues.length > 0 && !searchQuery.trim()) {
+            const firstUnmatched = String(currentUnmatchedValues[0]);
 
-          const unmatchedValues = getUnmatchedValues(currentValue);
-          if (unmatchedValues.length > 0 && !searchQuery.trim()) {
-            const firstUnmatched = String(unmatchedValues[0]);
-            setSearchQuery(firstUnmatched);
-            // Focus the input so the user can see the pre-filled value
-            setTimeout(() => {
-              const input = inputRef.current;
-              if (input) {
-                input.focus();
-                // Move cursor to end of input
-                const length = input.value.length;
-                input.setSelectionRange(length, length);
-              }
-            }, 0);
+            // Only initialize if this is a different unmatched value than what we initialized before
+            // If initializedUnmatchedValue matches firstUnmatched, user has already seen/cleared it
+            if (initializedUnmatchedValue !== firstUnmatched) {
+              setSearchQuery(firstUnmatched);
+              setInitializedUnmatchedValue(firstUnmatched);
+              // Focus the input so the user can see the pre-filled value
+              setTimeout(() => {
+                const input = inputRef.current;
+                if (input) {
+                  input.focus();
+                  // Move cursor to end of input
+                  const length = input.value.length;
+                  input.setSelectionRange(length, length);
+                }
+              }, 0);
+            }
           }
+        } else if (!open) {
+          // Reset search query when closing
+          setSearchQuery("");
         }
       }
     };
@@ -326,7 +367,13 @@ export function Select<
             type="text"
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
+              const newValue = e.target.value;
+              setSearchQuery(newValue);
+
+              // If user clears the search query and we had initialized a value,
+              // keep the initialized value set so it won't be restored when reopening
+              // (we don't reset it here - the initialized value stays to prevent re-initialization)
+
               // Keep dropdown open when typing or clearing
               if (!disabled) {
                 setIsOpen(true);
