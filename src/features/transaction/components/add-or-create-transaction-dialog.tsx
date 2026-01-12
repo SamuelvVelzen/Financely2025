@@ -90,6 +90,7 @@ export function AddOrCreateTransactionDialog({
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [hasTime, setHasTime] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const isEditMode = !!transaction;
   const { mutate: createExpense } = useCreateExpense();
   const { mutate: createIncome } = useCreateIncome();
@@ -107,6 +108,7 @@ export function AddOrCreateTransactionDialog({
 
   const resetFormToClosedState = () => {
     form.reset(getEmptyFormValues());
+    setDatePickerOpen(false);
   };
 
   const closeDialog = () => {
@@ -173,6 +175,7 @@ export function AddOrCreateTransactionDialog({
     } else {
       // Reset form when dialog closes to ensure clean state
       setHasTime(false);
+      setDatePickerOpen(false);
       form.reset(getEmptyFormValues());
     }
   }, [open, transaction?.id, form]);
@@ -199,6 +202,8 @@ export function AddOrCreateTransactionDialog({
           shouldDirty: true,
         });
         setHasTime(true);
+        // Open the datepicker when adding time
+        setDatePickerOpen(true);
       }
     } catch (error) {
       // If parsing fails, don't toggle
@@ -363,6 +368,8 @@ export function AddOrCreateTransactionDialog({
                     mode={hasTime ? "dateTime" : "dateOnly"}
                     disabled={pending}
                     required
+                    open={datePickerOpen}
+                    onOpenChange={setDatePickerOpen}
                     onAddTime={handleToggleTime}
                     onRemoveTime={handleToggleTime}
                   />

@@ -25,6 +25,8 @@ export type IDateInputProps = IPropsWithClassName & {
   placeholder?: string;
   onAddTime?: () => void;
   onRemoveTime?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 } & IFormOrControlledMode<string>;
 
 export function DateInput({
@@ -37,6 +39,8 @@ export function DateInput({
   placeholder = "Select date",
   onAddTime,
   onRemoveTime,
+  open: controlledOpen,
+  onOpenChange,
   name,
   value: controlledValue,
   onChange: controlledOnChange,
@@ -55,7 +59,17 @@ export function DateInput({
     onChange: controlledOnChange,
     onValueChange,
   });
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  // Use controlled state if provided, otherwise use internal state
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen = (newState: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(newState);
+    } else {
+      setInternalOpen(newState);
+    }
+  };
 
   // Helper to convert value based on mode
   const convertToFormFormat = (
