@@ -54,6 +54,9 @@ export function TransactionOverview({
     setPriceFilter,
     setTagFilter,
     setSearchQuery,
+    setTransactionTypeFilter,
+    setPaymentMethodFilter,
+    setCurrencyFilter,
     clearAllFilters,
     hasActiveFilters,
   } = useTransactionFilters({ initialState });

@@ -1,7 +1,5 @@
-import {
-  IFormOrControlledMode,
-  useFormContextOptional,
-} from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
+import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { Button } from "@/features/ui/button/button";
 import { CalendarView } from "@/features/ui/datepicker/calendar-view";
 import { TimePicker } from "@/features/ui/datepicker/time-picker";
@@ -16,7 +14,6 @@ import {
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { parseISO } from "date-fns";
 import { useState } from "react";
-import { Controller } from "react-hook-form";
 import { HiChevronDown, HiClock } from "react-icons/hi";
 
 export type IDateInputProps = IPropsWithClassName & {
@@ -45,15 +42,20 @@ export function DateInput({
   onChange: controlledOnChange,
   onValueChange,
 }: IDateInputProps) {
-  const form = useFormContextOptional();
+  const {
+    field,
+    borderClass,
+    shouldShowError,
+    error,
+    mode: adapterMode,
+    renderWithController,
+  } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
   const [isOpen, setIsOpen] = useState(false);
-
-  // Detect mode: form mode if form context exists AND name is provided
-  const isFormMode = form !== null && name !== undefined;
-  // Controlled mode if not in form mode and controlled props are provided
-  const isControlledMode =
-    !isFormMode &&
-    (controlledValue !== undefined || controlledOnChange !== undefined);
 
   // Helper to convert value based on mode
   const convertToFormFormat = (
@@ -102,17 +104,11 @@ export function DateInput({
   };
 
   // Shared rendering logic
-  const renderDateInput = (
-    value: string | undefined,
-    onChange: (value: string | undefined) => void,
-    borderClass: string,
-    showError?: boolean,
-    errorMessage?: string,
-    isFormModeRender?: boolean
-  ) => {
+  const renderDateInput = (currentField: typeof field) => {
+    const value = currentField.value as string | undefined;
     // Convert form value to ISO for internal use (calendar/time picker)
     const isoValue =
-      isFormModeRender && mode === "dateOnly"
+      adapterMode === "form" && mode === "dateOnly"
         ? convertFromFormFormat(value)
         : value;
     const selectedDate = parseDate(isoValue);
@@ -140,13 +136,11 @@ export function DateInput({
 
       // Convert to form format if needed
       const formValue =
-        isFormModeRender && mode === "dateOnly"
+        adapterMode === "form" && mode === "dateOnly"
           ? convertToFormFormat(newIsoValue)
           : newIsoValue;
 
-      onChange(formValue);
-      // Call onValueChange with the form format value
-      onValueChange?.(formValue);
+      currentField.onChange(formValue);
     };
 
     // Handle time change from time picker
@@ -162,12 +156,10 @@ export function DateInput({
       if (isoString) {
         // Convert to form format if needed
         const formValue =
-          isFormModeRender && mode === "dateOnly"
+          adapterMode === "form" && mode === "dateOnly"
             ? convertToFormFormat(isoString)
             : isoString;
-        onChange(formValue);
-        // Call onValueChange with the form format value
-        onValueChange?.(formValue);
+        currentField.onChange(formValue);
       }
     };
 
@@ -248,59 +240,18 @@ export function DateInput({
             onAddTime={onAddTime}
           />
         </Dropdown>
-        {showError && errorMessage && (
-          <p className="text-sm text-danger mt-1">{errorMessage}</p>
+        {shouldShowError && error?.message && (
+          <p className="text-sm text-danger mt-1">{error.message}</p>
         )}
-        {!showError && hint && (
+        {!shouldShowError && hint && (
           <p className="text-xs text-text-muted mt-1">{hint}</p>
         )}
       </div>
     );
   };
 
-  // Render controlled mode
-  if (isControlledMode) {
-    return renderDateInput(
-      controlledValue,
-      (newValue) => {
-        controlledOnChange?.(newValue);
-        onValueChange?.(newValue);
-      },
-      "border-border",
-      false,
-      undefined,
-      false
-    );
-  }
-
-  // Render form mode
-  if (!isFormMode || !form || !name) {
-    throw new Error(
-      "DateInput: Either provide 'name' prop with form context, or provide 'value' and 'onChange' props for controlled mode"
-    );
-  }
-
-  return (
-    <Controller
-      name={name}
-      control={form.control}
-      render={({ field, fieldState }) => {
-        const error = fieldState.error;
-        const shouldShowError = error && form.formState.isSubmitted;
-        const borderClass = shouldShowError ? "border-danger" : "border-border";
-
-        return renderDateInput(
-          field.value as string | undefined,
-          (newValue) => {
-            field.onChange(newValue);
-            onValueChange?.(newValue);
-          },
-          borderClass,
-          shouldShowError,
-          error?.message as string | undefined,
-          true
-        );
-      }}
-    />
-  );
+  // Render using the adapter
+  return renderWithController((currentField) => {
+    return renderDateInput(currentField);
+  });
 }

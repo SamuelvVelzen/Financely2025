@@ -1,7 +1,7 @@
 import {
   IFormOrControlledMode,
-  useFormContextOptional,
 } from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { queryKeys } from "@/features/shared/query/keys";
@@ -48,14 +48,15 @@ export function TagSelect({
   const [pendingTagName, setPendingTagName] = useState<string>("");
 
   const queryClient = useQueryClient();
-  const form = useFormContextOptional();
+  
+  const { mode, form: formContext } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
 
   const { highlightText } = useHighlightText();
-
-  // Determine mode for handleTagCreated
-  const isFormMode = !!name && !!form;
-  const isControlledMode =
-    controlledValue !== undefined && !!controlledOnChange;
 
   // Filter tags based on transactionType
   // Show tags where transactionType matches the provided type
@@ -90,7 +91,7 @@ export function TagSelect({
 
     // Auto-select the newly created tag
     if (createdTag) {
-      if (isControlledMode && controlledOnChange) {
+      if (mode === "controlled" && controlledOnChange) {
         // Controlled mode
         if (multiple) {
           const currentValues = Array.isArray(controlledValue)
@@ -102,18 +103,18 @@ export function TagSelect({
         } else {
           controlledOnChange(createdTag.id);
         }
-      } else if (isFormMode && form && name) {
+      } else if (mode === "form" && formContext && name) {
         // Form mode
-        const currentValue = form.getValues(name);
+        const currentValue = formContext.getValues(name);
         if (multiple) {
           const currentValues = Array.isArray(currentValue) ? currentValue : [];
           if (!currentValues.includes(createdTag.id)) {
-            form.setValue(name, [...currentValues, createdTag.id], {
+            formContext.setValue(name, [...currentValues, createdTag.id], {
               shouldValidate: true,
             });
           }
         } else {
-          form.setValue(name, createdTag.id, { shouldValidate: true });
+          formContext.setValue(name, createdTag.id, { shouldValidate: true });
         }
       }
     }
@@ -122,7 +123,7 @@ export function TagSelect({
   // Build props based on mode to satisfy TypeScript's discriminated union
   const forcePlacement: IPlacementOption[] = ["bottom"];
   const selectProps =
-    isFormMode && name
+    mode === "form" && name
       ? {
           name,
           options: tagOptions,

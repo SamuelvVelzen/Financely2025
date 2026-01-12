@@ -1,12 +1,11 @@
 import {
   IFormOrControlledMode,
-  useFormContextOptional,
 } from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { SelectHTMLAttributes } from "react";
-import { Controller } from "react-hook-form";
 import { ISelectOption } from "./select";
 import {
   createStringToValueConverter,
@@ -49,40 +48,33 @@ export function NativeSelect<
   stringToValue,
   ...props
 }: ISelectInputProps<TValue, TOption>) {
-  const form = useFormContextOptional();
-
   // Create serialization converters
   const convertValueToString = createValueToStringConverter(valueToString);
   const convertStringToValue = createStringToValueConverter(stringToValue);
 
-  // Determine mode
-  const isFormMode = !!name && !!form;
-  const isControlledMode =
-    controlledValue !== undefined && !!controlledOnChange;
-
-  const error = isFormMode && form ? form.formState.errors[name] : undefined;
+  const { field, error, borderClass, renderWithController } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
 
   const baseClasses =
     "border rounded-2xl bg-surface text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
-  const borderClass = error ? "border-danger" : "border-border";
   const widthBaseClasses = `h-[22px] box-content`;
 
   const paddingClasses = "py-2 pl-2 pr-2";
 
   // Shared rendering logic
   const renderSelect = (
-    value: TValue | TValue[] | undefined,
-    onChange: (newValue: TValue | TValue[] | undefined) => void,
+    currentField: typeof field,
     selectProps?: {
       name?: string;
       ref?: React.Ref<HTMLSelectElement>;
       onBlur?: () => void;
     }
   ) => {
-    const handleChange = (newValue: TValue | TValue[] | undefined) => {
-      onChange(newValue);
-      onValueChange?.(newValue);
-    };
+    const value = currentField.value as TValue | TValue[] | undefined;
     const stringValue = getStringValue(value, multiple, {
       valueToString,
       stringToValue,
@@ -109,20 +101,20 @@ export function NativeSelect<
                 : []
               : String(stringValue || "")
           }
-          onChange={(e) => {
+            onChange={(e) => {
             if (multiple) {
               const selectedStrings = Array.from(
                 e.target.selectedOptions,
                 (option) => option.value
               );
               const selectedValues = selectedStrings.map(convertStringToValue);
-              handleChange(selectedValues as TValue[]);
+              currentField.onChange(selectedValues as TValue[]);
             } else {
               const selectedString = e.target.value || "";
               if (selectedString === "") {
-                handleChange(undefined);
+                currentField.onChange(undefined);
               } else {
-                handleChange(convertStringToValue(selectedString));
+                currentField.onChange(convertStringToValue(selectedString));
               }
             }
           }}
@@ -144,45 +136,22 @@ export function NativeSelect<
         </select>
         {error && (
           <p className="text-sm text-danger mt-1">
-            {(error as { message?: string })?.message || String(error)}
+            {error.message || String(error)}
           </p>
         )}
       </div>
     );
   };
 
-  // Render controlled mode
-  if (isControlledMode) {
-    return renderSelect(controlledValue, (newValue) => {
-      controlledOnChange?.(newValue);
-      onValueChange?.(newValue);
-    });
-  }
-
-  // Render form mode
-  if (isFormMode && form) {
-    return (
-      <Controller
-        name={name}
-        control={form.control}
-        render={({ field }) => {
-          return renderSelect(
-            field.value as TValue | TValue[] | undefined,
-            (newValue) => {
-              field.onChange(newValue);
-              onValueChange?.(newValue);
-            },
-            {
-              name: field.name,
-              ref: field.ref,
-              onBlur: field.onBlur,
-            }
-          );
-        }}
-      />
+  // Render using the adapter
+  return renderWithController((currentField) => {
+    return renderSelect(
+      currentField,
+      {
+        name: currentField.name,
+        ref: currentField.ref as React.Ref<HTMLSelectElement>,
+        onBlur: currentField.onBlur,
+      }
     );
-  }
-
-  // Fallback (should not happen with proper discriminated union)
-  return null;
+  });
 }

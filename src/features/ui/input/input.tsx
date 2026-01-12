@@ -1,12 +1,10 @@
-import {
-  IFormOrControlledMode,
-  useFormContextOptional,
-} from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
+import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { forwardRef, useId } from "react";
-import { Controller, type ControllerRenderProps } from "react-hook-form";
+import type { ControllerRenderProps } from "react-hook-form";
 
 type RenderFieldParams = {
   field: ControllerRenderProps<Record<string, unknown>, string>;
@@ -49,19 +47,26 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
   ) => {
     const generatedId = useId();
     const inputId = id || generatedId;
-    const form = useFormContextOptional();
 
-    // Detect mode: form mode if form context exists AND name is provided
-    const isFormMode = form !== null && name !== undefined;
-    // Controlled mode if not in form mode and controlled props are provided
-    const isControlledMode =
-      !isFormMode &&
-      (controlledValue !== undefined || controlledOnChange !== undefined);
+    const {
+      field,
+      borderClass,
+      shouldShowError,
+      error,
+      mode,
+      renderWithController,
+    } = useFieldAdapter({
+      name,
+      value: controlledValue,
+      onChange: controlledOnChange,
+      onValueChange,
+    });
 
     // Exclude controlled mode props from props when in form mode to avoid conflicts
-    const formModeProps = isFormMode
-      ? { ...props, value: undefined, onChange: undefined }
-      : props;
+    const formModeProps =
+      mode === "form"
+        ? { ...props, value: undefined, onChange: undefined }
+        : props;
 
     const baseClasses =
       "border rounded-2xl bg-surface text-text hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed w-full";
@@ -76,17 +81,11 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
 
     // Shared rendering logic
     const renderInputContent = (
-      field: ControllerRenderProps<Record<string, unknown>, string>,
-      borderClass: string,
-      showError?: boolean,
-      errorMessage?: string,
-      isControlled?: boolean,
+      currentField: typeof field,
       inputRef?: React.Ref<HTMLInputElement>
     ) => {
       const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        field.onChange(e);
-        const value = e.target.value as string | number | undefined;
-        onValueChange?.(value);
+        currentField.onChange(e);
       };
 
       return (
@@ -107,9 +106,12 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
             {renderField ? (
               renderField({
                 field: {
-                  ...field,
+                  value: currentField.value,
                   onChange: handleChange,
-                },
+                  onBlur: currentField.onBlur,
+                  name: currentField.name,
+                  ref: currentField.ref,
+                } as ControllerRenderProps<Record<string, unknown>, string>,
                 inputProps: {
                   type,
                   id: inputId,
@@ -136,12 +138,14 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
                   widthBaseClasses,
                   className
                 )}
-                name={field.name}
-                ref={isControlled ? inputRef : field.ref}
-                {...(isControlled ? props : formModeProps)}
-                value={String(field.value ?? "")}
+                name={currentField.name}
+                ref={
+                  inputRef || (currentField.ref as React.Ref<HTMLInputElement>)
+                }
+                {...(mode === "controlled" ? props : formModeProps)}
+                value={String(currentField.value ?? "")}
                 onChange={handleChange}
-                onBlur={field.onBlur}
+                onBlur={currentField.onBlur}
               />
             )}
             {suffixIcon && (
@@ -150,86 +154,19 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
               </div>
             )}
           </div>
-          {showError && errorMessage && (
-            <p className="text-sm text-danger mt-1">{errorMessage}</p>
+          {shouldShowError && error?.message && (
+            <p className="text-sm text-danger mt-1">{error.message}</p>
           )}
-          {!showError && hint && (
+          {!shouldShowError && hint && (
             <p className="text-xs text-text-muted mt-1">{hint}</p>
           )}
         </div>
       );
     };
 
-    // Render controlled mode
-    if (isControlledMode) {
-      const borderClass = "border-border";
-      const inputValue = controlledValue ?? "";
-
-      // Create a mock field for controlled mode
-      const mockField: ControllerRenderProps<
-        Record<string, unknown>,
-        string
-      > = {
-        value: inputValue,
-        onChange: (value: unknown) => {
-          // Handle both event objects and direct values (for DecimalInput)
-          let extractedValue: string | number | undefined;
-          if (value && typeof value === "object" && "target" in value) {
-            // It's an event object - extract value and pass it
-            const event = value as React.ChangeEvent<HTMLInputElement>;
-            extractedValue = event.target.value as string | number | undefined;
-          } else {
-            // It's a direct value (e.g., string from DecimalInput)
-            extractedValue = value as string | number | undefined;
-          }
-          controlledOnChange?.(extractedValue);
-          onValueChange?.(extractedValue);
-        },
-        onBlur: () => {},
-        name: name || "",
-        ref: () => {},
-      };
-
-      return renderInputContent(
-        mockField,
-        borderClass,
-        false,
-        undefined,
-        true,
-        ref
-      );
-    }
-
-    // Render form mode
-    if (!form || !name) {
-      throw new Error(
-        "BaseInput: Either provide 'name' prop with form context, or provide 'value' and 'onChange' props for controlled mode"
-      );
-    }
-
-    return (
-      <Controller
-        name={name}
-        control={form.control}
-        render={({ field, fieldState }) => {
-          const error = fieldState.error;
-          const shouldShowError = error && form.formState.isSubmitted;
-          const borderClass = shouldShowError
-            ? "border-danger"
-            : "border-border";
-
-          return (
-            <>
-              {renderInputContent(
-                field,
-                borderClass,
-                shouldShowError,
-                error?.message as string | undefined
-              )}
-            </>
-          );
-        }}
-      />
-    );
+    // Render using the adapter
+    return renderWithController((currentField) => {
+      return renderInputContent(currentField, ref);
+    });
   }
 );

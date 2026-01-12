@@ -1,7 +1,5 @@
-import {
-  IFormOrControlledMode,
-  useFormContextOptional,
-} from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
+import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
@@ -78,12 +76,18 @@ export function Select<
   stringToValue,
 }: ISelectProps<TValue, TOption>) {
   const { isMobile } = useResponsive();
-  const form = useFormContextOptional();
 
-  // Determine mode
-  const isFormMode = !!name && !!form;
-  const isControlledMode =
-    controlledValue !== undefined && !!controlledOnChange;
+  const {
+    field,
+    error,
+    mode,
+    form: formContext,
+  } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,7 +95,6 @@ export function Select<
     string | null
   >(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const error = isFormMode && form ? form.formState.errors[name] : undefined;
 
   const { highlightText } = useHighlightText();
 
@@ -134,21 +137,14 @@ export function Select<
   // Get current unmatched values
   // NOTE: This hook must be called before any early returns to maintain hook order
   const currentUnmatchedValues = useMemo(() => {
-    const currentValue = isControlledMode
-      ? controlledValue
-      : isFormMode && form && name
-        ? (form.getValues(name) as TValue | TValue[] | undefined)
-        : undefined;
+    const currentValue =
+      mode === "controlled"
+        ? controlledValue
+        : mode === "form" && formContext && name
+          ? (formContext.getValues(name) as TValue | TValue[] | undefined)
+          : undefined;
     return getUnmatchedValues(currentValue);
-  }, [
-    isControlledMode,
-    controlledValue,
-    isFormMode,
-    form,
-    name,
-    multiple,
-    options,
-  ]);
+  }, [mode, controlledValue, formContext, name, multiple, options]);
 
   // Reset initialized value if unmatched values changed to a different value
   // NOTE: This hook must be called before any early returns to maintain hook order
@@ -211,11 +207,11 @@ export function Select<
   ]);
 
   // On mobile, use native select (only supports form mode for now)
-  if (isMobile && isFormMode && form) {
+  if (isMobile && mode === "form" && formContext) {
     return (
       <NativeSelect
         className={className}
-        name={name}
+        name={name!}
         options={options}
         multiple={multiple}
         placeholder={placeholder}
@@ -265,14 +261,8 @@ export function Select<
   };
 
   // Shared rendering logic
-  const renderSelectContent = (
-    value: TValue | TValue[] | undefined,
-    onChange: (newValue: TValue | TValue[] | undefined) => void
-  ) => {
-    const handleChange = (newValue: TValue | TValue[] | undefined) => {
-      onChange(newValue);
-      onValueChange?.(newValue);
-    };
+  const renderSelectContent = (currentField: typeof field) => {
+    const value = currentField.value as TValue | TValue[] | undefined;
     const selectedOptions = getSelectedOptions(value);
     const hasSelection = selectedOptions.length > 0;
 
@@ -289,10 +279,10 @@ export function Select<
         const newValues = currentValues.some((v) => v === optionValue)
           ? currentValues.filter((v) => v !== optionValue)
           : [...currentValues, optionValue];
-        handleChange(newValues);
+        currentField.onChange(newValues);
       } else {
         // Single select: set the value
-        handleChange(optionValue);
+        currentField.onChange(optionValue);
         setIsOpen(false);
         setSearchQuery("");
       }
@@ -303,9 +293,9 @@ export function Select<
       e.stopPropagation();
       if (multiple) {
         const currentValues = Array.isArray(value) ? value : [];
-        handleChange(currentValues.filter((v) => v !== optionValue));
+        currentField.onChange(currentValues.filter((v) => v !== optionValue));
       } else {
-        handleChange(undefined);
+        currentField.onChange(undefined);
       }
     };
 
@@ -414,7 +404,9 @@ export function Select<
                   const currentValues = Array.isArray(value) ? value : [];
                   const lastTagId =
                     selectedOptions[selectedOptions.length - 1].value;
-                  onChange(currentValues.filter((v) => v !== lastTagId));
+                  currentField.onChange(
+                    currentValues.filter((v) => v !== lastTagId)
+                  );
                 }
               }
             }}
@@ -503,7 +495,7 @@ export function Select<
         </Dropdown>
         {error && (
           <p className="text-sm text-danger mt-1">
-            {(error as { message?: string })?.message || String(error)}
+            {error.message || String(error)}
           </p>
         )}
         {!error && hint && (
@@ -517,36 +509,37 @@ export function Select<
   };
 
   // Render controlled mode
-  if (isControlledMode) {
-    return renderSelectContent(controlledValue, (newValue) => {
-      controlledOnChange?.(newValue);
-      onValueChange?.(newValue);
-    });
+  if (mode === "controlled") {
+    return renderSelectContent(field);
   }
 
-  // Render form mode
-  if (isFormMode && form) {
+  // Render form mode (need Controller for rules/disabled)
+  if (mode === "form" && formContext && name) {
     return (
       <Controller
         name={name}
-        control={form.control}
+        control={formContext.control}
         rules={{
           required: required,
         }}
         disabled={disabled}
-        render={({ field }) => {
-          return renderSelectContent(
-            field.value as TValue | TValue[] | undefined,
-            (newValue) => {
-              field.onChange(newValue);
-              onValueChange?.(newValue);
-            }
-          );
+        render={({ field: controllerField }) => {
+          // Create adapter field from controller field
+          const adapterField: typeof field = {
+            value: controllerField.value as TValue | TValue[] | undefined,
+            onChange: (value: unknown) => {
+              controllerField.onChange(value);
+              onValueChange?.(value as TValue | TValue[] | undefined);
+            },
+            onBlur: controllerField.onBlur,
+            name: controllerField.name,
+            ref: controllerField.ref,
+          };
+          return renderSelectContent(adapterField);
         }}
       />
     );
   }
 
-  // Fallback (should not happen with proper discriminated union)
   return null;
 }

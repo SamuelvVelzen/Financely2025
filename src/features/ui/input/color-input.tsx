@@ -1,11 +1,8 @@
-import {
-  IFormOrControlledMode,
-  useFormContextOptional,
-} from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
+import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useId, useState } from "react";
-import { Controller } from "react-hook-form";
 
 /**
  * Converts CSS color names (e.g., "red", "navy", "cornflowerblue") to hex codes
@@ -68,36 +65,26 @@ export function ColorInput({
   const generatedId = useId();
   const colorPickerId = id || `${generatedId}-color-picker`;
   const textInputId = `${generatedId}-text-input`;
-  const form = useFormContextOptional();
 
-  // Determine mode
-  const isFormMode = !!name && !!form;
-  const isControlledMode =
-    controlledValue !== undefined && !!controlledOnChange;
+  const { field, borderClass, shouldShowError, error, renderWithController } =
+    useFieldAdapter({
+      name,
+      value: controlledValue,
+      onChange: controlledOnChange,
+      onValueChange,
+    });
 
   // Initialize text value
   const [textValue, setTextValue] = useState<string>(() => {
-    if (isControlledMode && controlledValue !== undefined) {
-      return String(controlledValue || "");
-    }
-    if (isFormMode && form) {
-      const formValue = form.getValues(name);
-      return String(formValue || "");
-    }
-    return "";
+    return String(field.value || "");
   });
 
   const baseClasses =
     "w-full px-3 py-2 border rounded-2xl bg-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
 
   // Shared rendering logic
-  const renderColorInput = (
-    currentValue: string,
-    onChange: (value: string) => void,
-    borderClass: string,
-    showError?: boolean,
-    errorMessage?: string
-  ) => {
+  const renderColorInput = (currentField: typeof field) => {
+    const currentValue = String(currentField.value || "");
     // Sync text value when value changes from outside
     if (
       currentValue !== textValue &&
@@ -112,7 +99,7 @@ export function ColorInput({
       e: React.ChangeEvent<HTMLInputElement>
     ) => {
       const newValue = e.target.value;
-      onChange(newValue);
+      currentField.onChange(newValue);
       setTextValue(newValue);
     };
 
@@ -125,7 +112,7 @@ export function ColorInput({
     const handleTextBlur = () => {
       // Convert CSS color names to hex, or keep hex codes as-is when user finishes typing
       const hexColor = cssColorToHex(textValue || "");
-      onChange(hexColor);
+      currentField.onChange(hexColor);
       setTextValue(hexColor);
     };
 
@@ -189,54 +176,23 @@ export function ColorInput({
             className={cn(baseClasses, borderClass, "flex-1")}
           />
         </div>
-        {showError && errorMessage && (
-          <p className="text-sm text-danger mt-1">{errorMessage}</p>
+        {shouldShowError && error?.message && (
+          <p className="text-sm text-danger mt-1">{error.message}</p>
         )}
       </div>
     );
   };
 
-  // Render controlled mode
-  if (isControlledMode) {
-    return renderColorInput(
-      controlledValue || "",
-      (value) => {
-        controlledOnChange?.(value);
-        onValueChange?.(value);
-      },
-      "border-border"
-    );
-  }
+  // Render using the adapter
+  return renderWithController((currentField) => {
+    // Sync text value when value changes from outside
+    if (
+      String(currentField.value || "") !== textValue &&
+      document.activeElement?.id !== textInputId
+    ) {
+      setTextValue(String(currentField.value || ""));
+    }
 
-  // Render form mode
-  if (isFormMode && form) {
-    return (
-      <Controller
-        name={name}
-        control={form.control}
-        render={({ field, fieldState }) => {
-          const error = fieldState.error;
-          const shouldShowError = error && form.formState.isSubmitted;
-          const borderClass = shouldShowError
-            ? "border-danger"
-            : "border-border";
-          const currentFieldValue: string = String(field.value || "");
-
-          return renderColorInput(
-            currentFieldValue,
-            (value) => {
-              field.onChange(value);
-              onValueChange?.(value);
-            },
-            borderClass,
-            shouldShowError,
-            error?.message as string | undefined
-          );
-        }}
-      />
-    );
-  }
-
-  // Fallback (should not happen with proper discriminated union)
-  return null;
+    return renderColorInput(currentField);
+  });
 }

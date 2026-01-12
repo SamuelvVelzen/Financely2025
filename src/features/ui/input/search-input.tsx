@@ -1,7 +1,7 @@
 import {
   IFormOrControlledMode,
-  useFormContextOptional,
 } from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
@@ -24,28 +24,23 @@ export function SearchInput({
   onChange: controlledOnChange,
   onValueChange,
 }: ISearchInputProps) {
-  const form = useFormContextOptional();
-
-  // Determine mode
-  const isFormMode = !!name && !!form;
-  const isControlledMode =
-    controlledValue !== undefined && !!controlledOnChange;
+  const { field, mode, form } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
 
   // Get current value
-  const value = isControlledMode
-    ? controlledValue || ""
-    : isFormMode && form
-      ? form.watch(name) || ""
-      : "";
+  const value = String(field.value || "");
 
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleClear = () => {
-    if (isControlledMode) {
-      controlledOnChange?.("");
-      onValueChange?.("");
-    } else if (isFormMode && form) {
+    if (mode === "controlled") {
+      field.onChange("");
+    } else if (mode === "form" && form && name) {
       form.setValue(name, "");
       onValueChange?.("");
     }
@@ -104,7 +99,7 @@ export function SearchInput({
           className
         )}>
         <TextInput
-          {...(isFormMode
+          {...(mode === "form"
             ? ({ name, onValueChange } as { name: string; onValueChange?: (value: string | number | undefined) => void })
             : ({
                 value: controlledValue,
