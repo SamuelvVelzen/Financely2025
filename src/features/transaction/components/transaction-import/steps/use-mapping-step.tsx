@@ -13,11 +13,11 @@ import {
   TRANSACTION_FIELDS,
   type ITransactionFieldMetadata,
 } from "../../../config/transaction-fields";
+import { BankProfileFactory } from "../../../services/bank.factory";
 import {
   hasDescriptionExtraction,
   supportsDateTimeExtraction,
 } from "../../../services/csv-description-extraction";
-import { BankProfileFactory } from "../../../services/bank.factory";
 import { BankSelect } from "../../bank-select";
 import {
   useTransactionImportContext,
@@ -77,7 +77,7 @@ function FieldMappingCard({
           options={columnOptions}
           placeholder="Select column..."
           multiple={false}
-          showClearButton={false}
+          clearable={false}
         />
       </Form>
       {fieldError && (
@@ -103,13 +103,11 @@ function MappingStepContent() {
 
   const requiredFields = TRANSACTION_FIELDS.filter(
     (f) =>
-      requiredMappingFields.includes(f.name) &&
-      !hiddenFields.includes(f.name)
+      requiredMappingFields.includes(f.name) && !hiddenFields.includes(f.name)
   );
   const optionalFields = TRANSACTION_FIELDS.filter(
     (f) =>
-      !requiredMappingFields.includes(f.name) &&
-      !hiddenFields.includes(f.name)
+      !requiredMappingFields.includes(f.name) && !hiddenFields.includes(f.name)
   );
 
   const bankDisplayName =

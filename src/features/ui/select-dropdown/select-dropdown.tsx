@@ -25,7 +25,7 @@ export type ISelectDropdownProps<
   placeholder?: string;
   label?: string;
   maxDisplayItems?: number;
-  showClearButton?: boolean;
+  clearable?: boolean;
   children?: (
     option: TOption,
     index: number,
@@ -51,7 +51,7 @@ export function SelectDropdown<
   placeholder = "Select...",
   label,
   maxDisplayItems = 2,
-  showClearButton = true,
+  clearable = true,
   children,
   disabled = false,
   required = false,
@@ -206,7 +206,7 @@ export function SelectDropdown<
           {displayText}
         </span>
         <div className="flex items-center gap-1 ml-2">
-          {hasSelection && showClearButton && (
+          {hasSelection && clearable && (
             <span
               role="button"
               onClick={handleClear}

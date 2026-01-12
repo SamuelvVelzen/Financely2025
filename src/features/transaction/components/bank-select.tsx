@@ -63,7 +63,7 @@ export function BankSelect({
           options={BANK_OPTIONS}
           multiple={false}
           required={true}
-          showClearButton={false}
+          clearable={false}
         />
       </Form>
       {helperText && (

@@ -230,7 +230,7 @@ function ReviewStepContent({
                       });
                     }}
                     placeholder="Select type"
-                    showClearButton={false}
+                    clearable={false}
                   />
                 </BodyCell>
                 <BodyCell>
