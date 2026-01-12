@@ -289,13 +289,13 @@ export function BudgetPresetSelector({
 
       {preset === "monthly" && (
         <div className="grid grid-cols-2 gap-4">
-          <SelectDropdown
+          <SelectDropdown<number>
             name="general.year"
             label="Year"
             options={yearOptions}
             placeholder="Select year"
           />
-          <SelectDropdown
+          <SelectDropdown<number>
             name="general.month"
             label="Month"
             options={monthOptions}
@@ -305,7 +305,7 @@ export function BudgetPresetSelector({
       )}
 
       {preset === "yearly" && (
-        <SelectDropdown
+        <SelectDropdown<number>
           name="general.year"
           label="Year"
           options={yearOptions}
