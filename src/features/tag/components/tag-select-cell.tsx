@@ -60,67 +60,66 @@ export function TagSelectCell({
   }, [tagMetadata]);
 
   // Separate found tags (with IDs) from not-found tags (names only)
-  const { foundTagIds, notFoundTagNames } = useMemo(() => {
+  const { foundTagIds, notFoundTagIds } = useMemo(() => {
+    // Helper function to resolve a single tag value to either a tag ID or mark as not found
+    // This logic is shared between multiple and single selection modes
+    const resolveTagValue = (
+      tagId: string
+    ): { id: string } | { notFound: string } => {
+      // Check if it's a tag name with metadata (found tag)
+      const metadata = tagMetadataMap.get(tagId);
+      if (metadata && metadata.id) {
+        return { id: metadata.id };
+      }
+
+      // Check if it's already a tag ID (if name lookup failed, it might be an ID)
+      const isTagId = tags.some((tag) => tag.id === tagId);
+      if (isTagId) {
+        return { id: tagId };
+      }
+
+      // It's neither a known tag name nor a tag ID (not found)
+      return { notFound: tagId };
+    };
+
     const foundIds: string[] = [];
     const notFoundNames: string[] = [];
 
     if (!value) {
       return {
         foundTagIds: multiple ? [] : undefined,
-        notFoundTagNames: [],
+        notFoundTagIds: [],
       };
     }
 
     if (multiple && Array.isArray(value)) {
+      // Multiple selection: iterate through array and resolve each value
       for (const val of value) {
         if (typeof val === "string") {
-          // Check if it's a tag name with metadata (found tag)
-          const metadata = tagMetadataMap.get(val);
-          if (metadata && metadata.id) {
-            foundIds.push(metadata.id);
+          const result = resolveTagValue(val);
+          if ("id" in result) {
+            foundIds.push(result.id);
           } else {
-            // Check if it's already a tag ID (check if it exists in tags)
-            const isTagId = tags.some((tag) => tag.id === val);
-            if (isTagId) {
-              foundIds.push(val);
-            } else {
-              // Check if tag name exists in database (but wasn't in metadata)
-              const tagIdFromName = tagNameToIdMap.get(val);
-              if (tagIdFromName) {
-                foundIds.push(tagIdFromName);
-              } else {
-                // It's a tag name without metadata and not in database (not found)
-                notFoundNames.push(val);
-              }
-            }
+            notFoundNames.push(result.notFound);
           }
         }
       }
     } else if (!multiple && typeof value === "string") {
-      const metadata = tagMetadataMap.get(value);
-      if (metadata && metadata.id) {
-        foundIds.push(metadata.id);
+      // Single selection: resolve the single value
+      const result = resolveTagValue(value);
+      if ("id" in result) {
+        foundIds.push(result.id);
       } else {
-        const isTagId = tags.some((tag) => tag.id === value);
-        if (isTagId) {
-          foundIds.push(value);
-        } else {
-          const tagIdFromName = tagNameToIdMap.get(value);
-          if (tagIdFromName) {
-            foundIds.push(tagIdFromName);
-          } else {
-            notFoundNames.push(value);
-          }
-        }
+        notFoundNames.push(result.notFound);
       }
     }
 
     return {
       foundTagIds: multiple ? foundIds : (foundIds[0] as string | undefined),
-      notFoundTagNames: notFoundNames,
+      notFoundTagIds: notFoundNames,
     } as {
       foundTagIds: string | string[] | undefined;
-      notFoundTagNames: string[];
+      notFoundTagIds: string[];
     };
   }, [value, tagMetadataMap, tags, tagNameToIdMap, multiple]);
 
@@ -148,14 +147,29 @@ export function TagSelectCell({
 
   // Combine found tag IDs with not-found tag names for the value prop
   const combinedValue = useMemo(() => {
+    // Helper function to convert tag ID to name (or keep ID if transactionType matches)
+    const convertTagIdToDisplayValue = (tagId: string): string => {
+      const tag = tags.find((tag) => tag.id === tagId);
+      if (tag?.transactionType === transactionType) {
+        return tagId;
+      }
+      return tag?.name ?? tagId;
+    };
+
     if (multiple) {
       const foundIds = Array.isArray(foundTagIds) ? foundTagIds : [];
-      return [...foundIds, ...notFoundTagNames];
+      // Convert tag IDs to names (same logic as single select)
+      const convertedValues = foundIds.map(convertTagIdToDisplayValue);
+      return [...convertedValues, ...notFoundTagIds];
     } else {
-      // For single select, prefer found tag ID, otherwise use not-found tag name
-      return foundTagIds ?? (notFoundTagNames[0] || undefined);
+      // For single select, convert tag ID to name if found, otherwise use not-found value
+      if (foundTagIds && typeof foundTagIds === "string") {
+        return convertTagIdToDisplayValue(foundTagIds);
+      }
+
+      return notFoundTagIds[0] ?? undefined;
     }
-  }, [foundTagIds, notFoundTagNames, multiple]);
+  }, [foundTagIds, notFoundTagIds, multiple, tags, transactionType]);
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
