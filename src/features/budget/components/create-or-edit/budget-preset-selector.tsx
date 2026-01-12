@@ -305,6 +305,7 @@ export function BudgetPresetSelector({
             <Label>Start Date</Label>
             <DateInput
               name="general.startDate"
+              mode="dateOnly"
               onValueChange={handleCustomDateChange}
             />
           </div>
@@ -312,6 +313,7 @@ export function BudgetPresetSelector({
             <Label>End Date</Label>
             <DateInput
               name="general.endDate"
+              mode="dateOnly"
               onValueChange={handleCustomDateChange}
             />
           </div>

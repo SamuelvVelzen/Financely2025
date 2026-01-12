@@ -26,13 +26,11 @@ import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import { useToast } from "@/features/ui/toast";
 import {
-  dateOnlyToDatetimeLocal,
   dateOnlyToIso,
-  datetimeLocalToIso,
   isoToDateOnly,
-  isoToDatetimeLocal,
 } from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { parseISO } from "date-fns";
 import { useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
 import { z } from "zod";
@@ -64,17 +62,24 @@ const TransactionFormSchema = CreateTransactionInputSchema.omit({
 });
 
 type FormData = z.infer<typeof TransactionFormSchema>;
-const getEmptyFormValues = (): FormData => ({
-  name: "",
-  amount: "",
-  currency: "EUR",
-  type: "EXPENSE",
-  transactionDate: "",
-  paymentMethod: "OTHER",
-  description: "",
-  tagIds: [],
-  primaryTagId: null,
-});
+const getEmptyFormValues = (): FormData => {
+  // Default to today's date as date-only ISO
+  const now = new Date();
+  const dateOnly = isoToDateOnly(now.toISOString());
+  const dateOnlyIso = dateOnlyToIso(dateOnly);
+
+  return {
+    name: "",
+    amount: "",
+    currency: "EUR",
+    type: "EXPENSE",
+    transactionDate: dateOnlyIso,
+    paymentMethod: "OTHER",
+    description: "",
+    tagIds: [],
+    primaryTagId: null,
+  };
+};
 
 export function AddOrCreateTransactionDialog({
   open,
@@ -134,17 +139,13 @@ export function AddOrCreateTransactionDialog({
         const isDateTime = transaction.timePrecision === "DateTime";
         setHasTime(isDateTime);
 
-        // For DateOnly: use date-only format, for DateTime: use datetime-local format
-        const transactionDateValue = isDateTime
-          ? isoToDatetimeLocal(transaction.transactionDate)
-          : isoToDateOnly(transaction.transactionDate);
-
+        // DateInput expects ISO strings
         form.reset({
           name: transaction.name,
           amount: transaction.amount,
           currency: transaction.currency,
           type: transaction.type,
-          transactionDate: transactionDateValue,
+          transactionDate: transaction.transactionDate, // Already ISO string
           paymentMethod: transaction.paymentMethod,
           description: transaction.description ?? "",
           tagIds: transaction.tags.map((tag) => tag.id),
@@ -154,12 +155,15 @@ export function AddOrCreateTransactionDialog({
         // Create mode: reset to defaults with current date (no time - DateOnly default)
         const now = new Date();
         setHasTime(false);
+        // Convert to ISO with noon UTC for date-only
+        const dateOnly = isoToDateOnly(now.toISOString());
+        const dateOnlyIso = dateOnlyToIso(dateOnly);
         form.reset({
           name: "",
           amount: "",
           currency: "EUR",
           type: "EXPENSE",
-          transactionDate: isoToDateOnly(now.toISOString()),
+          transactionDate: dateOnlyIso,
           paymentMethod: "OTHER",
           description: "",
           tagIds: [],
@@ -177,43 +181,39 @@ export function AddOrCreateTransactionDialog({
     const currentValue = form.getValues("transactionDate");
     if (!currentValue) return;
 
-    if (hasTime) {
-      // Removing time: convert datetime-local to date-only
-      const dateOnly = currentValue.split("T")[0];
-      form.setValue("transactionDate", dateOnly);
-      setHasTime(false);
-    } else {
-      // Adding time: convert date-only to datetime-local with default time (noon UTC in local time)
-      // Get noon UTC and convert to local time for the default
-      const dateOnly = currentValue;
-      const noonUtc = new Date(`${dateOnly}T12:00:00.000Z`);
-      const localHours = String(noonUtc.getHours()).padStart(2, "0");
-      const localMinutes = String(noonUtc.getMinutes()).padStart(2, "0");
-      const datetimeLocal = dateOnlyToDatetimeLocal(
-        dateOnly,
-        `${localHours}:${localMinutes}`
-      );
-      form.setValue("transactionDate", datetimeLocal);
-      setHasTime(true);
+    try {
+      const currentDate = parseISO(currentValue);
+
+      if (hasTime) {
+        // Removing time: convert to date-only ISO (noon UTC)
+        const dateOnly = isoToDateOnly(currentValue);
+        const dateOnlyIso = dateOnlyToIso(dateOnly);
+        form.setValue("transactionDate", dateOnlyIso, { shouldDirty: true });
+        setHasTime(false);
+      } else {
+        // Adding time: preserve date, use current time
+        const updatedDate = new Date(currentDate);
+        const now = new Date();
+        updatedDate.setHours(now.getHours(), now.getMinutes(), 0, 0);
+        form.setValue("transactionDate", updatedDate.toISOString(), {
+          shouldDirty: true,
+        });
+        setHasTime(true);
+      }
+    } catch (error) {
+      // If parsing fails, don't toggle
+      console.error("Failed to parse date:", error);
     }
   };
 
   const handleSubmit = async (data: FormData) => {
     setPending(true);
 
-    // Transform form data to API format
-    let transactionDateIso: string;
-    let timePrecision: "DateTime" | "DateOnly";
-
-    if (hasTime) {
-      // DateTime: convert datetime-local to ISO
-      transactionDateIso = datetimeLocalToIso(data.transactionDate);
-      timePrecision = "DateTime";
-    } else {
-      // DateOnly: convert date-only to ISO with noon UTC placeholder
-      transactionDateIso = dateOnlyToIso(data.transactionDate);
-      timePrecision = "DateOnly";
-    }
+    // DateInput already provides ISO strings, we just need to determine precision
+    const transactionDateIso = data.transactionDate;
+    const timePrecision: "DateTime" | "DateOnly" = hasTime
+      ? "DateTime"
+      : "DateOnly";
 
     const submitData = {
       name: data.name.trim(),
@@ -360,14 +360,17 @@ export function AddOrCreateTransactionDialog({
                   <DateInput
                     name="transactionDate"
                     label={hasTime ? "Date & Time" : "Date"}
-                    type={hasTime ? "datetime-local" : "date"}
+                    mode={hasTime ? "dateTime" : "dateOnly"}
                     disabled={pending}
                     required
+                    onAddTime={handleToggleTime}
+                    onRemoveTime={handleToggleTime}
                   />
                 </div>
                 <Button
                   clicked={handleToggleTime}
-                  disabled={pending}>
+                  disabled={pending}
+                  className="whitespace-nowrap min-w-50">
                   {hasTime ? "Remove time" : "Add time"}
                 </Button>
               </div>
