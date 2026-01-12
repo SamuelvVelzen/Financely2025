@@ -118,6 +118,17 @@ html.dark {
   color-scheme: dark;
 }
 
+/* Hide number input spinners in all browsers */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Toast animations - Right positions */
 @keyframes toastInRight {
   from {
