@@ -94,6 +94,26 @@ export function Select<
 
   const { highlightText } = useHighlightText();
 
+  // Helper functions (defined before hooks to avoid issues)
+  const getUnmatchedValues = (
+    value: TValue | TValue[] | undefined
+  ): TValue[] => {
+    if (!value) {
+      return [];
+    }
+    if (multiple && Array.isArray(value)) {
+      const unmatched = value.filter(
+        (val) => !options.some((opt) => opt.value === val)
+      );
+      return unmatched;
+    }
+    if (!multiple && typeof value === "string") {
+      const exists = options.some((opt) => opt.value === value);
+      return exists ? [] : [value];
+    }
+    return [];
+  };
+
   // Filter options based on search query
   // NOTE: This hook must be called before any early returns to maintain hook order
   const filteredOptions = useMemo(() => {
@@ -109,6 +129,85 @@ export function Select<
       return searchValue.toLowerCase().includes(query);
     });
   }, [options, searchQuery, getOptionSearchValue]);
+
+  // Get current unmatched values
+  // NOTE: This hook must be called before any early returns to maintain hook order
+  const currentUnmatchedValues = useMemo(() => {
+    const currentValue = isControlledMode
+      ? controlledValue
+      : isFormMode && form && name
+        ? (form.getValues(name) as TValue | TValue[] | undefined)
+        : undefined;
+    return getUnmatchedValues(currentValue);
+  }, [
+    isControlledMode,
+    controlledValue,
+    isFormMode,
+    form,
+    name,
+    multiple,
+    options,
+  ]);
+
+  // Reset initialized value if unmatched values changed to a different value
+  // NOTE: This hook must be called before any early returns to maintain hook order
+  useEffect(() => {
+    const firstUnmatched =
+      currentUnmatchedValues.length > 0
+        ? String(currentUnmatchedValues[0])
+        : null;
+
+    // If the unmatched value changed to a different value, reset the initialized value
+    // This allows new unmatched values to be initialized when dropdown opens
+    if (
+      firstUnmatched !== null &&
+      firstUnmatched !== initializedUnmatchedValue
+    ) {
+      setInitializedUnmatchedValue(null);
+    }
+
+    // If there are no unmatched values, reset the initialized value
+    if (firstUnmatched === null && initializedUnmatchedValue !== null) {
+      setInitializedUnmatchedValue(null);
+    }
+  }, [currentUnmatchedValues, initializedUnmatchedValue]);
+
+  // Initialize search query when unmatched values change
+  // Note: We initialize even when dropdown is closed, so it's ready when user opens it
+  // NOTE: This hook must be called before any early returns to maintain hook order
+  useEffect(() => {
+    if (
+      onCreateNew &&
+      currentUnmatchedValues.length > 0 &&
+      !searchQuery.trim()
+    ) {
+      const firstUnmatched = String(currentUnmatchedValues[0]);
+
+      // Only initialize if this is a different unmatched value than what we initialized before
+      if (initializedUnmatchedValue !== firstUnmatched) {
+        setSearchQuery(firstUnmatched);
+        setInitializedUnmatchedValue(firstUnmatched);
+        // Focus the input if dropdown is open
+        if (isOpen) {
+          setTimeout(() => {
+            const input = inputRef.current;
+            if (input) {
+              input.focus();
+              // Move cursor to end of input
+              const length = input.value.length;
+              input.setSelectionRange(length, length);
+            }
+          }, 0);
+        }
+      }
+    }
+  }, [
+    currentUnmatchedValues,
+    onCreateNew,
+    searchQuery,
+    initializedUnmatchedValue,
+    isOpen,
+  ]);
 
   // On mobile, use native select (only supports form mode for now)
   if (isMobile && isFormMode && form) {
@@ -163,102 +262,6 @@ export function Select<
     }
     return [];
   };
-
-  // Get unmatched values (values that don't exist in options)
-  const getUnmatchedValues = (
-    value: TValue | TValue[] | undefined
-  ): TValue[] => {
-    if (!value) {
-      return [];
-    }
-    if (multiple && Array.isArray(value)) {
-      const unmatched = value.filter(
-        (val) => !options.some((opt) => opt.value === val)
-      );
-      return unmatched;
-    }
-    if (!multiple && typeof value === "string") {
-      const exists = options.some((opt) => opt.value === value);
-      return exists ? [] : [value];
-    }
-    return [];
-  };
-
-  // Get current unmatched values
-  const currentUnmatchedValues = useMemo(() => {
-    const currentValue = isControlledMode
-      ? controlledValue
-      : isFormMode && form && name
-        ? (form.getValues(name) as TValue | TValue[] | undefined)
-        : undefined;
-    return getUnmatchedValues(currentValue);
-  }, [
-    isControlledMode,
-    controlledValue,
-    isFormMode,
-    form,
-    name,
-    multiple,
-    options,
-  ]);
-
-  // Reset initialized value if unmatched values changed to a different value
-  useEffect(() => {
-    const firstUnmatched =
-      currentUnmatchedValues.length > 0
-        ? String(currentUnmatchedValues[0])
-        : null;
-
-    // If the unmatched value changed to a different value, reset the initialized value
-    // This allows new unmatched values to be initialized when dropdown opens
-    if (
-      firstUnmatched !== null &&
-      firstUnmatched !== initializedUnmatchedValue
-    ) {
-      setInitializedUnmatchedValue(null);
-    }
-
-    // If there are no unmatched values, reset the initialized value
-    if (firstUnmatched === null && initializedUnmatchedValue !== null) {
-      setInitializedUnmatchedValue(null);
-    }
-  }, [currentUnmatchedValues, initializedUnmatchedValue]);
-
-  // Initialize search query when unmatched values change
-  // Note: We initialize even when dropdown is closed, so it's ready when user opens it
-  useEffect(() => {
-    if (
-      onCreateNew &&
-      currentUnmatchedValues.length > 0 &&
-      !searchQuery.trim()
-    ) {
-      const firstUnmatched = String(currentUnmatchedValues[0]);
-
-      // Only initialize if this is a different unmatched value than what we initialized before
-      if (initializedUnmatchedValue !== firstUnmatched) {
-        setSearchQuery(firstUnmatched);
-        setInitializedUnmatchedValue(firstUnmatched);
-        // Focus the input if dropdown is open
-        if (isOpen) {
-          setTimeout(() => {
-            const input = inputRef.current;
-            if (input) {
-              input.focus();
-              // Move cursor to end of input
-              const length = input.value.length;
-              input.setSelectionRange(length, length);
-            }
-          }, 0);
-        }
-      }
-    }
-  }, [
-    currentUnmatchedValues,
-    onCreateNew,
-    searchQuery,
-    initializedUnmatchedValue,
-    isOpen,
-  ]);
 
   // Shared rendering logic
   const renderSelectContent = (
