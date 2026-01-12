@@ -11,20 +11,19 @@ import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
-interface ITagSelectCellProps extends IPropsWithClassName {
+type ITagSelectCellProps = IPropsWithClassName & {
   // Tag metadata array
   tagMetadata?: ITagMetadata[];
   // Transaction type for filtering tags
   transactionType?: ITransactionType;
-  // Controlled value (tag IDs for found tags, tag names for not-found)
-  value?: string | string[];
-  // Callback when selection changes
-  onChange?: (value: string | string[] | undefined) => void;
   // Single or multiple selection
   multiple?: boolean;
   // Placeholder text
   placeholder?: string;
-}
+} & {
+  value: string | string[];
+  onChange: (value: string | string[] | undefined) => void;
+};
 
 export function TagSelectCell({
   className = "",
@@ -125,12 +124,6 @@ export function TagSelectCell({
     };
   }, [value, tagMetadataMap, tags, tagNameToIdMap, multiple]);
 
-  // Handle create new tag
-  const handleCreateNew = (searchQuery: string) => {
-    setPendingTagName(searchQuery);
-    setIsCreateDialogOpen(true);
-  };
-
   // Handle tag creation success
   const handleTagCreated = (createdTag?: ITag) => {
     // Invalidate tags query to refresh the list
@@ -146,17 +139,11 @@ export function TagSelectCell({
         const updatedValues = currentValues
           .filter((val) => val !== pendingTagName)
           .concat(createdTag.id);
-        onChange?.(updatedValues);
+        onChange(updatedValues);
       } else {
-        onChange?.(createdTag.id);
+        onChange(createdTag.id);
       }
     }
-  };
-
-  // Handle value change from Select
-  const handleChange = (newValue: string | string[] | undefined) => {
-    if (!onChange) return;
-    onChange(newValue);
   };
 
   // Combine found tag IDs with not-found tag names for the value prop
@@ -180,7 +167,7 @@ export function TagSelectCell({
           placeholder={placeholder}
           transactionType={transactionType}
           value={combinedValue ?? (multiple ? [] : "")}
-          onChange={handleChange}
+          onChange={onChange}
         />
       </div>
       <AddOrCreateTagDialog
