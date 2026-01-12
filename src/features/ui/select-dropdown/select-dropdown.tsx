@@ -165,15 +165,31 @@ export function SelectDropdown<
       if (multiple) {
         // Multiple select: toggle the option
         const currentValues = Array.isArray(value) ? value : [];
-        const newValues = currentValues.some((v) => v === optionValue)
-          ? currentValues.filter((v) => v !== optionValue)
-          : [...currentValues, optionValue];
-        onChange(newValues);
+        const isCurrentlySelected = currentValues.some(
+          (v) => v === optionValue
+        );
+
+        if (isCurrentlySelected) {
+          // If removing this item would result in empty array and clearable is false, prevent removal
+          if (!clearable && currentValues.length === 1) {
+            return;
+          }
+          // Remove the option
+          const newValues = currentValues.filter((v) => v !== optionValue);
+          onChange(newValues);
+        } else {
+          // Add the option
+          const newValues = [...currentValues, optionValue];
+          onChange(newValues);
+        }
       } else {
-        // Single select: toggle selection (allow deselecting)
+        // Single select: toggle selection (allow deselecting only if clearable is true)
         if (value === optionValue) {
-          // Deselect if already selected
-          onChange(undefined);
+          // Deselect if already selected, but only if clearable is true
+          if (clearable) {
+            onChange(undefined);
+          }
+          // If clearable is false, do nothing (prevent deselection)
         } else {
           // Select the option
           onChange(optionValue);
