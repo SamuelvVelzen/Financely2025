@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type IPlacementSide = "top" | "bottom" | "left" | "right";
 export type IPlacementAlignment = "start" | "center" | "end";
@@ -12,6 +12,7 @@ export type IFloatingPlacement = {
   alignment: IPlacementAlignment;
   maxWidth?: number;
   maxHeight?: number;
+  width?: number; // Width to apply when matchWidth is true (locked on open)
 } | null;
 
 const VIEWPORT_MARGIN = 8;
@@ -52,7 +53,7 @@ type IUseFloatingPlacementOptions = {
   triggerRef: React.RefObject<HTMLElement>;
   contentRef: React.RefObject<HTMLElement>;
   placement?: IPlacementOption[] | IPlacementOption;
-  matchWidth?: boolean; // Match content width to trigger width (for dropdowns)
+  matchWidth?: boolean; // Match content width to trigger width (locks width on open for dropdowns)
 };
 
 /**
@@ -78,6 +79,35 @@ export function useFloatingPlacement({
   matchWidth = false,
 }: IUseFloatingPlacementOptions): IFloatingPlacement {
   const [position, setPosition] = useState<IFloatingPlacement>(null);
+  const [lockedTriggerWidth, setLockedTriggerWidth] = useState<
+    number | undefined
+  >(undefined);
+  const wasOpenRef = useRef(false);
+
+  // Handle width locking when matchWidth is enabled
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current && matchWidth && triggerRef.current) {
+      // Dropdown just opened - capture the trigger width
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      // Wait for content to be measured before locking width
+      const timeoutId = setTimeout(() => {
+        const contentRect = contentRef.current?.getBoundingClientRect();
+        // Only lock width if content fits within trigger width
+        if (contentRect && contentRect.width <= triggerRect.width) {
+          setLockedTriggerWidth(triggerRect.width);
+        } else {
+          setLockedTriggerWidth(undefined);
+        }
+      }, 0);
+
+      return () => clearTimeout(timeoutId);
+    } else if (!isOpen && wasOpenRef.current && matchWidth) {
+      // Dropdown just closed - clear the locked width
+      setLockedTriggerWidth(undefined);
+    }
+
+    wasOpenRef.current = isOpen;
+  }, [isOpen, matchWidth, triggerRef, contentRef]);
 
   useEffect(() => {
     if (!isOpen || !triggerRef.current) {
@@ -143,16 +173,21 @@ export function useFloatingPlacement({
           let leftAlignedLeft = triggerRect.left;
           let rightAlignedLeft = triggerRect.right - contentWidth;
 
-          // If matchWidth is true, prefer matching trigger width, but allow content to be wider if needed
-          if (matchWidth && contentWidth > triggerRect.width) {
-            // Content is wider than trigger - try to align left edge, but ensure it fits
-            leftAlignedLeft = triggerRect.left;
-            // For right-aligned, align right edge of dropdown with right edge of trigger
-            rightAlignedLeft = triggerRect.right - contentWidth;
-          } else if (matchWidth) {
-            // Content fits within trigger width - use trigger width for alignment
-            leftAlignedLeft = triggerRect.left;
-            rightAlignedLeft = triggerRect.right - triggerRect.width;
+          // If matchWidth is true, use locked width if available, otherwise use current trigger width
+          if (matchWidth) {
+            const effectiveTriggerWidth =
+              lockedTriggerWidth ?? triggerRect.width;
+
+            if (contentWidth > effectiveTriggerWidth) {
+              // Content is wider than trigger - try to align left edge, but ensure it fits
+              leftAlignedLeft = triggerRect.left;
+              // For right-aligned, align right edge of dropdown with right edge of trigger
+              rightAlignedLeft = triggerRect.right - contentWidth;
+            } else {
+              // Content fits within trigger width - use effective trigger width for alignment
+              leftAlignedLeft = triggerRect.left;
+              rightAlignedLeft = triggerRect.right - effectiveTriggerWidth;
+            }
           }
 
           // Calculate positions for both alignments
@@ -251,6 +286,7 @@ export function useFloatingPlacement({
                 alignment,
                 maxHeight: maxHeight > 0 ? maxHeight : undefined,
                 maxWidth: viewportWidth - VIEWPORT_MARGIN * 2,
+                width: matchWidth ? lockedTriggerWidth : undefined,
               };
 
               // If this alignment fits fully and we're not enforcing a single placement,
@@ -353,6 +389,7 @@ export function useFloatingPlacement({
                 alignment,
                 maxHeight: viewportHeight - VIEWPORT_MARGIN * 2,
                 maxWidth: maxWidth > 0 ? maxWidth : undefined,
+                width: matchWidth ? lockedTriggerWidth : undefined,
               };
 
               // If this alignment fits fully and we're not enforcing a single placement,
@@ -396,7 +433,14 @@ export function useFloatingPlacement({
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
     };
-  }, [isOpen, triggerRef, contentRef, placement, matchWidth]);
+  }, [
+    isOpen,
+    triggerRef,
+    contentRef,
+    placement,
+    matchWidth,
+    lockedTriggerWidth,
+  ]);
 
   return position;
 }
