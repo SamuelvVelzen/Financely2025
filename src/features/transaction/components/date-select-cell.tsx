@@ -75,6 +75,11 @@ export function DateSelectCell({
           "shrink-0",
           timePrecision === "DateTime" && "text-primary"
         )}
+        tooltip={
+          timePrecision === "DateTime"
+            ? "Remove time (switch to date only)"
+            : "Add time (switch to date and time)"
+        }
         aria-label={
           timePrecision === "DateTime"
             ? "Remove time (switch to date only)"

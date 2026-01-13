@@ -1,11 +1,16 @@
 import { cn } from "@/features/util/cn";
 import { ReactNode } from "react";
+import { Tooltip } from "../tooltip/tooltip";
 import { Button, IButtonProps, IButtonSize } from "./button";
 
 type IIconButton = {
   icon?: ReactNode;
   clicked: NonNullable<IButtonProps["clicked"]>;
   disabled?: IButtonProps["disabled"];
+  /** Optional tooltip text. If provided, wraps the button with a tooltip */
+  tooltip?: ReactNode;
+  /** Tooltip placement. Defaults to "auto" */
+  tooltipPlacement?: "top" | "bottom" | "left" | "right" | "auto";
 } & Omit<IButtonProps, "clicked" | "type">;
 
 export function IconButton({
@@ -15,6 +20,8 @@ export function IconButton({
   clicked,
   disabled = false,
   size = "md",
+  tooltip,
+  tooltipPlacement = "auto",
   ...props
 }: IIconButton) {
   const iconButtonContent = children ? children : icon;
@@ -26,7 +33,7 @@ export function IconButton({
     lg: "p-4 -my-4",
   };
 
-  return (
+  const button = (
     <Button
       className={cn("rounded-full", sizeClasses[size], className)}
       clicked={clicked}
@@ -36,4 +43,18 @@ export function IconButton({
       {...props}
     />
   );
+
+  // Wrap with tooltip if tooltip prop is provided
+  if (tooltip) {
+    return (
+      <Tooltip
+        content={tooltip}
+        placement={tooltipPlacement}
+        disabled={disabled}>
+        {button}
+      </Tooltip>
+    );
+  }
+
+  return button;
 }
