@@ -22,6 +22,7 @@ export type IDateInputProps = IPropsWithClassName & {
   hint?: string;
   required?: boolean;
   disabled?: boolean;
+  selectorClassName?: string;
   placeholder?: string;
   onAddTime?: () => void;
   onRemoveTime?: () => void;
@@ -36,6 +37,7 @@ export function DateInput({
   hint,
   required,
   disabled = false,
+  selectorClassName,
   placeholder = "Select date",
   onAddTime,
   onRemoveTime,
@@ -179,7 +181,7 @@ export function DateInput({
 
     // Trigger button for dropdown
     const triggerButton = (
-      <div className="flex justify-between w-100">
+      <div className="flex justify-between w-full">
         <span className={cn("text-sm", !value && "text-text-muted")}>
           {displayText}
         </span>
@@ -230,7 +232,7 @@ export function DateInput({
       })();
 
     return (
-      <div className={label || hint ? "space-y-1" : ""}>
+      <div className={cn(label || hint ? "space-y-1" : "", className)}>
         {label && (
           <Label
             htmlFor={name}
@@ -240,6 +242,7 @@ export function DateInput({
         )}
         <Dropdown
           dropdownSelector={triggerButton}
+          selectorClassName={selectorClassName}
           open={isOpen}
           onOpenChange={setIsOpen}
           expandedContent={expandedContent || undefined}

@@ -56,7 +56,7 @@ export function DateSelectCell({
 
   return (
     <div
-      className="flex items-center justify-between gap-1"
+      className="flex items-center gap-2"
       onClick={(e) => e.stopPropagation()}>
       <DateInput
         value={value}
@@ -66,7 +66,7 @@ export function DateSelectCell({
             onChange?.(newValue, timePrecision);
           }
         }}
-        className={cn("h-8 text-sm flex-1", className)}
+        className="flex-1"
       />
       <IconButton
         size="sm"
