@@ -58,7 +58,7 @@ export function CalendarView({
 
     // Single date mode: always set as start date
     // Note: onClose is called by the parent component if needed (e.g., in dateOnly mode)
-    if (mode) {
+    if (mode === "date") {
       onDateSelect(normalizedDate, null);
       // Don't call onClose here - let the parent component decide when to close
       return;
