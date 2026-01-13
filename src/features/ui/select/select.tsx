@@ -47,6 +47,8 @@ export type ISelectProps<
   getOptionSearchValue?: (option: TOption) => string;
   forcePlacement?: IPlacementOption[];
   required?: boolean;
+  /** Custom className for the selector button */
+  selectorClassName?: string;
 } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -69,6 +71,7 @@ export function Select<
   getOptionSearchValue,
   forcePlacement,
   required = false,
+  selectorClassName,
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,
@@ -343,8 +346,8 @@ export function Select<
 
     // Custom selector with input and chips
     const selectorContent = (
-      <>
-        <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+      <div className="flex items-center gap-2 w-full">
+        <div className="flex flex-wrap gap-1.5 flex-1 min-w-0 items-center">
           {hasSelection &&
             selectedOptions.map((option) => (
               <span
@@ -381,7 +384,7 @@ export function Select<
             placeholder={hasSelection ? "" : searchPlaceholder || placeholder}
             disabled={disabled}
             className={cn(
-              "flex-1 min-w-[120px] bg-transparent border-0 outline-none text-text",
+              "flex-1 bg-transparent border-0 outline-none text-text min-w-[50px]",
               "placeholder:text-text-muted",
               disabled && "cursor-not-allowed"
             )}
@@ -418,7 +421,7 @@ export function Select<
             isOpen && "rotate-180"
           )}
         />
-      </>
+      </div>
     );
 
     return (
@@ -429,7 +432,8 @@ export function Select<
           open={disabled ? false : isOpen}
           onOpenChange={handleOpenChange}
           placement={forcePlacement}
-          closeOnItemClick={!multiple}>
+          closeOnItemClick={!multiple}
+          selectorClassName={selectorClassName}>
           {filteredOptions.length > 0 && (
             <>
               {filteredOptions.map((option, index) => {

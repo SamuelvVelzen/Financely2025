@@ -51,6 +51,8 @@ type IDropdownProps = {
   closeOnItemClick?: boolean;
   disabled?: boolean;
   size?: IButtonSize;
+  /** Custom className for the selector button */
+  selectorClassName?: string;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -64,6 +66,7 @@ export function Dropdown({
   closeOnItemClick = true,
   disabled = false,
   size = "md",
+  selectorClassName,
 }: IDropdownProps) {
   const dialogContext = useDialogContext();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -130,9 +133,16 @@ export function Dropdown({
               disabled={disabled}
               variant={variant}
               className={cn(
-                "w-full py-2 h-9",
+                "w-full",
+                // Remove fixed height and padding when content is a div (Select component)
+                // Use min-h-9 to allow growth when chips wrap, box-border to include border in height calculation
+                !isObject && "min-h-9 box-border",
+                isObject && "py-2 h-9",
                 "focus:ring-2 focus:ring-primary",
-                dropdownIsOpen && "ring-2 ring-primary"
+                dropdownIsOpen && "ring-2 ring-primary",
+                // Override Button's centering for Select components
+                !isObject && "justify-start",
+                selectorClassName
               )}>
               {buttonContent}
             </Button>
