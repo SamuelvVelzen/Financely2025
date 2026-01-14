@@ -3,8 +3,10 @@ import {
   getLocaleSeparators,
   parseLocalizedDecimal,
 } from "@/features/currency/utils/currencyhelpers";
+import { cn } from "@/features/util/cn";
 import React, { useEffect, useMemo, useRef } from "react";
 
+import { LocaleHelpers } from "@/features/util/locale.helpers";
 import { BaseInput, type IBaseInputProps } from "./input";
 
 const FRACTION_DIGITS = 2;
@@ -44,13 +46,7 @@ export function DecimalInput({
   const caretSyncTaskRef = useRef<CaretSyncTask | null>(null);
 
   const resolvedLocale = useMemo(() => {
-    if (locale) {
-      return locale;
-    }
-    if (typeof navigator !== "undefined" && navigator.language) {
-      return navigator.language;
-    }
-    return "en-US";
+    return locale ?? LocaleHelpers.getLocale();
   }, [locale]);
 
   const separators = useMemo(
@@ -218,6 +214,7 @@ export function DecimalInput({
         return (
           <input
             {...restInputProps}
+            className={cn("text-right min-w-[10ch]", restInputProps.className)}
             placeholder={`${placeholder || "0"}${separators.decimal}00`}
             inputMode="decimal"
             value={formattedValue}
