@@ -1,5 +1,6 @@
 import { IconButton } from "@/features/ui/button/icon-button";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
+import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
@@ -17,6 +18,8 @@ export type IRangeInputProps = IPropsWithClassName & {
   onChange: (range: IPriceRange) => void;
   minRange?: number;
   maxRange?: number;
+  label?: string;
+  required?: boolean;
 };
 
 export function RangeInput({
@@ -25,6 +28,8 @@ export function RangeInput({
   onChange,
   minRange = 0,
   maxRange = 1000,
+  label,
+  required,
 }: IRangeInputProps) {
   const [isDragging, setIsDragging] = useState<"min" | "max" | null>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -165,18 +170,12 @@ export function RangeInput({
 
   return (
     <FormProvider {...decimalForm}>
-      <div className={cn("relative", className)}>
-        <div className="flex items-center gap-3">
-          <div className={inputWrapperClasses}>
-            <DecimalInput
-              name="min"
-              onValueChange={handleMinDecimalChange}
-              placeholder={minRange}
-            />
-          </div>
-
+      <div className={cn("relative", label ? "space-y-1" : "", className)}>
+        {label && <Label required={required}>{label}</Label>}
+        <div className="flex flex-col gap-3">
+          {/* Slider on top */}
           <div
-            className="flex-1 relative"
+            className="relative"
             ref={sliderRef}>
             <div
               className="relative h-8 flex items-center cursor-pointer"
@@ -212,22 +211,33 @@ export function RangeInput({
             </div>
           </div>
 
-          <div className={inputWrapperClasses}>
-            <DecimalInput
-              name="max"
-              onValueChange={handleMaxDecimalChange}
-              placeholder={maxRange}
-            />
-          </div>
+          {/* Inputs below slider */}
+          <div className="relative flex items-center justify-between gap-3">
+            <div className={inputWrapperClasses}>
+              <DecimalInput
+                name="min"
+                onValueChange={handleMinDecimalChange}
+                placeholder={minRange}
+              />
+            </div>
 
-          {hasValue && (
-            <IconButton
-              clicked={handleClear}
-              className="text-text-muted hover:text-text p-1"
-              aria-label="Clear range">
-              <HiX className="size-4" />
-            </IconButton>
-          )}
+            {hasValue && (
+              <IconButton
+                clicked={handleClear}
+                className="absolute left-1/2 -translate-x-1/2 text-text-muted hover:text-text p-1"
+                aria-label="Clear range">
+                <HiX className="size-4" />
+              </IconButton>
+            )}
+
+            <div className={inputWrapperClasses}>
+              <DecimalInput
+                name="max"
+                onValueChange={handleMaxDecimalChange}
+                placeholder={maxRange}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </FormProvider>

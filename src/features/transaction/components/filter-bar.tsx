@@ -184,11 +184,11 @@ export function FilterBar({
                   Amount Range
                 </label>
                 <RangeInput
+                label="Amount Range"
                   value={priceFilter}
                   onChange={onPriceFilterChange}
                   className="w-100"
                 />
-              </div>
 
               <div>
                 <label className="block text-sm font-medium text-text mb-2">

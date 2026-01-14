@@ -118,15 +118,11 @@ export function FilterSheet({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text mb-2">
-              Amount Range
-            </label>
             <RangeInput
+            label="Amount Range"
               value={priceFilter}
               onChange={onPriceFilterChange}
             />
-          </div>
 
           <div>
             <label className="block text-sm font-medium text-text mb-2">
