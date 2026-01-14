@@ -24,9 +24,9 @@ export function BodyCell({
   stopPropagation = true,
 }: IBodyCellProps) {
   const sizeClasses = {
-    sm: "px-3 py-1",
-    md: "px-3 py-1.5",
-    lg: "px-3 py-2",
+    sm: "px-3 py-1.5",
+    md: "px-3 py-2.5",
+    lg: "px-4 py-3",
   };
 
   if (hidden) {

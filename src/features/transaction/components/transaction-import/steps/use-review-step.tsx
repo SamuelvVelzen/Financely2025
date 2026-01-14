@@ -143,11 +143,24 @@ function ReviewStepContent({
         headerCells={[
           <HeaderCell key="status">Status</HeaderCell>,
           <HeaderCell key="date">Date</HeaderCell>,
-          <HeaderCell key="name">Name</HeaderCell>,
+          <HeaderCell
+            key="name"
+            autoFit={false}
+            className="min-w-[250px]">
+            Name
+          </HeaderCell>,
           <HeaderCell key="amount">Amount</HeaderCell>,
           <HeaderCell key="currency">Currency</HeaderCell>,
-          <HeaderCell key="type">Type</HeaderCell>,
-          <HeaderCell key="primaryTag">Primary Tag</HeaderCell>,
+          <HeaderCell
+            key="type"
+            autoFit={false}>
+            Type
+          </HeaderCell>,
+          <HeaderCell
+            key="primaryTag"
+            autoFit={false}>
+            Primary Tag
+          </HeaderCell>,
           <HeaderCell
             key="tags"
             hidden={isTagsHidden}>
@@ -205,7 +218,7 @@ function ReviewStepContent({
                     value={candidate.data.amount || ""}
                     onValueChange={(normalizedValue) => {
                       updateCandidate(candidate.rowIndex, {
-                        amount: normalizedValue,
+                        amount: String(normalizedValue || ""),
                       });
                     }}
                   />
@@ -241,7 +254,7 @@ function ReviewStepContent({
                         : []
                     }
                     transactionType={candidate.data.type}
-                    value={candidate.data.primaryTagId ?? undefined}
+                    value={candidate.data.primaryTagId ?? ""}
                     onChange={(value) => {
                       updateCandidate(candidate.rowIndex, {
                         primaryTagId: (value as string) || null,
@@ -264,7 +277,7 @@ function ReviewStepContent({
                       <TagSelectCell
                         tagMetadata={candidate.tagsMetadata}
                         transactionType={candidate.data.type}
-                        value={otherTagIds.length > 0 ? otherTagIds : undefined}
+                        value={otherTagIds.length > 0 ? otherTagIds : []}
                         onChange={(value) => {
                           // Update other tags (don't include primary tag)
                           const newTagIds = Array.isArray(value) ? value : [];
