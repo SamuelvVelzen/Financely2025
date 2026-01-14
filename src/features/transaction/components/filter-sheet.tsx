@@ -124,12 +124,9 @@ export function FilterSheet({
               onChange={onPriceFilterChange}
             />
 
-          <div>
-            <label className="block text-sm font-medium text-text mb-2">
-              Payment Method
-            </label>
             <SelectDropdown
               name="paymentMethodFilter"
+            label="Payment Method"
               options={paymentMethodOptions}
               multiple
               placeholder="Filter by payment method"
@@ -140,14 +137,10 @@ export function FilterSheet({
                 setPaymentMethodFilter?.(formValue);
               }}
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text mb-2">
-              Currency
-            </label>
             <SelectDropdown
               name="currencyFilter"
+            label="Currency"
               options={currencyOptions}
               multiple
               placeholder="Filter by currency"
@@ -158,14 +151,10 @@ export function FilterSheet({
                 setCurrencyFilter?.(formValue);
               }}
             />
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-text mb-2">
-              Tags
-            </label>
             <SelectDropdown
               name="tagFilter"
+            label="Tags"
               options={tagOptions}
               multiple
               placeholder="Filter by tags"
@@ -192,7 +181,6 @@ export function FilterSheet({
                 </>
               )}
             </SelectDropdown>
-          </div>
         </Form>
       </div>
     </BottomSheet>

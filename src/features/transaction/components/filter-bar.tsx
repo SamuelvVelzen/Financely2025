@@ -190,12 +190,9 @@ export function FilterBar({
                   className="w-100"
                 />
 
-              <div>
-                <label className="block text-sm font-medium text-text mb-2">
-                  Payment Method
-                </label>
                 <SelectDropdown
                   name="paymentMethodFilter"
+                label="Payment Method"
                   options={paymentMethodOptions}
                   multiple
                   placeholder="Filter by payment method"
@@ -206,13 +203,9 @@ export function FilterBar({
                     setPaymentMethodFilter?.(formValue);
                   }}
                 />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-text mb-2">
-                  Currency
-                </label>
                 <SelectDropdown
+                label="Currency"
                   name="currencyFilter"
                   options={currencyOptions}
                   multiple
@@ -224,13 +217,9 @@ export function FilterBar({
                     setCurrencyFilter?.(formValue);
                   }}
                 />
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-text mb-2">
-                  Tags
-                </label>
                 <SelectDropdown
+                label="Tags"
                   name="tagFilter"
                   options={tagOptions}
                   multiple
@@ -258,7 +247,6 @@ export function FilterBar({
                     </>
                   )}
                 </SelectDropdown>
-              </div>
             </div>
 
             <Dropdown.Footer className="p-4">
