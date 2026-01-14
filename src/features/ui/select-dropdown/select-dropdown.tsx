@@ -5,7 +5,7 @@ import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
@@ -62,6 +62,7 @@ export function SelectDropdown<
   stringToValue,
 }: ISelectDropdownProps<TValue, TOption>) {
   const { isMobile } = useResponsive();
+  const containerRef = useRef<HTMLDivElement>(null);
   
   const { field, error, mode, form: formContext } = useFieldAdapter({
     name,
@@ -71,6 +72,18 @@ export function SelectDropdown<
   });
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isNested, setIsNested] = useState(false);
+
+  // Check if this SelectDropdown is nested inside another dropdown
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Check if the container is inside a dropdown content area
+    const parentDropdownContent = containerRef.current.closest(
+      '[data-dropdown-content]'
+    );
+    setIsNested(!!parentDropdownContent);
+  }, []);
 
   // Close dropdown when disabled becomes true
   useEffect(() => {
@@ -253,7 +266,7 @@ export function SelectDropdown<
     );
 
     return (
-      <div className={cn("relative", className)}>
+      <div ref={containerRef} className={cn("relative", className)}>
         {label && (
           <Label
             className="mb-1"
@@ -269,7 +282,8 @@ export function SelectDropdown<
             setIsOpen(open);
           }}
           closeOnItemClick={!multiple}
-          disabled={disabled}>
+          disabled={disabled}
+          allowNested={isNested}>
           {options.map((option, index) => {
             const optionIsSelected = isSelected(option.value, value);
             const handleClick = () => handleOptionClick(option.value);
