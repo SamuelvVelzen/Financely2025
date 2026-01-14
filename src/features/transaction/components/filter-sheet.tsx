@@ -3,6 +3,7 @@ import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import type { IButtonProps } from "@/features/ui/button/button";
+import { CheckboxGroup, CheckboxItem } from "@/features/ui/checkbox";
 import type { IDateFilter } from "@/features/ui/datepicker/datepicker";
 import { Datepicker } from "@/features/ui/datepicker/datepicker";
 import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
@@ -91,21 +92,24 @@ export function FilterSheet({
           form={form}
           onSubmit={() => {}}>
           <div>
-            <label className="block text-sm font-medium text-text mb-2">
-              Transaction Type
-            </label>
-            <SelectDropdown
+            <CheckboxGroup
               name="transactionTypeFilter"
-              options={transactionTypeOptions}
-              multiple
-              placeholder="Filter by transaction type"
+              label="Transaction Type"
+              orientation="horizontal"
               onValueChange={(value) => {
                 const formValue = (Array.isArray(value) ? value : []).filter(
                   (v): v is string => v !== undefined
                 );
                 setTransactionTypeFilter?.(formValue);
-              }}
-            />
+              }}>
+              {transactionTypeOptions.map((option) => (
+                <CheckboxItem
+                  key={option.value}
+                  value={option.value}>
+                  {option.label}
+                </CheckboxItem>
+              ))}
+            </CheckboxGroup>
           </div>
 
           <div>
@@ -118,69 +122,69 @@ export function FilterSheet({
             />
           </div>
 
-            <RangeInput
+          <RangeInput
             label="Amount Range"
-              value={priceFilter}
-              onChange={onPriceFilterChange}
-            />
+            value={priceFilter}
+            onChange={onPriceFilterChange}
+          />
 
-            <SelectDropdown
-              name="paymentMethodFilter"
+          <SelectDropdown
+            name="paymentMethodFilter"
             label="Payment Method"
-              options={paymentMethodOptions}
-              multiple
-              placeholder="Filter by payment method"
-              onValueChange={(value) => {
-                const formValue = (Array.isArray(value) ? value : []).filter(
-                  (v): v is string => v !== undefined
-                );
-                setPaymentMethodFilter?.(formValue);
-              }}
-            />
+            options={paymentMethodOptions}
+            multiple
+            placeholder="Filter by payment method"
+            onValueChange={(value) => {
+              const formValue = (Array.isArray(value) ? value : []).filter(
+                (v): v is string => v !== undefined
+              );
+              setPaymentMethodFilter?.(formValue);
+            }}
+          />
 
-            <SelectDropdown
-              name="currencyFilter"
+          <SelectDropdown
+            name="currencyFilter"
             label="Currency"
-              options={currencyOptions}
-              multiple
-              placeholder="Filter by currency"
-              onValueChange={(value) => {
-                const formValue = (Array.isArray(value) ? value : []).filter(
-                  (v): v is string => v !== undefined
-                );
-                setCurrencyFilter?.(formValue);
-              }}
-            />
+            options={currencyOptions}
+            multiple
+            placeholder="Filter by currency"
+            onValueChange={(value) => {
+              const formValue = (Array.isArray(value) ? value : []).filter(
+                (v): v is string => v !== undefined
+              );
+              setCurrencyFilter?.(formValue);
+            }}
+          />
 
-            <SelectDropdown
-              name="tagFilter"
+          <SelectDropdown
+            name="tagFilter"
             label="Tags"
-              options={tagOptions}
-              multiple
-              placeholder="Filter by tags"
-              onValueChange={(value) => {
-                const formValue = (Array.isArray(value) ? value : []).filter(
-                  (v): v is string => v !== undefined
-                );
-                setTagFilter?.(formValue);
-              }}>
-              {(option) => (
-                <>
-                  {option.data?.emoticon && (
-                    <span className="text-base shrink-0">
-                      {option.data.emoticon}
-                    </span>
-                  )}
-                  {option.data?.color && (
-                    <div
-                      className="size-3 rounded-full shrink-0"
-                      style={{ backgroundColor: option.data.color }}
-                    />
-                  )}
-                  <span>{option.label}</span>
-                </>
-              )}
-            </SelectDropdown>
+            options={tagOptions}
+            multiple
+            placeholder="Filter by tags"
+            onValueChange={(value) => {
+              const formValue = (Array.isArray(value) ? value : []).filter(
+                (v): v is string => v !== undefined
+              );
+              setTagFilter?.(formValue);
+            }}>
+            {(option) => (
+              <>
+                {option.data?.emoticon && (
+                  <span className="text-base shrink-0">
+                    {option.data.emoticon}
+                  </span>
+                )}
+                {option.data?.color && (
+                  <div
+                    className="size-3 rounded-full shrink-0"
+                    style={{ backgroundColor: option.data.color }}
+                  />
+                )}
+                <span>{option.label}</span>
+              </>
+            )}
+          </SelectDropdown>
         </Form>
       </div>
     </BottomSheet>

@@ -76,6 +76,9 @@ export function TransactionFilters({
       onRemoveAmount: () =>
         onPriceFilterChange(DEFAULT_FILTER_STATE.priceFilter),
       onRemoveSearch: () => setSearchQuery(""),
+      onRemoveTransactionType: setTransactionTypeFilter
+        ? () => setTransactionTypeFilter([])
+        : undefined,
     });
   }, [
     filterState,
@@ -84,6 +87,7 @@ export function TransactionFilters({
     onPriceFilterChange,
     setSearchQuery,
     setTagFilter,
+    setTransactionTypeFilter,
   ]);
 
   return (

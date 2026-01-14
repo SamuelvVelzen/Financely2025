@@ -21,7 +21,14 @@ export const transactionFilterQuerySchema = z.object({
   tags: z.string().optional(),
   
   // Transaction type filter - comma-separated: "EXPENSE" | "INCOME"
-  transactionTypes: z.string().optional(),
+  // Handle both string and array (TanStack Router may parse multiple params as array)
+  transactionTypes: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return Array.isArray(val) ? val.join(",") : val;
+    }),
   
   // Payment method filter - comma-separated payment method values
   paymentMethods: z.string().optional(),
