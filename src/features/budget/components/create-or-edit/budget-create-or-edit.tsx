@@ -10,6 +10,8 @@ import {
 } from "@/features/budget/utils/budget-presets";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
+  type IBudget,
+  type IBudgetItem,
   type ICreateBudgetInput,
   type IUpdateBudgetInput,
 } from "@/features/shared/validation/schemas";
@@ -33,9 +35,10 @@ import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiArrowLeft, HiOutlineCurrencyEuro } from "react-icons/hi2";
 import { z } from "zod";
+import type { FieldErrors } from "react-hook-form";
 import { BudgetItemForm } from "./budget-item-form";
 import { BudgetPresetSelector } from "./budget-preset-selector";
 import { BudgetTagSelector } from "./budget-tag-selector";
@@ -43,6 +46,13 @@ import { BudgetTagSelector } from "./budget-tag-selector";
 type IBudgetCreateOrEditPageProps = {
   budgetId?: string;
 };
+
+// Constants
+const TABS = ["general", "tags", "budget"] as const;
+const TABS_ARRAY = ["general", "tags", "budget"] as string[];
+type ITabValue = (typeof TABS)[number];
+
+const DEFAULT_CURRENCY = "EUR";
 
 // Form-specific schema with nested groups (separate from API schema)
 const BudgetFormSchema = z.object({
@@ -136,14 +146,55 @@ function formatLocalDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-const getEmptyFormValues = (): IBudgetFormData => {
+/**
+ * Extract tag IDs from budget items
+ */
+function extractTagIds(items: IBudgetItem[]): string[] {
+  return items
+    .map((item) => item.tagId)
+    .filter((id): id is string => id !== null);
+}
+
+/**
+ * Transform budget data to form data
+ */
+function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
+  const tagIds = extractTagIds(budget.items);
+  const startDate = new Date(budget.startDate);
+
+  return {
+    general: {
+      name: budget.name,
+      startDate: budget.startDate.split("T")[0],
+      endDate: budget.endDate.split("T")[0],
+      currency: budget.currency,
+      preset: "custom" as const,
+      year: startDate.getFullYear(),
+      month: startDate.getMonth() + 1,
+    },
+    tags: {
+      selectedTagIds: tagIds,
+    },
+    budget: {
+      items: budget.items.map((item) => ({
+        tagId: item.tagId,
+        expectedAmount: item.expectedAmount,
+      })),
+    },
+  };
+}
+
+/**
+ * Get empty form values with default preset
+ */
+function getEmptyFormValues(): IBudgetFormData {
   const preset = getCurrentMonthPreset();
   return {
     general: {
       name: formatBudgetName("monthly", preset),
       startDate: formatLocalDate(preset.start),
       endDate: formatLocalDate(preset.end),
-      currency: "EUR",
+      currency: DEFAULT_CURRENCY,
       preset: "monthly" as const,
       year: preset.start.getFullYear(),
       month: preset.start.getMonth() + 1,
@@ -155,7 +206,54 @@ const getEmptyFormValues = (): IBudgetFormData => {
       items: [],
     },
   };
-};
+}
+
+/**
+ * Extract error messages from form field errors
+ */
+function getGroupErrorMessages(
+  groupErrors: FieldErrors<IBudgetFormData["tags"]> | undefined
+): string[] {
+  if (!groupErrors) return [];
+
+  const messages: string[] = [];
+
+  if (typeof groupErrors === "object") {
+    Object.keys(groupErrors).forEach((key) => {
+      const error = groupErrors[key as keyof typeof groupErrors];
+      if (error && "message" in error && typeof error.message === "string") {
+        messages.push(error.message);
+      }
+    });
+  }
+
+  return messages;
+}
+
+/**
+ * Transform form data to API input format
+ */
+function transformFormDataToApiInput(
+  data: IBudgetFormData
+): ICreateBudgetInput | IUpdateBudgetInput {
+  return {
+    name: data.general.name,
+    startDate: data.general.startDate,
+    endDate: data.general.endDate,
+    currency: data.general.currency,
+    items: (data.budget.items ?? []).map((item) => ({
+      tagId: item.tagId,
+      expectedAmount: item.expectedAmount,
+    })),
+  };
+}
+
+/**
+ * Validate that at least one budget item has amount > 0
+ */
+function validateBudgetItems(items: Array<{ expectedAmount: string }>): boolean {
+  return items.some((item) => parseFloat(item.expectedAmount) > 0);
+}
 
 export function BudgetCreateOrEditPage({
   budgetId,
@@ -168,48 +266,38 @@ export function BudgetCreateOrEditPage({
   const toast = useToast();
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const [currentTab, setCurrentTab] = useState("general");
+  const [currentTab, setCurrentTab] = useState<ITabValue>(TABS[0]);
 
   const form = useFinForm<IBudgetFormData>({
-    resolver: zodResolver(BudgetFormSchema) as any,
+    resolver: zodResolver(BudgetFormSchema),
     defaultValues: getEmptyFormValues(),
   });
 
   const selectedTagIds = form.watch("tags.selectedTagIds");
   const hasUnsavedChanges = form.formState.isDirty;
 
-  // Define tab order
-  const tabs = ["general", "tags", "budget"];
-  const isFirstTab = currentTab === tabs[0];
-  const isLastTab = currentTab === tabs[tabs.length - 1];
+  // Memoized tab state
+  const tabState = useMemo(() => {
+    const currentIndex = TABS.indexOf(currentTab);
+    return {
+      isFirstTab: currentIndex === 0,
+      isLastTab: currentIndex === TABS.length - 1,
+    };
+  }, [currentTab]);
 
-  // Helper function to extract error messages from a group
-  const getGroupErrorMessages = (groupErrors: any): string[] => {
-    if (!groupErrors) return [];
+  // Memoized error checks
+  const formErrors = useMemo(() => {
+    const tagsErrors = getGroupErrorMessages(form.formState.errors.tags);
+    return {
+      tags: tagsErrors,
+      hasGeneral: !!form.formState.errors.general,
+      hasTags: tagsErrors.length > 0,
+      hasBudget: !!form.formState.errors.budget,
+    };
+  }, [form.formState.errors]);
 
-    const messages: string[] = [];
-
-    if (typeof groupErrors === "object") {
-      // Handle nested objects
-      Object.keys(groupErrors).forEach((key) => {
-        const error = groupErrors[key];
-        if (error) {
-          if (error.message) {
-            messages.push(error.message);
-          }
-        }
-      });
-    }
-
-    return messages;
-  };
-  // Get error messages for each group
-  const tagsErrors = getGroupErrorMessages(form.formState.errors.tags);
-
-  // Check if each group has errors
-  const hasGeneralErrors = !!form.formState.errors.general;
-  const hasTagsErrors = tagsErrors.length > 0;
-  const hasBudgetErrors = !!form.formState.errors.budget;
+  // Ref to access TabGroup navigation methods
+  const tabGroupRef = useRef<ITabGroupRef>(null);
 
   // Initialize form with default values in create mode
   useEffect(() => {
@@ -221,36 +309,11 @@ export function BudgetCreateOrEditPage({
   // Populate form when budget loads (edit mode only)
   useEffect(() => {
     if (isEditMode && budget) {
-      const tagIds = budget.items
-        .map((item: { tagId: string | null }) => item.tagId)
-        .filter((id: string | null): id is string => id !== null);
-
-      form.reset({
-        general: {
-          name: budget.name,
-          startDate: budget.startDate.split("T")[0],
-          endDate: budget.endDate.split("T")[0],
-          currency: budget.currency,
-          preset: "custom",
-          year: new Date(budget.startDate).getFullYear(),
-          month: new Date(budget.startDate).getMonth() + 1,
-        },
-        tags: {
-          selectedTagIds: tagIds,
-        },
-        budget: {
-          items: budget.items.map(
-            (item: { tagId: string | null; expectedAmount: string }) => ({
-              tagId: item.tagId,
-              expectedAmount: item.expectedAmount,
-            })
-          ),
-        },
-      });
+      form.reset(transformBudgetToFormData(budget));
     }
   }, [isEditMode, budget, form]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (hasUnsavedChanges) {
       setShowUnsavedDialog(true);
       return;
@@ -264,37 +327,12 @@ export function BudgetCreateOrEditPage({
     } else {
       navigate({ to: ROUTES.BUDGETS });
     }
-  };
+  }, [hasUnsavedChanges, isEditMode, budgetId, navigate]);
 
-  const handleDiscardChanges = () => {
+  const handleDiscardChanges = useCallback(() => {
     // Reset form to original values
     if (isEditMode && budget) {
-      const tagIds = budget.items
-        .map((item: { tagId: string | null }) => item.tagId)
-        .filter((id: string | null): id is string => id !== null);
-
-      form.reset({
-        general: {
-          name: budget.name,
-          startDate: budget.startDate.split("T")[0],
-          endDate: budget.endDate.split("T")[0],
-          currency: budget.currency,
-          preset: "custom",
-          year: new Date(budget.startDate).getFullYear(),
-          month: new Date(budget.startDate).getMonth() + 1,
-        },
-        tags: {
-          selectedTagIds: tagIds,
-        },
-        budget: {
-          items: budget.items.map(
-            (item: { tagId: string | null; expectedAmount: string }) => ({
-              tagId: item.tagId,
-              expectedAmount: item.expectedAmount,
-            })
-          ),
-        },
-      });
+      form.reset(transformBudgetToFormData(budget));
     } else {
       form.reset(getEmptyFormValues());
     }
@@ -310,88 +348,76 @@ export function BudgetCreateOrEditPage({
     } else {
       navigate({ to: ROUTES.BUDGETS });
     }
-  };
-
-  // Ref to access TabGroup navigation methods
-  const tabGroupRef = useRef<ITabGroupRef>(null);
+  }, [isEditMode, budget, budgetId, form, navigate]);
 
   // Handler for Next button - navigates to next tab
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     tabGroupRef.current?.goNext();
-  };
+  }, []);
 
   // Handler for Back button - navigates to previous tab
-  const handleTabBack = () => {
+  const handleTabBack = useCallback(() => {
     tabGroupRef.current?.goBack();
-  };
+  }, []);
 
-  const handleSubmit = async (data: IBudgetFormData) => {
-    setPending(true);
+  const handleSubmit = useCallback(
+    async (data: IBudgetFormData) => {
+      setPending(true);
 
-    // Transform nested form data to flat API format
-    // Dates are already transformed to ISO datetime strings by the schema
-    const submitData: ICreateBudgetInput | IUpdateBudgetInput = {
-      name: data.general.name,
-      startDate: data.general.startDate,
-      endDate: data.general.endDate,
-      currency: data.general.currency,
-      items: (data.budget.items ?? []).map((item) => ({
-        tagId: item.tagId,
-        expectedAmount: item.expectedAmount,
-      })),
-    };
+      // Transform nested form data to flat API format
+      const submitData = transformFormDataToApiInput(data);
 
-    // Validate at least one item with amount > 0
-    const hasValidItem = (submitData.items ?? []).some(
-      (item: { expectedAmount: string }) => parseFloat(item.expectedAmount) > 0
-    );
-    if (!hasValidItem) {
-      setPending(false);
-      toast.error(
-        "At least one budget item must have an amount greater than 0"
-      );
-      return;
-    }
+      // Validate at least one item with amount > 0
+      if (!validateBudgetItems(submitData.items ?? [])) {
+        setPending(false);
+        toast.error(
+          "At least one budget item must have an amount greater than 0"
+        );
+        return;
+      }
 
-    try {
-      if (isEditMode && budgetId) {
-        updateBudget(
-          { budgetId, input: submitData as IUpdateBudgetInput },
-          {
+      try {
+        if (isEditMode && budgetId) {
+          updateBudget(
+            { budgetId, input: submitData as IUpdateBudgetInput },
+            {
+              onSuccess: () => {
+                setPending(false);
+                toast.success("Budget updated successfully");
+                navigate({
+                  to: "/budgets/$budgetId",
+                  params: { budgetId },
+                });
+              },
+              onError: (error: Error) => {
+                setPending(false);
+                toast.error("Failed to update budget");
+                console.error("Failed to update budget:", error);
+              },
+            }
+          );
+        } else {
+          createBudget(submitData as ICreateBudgetInput, {
             onSuccess: () => {
               setPending(false);
-              toast.success("Budget updated successfully");
-              navigate({
-                to: "/budgets/$budgetId",
-                params: { budgetId },
-              });
+              toast.success("Budget created successfully");
+              navigate({ to: ROUTES.BUDGETS });
             },
             onError: (error: Error) => {
               setPending(false);
-              toast.error("Failed to update budget");
-              throw error;
+              toast.error("Failed to create budget");
+              console.error("Failed to create budget:", error);
             },
-          }
-        );
-      } else {
-        createBudget(submitData as ICreateBudgetInput, {
-          onSuccess: () => {
-            setPending(false);
-            toast.success("Budget created successfully");
-            navigate({ to: ROUTES.BUDGETS });
-          },
-          onError: (error: Error) => {
-            setPending(false);
-            toast.error("Failed to create budget");
-            throw error;
-          },
-        });
+          });
+        }
+      } catch (err) {
+        setPending(false);
+        console.error("Unexpected error:", err);
+        toast.error("An unexpected error occurred");
       }
-    } catch (err) {
-      setPending(false);
-      throw err;
-    }
-  };
+    },
+    [isEditMode, budgetId, createBudget, updateBudget, navigate, toast]
+  );
 
   if (isEditMode && budgetLoading) {
     return (
@@ -445,17 +471,17 @@ export function BudgetCreateOrEditPage({
         <Container>
           <TabGroup
             ref={tabGroupRef}
-            defaultValue="general"
-            tabs={tabs}
+            defaultValue={TABS[0]}
+            tabs={TABS_ARRAY}
             onChangeTab={(previousTab, newTab) => {
-              setCurrentTab(newTab);
+              setCurrentTab(newTab as ITabValue);
             }}>
             <Tab
-              value="general"
-              showWarning={hasGeneralErrors}>
+              value={TABS[0]}
+              showWarning={formErrors.hasGeneral}>
               General
             </Tab>
-            <TabContent value="general">
+            <TabContent value={TABS[0]}>
               <div className="space-y-6">
                 <BudgetPresetSelector
                   onNameChange={(name) => form.setValue("general.name", name)}
@@ -474,17 +500,19 @@ export function BudgetCreateOrEditPage({
             </TabContent>
 
             <Tab
-              value="tags"
-              showWarning={hasTagsErrors}>
+              value={TABS[1]}
+              showWarning={formErrors.hasTags}>
               Tags
             </Tab>
-            <TabContent value="tags">
+            <TabContent value={TABS[1]}>
               <div className="space-y-6">
-                {hasTagsErrors && (
+                {formErrors.hasTags && (
                   <Alert
                     variant="danger"
                     title="Validation Errors">
-                    {tagsErrors.length === 1 && <p>{tagsErrors[0]}</p>}
+                    {formErrors.tags.length === 1 && (
+                      <p>{formErrors.tags[0]}</p>
+                    )}
                   </Alert>
                 )}
                 <BudgetTagSelector name="tags.selectedTagIds" />
@@ -492,11 +520,11 @@ export function BudgetCreateOrEditPage({
             </TabContent>
 
             <Tab
-              value="budget"
-              showWarning={hasBudgetErrors}>
+              value={TABS[2]}
+              showWarning={formErrors.hasBudget}>
               Budget
             </Tab>
-            <TabContent value="budget">
+            <TabContent value={TABS[2]}>
               <div className="space-y-6">
                 <BudgetItemForm selectedTagIds={selectedTagIds} />
               </div>
@@ -505,7 +533,7 @@ export function BudgetCreateOrEditPage({
         </Container>
 
         <Container className="sticky bottom-0 bg-surface flex gap-2 justify-between mt-auto mb-0">
-          {isFirstTab ? (
+          {tabState.isFirstTab ? (
             <Button
               clicked={handleBack}
               disabled={pending}>
@@ -519,7 +547,7 @@ export function BudgetCreateOrEditPage({
               Back
             </Button>
           )}
-          {isLastTab ? (
+          {tabState.isLastTab ? (
             <Button
               type="submit"
               variant="primary"
