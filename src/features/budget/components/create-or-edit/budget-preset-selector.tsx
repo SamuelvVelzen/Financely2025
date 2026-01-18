@@ -131,26 +131,12 @@ export function BudgetPresetSelector({
   }, [preset, watchedYear]);
 
   // Helper function to update name when custom dates change
-  const handleCustomDateChange = (
-    dateType: "start" | "end",
-    newValue: string
-  ) => {
+  const handleCustomDateChange = () => {
     if (preset !== "custom") return;
 
-    // Get the other date from form state before updating
-    const otherStartDate = form.getValues("general.startDate");
-    const otherEndDate = form.getValues("general.endDate");
-
-    // Update the form field
-    if (dateType === "start") {
-      form.setValue("general.startDate", newValue, { shouldValidate: false });
-    } else {
-      form.setValue("general.endDate", newValue, { shouldValidate: false });
-    }
-
-    // Use the new value for the changed field, existing value for the other
-    const currentStartDate = dateType === "start" ? newValue : otherStartDate;
-    const currentEndDate = dateType === "end" ? newValue : otherEndDate;
+    // Get dates from form state
+    const currentStartDate = form.getValues("general.startDate");
+    const currentEndDate = form.getValues("general.endDate");
 
     if (currentStartDate && currentEndDate) {
       // Parse dates in local timezone to avoid timezone conversion issues
@@ -289,13 +275,13 @@ export function BudgetPresetSelector({
 
       {preset === "monthly" && (
         <div className="grid grid-cols-2 gap-4">
-          <SelectDropdown
+          <SelectDropdown<number>
             name="general.year"
             label="Year"
             options={yearOptions}
             placeholder="Select year"
           />
-          <SelectDropdown
+          <SelectDropdown<number>
             name="general.month"
             label="Month"
             options={monthOptions}
@@ -305,7 +291,7 @@ export function BudgetPresetSelector({
       )}
 
       {preset === "yearly" && (
-        <SelectDropdown
+        <SelectDropdown<number>
           name="general.year"
           label="Year"
           options={yearOptions}
@@ -319,18 +305,16 @@ export function BudgetPresetSelector({
             <Label>Start Date</Label>
             <DateInput
               name="general.startDate"
-              onChange={(e) => {
-                handleCustomDateChange("start", e.target.value);
-              }}
+              mode="dateOnly"
+              onValueChange={handleCustomDateChange}
             />
           </div>
           <div>
             <Label>End Date</Label>
             <DateInput
               name="general.endDate"
-              onChange={(e) => {
-                handleCustomDateChange("end", e.target.value);
-              }}
+              mode="dateOnly"
+              onValueChange={handleCustomDateChange}
             />
           </div>
         </div>

@@ -8,8 +8,9 @@ When adding a new bank, you need to:
 
 1. **Add the bank to the bank enum** - Register it in the system
 2. **Create a bank profile** - Define column name hints for auto-detection
-3. **Create a type detection strategy** (if needed) - Define how to determine EXPENSE vs INCOME
-4. **Register the bank-to-strategy mapping** - Link the bank to its strategy
+3. **Add filename detection** (optional) - Enable automatic bank detection from filename patterns
+4. **Create a type detection strategy** (if needed) - Define how to determine EXPENSE vs INCOME
+5. **Register the bank-to-strategy mapping** - Link the bank to its strategy
 
 ## Step-by-Step Guide
 
@@ -103,6 +104,78 @@ The `defaultPaymentMethod` field is **REQUIRED** and specifies which payment met
 - Include common variations of column names (e.g., "Date", "Transaction Date", "Booking Date")
 - Include translations if the bank uses non-English column names
 - Order hints by likelihood (most common first)
+
+### Step 2.5: Add Filename Detection (Optional)
+
+**File**: `src/features/transaction/services/banks/your-new-bank.profile.ts`
+
+If your bank uses a consistent filename pattern for exported CSV files, you can add automatic bank detection based on the filename. This will automatically select the bank when a user uploads a file matching the pattern.
+
+Add a `detectBankByFilename` function to your bank profile:
+
+```typescript
+export const yourNewBankProfile: BankProfile = {
+  columnHints: { /* ... */ },
+  requiredFields: [],
+  defaultPaymentMethod: "DEBIT_CARD",
+  // Optional: detect bank from filename pattern
+  detectBankByFilename: (filename: string) => {
+    // Return true if filename matches your bank's pattern
+    // Examples:
+    
+    // Pattern 1: Exact prefix match
+    // if (filename.toLowerCase().startsWith("yourbank-")) {
+    //   return true;
+    // }
+    
+    // Pattern 2: Regex pattern
+    // const pattern = /^yourbank_\d{4}-\d{2}-\d{2}\.csv$/i;
+    // return pattern.test(filename);
+    
+    // Pattern 3: Multiple patterns
+    // const patterns = [
+    //   /^yourbank/i,
+    //   /statement_\d{8}\.csv$/i,
+    // ];
+    // return patterns.some(p => p.test(filename));
+    
+    return false; // No pattern match
+  },
+};
+```
+
+**Examples:**
+
+**ING Bank** - Detects files matching pattern `NL[digits]INGB[digits]_[date]_[date].csv`:
+```typescript
+detectBankByFilename: (filename: string) => {
+  const ingPattern = /^NL\d{2}INGB\d+_\d{2}-\d{2}-\d{4}_\d{2}-\d{2}-\d{4}(\.csv)?$/i;
+  return ingPattern.test(filename);
+},
+```
+
+**American Express** - Detects files starting with "activity" or "activiteit":
+```typescript
+detectBankByFilename: (filename: string) => {
+  const amexPattern = /^(activity|activiteit)/i;
+  return amexPattern.test(filename);
+},
+```
+
+**Tips:**
+
+- Use case-insensitive matching (`/i` flag) for better user experience
+- Test your regex patterns with various filename formats
+- Keep patterns specific enough to avoid false positives
+- If your bank doesn't have a consistent filename pattern, you can omit this function
+
+**How It Works:**
+
+When a user selects a CSV file in the upload step:
+1. The system checks all bank profiles for filename patterns
+2. If a match is found, the bank is automatically selected
+3. The user can still manually change the bank selection if needed
+4. Detection only runs when no bank is currently selected (or when "DEFAULT" is selected)
 
 ### Step 3: Register Bank Profile
 

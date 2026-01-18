@@ -1,3 +1,7 @@
+import {
+  IFormOrControlledMode,
+} from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { queryKeys } from "@/features/shared/query/keys";
@@ -10,11 +14,10 @@ import { useTags } from "@/features/tag/hooks/useTags";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { useFormContext } from "react-hook-form";
+import type { IPlacementOption } from "../dropdown/hooks/use-dropdown-placement";
 import { Select } from "../select/select";
 
 export type ITagSelectProps = IPropsWithClassName & {
-  name: string;
   multiple?: boolean;
   placeholder?: string;
   label?: string;
@@ -22,7 +25,7 @@ export type ITagSelectProps = IPropsWithClassName & {
   disabled?: boolean;
   transactionType?: ITransactionType;
   hint?: string;
-};
+} & IFormOrControlledMode<string | string[]>;
 
 export function TagSelect({
   className = "",
@@ -34,6 +37,9 @@ export function TagSelect({
   disabled = false,
   transactionType,
   hint,
+  value: controlledValue,
+  onChange: controlledOnChange,
+  onValueChange,
 }: ITagSelectProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
@@ -42,7 +48,13 @@ export function TagSelect({
   const [pendingTagName, setPendingTagName] = useState<string>("");
 
   const queryClient = useQueryClient();
-  const form = useFormContext();
+  
+  const { mode, form: formContext } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
 
   const { highlightText } = useHighlightText();
 
@@ -79,35 +91,74 @@ export function TagSelect({
 
     // Auto-select the newly created tag
     if (createdTag) {
-      const currentValue = form.getValues(name);
-      if (multiple) {
-        const currentValues = Array.isArray(currentValue) ? currentValue : [];
-        if (!currentValues.includes(createdTag.id)) {
-          form.setValue(name, [...currentValues, createdTag.id], {
-            shouldValidate: true,
-          });
+      if (mode === "controlled" && controlledOnChange) {
+        // Controlled mode
+        if (multiple) {
+          const currentValues = Array.isArray(controlledValue)
+            ? controlledValue
+            : [];
+          if (!currentValues.includes(createdTag.id)) {
+            controlledOnChange([...currentValues, createdTag.id]);
+          }
+        } else {
+          controlledOnChange(createdTag.id);
         }
-      } else {
-        form.setValue(name, createdTag.id, { shouldValidate: true });
+      } else if (mode === "form" && formContext && name) {
+        // Form mode
+        const currentValue = formContext.getValues(name);
+        if (multiple) {
+          const currentValues = Array.isArray(currentValue) ? currentValue : [];
+          if (!currentValues.includes(createdTag.id)) {
+            formContext.setValue(name, [...currentValues, createdTag.id], {
+              shouldValidate: true,
+            });
+          }
+        } else {
+          formContext.setValue(name, createdTag.id, { shouldValidate: true });
+        }
       }
     }
   };
 
+  // Build props based on mode to satisfy TypeScript's discriminated union
+  const forcePlacement: IPlacementOption[] = ["bottom"];
+  const selectProps =
+    mode === "form" && name
+      ? {
+          name,
+          options: tagOptions,
+          multiple,
+          placeholder,
+          label,
+          searchPlaceholder,
+          disabled,
+          hint,
+          onCreateNew: handleCreateNew,
+          createNewLabel: (query: string) => `Create tag "${query}"`,
+          forcePlacement,
+          className,
+          onValueChange,
+        }
+      : {
+          value: controlledValue ?? (multiple ? [] : ""),
+          onChange: controlledOnChange!,
+          options: tagOptions,
+          multiple,
+          placeholder,
+          label,
+          searchPlaceholder,
+          disabled,
+          hint,
+          onCreateNew: handleCreateNew,
+          createNewLabel: (query: string) => `Create tag "${query}"`,
+          forcePlacement,
+          className,
+          onValueChange,
+        };
+
   return (
     <>
-      <Select
-        className={className}
-        name={name}
-        options={tagOptions}
-        multiple={multiple}
-        placeholder={placeholder}
-        label={label}
-        searchPlaceholder={searchPlaceholder}
-        disabled={disabled}
-        hint={hint}
-        onCreateNew={handleCreateNew}
-        createNewLabel={(query) => `Create tag "${query}"`}
-        forcePlacement={["bottom"]}>
+      <Select {...selectProps}>
         {(option, index, context) => (
           <>
             {option.data?.emoticon && (
@@ -127,6 +178,9 @@ export function TagSelect({
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         initialName={pendingTagName}
+        initialValues={{
+          transactionType: transactionType || undefined,
+        }}
         onSuccess={handleTagCreated}
       />
     </>

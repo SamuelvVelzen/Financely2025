@@ -41,16 +41,6 @@ export function BankSelect({
     });
   }, [form, value]);
 
-  useEffect(() => {
-    const subscription = form.watch((data) => {
-      // Since bank is required, data.bank should always be defined
-      // But we provide a fallback to DEFAULT to ensure we always have a value
-      onChange(data.bank || "DEFAULT");
-    });
-
-    return () => subscription.unsubscribe();
-  }, [form, onChange]);
-
   return (
     <div className={disabled ? "opacity-50 pointer-events-none" : ""}>
       <Form
@@ -63,7 +53,12 @@ export function BankSelect({
           options={BANK_OPTIONS}
           multiple={false}
           required={true}
-          showClearButton={false}
+          clearable={false}
+          onValueChange={(bank) => {
+            // Since bank is required, bank should always be defined
+            // But we provide a fallback to DEFAULT to ensure we always have a value
+            onChange((bank as BankEnum) || "DEFAULT");
+          }}
         />
       </Form>
       {helperText && (

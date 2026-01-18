@@ -25,6 +25,10 @@ export function useFormContextOptional(): UseFormReturn<
  * - Inputs extract value from events internally
  * - Selects pass values directly
  *
+ * The optional `onValueChange` callback works in both modes and allows
+ * components to trigger side effects when values change without needing
+ * `useEffect` + `form.watch()` patterns.
+ *
  * @template TValue - The type of the value
  */
 export type IFormOrControlledMode<TValue> =
@@ -32,9 +36,11 @@ export type IFormOrControlledMode<TValue> =
       name: string;
       value?: never;
       onChange?: never;
+      onValueChange?: (value: TValue | undefined) => void;
     }
   | {
       name?: never;
       value: TValue;
       onChange: (value: TValue | undefined) => void;
+      onValueChange?: (value: TValue | undefined) => void;
     };

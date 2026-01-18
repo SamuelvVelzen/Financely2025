@@ -4,6 +4,7 @@ import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-me
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import { calculateFilterCount } from "@/features/transaction/utils/filter-count";
 import { Button } from "@/features/ui/button/button";
+import { CheckboxGroup, CheckboxItem } from "@/features/ui/checkbox";
 import {
   Datepicker,
   type IDateFilter,
@@ -35,6 +36,11 @@ export interface IFilterBarProps {
     currencyFilter: string[];
     priceFilter: IPriceRange;
   };
+  setSearchQuery?: (query: string) => void;
+  setTagFilter?: (tags: string[]) => void;
+  setTransactionTypeFilter?: (types: string[]) => void;
+  setPaymentMethodFilter?: (methods: string[]) => void;
+  setCurrencyFilter?: (currencies: string[]) => void;
 }
 
 export function FilterBar({
@@ -47,6 +53,11 @@ export function FilterBar({
   onClearAll,
   className,
   filterState: externalFilterState,
+  setSearchQuery,
+  setTagFilter,
+  setTransactionTypeFilter,
+  setPaymentMethodFilter,
+  setCurrencyFilter,
 }: IFilterBarProps) {
   const { isMobile } = useResponsive();
 
@@ -120,7 +131,13 @@ export function FilterBar({
         onSubmit={() => {}}>
         <div className="flex gap-3 items-end">
           {/* Primary filters - always visible */}
-          <SearchInput name="searchQuery" />
+          <SearchInput
+            name="searchQuery"
+            onValueChange={(value) => {
+              const formValue = (value as string) ?? "";
+              setSearchQuery?.(formValue);
+            }}
+          />
           <Datepicker
             value={dateFilter}
             onChange={onDateFilterChange}
@@ -143,82 +160,92 @@ export function FilterBar({
               variant: hasSecondaryFilters ? "primary" : "default",
             }}
             placement="bottom"
-            closeOnItemClick={false}>
+            closeOnItemClick={false}
+            allowNested={true}>
             <div className="p-4 space-y-4 min-w-[300px]">
-              <div>
-                <label className="block text-sm font-medium text-text mb-2">
-                  Transaction Type
-                </label>
-                <SelectDropdown
-                  name="transactionTypeFilter"
-                  options={transactionTypeOptions}
-                  multiple
-                  placeholder="Filter by transaction type"
-                />
-              </div>
+              <CheckboxGroup
+                name="transactionTypeFilter"
+                label="Transaction Type"
+                orientation="horizontal"
+                onValueChange={(value) => {
+                  const formValue = (Array.isArray(value) ? value : []).filter(
+                    (v): v is string => v !== undefined
+                  );
+                  setTransactionTypeFilter?.(formValue);
+                }}>
+                {transactionTypeOptions.map((option) => (
+                  <CheckboxItem
+                    key={option.value}
+                    value={option.value}>
+                    {option.label}
+                  </CheckboxItem>
+                ))}
+              </CheckboxGroup>
 
-              <div>
-                <label className="block text-sm font-medium text-text mb-2">
-                  Amount Range
-                </label>
-                <RangeInput
-                  value={priceFilter}
-                  onChange={onPriceFilterChange}
-                  className="w-100"
-                />
-              </div>
+              <RangeInput
+                label="Amount Range"
+                value={priceFilter}
+                onChange={onPriceFilterChange}
+                className="w-100"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-text mb-2">
-                  Payment Method
-                </label>
-                <SelectDropdown
-                  name="paymentMethodFilter"
-                  options={paymentMethodOptions}
-                  multiple
-                  placeholder="Filter by payment method"
-                />
-              </div>
+              <SelectDropdown
+                name="paymentMethodFilter"
+                label="Payment Method"
+                options={paymentMethodOptions}
+                multiple
+                placeholder="Filter by payment method"
+                onValueChange={(value) => {
+                  const formValue = (Array.isArray(value) ? value : []).filter(
+                    (v): v is string => v !== undefined
+                  );
+                  setPaymentMethodFilter?.(formValue);
+                }}
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-text mb-2">
-                  Currency
-                </label>
-                <SelectDropdown
-                  name="currencyFilter"
-                  options={currencyOptions}
-                  multiple
-                  placeholder="Filter by currency"
-                />
-              </div>
+              <SelectDropdown
+                label="Currency"
+                name="currencyFilter"
+                options={currencyOptions}
+                multiple
+                placeholder="Filter by currency"
+                onValueChange={(value) => {
+                  const formValue = (Array.isArray(value) ? value : []).filter(
+                    (v): v is string => v !== undefined
+                  );
+                  setCurrencyFilter?.(formValue);
+                }}
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-text mb-2">
-                  Tags
-                </label>
-                <SelectDropdown
-                  name="tagFilter"
-                  options={tagOptions}
-                  multiple
-                  placeholder="Filter by tags">
-                  {(option) => (
-                    <>
-                      {option.data?.emoticon && (
-                        <span className="text-base shrink-0">
-                          {option.data.emoticon}
-                        </span>
-                      )}
-                      {option.data?.color && (
-                        <div
-                          className="size-3 rounded-full shrink-0"
-                          style={{ backgroundColor: option.data.color }}
-                        />
-                      )}
-                      <span>{option.label}</span>
-                    </>
-                  )}
-                </SelectDropdown>
-              </div>
+              <SelectDropdown
+                label="Tags"
+                name="tagFilter"
+                options={tagOptions}
+                multiple
+                placeholder="Filter by tags"
+                onValueChange={(value) => {
+                  const formValue = (Array.isArray(value) ? value : []).filter(
+                    (v): v is string => v !== undefined
+                  );
+                  setTagFilter?.(formValue);
+                }}>
+                {(option) => (
+                  <>
+                    {option.data?.emoticon && (
+                      <span className="text-base shrink-0">
+                        {option.data.emoticon}
+                      </span>
+                    )}
+                    {option.data?.color && (
+                      <div
+                        className="size-3 rounded-full shrink-0"
+                        style={{ backgroundColor: option.data.color }}
+                      />
+                    )}
+                    <span>{option.label}</span>
+                  </>
+                )}
+              </SelectDropdown>
             </div>
 
             <Dropdown.Footer className="p-4">

@@ -12,7 +12,7 @@ export type IDropdownPlacement =
 export type IDropdownPosition = {
   top: number;
   left: number;
-  width?: number; // Optional - only set when content fits within trigger width
+  width?: number; // Optional - matches trigger width when opened, then stays stable
   maxHeight: number;
   placement: IDropdownPlacement;
 } | null;
@@ -52,12 +52,13 @@ export function useDropdownPlacement({
   const placementOptions: IPlacementOption[] | IPlacementOption =
     placement !== undefined ? placement : "auto";
 
+  // Use enhanced matchWidth which locks width on open
   const floatingPosition = useFloatingPlacement({
     isOpen,
     triggerRef,
     contentRef,
     placement: placementOptions,
-    matchWidth: true,
+    matchWidth: true, // Enhanced matchWidth locks width on open
   });
 
   if (!floatingPosition || !triggerRef.current) {
@@ -65,8 +66,6 @@ export function useDropdownPlacement({
   }
 
   // Convert floating placement to dropdown position format
-  const triggerRect = triggerRef.current.getBoundingClientRect();
-  const contentRect = contentRef.current?.getBoundingClientRect();
   const dropdownPlacement: IDropdownPlacement =
     floatingPosition.side === "top"
       ? floatingPosition.alignment === "end"
@@ -76,14 +75,11 @@ export function useDropdownPlacement({
         ? "bottom-right"
         : "bottom";
 
-  // Only set width if content fits within trigger width, otherwise let it be natural width
-  const contentWidth = contentRect?.width ?? 0;
-  const shouldMatchWidth = contentWidth <= triggerRect.width;
-
+  // Extract width from floating position (set by enhanced matchWidth)
   return {
     top: floatingPosition.top,
     left: floatingPosition.left,
-    width: shouldMatchWidth ? triggerRect.width : undefined,
+    width: floatingPosition.width,
     maxHeight:
       floatingPosition.maxHeight ??
       window.innerHeight - floatingPosition.top - 8,

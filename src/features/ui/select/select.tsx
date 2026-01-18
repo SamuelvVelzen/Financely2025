@@ -1,7 +1,5 @@
-import {
-  IFormOrControlledMode,
-  useFormContextOptional,
-} from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
+import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
@@ -49,6 +47,8 @@ export type ISelectProps<
   getOptionSearchValue?: (option: TOption) => string;
   forcePlacement?: IPlacementOption[];
   required?: boolean;
+  /** Custom className for the selector button */
+  selectorClassName?: string;
 } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -71,37 +71,55 @@ export function Select<
   getOptionSearchValue,
   forcePlacement,
   required = false,
+  selectorClassName,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
   valueToString,
   stringToValue,
 }: ISelectProps<TValue, TOption>) {
   const { isMobile } = useResponsive();
-  const form = useFormContextOptional();
 
-  // Determine mode
-  const isFormMode = !!name && !!form;
-  const isControlledMode =
-    controlledValue !== undefined && !!controlledOnChange;
+  const {
+    field,
+    error,
+    mode,
+    form: formContext,
+  } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
 
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [initializedUnmatchedValue, setInitializedUnmatchedValue] = useState<
+    string | null
+  >(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const error = isFormMode && form ? form.formState.errors[name] : undefined;
 
   const { highlightText } = useHighlightText();
 
-  // Keep dropdown open when input is focused
-  // NOTE: This hook must be called before any early returns to maintain hook order
-  useEffect(() => {
-    if (
-      inputRef.current &&
-      document.activeElement === inputRef.current &&
-      !disabled
-    ) {
-      setIsOpen(true);
+  // Helper functions (defined before hooks to avoid issues)
+  const getUnmatchedValues = (
+    value: TValue | TValue[] | undefined
+  ): TValue[] => {
+    if (!value) {
+      return [];
     }
-  }, [searchQuery, disabled]);
+    if (multiple && Array.isArray(value)) {
+      const unmatched = value.filter(
+        (val) => !options.some((opt) => opt.value === val)
+      );
+      return unmatched;
+    }
+    if (!multiple && typeof value === "string") {
+      const exists = options.some((opt) => opt.value === value);
+      return exists ? [] : [value];
+    }
+    return [];
+  };
 
   // Filter options based on search query
   // NOTE: This hook must be called before any early returns to maintain hook order
@@ -119,12 +137,84 @@ export function Select<
     });
   }, [options, searchQuery, getOptionSearchValue]);
 
+  // Get current unmatched values
+  // NOTE: This hook must be called before any early returns to maintain hook order
+  const currentUnmatchedValues = useMemo(() => {
+    const currentValue =
+      mode === "controlled"
+        ? controlledValue
+        : mode === "form" && formContext && name
+          ? (formContext.getValues(name) as TValue | TValue[] | undefined)
+          : undefined;
+    return getUnmatchedValues(currentValue);
+  }, [mode, controlledValue, formContext, name, multiple, options]);
+
+  // Reset initialized value if unmatched values changed to a different value
+  // NOTE: This hook must be called before any early returns to maintain hook order
+  useEffect(() => {
+    const firstUnmatched =
+      currentUnmatchedValues.length > 0
+        ? String(currentUnmatchedValues[0])
+        : null;
+
+    // If the unmatched value changed to a different value, reset the initialized value
+    // This allows new unmatched values to be initialized when dropdown opens
+    if (
+      firstUnmatched !== null &&
+      firstUnmatched !== initializedUnmatchedValue
+    ) {
+      setInitializedUnmatchedValue(null);
+    }
+
+    // If there are no unmatched values, reset the initialized value
+    if (firstUnmatched === null && initializedUnmatchedValue !== null) {
+      setInitializedUnmatchedValue(null);
+    }
+  }, [currentUnmatchedValues, initializedUnmatchedValue]);
+
+  // Initialize search query when unmatched values change
+  // Note: We initialize even when dropdown is closed, so it's ready when user opens it
+  // NOTE: This hook must be called before any early returns to maintain hook order
+  useEffect(() => {
+    if (
+      onCreateNew &&
+      currentUnmatchedValues.length > 0 &&
+      !searchQuery.trim()
+    ) {
+      const firstUnmatched = String(currentUnmatchedValues[0]);
+
+      // Only initialize if this is a different unmatched value than what we initialized before
+      if (initializedUnmatchedValue !== firstUnmatched) {
+        setSearchQuery(firstUnmatched);
+        setInitializedUnmatchedValue(firstUnmatched);
+        // Focus the input if dropdown is open
+        if (isOpen) {
+          setTimeout(() => {
+            const input = inputRef.current;
+            if (input) {
+              input.focus();
+              // Move cursor to end of input
+              const length = input.value.length;
+              input.setSelectionRange(length, length);
+            }
+          }, 0);
+        }
+      }
+    }
+  }, [
+    currentUnmatchedValues,
+    onCreateNew,
+    searchQuery,
+    initializedUnmatchedValue,
+    isOpen,
+  ]);
+
   // On mobile, use native select (only supports form mode for now)
-  if (isMobile && isFormMode && form) {
+  if (isMobile && mode === "form" && formContext) {
     return (
       <NativeSelect
         className={className}
-        name={name}
+        name={name!}
         options={options}
         multiple={multiple}
         placeholder={placeholder}
@@ -174,10 +264,8 @@ export function Select<
   };
 
   // Shared rendering logic
-  const renderSelectContent = (
-    value: TValue | TValue[] | undefined,
-    onChange: (newValue: TValue | TValue[] | undefined) => void
-  ) => {
+  const renderSelectContent = (currentField: typeof field) => {
+    const value = currentField.value as TValue | TValue[] | undefined;
     const selectedOptions = getSelectedOptions(value);
     const hasSelection = selectedOptions.length > 0;
 
@@ -194,10 +282,10 @@ export function Select<
         const newValues = currentValues.some((v) => v === optionValue)
           ? currentValues.filter((v) => v !== optionValue)
           : [...currentValues, optionValue];
-        onChange(newValues);
+        currentField.onChange(newValues);
       } else {
         // Single select: set the value
-        onChange(optionValue);
+        currentField.onChange(optionValue);
         setIsOpen(false);
         setSearchQuery("");
       }
@@ -208,9 +296,9 @@ export function Select<
       e.stopPropagation();
       if (multiple) {
         const currentValues = Array.isArray(value) ? value : [];
-        onChange(currentValues.filter((v) => v !== optionValue));
+        currentField.onChange(currentValues.filter((v) => v !== optionValue));
       } else {
-        onChange(undefined);
+        currentField.onChange(undefined);
       }
     };
 
@@ -222,10 +310,44 @@ export function Select<
       }
     };
 
+    // Handle dropdown open/close
+    const handleOpenChange = (open: boolean) => {
+      if (!disabled) {
+        setIsOpen(open);
+
+        // Pre-fill search query when opening dropdown with unmatched values
+        if (open && onCreateNew) {
+          if (currentUnmatchedValues.length > 0 && !searchQuery.trim()) {
+            const firstUnmatched = String(currentUnmatchedValues[0]);
+
+            // Only initialize if this is a different unmatched value than what we initialized before
+            // If initializedUnmatchedValue matches firstUnmatched, user has already seen/cleared it
+            if (initializedUnmatchedValue !== firstUnmatched) {
+              setSearchQuery(firstUnmatched);
+              setInitializedUnmatchedValue(firstUnmatched);
+              // Focus the input so the user can see the pre-filled value
+              setTimeout(() => {
+                const input = inputRef.current;
+                if (input) {
+                  input.focus();
+                  // Move cursor to end of input
+                  const length = input.value.length;
+                  input.setSelectionRange(length, length);
+                }
+              }, 0);
+            }
+          }
+        } else if (!open) {
+          // Reset search query when closing
+          setSearchQuery("");
+        }
+      }
+    };
+
     // Custom selector with input and chips
     const selectorContent = (
-      <>
-        <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+      <div className="flex items-center gap-2 w-full">
+        <div className="flex flex-wrap gap-1.5 flex-1 min-w-0 items-center">
           {hasSelection &&
             selectedOptions.map((option) => (
               <span
@@ -246,7 +368,13 @@ export function Select<
             type="text"
             value={searchQuery}
             onChange={(e) => {
-              setSearchQuery(e.target.value);
+              const newValue = e.target.value;
+              setSearchQuery(newValue);
+
+              // If user clears the search query and we had initialized a value,
+              // keep the initialized value set so it won't be restored when reopening
+              // (we don't reset it here - the initialized value stays to prevent re-initialization)
+
               // Keep dropdown open when typing or clearing
               if (!disabled) {
                 setIsOpen(true);
@@ -256,7 +384,7 @@ export function Select<
             placeholder={hasSelection ? "" : searchPlaceholder || placeholder}
             disabled={disabled}
             className={cn(
-              "flex-1 min-w-[120px] bg-transparent border-0 outline-none text-text",
+              "flex-1 bg-transparent border-0 outline-none text-text min-w-[50px]",
               "placeholder:text-text-muted",
               disabled && "cursor-not-allowed"
             )}
@@ -279,7 +407,9 @@ export function Select<
                   const currentValues = Array.isArray(value) ? value : [];
                   const lastTagId =
                     selectedOptions[selectedOptions.length - 1].value;
-                  onChange(currentValues.filter((v) => v !== lastTagId));
+                  currentField.onChange(
+                    currentValues.filter((v) => v !== lastTagId)
+                  );
                 }
               }
             }}
@@ -291,7 +421,7 @@ export function Select<
             isOpen && "rotate-180"
           )}
         />
-      </>
+      </div>
     );
 
     return (
@@ -300,9 +430,10 @@ export function Select<
         <Dropdown
           dropdownSelector={selectorContent}
           open={disabled ? false : isOpen}
-          onOpenChange={(open) => !disabled && setIsOpen(open)}
+          onOpenChange={handleOpenChange}
           placement={forcePlacement}
-          closeOnItemClick={!multiple}>
+          closeOnItemClick={!multiple}
+          selectorClassName={selectorClassName}>
           {filteredOptions.length > 0 && (
             <>
               {filteredOptions.map((option, index) => {
@@ -311,7 +442,8 @@ export function Select<
                 return (
                   <DropdownItem
                     key={String(option.value)}
-                    clicked={handleClick}>
+                    clicked={handleClick}
+                    selected={optionIsSelected}>
                     <div className="flex items-center gap-2 w-full">
                       {multiple && (
                         <Checkbox
@@ -367,7 +499,7 @@ export function Select<
         </Dropdown>
         {error && (
           <p className="text-sm text-danger mt-1">
-            {(error as { message?: string })?.message || String(error)}
+            {error.message || String(error)}
           </p>
         )}
         {!error && hint && (
@@ -381,32 +513,37 @@ export function Select<
   };
 
   // Render controlled mode
-  if (isControlledMode) {
-    return renderSelectContent(controlledValue, (newValue) => {
-      controlledOnChange?.(newValue);
-    });
+  if (mode === "controlled") {
+    return renderSelectContent(field);
   }
 
-  // Render form mode
-  if (isFormMode && form) {
+  // Render form mode (need Controller for rules/disabled)
+  if (mode === "form" && formContext && name) {
     return (
       <Controller
         name={name}
-        control={form.control}
+        control={formContext.control}
         rules={{
           required: required,
         }}
         disabled={disabled}
-        render={({ field }) => {
-          return renderSelectContent(
-            field.value as TValue | TValue[] | undefined,
-            field.onChange
-          );
+        render={({ field: controllerField }) => {
+          // Create adapter field from controller field
+          const adapterField: typeof field = {
+            value: controllerField.value as TValue | TValue[] | undefined,
+            onChange: (value: unknown) => {
+              controllerField.onChange(value);
+              onValueChange?.(value as TValue | TValue[] | undefined);
+            },
+            onBlur: controllerField.onBlur,
+            name: controllerField.name,
+            ref: controllerField.ref,
+          };
+          return renderSelectContent(adapterField);
         }}
       />
     );
   }
 
-  // Fallback (should not happen with proper discriminated union)
   return null;
 }

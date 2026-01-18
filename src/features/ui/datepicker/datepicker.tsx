@@ -202,6 +202,8 @@ export function Datepicker({
       startDate={startDate}
       endDate={endDate}
       onDateSelect={handleCalendarDateSelect}
+      mode="daterange"
+      className="w-80"
     />
   ) : null;
 

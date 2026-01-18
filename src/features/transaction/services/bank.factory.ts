@@ -14,6 +14,10 @@ export interface BankProfile {
   requiredFields: ITransactionFieldName[];
   /** Default payment method to use when importing CSV if paymentMethod is not mapped */
   defaultPaymentMethod: IPaymentMethod;
+  /** Optional function to detect if filename matches this bank's pattern */
+  detectBankByFilename?: (filename: string) => boolean;
+  /** Fields that should be hidden in the mapping and review steps */
+  hiddenFields?: ITransactionFieldName[];
 }
 
 const BANK_REGISTRY: Record<BankEnum, BankProfile> = {
@@ -47,5 +51,22 @@ export class BankProfileFactory {
     bank: BankEnum | null | undefined
   ): IPaymentMethod {
     return this.getProfile(bank)?.defaultPaymentMethod ?? "DEBIT_CARD";
+  }
+
+  static getHiddenFields(
+    bank: BankEnum | null | undefined
+  ): ITransactionFieldName[] {
+    return this.getProfile(bank)?.hiddenFields ?? [];
+  }
+
+  static detectBankByFilename(filename: string): BankEnum | null {
+    // Check all banks except DEFAULT
+    for (const [bank, profile] of Object.entries(BANK_REGISTRY)) {
+      if (bank === "DEFAULT") continue;
+      if (profile.detectBankByFilename?.(filename)) {
+        return bank as BankEnum;
+      }
+    }
+    return null;
   }
 }

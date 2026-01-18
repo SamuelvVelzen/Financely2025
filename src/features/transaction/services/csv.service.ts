@@ -70,7 +70,7 @@ const FIELD_NAME_PATTERNS: Record<string, string[]> = {
     "paymethod",
   ],
   tags: ["tags", "categories"],
-  primaryTagId: [
+  primaryTag: [
     "tag",
     "category",
     "primary_tag",
@@ -342,7 +342,19 @@ export function autoDetectMapping(
   applyHints(bankHints);
 
   // Fallback to generic heuristics for remaining fields
-  Object.entries(FIELD_NAME_PATTERNS).forEach(([field, patterns]) => {
+  // Process primaryTag before tags to ensure "Tag" column maps to primaryTag, not tags
+  const fallbackFields = Object.entries(FIELD_NAME_PATTERNS);
+  const primaryTagEntry = fallbackFields.find(
+    ([field]) => field === "primaryTag"
+  );
+  const otherFields = fallbackFields.filter(
+    ([field]) => field !== "primaryTag"
+  );
+  const orderedFields = primaryTagEntry
+    ? [primaryTagEntry, ...otherFields]
+    : fallbackFields;
+
+  orderedFields.forEach(([field, patterns]) => {
     if (mapping[field as ITransactionFieldName]) {
       return;
     }
@@ -351,12 +363,23 @@ export function autoDetectMapping(
     for (let i = 0; i < normalizedColumns.length; i++) {
       if (usedColumnIndexes.has(i)) continue;
       const normalizedCol = normalizedColumns[i].normalized;
-      if (
+
+      // First check for exact match (highest priority)
+      const exactMatch = normalizedPatterns.some(
+        (pattern) => normalizedCol === pattern
+      );
+
+      // Then check for substring matches (only if no exact match)
+      const substringMatch =
+        !exactMatch &&
         normalizedPatterns.some(
           (pattern) =>
-            normalizedCol === pattern || normalizedCol.includes(pattern)
-        )
-      ) {
+            normalizedCol.includes(pattern) ||
+            (pattern.length > normalizedCol.length &&
+              pattern.includes(normalizedCol))
+        );
+
+      if (exactMatch || substringMatch) {
         mapping[field as ITransactionFieldName] = normalizedColumns[i].original;
         usedColumnIndexes.add(i);
         break;
@@ -540,7 +563,7 @@ export async function convertRowToTransaction(
           transaction.tagIds = parseTagNames(rawValue);
         }
         break;
-      case "primaryTagId":
+      case "primaryTag":
         if (rawValue) {
           // Store primary tag name instead of resolving to ID
           // Tag name will be resolved during import confirmation
@@ -836,7 +859,6 @@ export async function parsePrimaryTag(
  */
 export function validateCandidateTransaction(
   candidate: Partial<ICreateTransactionInput>,
-  rawValues: Record<string, string>,
   typeDetectionStrategy?: string
 ): Array<{ field: string; message: string }> {
   const errors: Array<{ field: string; message: string }> = [];
@@ -909,7 +931,6 @@ export async function convertRowsToCandidates(
       );
       const errors = validateCandidateTransaction(
         transaction,
-        row,
         typeDetectionStrategy
       );
 
@@ -938,7 +959,8 @@ export async function convertRowsToCandidates(
         rowIndex: i,
         status,
         data: transaction as ICreateTransactionInput,
-        rawValues: row,
+        primaryTagMetadata: null,
+        tagsMetadata: [],
         errors,
       });
     } catch (error) {
@@ -955,7 +977,8 @@ export async function convertRowsToCandidates(
           paymentMethod: "OTHER",
           tagIds: [],
         } as ICreateTransactionInput,
-        rawValues: row,
+        primaryTagMetadata: null,
+        tagsMetadata: [],
         errors: [
           {
             field: "general",
@@ -967,52 +990,97 @@ export async function convertRowsToCandidates(
     }
   }
 
-  // Fetch tag metadata for all unique tag names
-  const allUniqueTagNames = Array.from(
-    new Set([...allTagNames, ...allPrimaryTagNames])
-  );
-  const tagMetadataMap = await fetchTagMetadataByNames(
+  // Fetch tag metadata separately for primary tags and other tags
+  const primaryTagNamesArray = Array.from(allPrimaryTagNames);
+  const tagNamesArray = Array.from(allTagNames);
+
+  const primaryTagMetadataMap = await fetchTagMetadataByNames(
     userId,
-    allUniqueTagNames
+    primaryTagNamesArray
   );
+  const tagsMetadataMap = await fetchTagMetadataByNames(userId, tagNamesArray);
 
   // Second pass: add tag metadata to candidates
   return candidates.map((candidate) => {
-    const tagMetadata: Record<
-      string,
-      { id: string; color: string | null; emoticon: string | null }
-    > = {};
+    // Populate primary tag metadata
+    let primaryTagMetadata: {
+      id?: string;
+      name: string;
+      color: string | null;
+      emoticon: string | null;
+    } | null = null;
 
-    // Add metadata for tags
+    if (
+      candidate.data.primaryTagId &&
+      typeof candidate.data.primaryTagId === "string"
+    ) {
+      const primaryTagName = candidate.data.primaryTagId;
+      const metadata = primaryTagMetadataMap.get(primaryTagName);
+      if (metadata) {
+        // Tag exists: include id, name, color, emoticon
+        primaryTagMetadata = {
+          id: metadata.id,
+          name: primaryTagName,
+          color: metadata.color,
+          emoticon: metadata.emoticon,
+        };
+      } else {
+        // Tag doesn't exist: include name only (no id)
+        primaryTagMetadata = {
+          name: primaryTagName,
+          color: null,
+          emoticon: null,
+        };
+      }
+    }
+
+    // Populate tags metadata (excluding primary tag)
+    const tagsMetadata: Array<{
+      id?: string;
+      name: string;
+      color: string | null;
+      emoticon: string | null;
+    }> = [];
+
     if (candidate.data.tagIds && Array.isArray(candidate.data.tagIds)) {
+      const primaryTagName =
+        candidate.data.primaryTagId &&
+        typeof candidate.data.primaryTagId === "string"
+          ? candidate.data.primaryTagId
+          : null;
+
       candidate.data.tagIds.forEach((tagName) => {
         if (tagName && typeof tagName === "string") {
-          const metadata = tagMetadataMap.get(tagName);
+          // Exclude primary tag from tags metadata
+          if (tagName === primaryTagName) {
+            return;
+          }
+
+          const metadata = tagsMetadataMap.get(tagName);
           if (metadata) {
-            tagMetadata[tagName] = metadata;
+            // Tag exists: include id, name, color, emoticon
+            tagsMetadata.push({
+              id: metadata.id,
+              name: tagName,
+              color: metadata.color,
+              emoticon: metadata.emoticon,
+            });
+          } else {
+            // Tag doesn't exist: include name only (no id)
+            tagsMetadata.push({
+              name: tagName,
+              color: null,
+              emoticon: null,
+            });
           }
         }
       });
     }
 
-    // Add metadata for primary tag
-    if (
-      candidate.data.primaryTagId &&
-      typeof candidate.data.primaryTagId === "string"
-    ) {
-      const metadata = tagMetadataMap.get(candidate.data.primaryTagId);
-      if (metadata) {
-        tagMetadata[candidate.data.primaryTagId] = metadata;
-      }
-    }
-
-    // Store metadata in rawValues (will be used in review step)
     return {
       ...candidate,
-      rawValues: {
-        ...candidate.rawValues,
-        __tagMetadata: JSON.stringify(tagMetadata),
-      },
+      primaryTagMetadata,
+      tagsMetadata,
     };
   });
 }

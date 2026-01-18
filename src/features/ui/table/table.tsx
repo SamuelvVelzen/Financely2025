@@ -15,6 +15,12 @@ import { TableBody } from "./table-body";
 import { TableHeader } from "./table-header";
 import { TableRow } from "./table-row";
 
+export type IBaseCellProps = {
+  sticky?: boolean;
+  hidden?: boolean;
+  size?: "sm" | "md" | "lg";
+};
+
 export type ITableProps<T = unknown> = {
   headerCells: React.ReactNode[];
   data?: T[];
@@ -59,7 +65,11 @@ function TableContent<T>({
   return (
     <div className="border border-border rounded-2xl overflow-hidden">
       <div className="overflow-x-auto">
-        <table className={cn("w-full text-sm", className)}>
+        <table
+          className={cn(
+            "w-full text-sm border-separate border-spacing-0",
+            className
+          )}>
           <TableHeader>
             <TableRow>
               {headerCells.map((cell, index) => {

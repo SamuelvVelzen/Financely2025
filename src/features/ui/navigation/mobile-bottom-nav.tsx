@@ -53,7 +53,7 @@ export function MobileBottomNav() {
           <IconButton
             clicked={handleCreateTransaction}
             variant="primary"
-            className={cn("size-14 absolute -top-4 -translate-x-1/2")}
+            className={cn("size-14 absolute -top-7 m-0 p-0")}
             aria-label="Add transaction">
             <HiPlus className="size-7" />
           </IconButton>

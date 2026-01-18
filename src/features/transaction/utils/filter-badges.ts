@@ -8,7 +8,7 @@ import { DEFAULT_FILTER_STATE } from "./transaction-filter-model";
 
 export interface IFilterBadge {
   id: string;
-  type: "date" | "tag" | "amount" | "search";
+  type: "date" | "tag" | "amount" | "search" | "transactionType";
   label: string;
   value: string;
   onRemove: () => void;
@@ -22,6 +22,7 @@ interface IGenerateBadgesOptions {
   onRemoveTag: (tagId: string) => void;
   onRemoveAmount: () => void;
   onRemoveSearch: () => void;
+  onRemoveTransactionType?: () => void;
   defaultFilterState?: IFilterState;
 }
 
@@ -32,6 +33,7 @@ export function generateFilterBadges({
   onRemoveTag,
   onRemoveAmount,
   onRemoveSearch,
+  onRemoveTransactionType,
   defaultFilterState = DEFAULT_FILTER_STATE,
 }: IGenerateBadgesOptions): IFilterBadge[] {
   const badges: IFilterBadge[] = [];
@@ -120,6 +122,30 @@ export function generateFilterBadges({
       label: `Search: ${filterState.searchQuery}`,
       value: filterState.searchQuery,
       onRemove: onRemoveSearch,
+    });
+  }
+
+  // Transaction type badge (only show if exactly one type is selected)
+  // If both are selected or empty, it means "show all" so no badge needed
+  if (
+    filterState.transactionTypeFilter &&
+    filterState.transactionTypeFilter.length === 1 &&
+    onRemoveTransactionType
+  ) {
+    const transactionType = filterState.transactionTypeFilter[0];
+    const typeLabel =
+      transactionType === "EXPENSE"
+        ? "Expense"
+        : transactionType === "INCOME"
+          ? "Income"
+          : transactionType;
+
+    badges.push({
+      id: "transactionType",
+      type: "transactionType",
+      label: `Type: ${typeLabel}`,
+      value: transactionType,
+      onRemove: onRemoveTransactionType,
     });
   }
 

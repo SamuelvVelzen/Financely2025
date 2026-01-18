@@ -1,11 +1,11 @@
 import {
   IFormOrControlledMode,
-  useFormContextOptional,
 } from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
@@ -25,7 +25,7 @@ export type ISelectDropdownProps<
   placeholder?: string;
   label?: string;
   maxDisplayItems?: number;
-  showClearButton?: boolean;
+  clearable?: boolean;
   children?: (
     option: TOption,
     index: number,
@@ -51,27 +51,39 @@ export function SelectDropdown<
   placeholder = "Select...",
   label,
   maxDisplayItems = 2,
-  showClearButton = true,
+  clearable = true,
   children,
   disabled = false,
   required = false,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
   valueToString,
   stringToValue,
 }: ISelectDropdownProps<TValue, TOption>) {
   const { isMobile } = useResponsive();
-  const form = useFormContextOptional();
-
-  // Detect mode: form mode if form context exists AND name is provided
-  const isFormMode = form !== null && name !== undefined;
-  // Controlled mode if not in form mode and controlled props are provided
-  const isControlledMode =
-    !isFormMode &&
-    (controlledValue !== undefined || controlledOnChange !== undefined);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const { field, error, mode, form: formContext } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
 
   const [isOpen, setIsOpen] = useState(false);
-  const error = isFormMode ? form?.formState.errors[name!] : undefined;
+  const [isNested, setIsNested] = useState(false);
+
+  // Check if this SelectDropdown is nested inside another dropdown
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Check if the container is inside a dropdown content area
+    const parentDropdownContent = containerRef.current.closest(
+      '[data-dropdown-content]'
+    );
+    setIsNested(!!parentDropdownContent);
+  }, []);
 
   // Close dropdown when disabled becomes true
   useEffect(() => {
@@ -130,7 +142,7 @@ export function SelectDropdown<
   };
 
   // On mobile, use native select (only works in form mode)
-  if (isMobile && isFormMode) {
+  if (isMobile && mode === "form") {
     return (
       <NativeSelect
         className={className}
@@ -148,11 +160,8 @@ export function SelectDropdown<
   }
 
   // Shared rendering logic for both controlled and form modes
-  const renderSelectContent = (
-    value: TValue | TValue[] | undefined,
-    onChange: (newValue: TValue | TValue[] | undefined) => void,
-    isFormMode: boolean
-  ) => {
+  const renderSelectContent = (currentField: typeof field) => {
+    const value = currentField.value as TValue | TValue[] | undefined;
     const displayText = getDisplayText(value);
     const hasSelection =
       value !== undefined &&
@@ -165,18 +174,34 @@ export function SelectDropdown<
       if (multiple) {
         // Multiple select: toggle the option
         const currentValues = Array.isArray(value) ? value : [];
-        const newValues = currentValues.some((v) => v === optionValue)
-          ? currentValues.filter((v) => v !== optionValue)
-          : [...currentValues, optionValue];
-        onChange(newValues);
+        const isCurrentlySelected = currentValues.some(
+          (v) => v === optionValue
+        );
+
+        if (isCurrentlySelected) {
+          // If removing this item would result in empty array and clearable is false, prevent removal
+          if (!clearable && currentValues.length === 1) {
+            return;
+          }
+          // Remove the option
+          const newValues = currentValues.filter((v) => v !== optionValue);
+          currentField.onChange(newValues);
+        } else {
+          // Add the option
+          const newValues = [...currentValues, optionValue];
+          currentField.onChange(newValues);
+        }
       } else {
-        // Single select: toggle selection (allow deselecting)
+        // Single select: toggle selection (allow deselecting only if clearable is true)
         if (value === optionValue) {
-          // Deselect if already selected
-          onChange(undefined);
+          // Deselect if already selected, but only if clearable is true
+          if (clearable) {
+            currentField.onChange(undefined);
+          }
+          // If clearable is false, do nothing (prevent deselection)
         } else {
           // Select the option
-          onChange(optionValue);
+          currentField.onChange(optionValue);
         }
         // Close dropdown after single selection
         setIsOpen(false);
@@ -188,13 +213,14 @@ export function SelectDropdown<
       e.stopPropagation(); // Prevent dropdown from opening
       if (disabled) return;
       if (multiple) {
-        onChange([]);
+        currentField.onChange([]);
       } else {
-        if (isFormMode && form && name) {
+        if (mode === "form" && formContext && name) {
           // Reset to default value so React Hook Form recognizes it as set
-          form.resetField(name);
+          formContext.resetField(name);
+          onValueChange?.(undefined);
         } else {
-          onChange(undefined);
+          currentField.onChange(undefined);
         }
       }
     };
@@ -206,7 +232,7 @@ export function SelectDropdown<
           {displayText}
         </span>
         <div className="flex items-center gap-1 ml-2">
-          {hasSelection && showClearButton && (
+          {hasSelection && clearable && (
             <span
               role="button"
               onClick={handleClear}
@@ -240,7 +266,7 @@ export function SelectDropdown<
     );
 
     return (
-      <div className={cn("relative", className)}>
+      <div ref={containerRef} className={cn("relative", className)}>
         {label && (
           <Label
             className="mb-1"
@@ -256,7 +282,8 @@ export function SelectDropdown<
             setIsOpen(open);
           }}
           closeOnItemClick={!multiple}
-          disabled={disabled}>
+          disabled={disabled}
+          allowNested={isNested}>
           {options.map((option, index) => {
             const optionIsSelected = isSelected(option.value, value);
             const handleClick = () => handleOptionClick(option.value);
@@ -303,37 +330,37 @@ export function SelectDropdown<
   };
 
   // Render controlled mode
-  if (isControlledMode) {
-    return renderSelectContent(
-      controlledValue,
-      (newValue) => controlledOnChange?.(newValue),
-      false
+  if (mode === "controlled") {
+    return renderSelectContent(field);
+  }
+
+  // Render form mode (need Controller for rules/disabled)
+  if (mode === "form" && formContext && name) {
+    return (
+      <Controller
+        name={name}
+        control={formContext.control}
+        rules={{
+          required: required,
+        }}
+        disabled={disabled}
+        render={({ field: controllerField }) => {
+          // Create adapter field from controller field
+          const adapterField: typeof field = {
+            value: controllerField.value as TValue | TValue[] | undefined,
+            onChange: (value: unknown) => {
+              controllerField.onChange(value);
+              onValueChange?.(value as TValue | TValue[] | undefined);
+            },
+            onBlur: controllerField.onBlur,
+            name: controllerField.name,
+            ref: controllerField.ref,
+          };
+          return renderSelectContent(adapterField);
+        }}
+      />
     );
   }
 
-  // Render form mode
-  if (!form || !name) {
-    throw new Error(
-      "SelectDropdown: Either provide 'name' prop with form context, or provide 'value' and 'onChange' props for controlled mode"
-    );
-  }
-
-  return (
-    <Controller
-      name={name}
-      control={form.control}
-      rules={{
-        required: required,
-      }}
-      disabled={disabled}
-      render={({ field }) => {
-        const value = field.value as TValue | TValue[] | undefined;
-        return renderSelectContent(
-          value,
-          field.onChange as (newValue: TValue | TValue[] | undefined) => void,
-          true
-        );
-      }}
-    />
-  );
+  return null;
 }

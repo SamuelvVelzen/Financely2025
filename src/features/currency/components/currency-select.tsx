@@ -42,7 +42,7 @@ export function CurrencySelect({ className, ...props }: ICurrencySelectProps) {
       className={className}
       options={currencyOptions}
       placeholder="Select currency"
-      showClearButton={false}>
+      clearable={false}>
       {(option) => {
         const Icon =
           CURRENCY_ICONS[option.value as ICurrency] ?? PiCurrencyDollarDuotone;

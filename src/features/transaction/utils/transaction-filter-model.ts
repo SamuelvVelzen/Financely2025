@@ -73,10 +73,13 @@ export interface ITransactionFilterState {
 
   /**
    * Transaction type filter - array of transaction types
-   * - Empty array means "unset" (show all types)
-   * - ["EXPENSE"] means expenses only
-   * - ["INCOME"] means incomes only
-   * - ["EXPENSE", "INCOME"] means show all (same as empty)
+   * - Empty array means "unset" (show all types) - no checkboxes checked (Option 1 UX)
+   * - ["EXPENSE"] means expenses only - Expense checkbox checked
+   * - ["INCOME"] means incomes only - Income checkbox checked
+   * - ["EXPENSE", "INCOME"] is normalized to [] (both inactive, show all types)
+   *
+   * Note: When both are selected, they are normalized to empty array (Option 1 UX)
+   * so the UI state matches the functional state (both inactive = show all).
    */
   transactionTypeFilter: string[];
 
@@ -284,10 +287,21 @@ function normalizeTransactionTypeFilter(types: unknown): string[] {
   }
   // Filter out invalid values, only allow EXPENSE and INCOME
   const validTypes = ["EXPENSE", "INCOME"];
-  return types.filter(
+  const filtered = types.filter(
     (type): type is string =>
       typeof type === "string" && validTypes.includes(type)
   );
+
+  // Normalize: if both types are selected, convert to empty array (Option 1: both inactive)
+  if (
+    filtered.length === 2 &&
+    filtered.includes("EXPENSE") &&
+    filtered.includes("INCOME")
+  ) {
+    return [];
+  }
+
+  return filtered;
 }
 
 /**

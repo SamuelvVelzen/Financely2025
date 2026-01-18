@@ -1,4 +1,6 @@
+import { Button } from "@/features/ui/button/button";
 import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
   addMonths,
   eachDayOfInterval,
@@ -13,20 +15,27 @@ import {
   subMonths,
 } from "date-fns";
 import { useEffect, useState } from "react";
-import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import { HiChevronLeft, HiChevronRight, HiClock } from "react-icons/hi";
 
 export type ICalendarViewProps = {
   startDate?: Date | null;
   endDate?: Date | null;
   onDateSelect: (start: Date | null, end: Date | null) => void;
   onClose?: () => void;
-};
+  mode?: "daterange" | "date";
+  timeSupported?: boolean;
+  onAddTime?: () => void;
+} & IPropsWithClassName;
 
 export function CalendarView({
   startDate,
   endDate,
   onDateSelect,
   onClose,
+  mode = "date",
+  className = "",
+  timeSupported = false,
+  onAddTime,
 }: ICalendarViewProps) {
   // Determine initial month to display
   const getInitialMonth = (): Date => {
@@ -47,6 +56,15 @@ export function CalendarView({
   const handleDateClick = (date: Date) => {
     const normalizedDate = startOfDay(date);
 
+    // Single date mode: always set as start date
+    // Note: onClose is called by the parent component if needed (e.g., in dateOnly mode)
+    if (mode === "date") {
+      onDateSelect(normalizedDate, null);
+      // Don't call onClose here - let the parent component decide when to close
+      return;
+    }
+
+    // Range mode: existing logic
     if (startDate && endDate) {
       // Both dates set
       const normalizedStart = startOfDay(startDate);
@@ -127,7 +145,7 @@ export function CalendarView({
   };
 
   return (
-    <div className="w-80 bg-surface p-4">
+    <div className={cn("bg-surface p-4", className)}>
       {/* Month/Year Header with Navigation */}
       <div className="flex items-center justify-between mb-4">
         <button
@@ -281,6 +299,25 @@ export function CalendarView({
           );
         })}
       </div>
+
+      {/* Footer with Add Time button */}
+      {timeSupported && onAddTime && (
+        <div className="mt-4 pt-4 border-t border-border">
+          <Button
+            clicked={(e) => {
+              e.stopPropagation();
+              onAddTime();
+            }}
+            variant="default"
+            size="sm"
+            className="w-full">
+            <div className="flex items-center justify-center gap-2">
+              <HiClock className="size-4" />
+              <span>Add time</span>
+            </div>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

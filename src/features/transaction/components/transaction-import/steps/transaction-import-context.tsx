@@ -99,6 +99,7 @@ export interface ITransactionImportContext {
 
   // Handlers
   handleMappingChange: (field: string, column: string | null) => void;
+  handleMappingFieldChange: (field: string, column: string | null) => void;
   handleResetToSuggested: (fieldName: string) => void;
   handleSelectAllValid: () => void;
   handleExcludeAllInvalid: () => void;
@@ -235,22 +236,15 @@ export function TransactionImportProvider({
     }
   }, [columns, suggestedMapping, mappingForm, selectedBank]);
 
-  // Sync form mapping values back to mapping state
-  useEffect(() => {
-    const subscription = mappingForm.watch((value, { name }) => {
-      if (name?.startsWith("mappings.")) {
-        const field = name.replace("mappings.", "");
-        const column = value.mappings?.[field] || null;
-        if (mapping[field] !== column) {
-          setMapping((prev) => ({
-            ...prev,
-            [field]: column,
-          }));
-        }
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [mappingForm, mapping]);
+  // Handler for mapping field changes
+  const handleMappingFieldChange = useCallback((field: string, column: string | null) => {
+    if (mapping[field] !== column) {
+      setMapping((prev) => ({
+        ...prev,
+        [field]: column,
+      }));
+    }
+  }, [mapping]);
 
   // Register form validation rules for required mapping fields
   useEffect(() => {
@@ -430,6 +424,7 @@ export function TransactionImportProvider({
 
     // Handlers
     handleMappingChange,
+    handleMappingFieldChange,
     handleResetToSuggested,
     handleSelectAllValid,
     handleExcludeAllInvalid,

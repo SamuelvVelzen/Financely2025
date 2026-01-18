@@ -51,6 +51,10 @@ type IDropdownProps = {
   closeOnItemClick?: boolean;
   disabled?: boolean;
   size?: IButtonSize;
+  /** Custom className for the selector button */
+  selectorClassName?: string;
+  /** If true, this dropdown won't close other dropdowns when opened. Useful for nested dropdowns. */
+  allowNested?: boolean;
 } & PropsWithChildren;
 
 export function Dropdown({
@@ -64,6 +68,8 @@ export function Dropdown({
   closeOnItemClick = true,
   disabled = false,
   size = "md",
+  selectorClassName,
+  allowNested = false,
 }: IDropdownProps) {
   const dialogContext = useDialogContext();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -113,8 +119,15 @@ export function Dropdown({
     );
   };
 
+  // Generate a unique ID for this dropdown to track nesting
+  const dropdownIdRef = useRef(`dropdown-${Math.random().toString(36).substr(2, 9)}`);
+
   const DropdownSelector = (
-    <div ref={triggerRef}>
+    <div
+      ref={triggerRef}
+      data-dropdown-trigger
+      data-dropdown-id={dropdownIdRef.current}
+      data-allow-nested={allowNested ? "true" : undefined}>
       {dropdownSelector ? (
         (() => {
           const isObject = isDropdownSelectorObject(dropdownSelector);
@@ -130,9 +143,16 @@ export function Dropdown({
               disabled={disabled}
               variant={variant}
               className={cn(
-                "w-full py-2 h-9",
+                "w-full",
+                // Remove fixed height and padding when content is a div (Select component)
+                // Use min-h-9 to allow growth when chips wrap, box-border to include border in height calculation
+                !isObject && "min-h-9 box-border",
+                isObject && "py-2 h-9",
                 "focus:ring-2 focus:ring-primary",
-                dropdownIsOpen && "ring-2 ring-primary"
+                dropdownIsOpen && "ring-2 ring-primary",
+                // Override Button's centering for Select components
+                !isObject && "justify-start",
+                selectorClassName
               )}>
               {buttonContent}
             </Button>
@@ -169,6 +189,48 @@ export function Dropdown({
         (target as HTMLElement)?.tagName === "INPUT" &&
         triggerRef.current?.querySelector("input") === target;
 
+      // Check if click is on another dropdown's trigger
+      const allDropdownTriggers = Array.from(
+        document.querySelectorAll('[data-dropdown-trigger]')
+      );
+      const clickedDropdownTrigger = allDropdownTriggers.find((trigger) => {
+        return trigger !== triggerRef.current && trigger.contains(target);
+      });
+
+      // If clicking on another dropdown trigger
+      if (clickedDropdownTrigger) {
+        // Check if the clicked dropdown is nested inside this dropdown's content
+        // First try checking if the trigger is inside the content (works for portaled content)
+        let isClickedNestedInThis =
+          dropdownContentRef.current?.contains(clickedDropdownTrigger) ?? false;
+        
+        // If that didn't work (content is portaled), check if the clicked trigger
+        // is inside an element with data-dropdown-content that matches this dropdown's ID
+        if (!isClickedNestedInThis && dropdownContentRef.current) {
+          const clickedDropdownId = clickedDropdownTrigger.getAttribute("data-dropdown-id");
+          const thisDropdownId = dropdownIdRef.current;
+          
+          // Check if clicked trigger is inside any element with this dropdown's content ID
+          const parentContent = clickedDropdownTrigger.closest(
+            `[data-dropdown-content][data-dropdown-id="${thisDropdownId}"]`
+          );
+          isClickedNestedInThis = !!parentContent;
+        }
+        
+        // If this dropdown allows nesting and the clicked dropdown is nested inside it,
+        // don't close this dropdown (it's a parent allowing nested children)
+        // Otherwise, close this dropdown when opening another
+        if (allowNested && isClickedNestedInThis) {
+          // Don't close - this is a parent dropdown and the clicked dropdown is nested inside it
+          return;
+        } else {
+          // Close this dropdown - either it's a sibling or we're opening a parent
+          setDropdownState(false);
+          return;
+        }
+      }
+
+      // Standard outside click handling
       if (
         !isClickInTrigger &&
         !isClickInDropdown &&
@@ -213,7 +275,8 @@ export function Dropdown({
     <>
       <div
         className="relative"
-        ref={dropdownRef}>
+        ref={dropdownRef}
+        data-dropdown-container>
         {DropdownSelector}
       </div>
 
@@ -235,6 +298,8 @@ export function Dropdown({
               }}>
               <div
                 ref={dropdownContentRef}
+                data-dropdown-content
+                data-dropdown-id={dropdownIdRef.current}
                 className={cn(
                   "bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
                   showExpanded ? "rounded-l-2xl" : "rounded-2xl"

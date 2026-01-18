@@ -1,12 +1,13 @@
 import { CurrencySelect } from "@/features/currency/components/currency-select";
+import { TagSelectCell } from "@/features/tag/components/tag-select-cell";
+import { DateSelectCell } from "@/features/transaction/components/date-select-cell";
+import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { LinkButton } from "@/features/ui/button/link-button";
-import type {
+import {
   IStepConfig,
   IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
-import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
@@ -15,18 +16,13 @@ import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/features/util/cn";
-import {
-  dateOnlyToIso,
-  datetimeLocalToIso,
-  isoToDateOnly,
-  isoToDatetimeLocal,
-} from "@/features/util/date/dateisohelpers";
 import { useMemo, useState } from "react";
-import { HiClock, HiExclamationCircle } from "react-icons/hi";
+import { HiExclamationCircle } from "react-icons/hi";
+import { BankProfileFactory } from "../../../services/bank.factory";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
 import {
+  IStep,
   useTransactionImportContext,
-  type IStep,
 } from "./transaction-import-context";
 
 const TRANSACTION_TYPE_OPTIONS = [
@@ -51,7 +47,14 @@ function ReviewStepContent({
     handleSelectAllValid,
     handleExcludeAllInvalid,
     updateCandidate,
+    selectedBank,
   } = useTransactionImportContext();
+
+  const hiddenFields = useMemo(
+    () => BankProfileFactory.getHiddenFields(selectedBank),
+    [selectedBank]
+  );
+  const isTagsHidden = hiddenFields.includes("tags");
 
   // Calculate total valid transactions across all pages
   const totalValidTransactions = useMemo(() => {
@@ -64,6 +67,11 @@ function ReviewStepContent({
       (c) => c.status === "valid" && selectedRows.has(c.rowIndex)
     ).length;
   }, [candidates, selectedRows]);
+
+  // Check if any candidate has errors
+  const hasAnyErrors = useMemo(() => {
+    return candidates.some((c) => c.errors.length > 0);
+  }, [candidates]);
 
   if (transformMutation.isPending) {
     return <div className="text-center py-8">Processing CSV...</div>;
@@ -108,7 +116,7 @@ function ReviewStepContent({
             buttonContent="Select all valid"
           />
           |
-          <Button
+          <LinkButton
             size="sm"
             clicked={handleExcludeAllInvalid}
             buttonContent="Exclude invalid"
@@ -135,12 +143,35 @@ function ReviewStepContent({
         headerCells={[
           <HeaderCell key="status">Status</HeaderCell>,
           <HeaderCell key="date">Date</HeaderCell>,
-          <HeaderCell key="name">Name</HeaderCell>,
+          <HeaderCell
+            key="name"
+            autoFit={false}
+            className="min-w-[250px]">
+            Name
+          </HeaderCell>,
           <HeaderCell key="amount">Amount</HeaderCell>,
           <HeaderCell key="currency">Currency</HeaderCell>,
-          <HeaderCell key="type">Type</HeaderCell>,
-          <HeaderCell key="tags">Tags</HeaderCell>,
-          <HeaderCell key="errors">Errors</HeaderCell>,
+          <HeaderCell
+            key="type"
+            autoFit={false}>
+            Type
+          </HeaderCell>,
+          <HeaderCell
+            key="primaryTag"
+            autoFit={false}>
+            Primary Tag
+          </HeaderCell>,
+          <HeaderCell
+            key="tags"
+            hidden={isTagsHidden}>
+            Tags
+          </HeaderCell>,
+          <HeaderCell
+            key="errors"
+            hidden={!hasAnyErrors}
+            align="center">
+            Errors
+          </HeaderCell>,
         ]}>
         {(paginatedCandidates) => {
           return paginatedCandidates.map((candidate) => {
@@ -153,102 +184,24 @@ function ReviewStepContent({
                   candidate.status === "invalid" && "bg-danger/5"
                 )}>
                 <BodyCell>
-                  <span
-                    className={cn(
-                      "px-2 py-1 rounded text-xs",
-                      candidate.status === "valid" &&
-                        "bg-success/20 text-success",
-                      candidate.status === "invalid" &&
-                        "bg-danger/20 text-danger"
-                    )}>
+                  <Badge
+                    variant={
+                      candidate.status === "valid" ? "success" : "danger"
+                    }>
                     {candidate.status}
-                  </span>
+                  </Badge>
                 </BodyCell>
                 <BodyCell>
-                  {candidate.data.transactionDate ? (
-                    <div className="flex items-center justify-between gap-1">
-                      <DateInput
-                        value={
-                          candidate.data.timePrecision === "DateTime"
-                            ? isoToDatetimeLocal(candidate.data.transactionDate)
-                            : isoToDateOnly(candidate.data.transactionDate)
-                        }
-                        type={
-                          candidate.data.timePrecision === "DateTime"
-                            ? "datetime-local"
-                            : "date"
-                        }
-                        onChange={(value) => {
-                          if (value) {
-                            const isoDate =
-                              candidate.data.timePrecision === "DateTime"
-                                ? datetimeLocalToIso(String(value))
-                                : dateOnlyToIso(String(value));
-                            updateCandidate(candidate.rowIndex, {
-                              transactionDate: isoDate,
-                            });
-                          }
-                        }}
-                        className="h-8 text-sm flex-1"
-                      />
-                      <IconButton
-                        size="sm"
-                        clicked={() => {
-                          const currentPrecision =
-                            candidate.data.timePrecision || "DateOnly";
-                          const newPrecision =
-                            currentPrecision === "DateTime"
-                              ? "DateOnly"
-                              : "DateTime";
-                          const currentDate = candidate.data.transactionDate;
-
-                          // When switching modes, preserve the date part
-                          let newDate: string;
-                          if (newPrecision === "DateOnly") {
-                            // Switching to DateOnly: extract date part and normalize to noon UTC
-                            newDate = dateOnlyToIso(isoToDateOnly(currentDate));
-                          } else {
-                            // Switching to DateTime: if current is DateOnly, use current time, otherwise keep existing
-                            if (currentPrecision === "DateOnly") {
-                              // Convert date-only to datetime-local with current time, then to ISO
-                              const dateOnly = isoToDateOnly(currentDate);
-                              const now = new Date();
-                              const hours = String(now.getHours()).padStart(
-                                2,
-                                "0"
-                              );
-                              const minutes = String(now.getMinutes()).padStart(
-                                2,
-                                "0"
-                              );
-                              const datetimeLocal = `${dateOnly}T${hours}:${minutes}`;
-                              newDate = datetimeLocalToIso(datetimeLocal);
-                            } else {
-                              newDate = currentDate;
-                            }
-                          }
-
-                          updateCandidate(candidate.rowIndex, {
-                            transactionDate: newDate,
-                            timePrecision: newPrecision,
-                          });
-                        }}
-                        className={cn(
-                          "shrink-0",
-                          candidate.data.timePrecision === "DateTime" &&
-                            "text-primary"
-                        )}
-                        aria-label={
-                          candidate.data.timePrecision === "DateTime"
-                            ? "Remove time (switch to date only)"
-                            : "Add time (switch to date and time)"
-                        }>
-                        <HiClock className="size-5" />
-                      </IconButton>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-text-muted">—</span>
-                  )}
+                  <DateSelectCell
+                    value={candidate.data.transactionDate}
+                    timePrecision={candidate.data.timePrecision || "DateOnly"}
+                    onChange={(value, precision) => {
+                      updateCandidate(candidate.rowIndex, {
+                        transactionDate: value,
+                        timePrecision: precision,
+                      });
+                    }}
+                  />
                 </BodyCell>
                 <BodyCell>
                   <TextInput
@@ -258,7 +211,6 @@ function ReviewStepContent({
                         name: String(value || ""),
                       });
                     }}
-                    className="h-8 text-sm"
                   />
                 </BodyCell>
                 <BodyCell>
@@ -266,10 +218,9 @@ function ReviewStepContent({
                     value={candidate.data.amount || ""}
                     onValueChange={(normalizedValue) => {
                       updateCandidate(candidate.rowIndex, {
-                        amount: normalizedValue,
+                        amount: String(normalizedValue || ""),
                       });
                     }}
-                    className="h-8 text-sm"
                   />
                 </BodyCell>
                 <BodyCell>
@@ -280,7 +231,6 @@ function ReviewStepContent({
                         currency: value || defaultCurrency || ("EUR" as any),
                       });
                     }}
-                    className="h-8 text-sm"
                   />
                 </BodyCell>
                 <BodyCell>
@@ -293,93 +243,60 @@ function ReviewStepContent({
                       });
                     }}
                     placeholder="Select type"
-                    className="h-8 text-sm"
-                    showClearButton={false}
+                    clearable={false}
                   />
                 </BodyCell>
                 <BodyCell>
+                  <TagSelectCell
+                    tagMetadata={
+                      candidate.primaryTagMetadata
+                        ? [candidate.primaryTagMetadata]
+                        : []
+                    }
+                    transactionType={candidate.data.type}
+                    value={candidate.data.primaryTagId ?? ""}
+                    onChange={(value) => {
+                      updateCandidate(candidate.rowIndex, {
+                        primaryTagId: (value as string) || null,
+                      });
+                    }}
+                    multiple={false}
+                    placeholder="Select primary tag..."
+                  />
+                </BodyCell>
+                <BodyCell hidden={isTagsHidden}>
                   {(() => {
-                    // Parse tag metadata from rawValues
-                    let tagMetadata: Record<
-                      string,
-                      {
-                        id: string;
-                        color: string | null;
-                        emoticon: string | null;
-                      }
-                    > = {};
-                    try {
-                      const metadataStr = candidate.rawValues.__tagMetadata;
-                      if (metadataStr) {
-                        tagMetadata = JSON.parse(metadataStr);
-                      }
-                    } catch {
-                      // Ignore parse errors
-                    }
+                    const { tagIds, primaryTagId } = candidate.data;
 
-                    const tagNames = (candidate.data.tagIds as string[]) || [];
-                    const primaryTagName =
-                      (candidate.data.primaryTagId as string) || null;
-
-                    if (tagNames.length === 0 && !primaryTagName) {
-                      return <span className="text-sm text-text-muted">—</span>;
-                    }
+                    // Filter out primary tag from other tags
+                    const otherTagIds = tagIds.filter(
+                      (tagId) => tagId !== primaryTagId
+                    );
 
                     return (
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {/* Primary tag */}
-                        {primaryTagName && (
-                          <div className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-surface-hover border border-border">
-                            {tagMetadata[primaryTagName]?.emoticon && (
-                              <span className="text-sm">
-                                {tagMetadata[primaryTagName].emoticon}
-                              </span>
-                            )}
-                            {tagMetadata[primaryTagName]?.color && (
-                              <div
-                                className="size-2.5 rounded-full shrink-0"
-                                style={{
-                                  backgroundColor:
-                                    tagMetadata[primaryTagName].color,
-                                }}
-                              />
-                            )}
-                            <span className="font-medium">
-                              {primaryTagName}
-                            </span>
-                          </div>
-                        )}
-                        {/* Other tags */}
-                        {tagNames.map((tagName, idx) => {
-                          if (tagName === primaryTagName) return null; // Skip if it's the primary tag
-                          const metadata = tagMetadata[tagName];
-                          return (
-                            <div
-                              key={idx}
-                              className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-surface-hover border border-border">
-                              {metadata?.emoticon && (
-                                <span className="text-sm">
-                                  {metadata.emoticon}
-                                </span>
-                              )}
-                              {metadata?.color && (
-                                <div
-                                  className="size-2.5 rounded-full shrink-0"
-                                  style={{ backgroundColor: metadata.color }}
-                                />
-                              )}
-                              <span>{tagName}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <TagSelectCell
+                        tagMetadata={candidate.tagsMetadata}
+                        transactionType={candidate.data.type}
+                        value={otherTagIds.length > 0 ? otherTagIds : []}
+                        onChange={(value) => {
+                          // Update other tags (don't include primary tag)
+                          const newTagIds = Array.isArray(value) ? value : [];
+                          updateCandidate(candidate.rowIndex, {
+                            tagIds: newTagIds,
+                          });
+                        }}
+                        multiple={true}
+                        placeholder="Select tags..."
+                      />
                     );
                   })()}
                 </BodyCell>
-                <BodyCell>
+                <BodyCell hidden={!hasAnyErrors}>
                   {candidate.errors.length > 0 ? (
                     <Button
-                      clicked={() => setErrorDialogRowIndex(candidate.rowIndex)}
+                      clicked={() => {
+                        setErrorDialogRowIndex(candidate.rowIndex);
+                      }}
                       buttonContent={
                         <div className="flex items-center gap-2">
                           <HiExclamationCircle className="size-4 text-danger" />

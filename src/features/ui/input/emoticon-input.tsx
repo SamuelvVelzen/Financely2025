@@ -1,7 +1,7 @@
 import {
   IFormOrControlledMode,
-  useFormContextOptional,
 } from "@/features/shared/hooks/use-form-context-optional";
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
@@ -117,28 +117,23 @@ export function EmoticonInput({
   disabled,
   value: controlledValue,
   onChange: controlledOnChange,
+  onValueChange,
   ...props
 }: IEmoticonInputProps) {
   const generatedId = useId();
   const inputId = id || `${generatedId}-text-input`;
   const pickerButtonId = `${generatedId}-picker-button`;
-  const form = useFormContextOptional();
-
-  // Determine mode
-  const isFormMode = !!name && !!form;
-  const isControlledMode =
-    controlledValue !== undefined && !!controlledOnChange;
+  
+  const { field, borderClass, shouldShowError, error, renderWithController } = useFieldAdapter({
+    name,
+    value: controlledValue,
+    onChange: controlledOnChange,
+    onValueChange,
+  });
 
   // Initialize text value
   const [textValue, setTextValue] = useState<string>(() => {
-    if (isControlledMode && controlledValue !== undefined) {
-      return String(controlledValue || "");
-    }
-    if (isFormMode && form) {
-      const formValue = form.getValues(name);
-      return String(formValue || "");
-    }
-    return "";
+    return String(field.value || "");
   });
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -157,14 +152,10 @@ export function EmoticonInput({
     "w-full px-3 py-2 border rounded-2xl bg-surface text-text hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
   const widthBaseClasses = `h-9`;
 
-  // Helper to update value based on mode
+  // Helper to update value
   const updateValue = (newValue: string) => {
     setTextValue(newValue);
-    if (isControlledMode) {
-      controlledOnChange?.(newValue);
-    } else if (isFormMode && form) {
-      form.setValue(name, newValue, { shouldDirty: true });
-    }
+    field.onChange(newValue);
   };
 
   // Close autocomplete when clicking outside
@@ -227,13 +218,8 @@ export function EmoticonInput({
   };
 
   // Shared rendering logic
-  const renderEmoticonInput = (
-    currentValue: string,
-    onChange: (value: string) => void,
-    borderClass: string,
-    showError?: boolean,
-    errorMessage?: string
-  ) => {
+  const renderEmoticonInput = (currentField: typeof field) => {
+    const currentValue = String(currentField.value || "");
     // Sync text value when value changes from outside
     if (currentValue !== textValue && document.activeElement?.id !== inputId) {
       setTextValue(currentValue);
@@ -242,11 +228,12 @@ export function EmoticonInput({
     const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
       setTextValue(inputValue);
-      onChange(inputValue);
+      currentField.onChange(inputValue);
     };
 
     const handleTextBlur = () => {
-      onChange(textValue || "");
+      currentField.onChange(textValue || "");
+      currentField.onBlur();
       // Delay closing autocomplete to allow for clicks
       setTimeout(() => {
         if (document.activeElement !== inputRef.current) {
@@ -403,51 +390,18 @@ export function EmoticonInput({
           </div>
         </div>
 
-        {showError && errorMessage && (
-          <p className="text-sm text-danger mt-1">{errorMessage}</p>
+        {shouldShowError && error?.message && (
+          <p className="text-sm text-danger mt-1">{error.message}</p>
         )}
-        {!showError && hint && (
+        {!shouldShowError && hint && (
           <p className="text-xs text-text-muted mt-1">{hint}</p>
         )}
       </div>
     );
   };
 
-  // Render controlled mode
-  if (isControlledMode) {
-    return renderEmoticonInput(
-      controlledValue || "",
-      (value) => controlledOnChange?.(value),
-      "border-border"
-    );
-  }
-
-  // Render form mode
-  if (isFormMode && form) {
-    return (
-      <Controller
-        name={name}
-        control={form.control}
-        render={({ field, fieldState }) => {
-          const error = fieldState.error;
-          const shouldShowError = error && form.formState.isSubmitted;
-          const borderClass = shouldShowError
-            ? "border-danger"
-            : "border-border";
-          const currentFieldValue = String(field.value || "");
-
-          return renderEmoticonInput(
-            currentFieldValue,
-            field.onChange,
-            borderClass,
-            shouldShowError,
-            error?.message as string | undefined
-          );
-        }}
-      />
-    );
-  }
-
-  // Fallback (should not happen with proper discriminated union)
-  return null;
+  // Render using the adapter
+  return renderWithController((currentField) => {
+    return renderEmoticonInput(currentField);
+  });
 }

@@ -3,6 +3,7 @@ import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren, useEffect, useRef } from "react";
 import { HiArrowDown, HiArrowUp, HiArrowsUpDown } from "react-icons/hi2";
 import { useTableSortContext } from "./context/table-sort-context";
+import { IBaseCellProps } from "./table";
 
 export type SortDirection = "asc" | "desc" | null;
 
@@ -12,9 +13,9 @@ export type IHeaderCellProps<T = unknown> = {
   sortKey?: string;
   sortFn?: (a: T, b: T) => number;
   autoFit?: boolean;
-  size?: "sm" | "md" | "lg";
 } & IPropsWithClassName &
-  PropsWithChildren;
+  PropsWithChildren &
+  IBaseCellProps;
 
 export function HeaderCell<T = unknown>({
   align = "left",
@@ -25,7 +26,13 @@ export function HeaderCell<T = unknown>({
   sortFn,
   autoFit = true,
   size = "md",
+  sticky = false,
+  hidden = false,
 }: IHeaderCellProps<T>) {
+  if (hidden) {
+    return null;
+  }
+
   const sortContext = useTableSortContext<T>();
   const sizeClasses = {
     sm: "px-3 py-1",
@@ -83,6 +90,8 @@ export function HeaderCell<T = unknown>({
           sortKey &&
           sortContext &&
           "cursor-pointer select-none hover:bg-surface-hover motion-safe:transition-colors",
+        sticky &&
+          "sticky left-0 top-0 z-20 bg-surface-hover border-r border-border",
         className
       )}
       onClick={handleClick}
