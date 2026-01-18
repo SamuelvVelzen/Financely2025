@@ -348,7 +348,7 @@ export function Select<
     const selectorContent = (
       <div className="flex items-center gap-2 w-full">
         <div className="flex flex-wrap gap-1.5 flex-1 min-w-0 items-center">
-          {hasSelection &&
+          {multiple && hasSelection &&
             selectedOptions.map((option) => (
               <span
                 key={String(option.value)}
@@ -363,6 +363,11 @@ export function Select<
                 </button>
               </span>
             ))}
+          {!multiple && hasSelection && selectedOptions.length > 0 && (
+            <span className="text-text shrink-0">
+              {selectedOptions[0].label}
+            </span>
+          )}
           <input
             ref={inputRef}
             type="text"
@@ -381,7 +386,13 @@ export function Select<
               }
             }}
             onFocus={() => !disabled && setIsOpen(true)}
-            placeholder={hasSelection ? "" : searchPlaceholder || placeholder}
+            placeholder={
+              !multiple && hasSelection
+                ? ""
+                : hasSelection && multiple
+                  ? ""
+                  : searchPlaceholder || placeholder
+            }
             disabled={disabled}
             className={cn(
               "flex-1 bg-transparent border-0 outline-none text-text min-w-[50px]",

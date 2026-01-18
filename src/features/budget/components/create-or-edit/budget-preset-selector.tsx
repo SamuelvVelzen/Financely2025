@@ -10,6 +10,7 @@ import {
 import { DateInput } from "@/features/ui/input/date-input";
 import { RadioGroup, RadioItem } from "@/features/ui/radio";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { Select } from "@/features/ui/select/select";
 import { Label } from "@/features/ui/typography/label";
 import { Text } from "@/features/ui/typography/text";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
@@ -166,24 +167,30 @@ export function BudgetPresetSelector({
   // Date strings from form are in YYYY-MM-DD format
   const selectedStartDate = startDate
     ? (() => {
-        const dateStr = startDate.split("T")[0]; // Get YYYY-MM-DD part only
-        const [year, month, day] = dateStr.split("-").map(Number);
-        return new Date(year, month - 1, day); // Create date in local timezone
-      })()
+      const dateStr = startDate.split("T")[0]; // Get YYYY-MM-DD part only
+      const [year, month, day] = dateStr.split("-").map(Number);
+      return new Date(year, month - 1, day); // Create date in local timezone
+    })()
     : null;
   const selectedYear = selectedStartDate?.getFullYear() ?? currentYear;
   const selectedMonth = selectedStartDate
     ? selectedStartDate.getMonth() + 1
     : currentMonth;
 
-  // Prepare options for selects
+  const MIN_YEAR = currentYear - 10;
+  const MAX_YEAR = currentYear + 50;
+
+  // Generate year options for searchable dropdown
   const yearOptions = useMemo(
     () =>
-      [currentYear - 1, currentYear, currentYear + 1].map((year) => ({
-        value: year,
-        label: String(year),
-      })),
-    [currentYear]
+      Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, i) => {
+        const year = MIN_YEAR + i;
+        return {
+          value: year,
+          label: String(year),
+        };
+      }),
+    [MIN_YEAR, MAX_YEAR]
   );
 
   const monthOptions = useMemo(
@@ -275,11 +282,12 @@ export function BudgetPresetSelector({
 
       {preset === "monthly" && (
         <div className="grid grid-cols-2 gap-4">
-          <SelectDropdown<number>
+          <Select<number>
             name="general.year"
             label="Year"
             options={yearOptions}
-            placeholder="Select year"
+            placeholder={`e.g. ${currentYear}`}
+            searchPlaceholder="Type to search year..."
           />
           <SelectDropdown<number>
             name="general.month"
@@ -291,11 +299,12 @@ export function BudgetPresetSelector({
       )}
 
       {preset === "yearly" && (
-        <SelectDropdown<number>
+        <Select<number>
           name="general.year"
           label="Year"
           options={yearOptions}
-          placeholder="Select year"
+          placeholder={`e.g. ${currentYear}`}
+          searchPlaceholder="Type to search year..."
         />
       )}
 
