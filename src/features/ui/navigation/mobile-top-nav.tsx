@@ -72,7 +72,7 @@ export function MobileTopNav() {
         <div className="[&_button]:w-auto [&_button]:h-auto [&_button]:p-0 [&_button]:bg-transparent [&_button]:border-0 [&_button]:shadow-none [&_button]:hover:bg-transparent [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-primary [&_button]:focus-visible:ring-offset-2 [&_button]:rounded-full">
           <Dropdown
             dropdownSelector={avatarContent}
-            placement="bottom-right"
+            placement="bottom"
             size="sm">
             <DropdownItem
               text="Account"
