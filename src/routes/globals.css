@@ -230,3 +230,94 @@ input[type="number"]::-webkit-outer-spin-button {
     transform: rotate(360deg);
   }
 }
+
+/* Native dialog backdrop */
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* ========================================
+   CSS Anchor Positioning for Popovers
+   ======================================== */
+
+/* Dropdown popover positioning */
+.dropdown-popover {
+  position: fixed;
+  margin: 0;
+  inset: auto;
+  /* Match the width of the anchor element */
+  min-width: anchor-size(width);
+}
+
+/* Dropdown position variants */
+.dropdown-position-bottom {
+  top: anchor(bottom);
+  left: anchor(left);
+  position-try-fallbacks: flip-block, flip-inline;
+}
+
+.dropdown-position-top {
+  bottom: anchor(top);
+  left: anchor(left);
+  position-try-fallbacks: flip-block, flip-inline;
+}
+
+.dropdown-position-left {
+  top: anchor(top);
+  right: anchor(left);
+  position-try-fallbacks: flip-inline, flip-block;
+}
+
+.dropdown-position-right {
+  top: anchor(top);
+  left: anchor(right);
+  position-try-fallbacks: flip-inline, flip-block;
+}
+
+/* Tooltip popover positioning */
+.tooltip-popover {
+  position: fixed;
+  margin: 0;
+  inset: auto;
+}
+
+/* Tooltip position variants - centered relative to anchor */
+.tooltip-position-bottom {
+  top: anchor(bottom);
+  left: anchor(center);
+  translate: -50% 4px;
+  position-try-fallbacks: flip-block;
+}
+
+.tooltip-position-top {
+  bottom: anchor(top);
+  left: anchor(center);
+  translate: -50% -4px;
+  position-try-fallbacks: flip-block;
+}
+
+.tooltip-position-left {
+  top: anchor(center);
+  right: anchor(left);
+  translate: -4px -50%;
+  position-try-fallbacks: flip-inline;
+}
+
+.tooltip-position-right {
+  top: anchor(center);
+  left: anchor(right);
+  translate: 4px -50%;
+  position-try-fallbacks: flip-inline;
+}
+
+/* Ensure popovers have proper stacking */
+[popover] {
+  /* Override browser default background */
+  background: transparent;
+}
+
+/* Popover backdrop - light dismiss visual feedback (optional) */
+[popover]::backdrop {
+  background: transparent;
+}

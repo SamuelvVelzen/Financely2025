@@ -14,7 +14,7 @@ import { useTags } from "@/features/tag/hooks/useTags";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import type { IPlacementOption } from "../dropdown/hooks/use-dropdown-placement";
+import type { IPlacementOption } from "../dropdown/dropdown";
 import { Select } from "../select/select";
 
 export type ITagSelectProps = IPropsWithClassName & {

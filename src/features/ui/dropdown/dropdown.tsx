@@ -5,19 +5,17 @@ import {
   PropsWithChildren,
   ReactNode,
   isValidElement,
+  useCallback,
   useEffect,
+  useId,
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
 import { HiDotsVertical } from "react-icons/hi";
 import { Button, IButtonProps, IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
-import { useDialogContext } from "../dialog/dialog/dialog-context";
-import {
-  useDropdownPlacement,
-  type IPlacementOption,
-} from "./hooks/use-dropdown-placement";
+
+export type IPlacementOption = "top" | "bottom" | "left" | "right" | "auto";
 
 const dropdownSizeClasses: { [key in IButtonSize]: { iconClasses: string } } = {
   xs: { iconClasses: "size-3" },
@@ -40,8 +38,8 @@ DropdownFooter.displayName = "DropdownFooter";
 
 type IDropdownProps = {
   dropdownSelector?:
-    | ReactNode
-    | { content: ReactNode; variant: IButtonProps["variant"] };
+  | ReactNode
+  | { content: ReactNode; variant: IButtonProps["variant"] };
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   expandedContent?: ReactNode;
@@ -57,6 +55,15 @@ type IDropdownProps = {
   allowNested?: boolean;
 } & PropsWithChildren;
 
+/**
+ * Dropdown component using native Popover API and CSS Anchor Positioning
+ *
+ * Features:
+ * - Native popover with automatic top-layer rendering
+ * - CSS anchor positioning for smart placement
+ * - Built-in light-dismiss behavior
+ * - Automatic flip fallbacks when near viewport edges
+ */
 export function Dropdown({
   children,
   dropdownSelector,
@@ -71,42 +78,79 @@ export function Dropdown({
   selectorClassName,
   allowNested = false,
 }: IDropdownProps) {
-  const dialogContext = useDialogContext();
   const [internalOpen, setInternalOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownContentRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
+  const expandedContentRef = useRef<HTMLDivElement>(null);
+
+  // Generate unique IDs for anchor positioning
+  const uniqueId = useId();
+  const anchorName = `--dropdown-anchor-${uniqueId.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const popoverId = `dropdown-popover-${uniqueId.replace(/[^a-zA-Z0-9]/g, "")}`;
 
   // Use controlled state if provided, otherwise use internal state
   const dropdownIsOpen =
     controlledOpen !== undefined ? controlledOpen : internalOpen;
 
-  const setDropdownState = (newState: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(newState);
-    } else {
-      setInternalOpen(newState);
-    }
-  };
+  const setDropdownState = useCallback(
+    (newState: boolean) => {
+      if (onOpenChange) {
+        onOpenChange(newState);
+      } else {
+        setInternalOpen(newState);
+      }
+    },
+    [onOpenChange]
+  );
 
-  const toggleDropdown = () => {
+  const toggleDropdown = useCallback(() => {
     if (disabled) return;
     setDropdownState(!dropdownIsOpen);
-  };
+  }, [disabled, dropdownIsOpen, setDropdownState]);
 
-  // Set mounted state for SSR safety (needed for portal)
+  // Sync popover state with controlled open state
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    const popover = dropdownContentRef.current;
+    if (!popover) return;
 
-  // Calculate dropdown position using the placement hook
-  const dropdownPosition = useDropdownPlacement({
-    isOpen: dropdownIsOpen,
-    triggerRef: triggerRef as React.RefObject<HTMLElement>,
-    contentRef: dropdownContentRef as React.RefObject<HTMLElement>,
-    placement,
-  });
+    if (dropdownIsOpen && !popover.matches(":popover-open")) {
+      popover.showPopover();
+    } else if (!dropdownIsOpen && popover.matches(":popover-open")) {
+      popover.hidePopover();
+    }
+  }, [dropdownIsOpen]);
+
+  // Handle native popover toggle event
+  const handleToggle = useCallback(
+    (event: React.ToggleEvent<HTMLDivElement>) => {
+      const newState = event.newState === "open";
+      if (newState !== dropdownIsOpen) {
+        setDropdownState(newState);
+      }
+    },
+    [dropdownIsOpen, setDropdownState]
+  );
+
+  // Determine CSS position classes based on placement prop
+  const getPositionClasses = () => {
+    const placementValue = Array.isArray(placement) ? placement[0] : placement;
+
+    // Default positioning: below trigger, left-aligned
+    // CSS anchor positioning handles the actual placement
+    switch (placementValue) {
+      case "top":
+        return "dropdown-position-top";
+      case "left":
+        return "dropdown-position-left";
+      case "right":
+        return "dropdown-position-right";
+      case "bottom":
+      case "auto":
+      default:
+        return "dropdown-position-bottom";
+    }
+  };
 
   const isDropdownSelectorObject = (
     selector: IDropdownProps["dropdownSelector"]
@@ -119,15 +163,11 @@ export function Dropdown({
     );
   };
 
-  // Generate a unique ID for this dropdown to track nesting
-  const dropdownIdRef = useRef(`dropdown-${Math.random().toString(36).substr(2, 9)}`);
-
   const DropdownSelector = (
     <div
       ref={triggerRef}
       data-dropdown-trigger
-      data-dropdown-id={dropdownIdRef.current}
-      data-allow-nested={allowNested ? "true" : undefined}>
+      style={{ anchorName } as React.CSSProperties}>
       {dropdownSelector ? (
         (() => {
           const isObject = isDropdownSelectorObject(dropdownSelector);
@@ -169,91 +209,6 @@ export function Dropdown({
     </div>
   );
 
-  const expandedContentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!triggerRef.current) return;
-
-      const target = event.target as Node;
-
-      // Close dropdown only if click is outside the dropdown content, expanded content, and trigger
-      const isClickInTrigger = triggerRef.current.contains(target);
-      const isClickInDropdown =
-        dropdownContentRef.current?.contains(target) ?? false;
-      const isClickInExpanded =
-        expandedContentRef.current?.contains(target) ?? false;
-
-      // Check if the click is on an input that's part of the trigger (for searchable selects)
-      const isClickOnInput =
-        (target as HTMLElement)?.tagName === "INPUT" &&
-        triggerRef.current?.querySelector("input") === target;
-
-      // Check if click is on another dropdown's trigger
-      const allDropdownTriggers = Array.from(
-        document.querySelectorAll('[data-dropdown-trigger]')
-      );
-      const clickedDropdownTrigger = allDropdownTriggers.find((trigger) => {
-        return trigger !== triggerRef.current && trigger.contains(target);
-      });
-
-      // If clicking on another dropdown trigger
-      if (clickedDropdownTrigger) {
-        // Check if the clicked dropdown is nested inside this dropdown's content
-        // First try checking if the trigger is inside the content (works for portaled content)
-        let isClickedNestedInThis =
-          dropdownContentRef.current?.contains(clickedDropdownTrigger) ?? false;
-        
-        // If that didn't work (content is portaled), check if the clicked trigger
-        // is inside an element with data-dropdown-content that matches this dropdown's ID
-        if (!isClickedNestedInThis && dropdownContentRef.current) {
-          const clickedDropdownId = clickedDropdownTrigger.getAttribute("data-dropdown-id");
-          const thisDropdownId = dropdownIdRef.current;
-          
-          // Check if clicked trigger is inside any element with this dropdown's content ID
-          const parentContent = clickedDropdownTrigger.closest(
-            `[data-dropdown-content][data-dropdown-id="${thisDropdownId}"]`
-          );
-          isClickedNestedInThis = !!parentContent;
-        }
-        
-        // If this dropdown allows nesting and the clicked dropdown is nested inside it,
-        // don't close this dropdown (it's a parent allowing nested children)
-        // Otherwise, close this dropdown when opening another
-        if (allowNested && isClickedNestedInThis) {
-          // Don't close - this is a parent dropdown and the clicked dropdown is nested inside it
-          return;
-        } else {
-          // Close this dropdown - either it's a sibling or we're opening a parent
-          setDropdownState(false);
-          return;
-        }
-      }
-
-      // Standard outside click handling
-      if (
-        !isClickInTrigger &&
-        !isClickInDropdown &&
-        !isClickInExpanded &&
-        !isClickOnInput
-      ) {
-        setDropdownState(false);
-      }
-    };
-
-    if (dropdownIsOpen) {
-      // Use a small delay to ensure dropdown item clicks are handled first
-      const timeoutId = setTimeout(() => {
-        document.addEventListener("click", handleClickOutside);
-      }, 0);
-
-      return () => {
-        clearTimeout(timeoutId);
-        document.removeEventListener("click", handleClickOutside);
-      };
-    }
-  }, [dropdownIsOpen]);
-
   // Separate Footer children from regular children
   const childrenArray = Children.toArray(children);
   const footerChildren: React.ReactNode[] = [];
@@ -280,68 +235,51 @@ export function Dropdown({
         {DropdownSelector}
       </div>
 
-      {dropdownIsOpen &&
-        (() => {
-          // If inside a dialog, use dialog's z-index + 5, otherwise use 60
-          const dropdownZIndex = dialogContext ? dialogContext.zIndex + 5 : 60;
-
-          const dropdownContent = (
-            <div
-              className="fixed flex shadow-lg rounded-2xl"
-              style={{
-                zIndex: dropdownZIndex,
-                visibility: dropdownPosition ? "visible" : "hidden",
-                top: dropdownPosition ? `${dropdownPosition.top}px` : "-9999px",
-                left: dropdownPosition
-                  ? `${dropdownPosition.left}px`
-                  : "-9999px",
-              }}>
-              <div
-                ref={dropdownContentRef}
-                data-dropdown-content
-                data-dropdown-id={dropdownIdRef.current}
-                className={cn(
-                  "bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
-                  showExpanded ? "rounded-l-2xl" : "rounded-2xl"
-                )}
-                style={{
-                  // Only set width if specified (when content fits within trigger width)
-                  // Otherwise let content determine width naturally
-                  ...(dropdownPosition?.width
-                    ? { width: `${dropdownPosition.width}px` }
-                    : {}),
-                  maxHeight: dropdownPosition
-                    ? `${dropdownPosition.maxHeight}px`
-                    : "none",
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (closeOnItemClick) {
-                    setDropdownState(false);
-                  }
-                }}>
-                <div className="overflow-y-auto flex-1">{regularChildren}</div>
-                {footerChildren.length > 0 && (
-                  <div className="shrink-0">{footerChildren}</div>
-                )}
-              </div>
-              {showExpanded && expandedContent && (
-                <div
-                  ref={expandedContentRef}
-                  className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
-                  {expandedContent}
-                </div>
-              )}
-            </div>
-          );
-
-          // Always render via portal to avoid clipping from parent containers
-          if (isMounted && typeof window !== "undefined") {
-            return createPortal(dropdownContent, document.body);
+      <div
+        ref={dropdownContentRef}
+        id={popoverId}
+        popover="auto"
+        data-dropdown-content
+        className={cn(
+          "dropdown-popover",
+          getPositionClasses(),
+          "flex shadow-lg rounded-2xl",
+          // Reset default popover styles
+          "m-0 p-0 border-0 bg-transparent",
+          // Ensure closed popovers stay hidden (flex overrides browser default)
+          "not-[:popover-open]:hidden"
+        )}
+        style={
+          {
+            positionAnchor: anchorName,
+          } as React.CSSProperties
+        }
+        onToggle={handleToggle}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (closeOnItemClick) {
+            setDropdownState(false);
           }
-
-          return dropdownContent;
-        })()}
+        }}>
+        <div
+          className={cn(
+            "bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
+            showExpanded ? "rounded-l-2xl" : "rounded-2xl",
+            "max-h-[calc(100vh-16px)]"
+          )}>
+          <div className="overflow-y-auto flex-1">{regularChildren}</div>
+          {footerChildren.length > 0 && (
+            <div className="shrink-0">{footerChildren}</div>
+          )}
+        </div>
+        {showExpanded && expandedContent && (
+          <div
+            ref={expandedContentRef}
+            className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
+            {expandedContent}
+          </div>
+        )}
+      </div>
     </>
   );
 }

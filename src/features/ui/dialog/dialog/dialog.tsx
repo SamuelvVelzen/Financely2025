@@ -1,25 +1,20 @@
 import { cn } from "@/features/util/cn";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
-import { DialogContext } from "./dialog-context";
-import { DialogOverlay } from "./dialog-overlay";
 import type { IDialogProps, IDialogStatus } from "./types";
-import { useDialogStack } from "./use-dialog-stack";
-import { useFocusTrap } from "./use-focus-trap";
 
 /**
- * Dialog component provides a fully accessible modal dialog system
+ * Dialog component provides a fully accessible modal dialog system using native <dialog>
  *
  * Features:
+ * - Native <dialog> element with showModal()/close()
+ * - Native ::backdrop styling
+ * - Built-in focus trap and ESC key handling
+ * - Automatic top-layer stacking
  * - Controlled and uncontrolled modes
  * - Multiple variants (modal, fullscreen)
- * - Full accessibility support (ARIA, focus trap, keyboard navigation)
- * - SSR safe portal rendering
- * - Configurable animations with motion preference support
- * - Always renders header and footer (header shows title, footer shows actions)
  *
  * @example
  * ```tsx
@@ -27,25 +22,7 @@ import { useFocusTrap } from "./use-focus-trap";
  * <Dialog
  *   title="Dialog Title"
  *   content="Dialog content text"
- *   footer={<button onClick={() => setOpen(false)}>Close</button>}
- *   open={open}
- *   onOpenChange={setOpen}
- * />
- * ```
- *
- * @example
- * ```tsx
- * // With custom content as ReactNode
- * <Dialog
- *   title="Confirm Delete"
- *   content={<p>Are you sure?</p>}
- *   footer={
- *     <>
- *       <button>Cancel</button>
- *       <button>Confirm</button>
- *     </>
- *   }
- *   showCloseButton={true}
+ *   footerButtons={[{ children: "Close", clicked: () => setOpen(false) }]}
  *   open={open}
  *   onOpenChange={setOpen}
  * />
@@ -69,25 +46,12 @@ export function Dialog({
   footerButtons,
 }: IDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
-  const dialogIdRef = useRef<string>(
-    `dialog-${Math.random().toString(36).substr(2, 9)}`
-  );
 
   // Determine if controlled or uncontrolled
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-
-  // Get z-index for dialog stacking (must be after open is defined)
-  const dialogZIndex = useDialogStack(open ? dialogIdRef.current : undefined);
-
-  // Set mounted state for SSR safety
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   // Handle open state changes
   const handleOpenChange = useCallback(
@@ -100,35 +64,25 @@ export function Dialog({
     [isControlled, onOpenChange]
   );
 
-  // Track active element before opening
+  // Sync dialog element with open state
   useEffect(() => {
-    if (open && typeof window !== "undefined") {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (open && !dialog.open) {
+      // Store the previously focused element for restoration
       previousActiveElement.current =
         (document.activeElement as HTMLElement) || null;
-
-      // Store trigger element if available (for focus restoration)
-      const storedTrigger = sessionStorage.getItem("dialog-trigger-id");
-      if (storedTrigger) {
-        const element = document.getElementById(storedTrigger);
-        if (element) {
-          triggerRef.current = element as HTMLElement;
-        }
-      }
-    } else if (!open && previousActiveElement.current) {
+      dialog.showModal();
+    } else if (!open && dialog.open) {
+      dialog.close();
       onClose?.();
 
-      const timer = setTimeout(() => {
-        // Restore focus
-        if (triggerRef.current) {
-          triggerRef.current.focus();
-          triggerRef.current = null;
-        } else if (previousActiveElement.current) {
-          previousActiveElement.current.focus();
-        }
+      // Restore focus to previous element
+      setTimeout(() => {
+        previousActiveElement.current?.focus();
         previousActiveElement.current = null;
-      }, 150);
-
-      return () => clearTimeout(timer);
+      }, 0);
     }
   }, [open, onClose]);
 
@@ -136,16 +90,33 @@ export function Dialog({
     handleOpenChange(false);
   }, [handleOpenChange]);
 
-  // Use focus trap hook
-  const { handleKeyDown } = useFocusTrap({
-    enabled: open,
-    containerRef: dialogRef as React.RefObject<HTMLElement>,
-    onEscape: dismissible ? handleClose : undefined,
-  });
+  // Handle native dialog close event (ESC key, form submission)
+  const handleDialogClose = useCallback(() => {
+    handleOpenChange(false);
+  }, [handleOpenChange]);
+
+  // Handle backdrop click (only if dismissible)
+  const handleDialogClick = useCallback(
+    (e: React.MouseEvent<HTMLDialogElement>) => {
+      // Check if click is on the backdrop (dialog element itself, not its children)
+      if (e.target === e.currentTarget && dismissible) {
+        handleClose();
+      }
+    },
+    [dismissible, handleClose]
+  );
+
+  // Handle cancel event (ESC key) - prevent if not dismissible
+  const handleCancel = useCallback(
+    (e: React.SyntheticEvent<HTMLDialogElement>) => {
+      if (!dismissible) {
+        e.preventDefault();
+      }
+    },
+    [dismissible]
+  );
 
   // Generate title ID for aria-labelledby if title is provided
-  // Regenerates only when title changes to maintain stable ID across re-renders
-  // Must be called before any early returns to follow Rules of Hooks
   const titleId = useMemo(
     () =>
       title
@@ -154,12 +125,6 @@ export function Dialog({
     [title]
   );
   const finalAriaLabelledBy = ariaLabelledBy || titleId;
-
-  // Don't render on server when closed
-  if (!isMounted && !open) return null;
-
-  // If closed don't render
-  if (!open) return null;
 
   const sizeClasses = {
     sm: "max-w-full sm:max-w-sm",
@@ -173,25 +138,21 @@ export function Dialog({
 
   const variantClasses = {
     modal: cn(
-      "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
       sizeClasses[size],
       "w-[calc(100%-2rem)] max-h-[90vh]",
-      "motion-safe:transition-all motion-safe:duration-300",
-      "data-[state=open]:motion-safe:opacity-100 data-[state=open]:motion-safe:scale-100",
-      "data-[state=closed]:motion-safe:opacity-0 data-[state=closed]:motion-safe:scale-95"
+      // Center the dialog
+      "m-auto"
     ),
-    fullscreen: cn(
-      "fixed inset-0 w-full h-full",
-      "motion-safe:transition-opacity motion-safe:duration-300",
-      "data-[state=open]:motion-safe:opacity-100",
-      "data-[state=closed]:motion-safe:opacity-0"
-    ),
+    fullscreen: cn("w-full h-full max-w-none max-h-none m-0"),
   };
 
   const baseClasses = cn(
     "bg-surface border border-border rounded-2xl",
     "shadow-lg outline-none",
     "flex flex-col overflow-hidden",
+    // Reset default dialog styles
+    "p-0",
+    "not-[[open]]:hidden",
     variantClasses[variant],
     className
   );
@@ -207,75 +168,57 @@ export function Dialog({
     success: "text-success",
   };
 
-  const dialogContent = (
-    <DialogContext.Provider value={{ zIndex: dialogZIndex }}>
-      <DialogOverlay
-        open={open}
-        dismissible={dismissible}
-        onClick={handleClose}
-        dialogId={dialogIdRef.current}
-      />
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={ariaLabel}
-        aria-labelledby={finalAriaLabelledBy}
-        data-state={open ? "open" : "closed"}
-        data-variant={variant}
-        data-size={size}
-        data-status={status}
-        className={baseClasses}
-        style={{ ...style, zIndex: dialogZIndex }}
-        onKeyDown={handleKeyDown}
-        tabIndex={-1}>
-        {/* Header - Always rendered */}
-        <header
-          className={cn(
-            "flex items-center justify-between gap-4 px-6 py-4 border-b border-border"
-          )}
-          id={titleId}>
-          <div className="flex-1">
-            <h2
-              className={cn(
-                "text-xl font-semibold",
-                statusClasses[status ?? "none"]
-              )}>
-              {title}
-            </h2>
-          </div>
 
-          <IconButton clicked={handleClose}>
-            <HiX className="size-5" />
-          </IconButton>
-        </header>
 
-        <div className={"px-6 py-4 overflow-y-auto"}>{bodyContent}</div>
-
-        {footerButtons && footerButtons.length > 0 && (
-          <footer
-            className={
-              "flex items-center gap-3 px-6 py-4 border-t border-border justify-end "
-            }>
-            {footerButtons?.map((buttonProps, index) => (
-              <Button
-                key={index}
-                {...buttonProps}
-              />
-            ))}
-          </footer>
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-label={ariaLabel}
+      aria-labelledby={finalAriaLabelledBy}
+      data-variant={variant}
+      data-size={size}
+      data-status={status}
+      className={baseClasses}
+      style={style}
+      onClick={handleDialogClick}
+      onClose={handleDialogClose}
+      onCancel={handleCancel}>
+      {/* Header - Always rendered */}
+      <header
+        className={cn(
+          "flex items-center justify-between gap-4 px-6 py-4 border-b border-border"
         )}
-      </div>
-    </DialogContext.Provider>
+        id={titleId}>
+        <div className="flex-1">
+          <h2
+            className={cn(
+              "text-xl font-semibold",
+              statusClasses[status ?? "none"]
+            )}>
+            {title}
+          </h2>
+        </div>
+
+        <IconButton clicked={handleClose}>
+          <HiX className="size-5" />
+        </IconButton>
+      </header>
+
+      <div className={"px-6 py-4 overflow-y-auto"}>{bodyContent}</div>
+
+      {footerButtons && footerButtons.length > 0 && (
+        <footer
+          className={
+            "flex items-center gap-3 px-6 py-4 border-t border-border justify-end "
+          }>
+          {footerButtons?.map((buttonProps, index) => (
+            <Button
+              key={index}
+              {...buttonProps}
+            />
+          ))}
+        </footer>
+      )}
+    </dialog>
   );
-
-  // Portal rendering with SSR safety
-  if (isMounted && typeof window !== "undefined") {
-    const container = document.body;
-    return createPortal(dialogContent, container);
-  }
-
-  // Fallback for SSR or non-portal mode
-  if (!isMounted) return null;
-  return dialogContent;
 }

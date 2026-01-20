@@ -3,15 +3,14 @@ import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
   cloneElement,
   isValidElement,
+  useCallback,
   useEffect,
   useId,
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
-import { useDialogContext } from "../dialog/dialog/dialog-context";
-import { type IPlacementOption } from "../dropdown/hooks/use-floating-placement";
-import { useTooltipPlacement } from "./use-tooltip-placement";
+
+export type IPlacementOption = "top" | "bottom" | "left" | "right" | "auto";
 
 export type ITooltipProps = {
   /** The trigger element that will show the tooltip on hover/focus */
@@ -30,6 +29,16 @@ export type ITooltipProps = {
   onOpenChange?: (open: boolean) => void;
 } & IPropsWithClassName;
 
+/**
+ * Tooltip component using native Popover API and CSS Anchor Positioning
+ *
+ * Features:
+ * - Native popover="hint" for tooltip behavior
+ * - CSS anchor positioning for smart placement
+ * - Automatic top-layer rendering
+ * - Hover and focus triggers
+ * - Automatic flip fallbacks when near viewport edges
+ */
 export function Tooltip({
   children,
   content,
@@ -40,49 +49,77 @@ export function Tooltip({
   open: controlledOpen,
   onOpenChange,
 }: ITooltipProps) {
-  const dialogContext = useDialogContext();
   const [internalOpen, setInternalOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
   const triggerRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const tooltipId = useId();
+  const delayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Generate unique IDs for anchor positioning
+  const uniqueId = useId();
+  const anchorName = `--tooltip-anchor-${uniqueId.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const tooltipId = `tooltip-${uniqueId.replace(/[^a-zA-Z0-9]/g, "")}`;
 
   // Use controlled state if provided, otherwise use internal state
   const tooltipIsOpen =
     controlledOpen !== undefined ? controlledOpen : internalOpen;
 
-  const setTooltipState = (newState: boolean) => {
-    if (disabled) return;
+  const setTooltipState = useCallback(
+    (newState: boolean) => {
+      if (disabled && newState) return;
 
-    // Clear any pending delay timeout
-    if (delayTimeoutRef.current) {
-      clearTimeout(delayTimeoutRef.current);
-      delayTimeoutRef.current = null;
+      // Clear any pending delay timeout
+      if (delayTimeoutRef.current) {
+        clearTimeout(delayTimeoutRef.current);
+        delayTimeoutRef.current = null;
+      }
+
+      if (onOpenChange) {
+        onOpenChange(newState);
+      } else {
+        setInternalOpen(newState);
+      }
+    },
+    [disabled, onOpenChange]
+  );
+
+  // Sync popover state with controlled open state
+  useEffect(() => {
+    const popover = contentRef.current;
+    if (!popover) return;
+
+    try {
+      if (tooltipIsOpen && !popover.matches(":popover-open")) {
+        popover.showPopover();
+      } else if (!tooltipIsOpen && popover.matches(":popover-open")) {
+        popover.hidePopover();
+      }
+    } catch {
+      // Ignore errors if popover API not fully supported
     }
+  }, [tooltipIsOpen]);
 
-    if (onOpenChange) {
-      onOpenChange(newState);
-    } else {
-      setInternalOpen(newState);
+  // Determine CSS position classes based on placement prop
+  const getPositionClasses = () => {
+    const placementValue = Array.isArray(placement) ? placement[0] : placement;
+
+    switch (placementValue) {
+      case "top":
+        return "tooltip-position-top";
+      case "left":
+        return "tooltip-position-left";
+      case "right":
+        return "tooltip-position-right";
+      case "bottom":
+        return "tooltip-position-bottom";
+      case "auto":
+      default:
+        // Default to bottom for auto
+        return "tooltip-position-bottom";
     }
   };
-
-  // Set mounted state for SSR safety (needed for portal)
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // Calculate tooltip position using the tooltip placement hook (centers tooltip)
-  const tooltipPosition = useTooltipPlacement({
-    isOpen: tooltipIsOpen,
-    triggerRef: triggerRef as React.RefObject<HTMLElement>,
-    contentRef: contentRef as React.RefObject<HTMLElement>,
-    placement,
-  });
 
   // Handle hover events
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     if (disabled) return;
 
     // If already open, don't create a new timeout
@@ -95,18 +132,18 @@ export function Tooltip({
     } else {
       setTooltipState(true);
     }
-  };
+  }, [disabled, tooltipIsOpen, delay, setTooltipState]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (delayTimeoutRef.current) {
       clearTimeout(delayTimeoutRef.current);
       delayTimeoutRef.current = null;
     }
     setTooltipState(false);
-  };
+  }, [setTooltipState]);
 
   // Handle focus events (for keyboard accessibility)
-  const handleFocus = () => {
+  const handleFocus = useCallback(() => {
     if (disabled) return;
 
     // If already open, don't create a new timeout
@@ -119,31 +156,15 @@ export function Tooltip({
     } else {
       setTooltipState(true);
     }
-  };
+  }, [disabled, tooltipIsOpen, delay, setTooltipState]);
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     if (delayTimeoutRef.current) {
       clearTimeout(delayTimeoutRef.current);
       delayTimeoutRef.current = null;
     }
     setTooltipState(false);
-  };
-
-  // Handle keyboard (ESC to close)
-  useEffect(() => {
-    if (!tooltipIsOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setTooltipState(false);
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [tooltipIsOpen]);
+  }, [setTooltipState]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -157,62 +178,61 @@ export function Tooltip({
   // Clone the trigger element and add event handlers and ARIA attributes
   const triggerElement = isValidElement(children)
     ? cloneElement(children, {
-        ref: (node: HTMLElement | null) => {
-          triggerRef.current = node;
-          // Preserve existing ref if it exists
-          const existingRef = (children as any).ref;
-          if (typeof existingRef === "function") {
-            existingRef(node);
-          } else if (existingRef) {
-            (
-              existingRef as React.MutableRefObject<HTMLElement | null>
-            ).current = node;
-          }
-        },
-        onMouseEnter: handleMouseEnter,
-        onMouseLeave: handleMouseLeave,
-        onFocus: handleFocus,
-        onBlur: handleBlur,
-        "aria-describedby": tooltipIsOpen ? tooltipId : undefined,
-      } as any)
+      ref: (node: HTMLElement | null) => {
+        triggerRef.current = node;
+        // Preserve existing ref if it exists
+        const existingRef = (children as any).ref;
+        if (typeof existingRef === "function") {
+          existingRef(node);
+        } else if (existingRef) {
+          (
+            existingRef as React.MutableRefObject<HTMLElement | null>
+          ).current = node;
+        }
+      },
+      style: {
+        ...((children.props as any)?.style || {}),
+        anchorName,
+      },
+      onMouseEnter: handleMouseEnter,
+      onMouseLeave: handleMouseLeave,
+      onFocus: handleFocus,
+      onBlur: handleBlur,
+      "aria-describedby": tooltipIsOpen ? tooltipId : undefined,
+    } as any)
     : children;
-
-  // Render tooltip content via portal
-  const tooltipContent =
-    tooltipIsOpen && isMounted ? (
-      <div
-        ref={contentRef}
-        id={tooltipId}
-        role="tooltip"
-        className={cn(
-          "bg-surface border border-border rounded-2xl shadow-lg",
-          "text-sm text-text px-3 py-2",
-          "max-w-xs wrap-break-word",
-          className
-        )}
-        style={{
-          position: "fixed",
-          // If inside a dialog, use dialog's z-index + 5, otherwise use 50
-          zIndex: dialogContext ? dialogContext.zIndex + 5 : 50,
-          visibility: tooltipPosition ? "visible" : "hidden",
-          top: tooltipPosition ? `${tooltipPosition.top}px` : "-9999px",
-          left: tooltipPosition ? `${tooltipPosition.left}px` : "-9999px",
-          maxWidth: tooltipPosition?.maxWidth
-            ? `${tooltipPosition.maxWidth}px`
-            : undefined,
-        }}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}>
-        {content}
-      </div>
-    ) : null;
 
   return (
     <>
       {triggerElement}
-      {isMounted && typeof window !== "undefined" && tooltipContent
-        ? createPortal(tooltipContent, document.body)
-        : tooltipContent}
+      <div
+        ref={contentRef}
+        id={tooltipId}
+        popover="hint"
+        role="tooltip"
+        className={cn(
+          "tooltip-popover",
+          getPositionClasses(),
+          "bg-surface border border-border rounded-2xl shadow-lg",
+          "text-sm text-text px-3 py-2",
+          "max-w-xs wrap-break-word",
+          // Reset default popover styles
+          "m-0 p-0 border-0 bg-transparent",
+          // Ensure closed popovers stay hidden (styles override browser default)
+          "not-[:popover-open]:hidden",
+          className
+        )}
+        style={
+          {
+            positionAnchor: anchorName,
+          } as React.CSSProperties
+        }
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}>
+        <div className="bg-surface border border-border rounded-2xl shadow-lg text-sm text-text px-3 py-2 max-w-xs w-max wrap-break-word">
+          {content}
+        </div>
+      </div>
     </>
   );
 }
