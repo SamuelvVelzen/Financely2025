@@ -16,6 +16,7 @@ import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as appIndexRouteImport } from './routes/(app)/index'
 import { Route as appTransactionsRouteImport } from './routes/(app)/transactions'
 import { Route as appTagsRouteImport } from './routes/(app)/tags'
+import { Route as appOnboardingRouteImport } from './routes/(app)/onboarding'
 import { Route as appMessagesRouteImport } from './routes/(app)/messages'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
 import { Route as appBudgetsIndexRouteImport } from './routes/(app)/budgets.index'
@@ -27,6 +28,7 @@ import { Route as ApiV1BudgetsRouteImport } from './routes/api/v1/budgets'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as appBudgetsNewRouteImport } from './routes/(app)/budgets.new'
 import { Route as appBudgetsBudgetIdIndexRouteImport } from './routes/(app)/budgets.$budgetId.index'
+import { Route as ApiV1WizardProgressRouteImport } from './routes/api/v1/wizard.progress'
 import { Route as ApiV1TransactionsCsvUploadRouteImport } from './routes/api/v1/transactions.csv-upload'
 import { Route as ApiV1TransactionsCsvTransformRouteImport } from './routes/api/v1/transactions.csv-transform'
 import { Route as ApiV1TransactionsCsvMappingRouteImport } from './routes/api/v1/transactions.csv-mapping'
@@ -48,6 +50,8 @@ import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts
 import { Route as ApiV1BudgetsOverviewRouteImport } from './routes/api/v1/budgets.overview'
 import { Route as ApiV1BudgetsBudgetIdRouteImport } from './routes/api/v1/budgets.$budgetId'
 import { Route as appBudgetsBudgetIdEditRouteImport } from './routes/(app)/budgets.$budgetId.edit'
+import { Route as ApiV1WizardWizardIdProgressRouteImport } from './routes/api/v1/wizard.$wizardId.progress'
+import { Route as ApiV1WizardWizardIdCompleteRouteImport } from './routes/api/v1/wizard.$wizardId.complete'
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
 import { Route as ApiV1MeAccountsAccountIdRouteImport } from './routes/api/v1/me.accounts.$accountId'
 import { Route as ApiV1BudgetsBudgetIdComparisonRouteImport } from './routes/api/v1/budgets.$budgetId.comparison'
@@ -85,6 +89,11 @@ const appTransactionsRoute = appTransactionsRouteImport.update({
 const appTagsRoute = appTagsRouteImport.update({
   id: '/tags',
   path: '/tags',
+  getParentRoute: () => appRouteRoute,
+} as any)
+const appOnboardingRoute = appOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => appRouteRoute,
 } as any)
 const appMessagesRoute = appMessagesRouteImport.update({
@@ -141,6 +150,11 @@ const appBudgetsBudgetIdIndexRoute = appBudgetsBudgetIdIndexRouteImport.update({
   id: '/budgets/$budgetId/',
   path: '/budgets/$budgetId/',
   getParentRoute: () => appRouteRoute,
+} as any)
+const ApiV1WizardProgressRoute = ApiV1WizardProgressRouteImport.update({
+  id: '/api/v1/wizard/progress',
+  path: '/api/v1/wizard/progress',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1TransactionsCsvUploadRoute =
   ApiV1TransactionsCsvUploadRouteImport.update({
@@ -252,6 +266,18 @@ const appBudgetsBudgetIdEditRoute = appBudgetsBudgetIdEditRouteImport.update({
   path: '/budgets/$budgetId/edit',
   getParentRoute: () => appRouteRoute,
 } as any)
+const ApiV1WizardWizardIdProgressRoute =
+  ApiV1WizardWizardIdProgressRouteImport.update({
+    id: '/api/v1/wizard/$wizardId/progress',
+    path: '/api/v1/wizard/$wizardId/progress',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1WizardWizardIdCompleteRoute =
+  ApiV1WizardWizardIdCompleteRouteImport.update({
+    id: '/api/v1/wizard/$wizardId/complete',
+    path: '/api/v1/wizard/$wizardId/complete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiV1TagsCsvMappingValidateRoute =
   ApiV1TagsCsvMappingValidateRouteImport.update({
     id: '/validate',
@@ -283,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
   '/messages': typeof appMessagesRoute
+  '/onboarding': typeof appOnboardingRoute
   '/tags': typeof appTagsRoute
   '/transactions': typeof appTransactionsRoute
   '/': typeof appIndexRoute
@@ -315,10 +342,13 @@ export interface FileRoutesByFullPath {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
   '/budgets/$budgetId': typeof appBudgetsBudgetIdIndexRoute
   '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
+  '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
+  '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesByTo {
@@ -327,6 +357,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
   '/messages': typeof appMessagesRoute
+  '/onboarding': typeof appOnboardingRoute
   '/tags': typeof appTagsRoute
   '/transactions': typeof appTransactionsRoute
   '/': typeof appIndexRoute
@@ -359,10 +390,13 @@ export interface FileRoutesByTo {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
   '/budgets/$budgetId': typeof appBudgetsBudgetIdIndexRoute
   '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
+  '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
+  '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesById {
@@ -373,6 +407,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/(app)/account': typeof appAccountRoute
   '/(app)/messages': typeof appMessagesRoute
+  '/(app)/onboarding': typeof appOnboardingRoute
   '/(app)/tags': typeof appTagsRoute
   '/(app)/transactions': typeof appTransactionsRoute
   '/(app)/': typeof appIndexRoute
@@ -405,10 +440,13 @@ export interface FileRoutesById {
   '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
   '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
   '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
   '/(app)/budgets/$budgetId/': typeof appBudgetsBudgetIdIndexRoute
   '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
+  '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
+  '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
   '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRouteTypes {
@@ -419,6 +457,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/account'
     | '/messages'
+    | '/onboarding'
     | '/tags'
     | '/transactions'
     | '/'
@@ -451,10 +490,13 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
+    | '/api/v1/wizard/progress'
     | '/budgets/$budgetId'
     | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
+    | '/api/v1/wizard/$wizardId/complete'
+    | '/api/v1/wizard/$wizardId/progress'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -463,6 +505,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/account'
     | '/messages'
+    | '/onboarding'
     | '/tags'
     | '/transactions'
     | '/'
@@ -495,10 +538,13 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
+    | '/api/v1/wizard/progress'
     | '/budgets/$budgetId'
     | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
+    | '/api/v1/wizard/$wizardId/complete'
+    | '/api/v1/wizard/$wizardId/progress'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
   id:
     | '__root__'
@@ -508,6 +554,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/(app)/account'
     | '/(app)/messages'
+    | '/(app)/onboarding'
     | '/(app)/tags'
     | '/(app)/transactions'
     | '/(app)/'
@@ -540,10 +587,13 @@ export interface FileRouteTypes {
     | '/api/v1/transactions/csv-mapping'
     | '/api/v1/transactions/csv-transform'
     | '/api/v1/transactions/csv-upload'
+    | '/api/v1/wizard/progress'
     | '/(app)/budgets/$budgetId/'
     | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/tags/csv-mapping/validate'
+    | '/api/v1/wizard/$wizardId/complete'
+    | '/api/v1/wizard/$wizardId/progress'
     | '/api/v1/transactions/$transactionId/tags/$tagId'
   fileRoutesById: FileRoutesById
 }
@@ -558,6 +608,9 @@ export interface RootRouteChildren {
   ApiV1MessagesRoute: typeof ApiV1MessagesRouteWithChildren
   ApiV1TagsRoute: typeof ApiV1TagsRouteWithChildren
   ApiV1TransactionsRoute: typeof ApiV1TransactionsRouteWithChildren
+  ApiV1WizardProgressRoute: typeof ApiV1WizardProgressRoute
+  ApiV1WizardWizardIdCompleteRoute: typeof ApiV1WizardWizardIdCompleteRoute
+  ApiV1WizardWizardIdProgressRoute: typeof ApiV1WizardWizardIdProgressRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -609,6 +662,13 @@ declare module '@tanstack/react-router' {
       path: '/tags'
       fullPath: '/tags'
       preLoaderRoute: typeof appTagsRouteImport
+      parentRoute: typeof appRouteRoute
+    }
+    '/(app)/onboarding': {
+      id: '/(app)/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof appOnboardingRouteImport
       parentRoute: typeof appRouteRoute
     }
     '/(app)/messages': {
@@ -687,6 +747,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/budgets/$budgetId'
       preLoaderRoute: typeof appBudgetsBudgetIdIndexRouteImport
       parentRoute: typeof appRouteRoute
+    }
+    '/api/v1/wizard/progress': {
+      id: '/api/v1/wizard/progress'
+      path: '/api/v1/wizard/progress'
+      fullPath: '/api/v1/wizard/progress'
+      preLoaderRoute: typeof ApiV1WizardProgressRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/v1/transactions/csv-upload': {
       id: '/api/v1/transactions/csv-upload'
@@ -835,6 +902,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appBudgetsBudgetIdEditRouteImport
       parentRoute: typeof appRouteRoute
     }
+    '/api/v1/wizard/$wizardId/progress': {
+      id: '/api/v1/wizard/$wizardId/progress'
+      path: '/api/v1/wizard/$wizardId/progress'
+      fullPath: '/api/v1/wizard/$wizardId/progress'
+      preLoaderRoute: typeof ApiV1WizardWizardIdProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/wizard/$wizardId/complete': {
+      id: '/api/v1/wizard/$wizardId/complete'
+      path: '/api/v1/wizard/$wizardId/complete'
+      fullPath: '/api/v1/wizard/$wizardId/complete'
+      preLoaderRoute: typeof ApiV1WizardWizardIdCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/tags/csv-mapping/validate': {
       id: '/api/v1/tags/csv-mapping/validate'
       path: '/validate'
@@ -869,6 +950,7 @@ declare module '@tanstack/react-router' {
 interface appRouteRouteChildren {
   appAccountRoute: typeof appAccountRoute
   appMessagesRoute: typeof appMessagesRoute
+  appOnboardingRoute: typeof appOnboardingRoute
   appTagsRoute: typeof appTagsRoute
   appTransactionsRoute: typeof appTransactionsRoute
   appIndexRoute: typeof appIndexRoute
@@ -881,6 +963,7 @@ interface appRouteRouteChildren {
 const appRouteRouteChildren: appRouteRouteChildren = {
   appAccountRoute: appAccountRoute,
   appMessagesRoute: appMessagesRoute,
+  appOnboardingRoute: appOnboardingRoute,
   appTagsRoute: appTagsRoute,
   appTransactionsRoute: appTransactionsRoute,
   appIndexRoute: appIndexRoute,
@@ -1043,6 +1126,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1MessagesRoute: ApiV1MessagesRouteWithChildren,
   ApiV1TagsRoute: ApiV1TagsRouteWithChildren,
   ApiV1TransactionsRoute: ApiV1TransactionsRouteWithChildren,
+  ApiV1WizardProgressRoute: ApiV1WizardProgressRoute,
+  ApiV1WizardWizardIdCompleteRoute: ApiV1WizardWizardIdCompleteRoute,
+  ApiV1WizardWizardIdProgressRoute: ApiV1WizardWizardIdProgressRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
