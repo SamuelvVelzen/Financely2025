@@ -1,19 +1,49 @@
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { ReactNode } from "react";
+import { Children, ReactNode } from "react";
 
-export type IListProps<T> = {
+// Data-driven mode: pass data array and render function
+type IListPropsWithData<T> = {
   data: T[];
   children: (item: T, index: number) => ReactNode;
   getItemKey?: (item: T, index: number) => string | number;
 } & IPropsWithClassName;
 
-export function List<T>({
-  data,
-  children,
-  className = "",
-  getItemKey,
-}: IListProps<T>) {
+// Static mode: just pass children directly (no data)
+type IListPropsStatic = {
+  data?: undefined;
+  children: ReactNode;
+  getItemKey?: never;
+} & IPropsWithClassName;
+
+export type IListProps<T> = IListPropsWithData<T> | IListPropsStatic;
+
+function isDataDriven<T>(
+  props: IListProps<T>
+): props is IListPropsWithData<T> {
+  return props.data !== undefined;
+}
+
+export function List<T>(props: IListProps<T>) {
+  const { className = "" } = props;
+
+  // Static mode - render children directly
+  if (!isDataDriven(props)) {
+    const { children } = props;
+    return (
+      <ul
+        className={cn("overflow-hidden list-none", className)}
+        role="list">
+        {Children.map(children, (child, index) => (
+          <li key={index}>{child}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  // Data-driven mode
+  const { data, children, getItemKey } = props;
+
   if (data.length === 0) {
     return null;
   }
