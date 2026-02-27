@@ -45,6 +45,7 @@ export function ToastProvider({
         showCloseButton,
         isExiting: false,
         position: options.position ?? defaultPosition,
+        onClick: options.onClick,
       };
 
       setToasts((prev) => [...prev, toast]);

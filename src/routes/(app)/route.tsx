@@ -4,6 +4,7 @@ import { MobileTopNav } from "@/features/ui/navigation/mobile-top-nav";
 import { Sidebar } from "@/features/ui/navigation/sidebar";
 import { SidebarProvider } from "@/features/ui/navigation/useSidebar";
 import { ThemeProvider } from "@/features/ui/ThemeProvider";
+import { checkOnboardingComplete } from "@/features/transaction/components/wizard/onboarding/onboarding.server";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 // Pathless route group - wraps all routes without adding to URL
@@ -20,6 +21,16 @@ export const Route = createFileRoute("/(app)")({
           redirect: location.href,
         },
       });
+    }
+
+    // Check if onboarding is completed (skip if already on /onboarding)
+    if (!location.pathname.startsWith("/onboarding")) {
+      const isOnboardingComplete = await checkOnboardingComplete();
+      if (!isOnboardingComplete) {
+        throw redirect({
+          to: "/onboarding",
+        });
+      }
     }
   },
   component: AppLayout,

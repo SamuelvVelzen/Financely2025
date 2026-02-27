@@ -1,6 +1,12 @@
-export function Logo() {
+import { cn } from "@/features/util/cn";
+import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+
+type ILogoProps = {
+} & IPropsWithClassName;
+
+export function Logo({ className = "" }: ILogoProps) {
   return (
-    <div className="size-10 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center flex-shrink-0">
+    <div className={cn("size-10 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center flex-shrink-0", className)}>
       <svg
         className="size-6 text-white"
         fill="currentColor"

@@ -17,6 +17,7 @@ export interface IToast {
   showCloseButton: boolean;
   isExiting: boolean;
   position: IToastPosition;
+  onClick?: () => void;
 }
 
 export interface IToastOptions {
@@ -29,6 +30,8 @@ export interface IToastOptions {
   showCloseButton?: boolean;
   /** Position of the toast. Default: uses container's default position */
   position?: IToastPosition;
+  /** Optional click handler for the toast */
+  onClick?: () => void;
 }
 
 export interface IToastContext {

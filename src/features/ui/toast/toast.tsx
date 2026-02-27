@@ -106,6 +106,7 @@ export function Toast({ toast, onRemove }: IToastProps) {
     showCloseButton,
     isExiting,
     position,
+    onClick,
   } = toast;
 
   const [isPaused, setIsPaused] = useState(false);
@@ -176,16 +177,24 @@ export function Toast({ toast, onRemove }: IToastProps) {
     onRemove(id);
   };
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    }
+  };
+
   return (
     <div
       className={cn(
         "flex items-start gap-3 p-4 rounded-2xl border shadow-lg min-w-[320px] max-w-[420px]",
         config.bg,
         config.border,
-        getAnimationClasses(position, isExiting)
+        getAnimationClasses(position, isExiting),
+        onClick && "cursor-pointer"
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
       role="alert">
       <Icon className={cn("size-5 shrink-0 mt-0.5", config.text)} />
 

@@ -11,6 +11,8 @@ type ITagListProps = {
   onEdit?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
   onOrderChange?: (orderedIds: (string | number)[]) => void;
+  /** Whether dragging/reordering is enabled. Defaults to true. */
+  draggable?: boolean;
 };
 
 export function TagList({
@@ -19,6 +21,7 @@ export function TagList({
   onEdit,
   onDelete,
   onOrderChange,
+  draggable = true,
 }: ITagListProps) {
   const { highlightText } = useHighlightText();
 
@@ -26,11 +29,11 @@ export function TagList({
     <SortableList
       data={data}
       getItemId={(tag) => tag.id}
-      onOrderChange={onOrderChange}>
+      onOrderChange={draggable ? onOrderChange : undefined}>
       {(tag: ITag, index, dragProps) => (
         <SortableListItem
           className="group"
-          draggable={true}
+          draggable={draggable}
           isDragging={dragProps.isDragging}
           isDragOver={dragProps.isDragOver}
           isOriginalPosition={dragProps.isOriginalPosition}

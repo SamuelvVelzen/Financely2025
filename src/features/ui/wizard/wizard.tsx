@@ -49,7 +49,7 @@ export function Wizard({
   const currentPage = pages[displayedStep];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === pages.length - 1;
-  const canSkipCurrentPage = currentPage?.skippable !== false;
+  const canSkipCurrentPage = currentPage?.skippable
 
   const handleBack = useCallback(() => {
     if (!isFirstStep) {
