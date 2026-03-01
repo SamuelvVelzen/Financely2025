@@ -1,18 +1,25 @@
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren } from "react";
+import React, { PropsWithChildren, ReactNode } from "react";
 import { IVariant } from "../button/button";
+import { Tooltip } from "../tooltip/tooltip";
 
 type IBadgeColorProps =
   | {
-      backgroundColor?: string;
-      variant?: never;
-    }
+    backgroundColor?: string;
+    variant?: never;
+  }
   | { variant: IVariant; backgroundColor?: never };
 
 export type IBadgeProps = IBadgeColorProps &
   IPropsWithClassName &
-  PropsWithChildren;
+  PropsWithChildren &
+  Omit<React.HTMLAttributes<HTMLSpanElement>, "className" | "children"> & {
+    /** Optional tooltip text. If provided, wraps the badge with a tooltip */
+    tooltip?: ReactNode;
+    /** Tooltip placement. Defaults to "auto" */
+    tooltipPlacement?: "top" | "bottom" | "left" | "right" | "auto";
+  };
 
 /**
  * Calculate whether text should be light or dark based on background color
@@ -51,6 +58,9 @@ export function Badge({
   variant,
   children,
   className,
+  tooltip,
+  tooltipPlacement = "auto",
+  ...rest
 }: IBadgeProps) {
   const backgroundColorClass = backgroundColor
     ? `bg-[${backgroundColor}]`
@@ -63,16 +73,27 @@ export function Badge({
       ? variantClasses[variant].textColor
       : "text-text";
 
-  return (
+  const badge = (
     <span
+      {...rest}
       className={cn(
         "px-2.5 py-0.5 rounded-full flex items-center gap-1 text-xs font-medium max-w-full truncate",
         backgroundColorClass,
         textColorClass,
         className
       )}
-      style={{ backgroundColor, color: textColorClass }}>
+      style={{ ...rest.style, backgroundColor, color: textColorClass }}>
       {children}
     </span>
   );
+
+  if (tooltip) {
+    return (
+      <Tooltip content={tooltip} placement={tooltipPlacement}>
+        {badge}
+      </Tooltip>
+    );
+  }
+
+  return badge;
 }

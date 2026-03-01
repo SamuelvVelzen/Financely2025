@@ -3,11 +3,20 @@
  * Helper functions for generating common budget date ranges
  */
 
-export type IBudgetPreset = "monthly" | "yearly" | "custom";
+export type IBudgetPreset =
+  | "monthly"
+  | "yearly"
+  | "yearly-per-month"
+  | "custom";
 
 export interface IBudgetDateRange {
   start: Date;
   end: Date;
+}
+
+export interface IYearMonth {
+  year: number;
+  month: number;
 }
 
 /**
@@ -15,7 +24,7 @@ export interface IBudgetDateRange {
  */
 export function getMonthlyPreset(
   year: number,
-  month: number
+  month: number,
 ): IBudgetDateRange {
   const start = new Date(year, month - 1, 1);
   const end = new Date(year, month, 0, 23, 59, 59, 999); // Last day of month
@@ -70,11 +79,34 @@ export function getNextYearPreset(): IBudgetDateRange {
 }
 
 /**
+ * Get all calendar months covered by a date range.
+ * Returns an array of { year, month } objects (month is 1-12).
+ */
+export function getMonthsInRange(start: Date, end: Date): IYearMonth[] {
+  const months: IYearMonth[] = [];
+  let year = start.getFullYear();
+  let month = start.getMonth() + 1;
+  const endYear = end.getFullYear();
+  const endMonth = end.getMonth() + 1;
+
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    months.push({ year, month });
+    month++;
+    if (month > 12) {
+      month = 1;
+      year++;
+    }
+  }
+
+  return months;
+}
+
+/**
  * Format budget name based on preset type and dates
  */
 export function formatBudgetName(
   preset: IBudgetPreset,
-  dates: IBudgetDateRange
+  dates: IBudgetDateRange,
 ): string {
   if (preset === "monthly") {
     const monthNames = [
@@ -100,6 +132,10 @@ export function formatBudgetName(
     return `${dates.start.getFullYear()} Budget`;
   }
 
+  if (preset === "yearly-per-month") {
+    return `${dates.start.getFullYear()} Budget (Per Month)`;
+  }
+
   // Custom - use date range
   const startStr = dates.start.toLocaleDateString("en-US", {
     month: "short",
@@ -113,4 +149,3 @@ export function formatBudgetName(
   });
   return `${startStr} - ${endStr} Budget`;
 }
-

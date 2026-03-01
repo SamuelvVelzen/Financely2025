@@ -230,6 +230,7 @@ model Budget {
   userId        String
 
   name          String
+  periodType    String         @default("monthly") // monthly | yearly | yearly-per-month | custom
   startDate     DateTime
   endDate       DateTime
   currency      String
@@ -243,18 +244,32 @@ model Budget {
 }
 
 model BudgetItem {
-  id            String         @id @default(cuid())
-  budget        Budget         @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  budgetId      String
+  id             String                    @id @default(cuid())
+  budget         Budget                    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budgetId       String
 
-  tagId         String?        // null means "Misc" for untagged transactions
-  tag           Tag?           @relation(fields: [tagId], references: [id], onDelete: SetNull)
-  expectedAmount Decimal
+  tagId          String?
+  tag            Tag?                      @relation(fields: [tagId], references: [id], onDelete: SetNull)
+  monthlyAmounts BudgetItemMonthlyAmount[]
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
 
   @@unique([budgetId, tagId])
+}
+
+model BudgetItemMonthlyAmount {
+  id             String     @id @default(cuid())
+  budgetItem     BudgetItem @relation(fields: [budgetItemId], references: [id], onDelete: Cascade)
+  budgetItemId   String
+  year           Int
+  month          Int        // 1-12
+  expectedAmount Decimal
+
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([budgetItemId, year, month])
 }
 
 model WizardProgress {

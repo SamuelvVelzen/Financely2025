@@ -32,15 +32,20 @@ export function BudgetListItem({
   const percentage =
     totals && parseFloat(totals.totalExpected) > 0
       ? (parseFloat(totals.totalActual) / parseFloat(totals.totalExpected)) *
-        100
+      100
       : 0;
 
   const totalExpected = totals?.totalExpected
     ? parseFloat(totals.totalExpected)
     : budget.items.reduce(
-        (sum, item) => sum + parseFloat(item.expectedAmount),
-        0
-      );
+      (sum, item) =>
+        sum +
+        item.monthlyAmounts.reduce(
+          (mSum, ma) => mSum + parseFloat(ma.expectedAmount),
+          0
+        ),
+      0
+    );
 
   const getStatusColor = (pct: number) => {
     if (pct < 80) return "text-success";

@@ -6,7 +6,9 @@ import {
   BudgetAlertSchema,
   BudgetComparisonSchema,
   BudgetItemComparisonSchema,
+  BudgetItemMonthlyAmountSchema,
   BudgetItemSchema,
+  BudgetMonthlyBreakdownSchema,
   BudgetSchema,
   BudgetsOverviewResponseSchema,
   BudgetsQuerySchema,
@@ -17,6 +19,7 @@ import {
   type IBudgetAlert,
   type IBudgetComparison,
   type IBudgetItemComparison,
+  type IBudgetMonthlyBreakdown,
   type IBudgetsOverviewResponse,
   type IBudgetsQuery,
   type ICreateBudgetInput,
@@ -25,6 +28,93 @@ import {
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
 import { Prisma } from "@prisma/client";
+
+const BUDGET_ITEMS_INCLUDE = {
+  items: {
+    include: {
+      tag: {
+        select: { id: true, name: true, color: true },
+      },
+      monthlyAmounts: true,
+    },
+  },
+} as const;
+
+type IPrismaBudgetItem = {
+  id: string;
+  budgetId: string;
+  tagId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  monthlyAmounts: Array<{
+    id: string;
+    budgetItemId: string;
+    year: number;
+    month: number;
+    expectedAmount: Prisma.Decimal;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+};
+
+function parseBudgetItem(item: IPrismaBudgetItem) {
+  return BudgetItemSchema.parse({
+    id: item.id,
+    budgetId: item.budgetId,
+    tagId: item.tagId,
+    monthlyAmounts: item.monthlyAmounts.map((ma) =>
+      BudgetItemMonthlyAmountSchema.parse({
+        id: ma.id,
+        budgetItemId: ma.budgetItemId,
+        year: ma.year,
+        month: ma.month,
+        expectedAmount: ma.expectedAmount.toString(),
+        createdAt: ma.createdAt.toISOString(),
+        updatedAt: ma.updatedAt.toISOString(),
+      }),
+    ),
+    createdAt: item.createdAt.toISOString(),
+    updatedAt: item.updatedAt.toISOString(),
+  });
+}
+
+function parseBudget(budget: {
+  id: string;
+  userId: string;
+  name: string;
+  periodType: string;
+  startDate: Date;
+  endDate: Date;
+  currency: string;
+  items: IPrismaBudgetItem[];
+  createdAt: Date;
+  updatedAt: Date;
+}): IBudget {
+  return BudgetSchema.parse({
+    id: budget.id,
+    userId: budget.userId,
+    name: budget.name,
+    periodType: budget.periodType,
+    startDate: budget.startDate.toISOString(),
+    endDate: budget.endDate.toISOString(),
+    currency: budget.currency,
+    items: budget.items.map(parseBudgetItem),
+    createdAt: budget.createdAt.toISOString(),
+    updatedAt: budget.updatedAt.toISOString(),
+  });
+}
+
+function getTotalExpectedFromItems(items: IBudget["items"]): number {
+  return items.reduce(
+    (sum, item) =>
+      sum +
+      item.monthlyAmounts.reduce(
+        (mSum, ma) => mSum + parseFloat(ma.expectedAmount),
+        0,
+      ),
+    0,
+  );
+}
 
 /**
  * Budget Service
@@ -36,7 +126,7 @@ export class BudgetService {
    */
   static async listBudgets(
     userId: string,
-    query: IBudgetsQuery
+    query: IBudgetsQuery,
   ): Promise<{ data: IBudget[] }> {
     const validated = BudgetsQuerySchema.parse(query);
 
@@ -67,47 +157,14 @@ export class BudgetService {
             }
           : {}),
       },
-      include: {
-        items: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
+      include: BUDGET_ITEMS_INCLUDE,
       orderBy: {
         startDate: "desc",
       },
     });
 
     return {
-      data: budgets.map((budget) =>
-        BudgetSchema.parse({
-          id: budget.id,
-          userId: budget.userId,
-          name: budget.name,
-          startDate: budget.startDate.toISOString(),
-          endDate: budget.endDate.toISOString(),
-          currency: budget.currency,
-          items: budget.items.map((item) =>
-            BudgetItemSchema.parse({
-              id: item.id,
-              budgetId: item.budgetId,
-              tagId: item.tagId,
-              expectedAmount: item.expectedAmount.toString(),
-              createdAt: item.createdAt.toISOString(),
-              updatedAt: item.updatedAt.toISOString(),
-            })
-          ),
-          createdAt: budget.createdAt.toISOString(),
-          updatedAt: budget.updatedAt.toISOString(),
-        })
-      ),
+      data: budgets.map(parseBudget),
     };
   }
 
@@ -116,60 +173,26 @@ export class BudgetService {
    */
   static async getBudgetById(
     userId: string,
-    budgetId: string
+    budgetId: string,
   ): Promise<IBudget | null> {
     const budget = await prisma.budget.findFirst({
-      where: {
-        id: budgetId,
-        userId,
-      },
-      include: {
-        items: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
+      where: { id: budgetId, userId },
+      include: BUDGET_ITEMS_INCLUDE,
     });
 
     if (!budget) {
       return null;
     }
 
-    return BudgetSchema.parse({
-      id: budget.id,
-      userId: budget.userId,
-      name: budget.name,
-      startDate: budget.startDate.toISOString(),
-      endDate: budget.endDate.toISOString(),
-      currency: budget.currency,
-      items: budget.items.map((item) =>
-        BudgetItemSchema.parse({
-          id: item.id,
-          budgetId: item.budgetId,
-          tagId: item.tagId,
-          expectedAmount: item.expectedAmount.toString(),
-          createdAt: item.createdAt.toISOString(),
-          updatedAt: item.updatedAt.toISOString(),
-        })
-      ),
-      createdAt: budget.createdAt.toISOString(),
-      updatedAt: budget.updatedAt.toISOString(),
-    });
+    return parseBudget(budget);
   }
 
   /**
-   * Create a new budget with items
+   * Create a new budget with items and monthly amounts
    */
   static async createBudget(
     userId: string,
-    input: ICreateBudgetInput
+    input: ICreateBudgetInput,
   ): Promise<IBudget> {
     const validated = CreateBudgetInputSchema.parse(input);
 
@@ -180,10 +203,7 @@ export class BudgetService {
 
     if (tagIds.length > 0) {
       const userTags = await prisma.tag.findMany({
-        where: {
-          id: { in: tagIds },
-          userId,
-        },
+        where: { id: { in: tagIds }, userId },
         select: { id: true },
       });
 
@@ -197,7 +217,7 @@ export class BudgetService {
     for (const item of validated.items) {
       if (tagIdSet.has(item.tagId)) {
         throw new Error(
-          `Duplicate tag entry: ${item.tagId === null ? "Misc" : item.tagId}`
+          `Duplicate tag entry: ${item.tagId === null ? "Misc" : item.tagId}`,
         );
       }
       tagIdSet.add(item.tagId);
@@ -207,51 +227,27 @@ export class BudgetService {
       data: {
         userId,
         name: validated.name,
+        periodType: validated.periodType,
         startDate: new Date(validated.startDate),
         endDate: new Date(validated.endDate),
         currency: validated.currency,
         items: {
           create: validated.items.map((item) => ({
             tagId: item.tagId,
-            expectedAmount: new Prisma.Decimal(item.expectedAmount),
+            monthlyAmounts: {
+              create: item.monthlyAmounts.map((ma) => ({
+                year: ma.year,
+                month: ma.month,
+                expectedAmount: new Prisma.Decimal(ma.expectedAmount),
+              })),
+            },
           })),
         },
       },
-      include: {
-        items: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
+      include: BUDGET_ITEMS_INCLUDE,
     });
 
-    return BudgetSchema.parse({
-      id: budget.id,
-      userId: budget.userId,
-      name: budget.name,
-      startDate: budget.startDate.toISOString(),
-      endDate: budget.endDate.toISOString(),
-      currency: budget.currency,
-      items: budget.items.map((item) =>
-        BudgetItemSchema.parse({
-          id: item.id,
-          budgetId: item.budgetId,
-          tagId: item.tagId,
-          expectedAmount: item.expectedAmount.toString(),
-          createdAt: item.createdAt.toISOString(),
-          updatedAt: item.updatedAt.toISOString(),
-        })
-      ),
-      createdAt: budget.createdAt.toISOString(),
-      updatedAt: budget.updatedAt.toISOString(),
-    });
+    return parseBudget(budget);
   }
 
   /**
@@ -260,9 +256,8 @@ export class BudgetService {
   static async updateBudget(
     userId: string,
     budgetId: string,
-    input: IUpdateBudgetInput
+    input: IUpdateBudgetInput,
   ): Promise<IBudget> {
-    // Verify budget belongs to user
     const existing = await this.getBudgetById(userId, budgetId);
     if (!existing) {
       throw new Error("Budget not found");
@@ -270,7 +265,6 @@ export class BudgetService {
 
     const validated = UpdateBudgetInputSchema.parse(input);
 
-    // If updating items, validate tags
     if (validated.items) {
       const tagIds = validated.items
         .map((item) => item.tagId)
@@ -278,10 +272,7 @@ export class BudgetService {
 
       if (tagIds.length > 0) {
         const userTags = await prisma.tag.findMany({
-          where: {
-            id: { in: tagIds },
-            userId,
-          },
+          where: { id: { in: tagIds }, userId },
           select: { id: true },
         });
 
@@ -290,38 +281,41 @@ export class BudgetService {
         }
       }
 
-      // Check for duplicate tagIds
       const tagIdSet = new Set<string | null>();
       for (const item of validated.items) {
         if (tagIdSet.has(item.tagId)) {
           throw new Error(
-            `Duplicate tag entry: ${item.tagId === null ? "Misc" : item.tagId}`
+            `Duplicate tag entry: ${item.tagId === null ? "Misc" : item.tagId}`,
           );
         }
         tagIdSet.add(item.tagId);
       }
     }
 
-    // Update budget
     const updateData: Prisma.BudgetUpdateInput = {};
     if (validated.name) updateData.name = validated.name;
+    if (validated.periodType) updateData.periodType = validated.periodType;
     if (validated.startDate)
       updateData.startDate = new Date(validated.startDate);
     if (validated.endDate) updateData.endDate = new Date(validated.endDate);
     if (validated.currency) updateData.currency = validated.currency;
 
-    // If items are provided, replace all items
     if (validated.items) {
-      // Delete existing items
+      // Delete existing items (cascades to monthly amounts)
       await prisma.budgetItem.deleteMany({
         where: { budgetId },
       });
 
-      // Create new items
       updateData.items = {
         create: validated.items.map((item) => ({
           tagId: item.tagId,
-          expectedAmount: new Prisma.Decimal(item.expectedAmount),
+          monthlyAmounts: {
+            create: item.monthlyAmounts.map((ma) => ({
+              year: ma.year,
+              month: ma.month,
+              expectedAmount: new Prisma.Decimal(ma.expectedAmount),
+            })),
+          },
         })),
       };
     }
@@ -329,48 +323,16 @@ export class BudgetService {
     const budget = await prisma.budget.update({
       where: { id: budgetId },
       data: updateData,
-      include: {
-        items: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
+      include: BUDGET_ITEMS_INCLUDE,
     });
 
-    return BudgetSchema.parse({
-      id: budget.id,
-      userId: budget.userId,
-      name: budget.name,
-      startDate: budget.startDate.toISOString(),
-      endDate: budget.endDate.toISOString(),
-      currency: budget.currency,
-      items: budget.items.map((item) =>
-        BudgetItemSchema.parse({
-          id: item.id,
-          budgetId: item.budgetId,
-          tagId: item.tagId,
-          expectedAmount: item.expectedAmount.toString(),
-          createdAt: item.createdAt.toISOString(),
-          updatedAt: item.updatedAt.toISOString(),
-        })
-      ),
-      createdAt: budget.createdAt.toISOString(),
-      updatedAt: budget.updatedAt.toISOString(),
-    });
+    return parseBudget(budget);
   }
 
   /**
    * Delete budget
    */
   static async deleteBudget(userId: string, budgetId: string): Promise<void> {
-    // Verify budget belongs to user
     const existing = await this.getBudgetById(userId, budgetId);
     if (!existing) {
       throw new Error("Budget not found");
@@ -382,57 +344,22 @@ export class BudgetService {
   }
 
   /**
-   * Get budget comparison (actual vs expected)
+   * Get budget comparison (actual vs expected) with monthly breakdown
    */
   static async getBudgetComparison(
     userId: string,
-    budgetId: string
+    budgetId: string,
   ): Promise<IBudgetComparison> {
-    // Fetch budget with items and tag relations
     const budgetData = await prisma.budget.findFirst({
-      where: {
-        id: budgetId,
-        userId,
-      },
-      include: {
-        items: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
+      where: { id: budgetId, userId },
+      include: BUDGET_ITEMS_INCLUDE,
     });
 
     if (!budgetData) {
       throw new Error("Budget not found");
     }
 
-    const budget = BudgetSchema.parse({
-      id: budgetData.id,
-      userId: budgetData.userId,
-      name: budgetData.name,
-      startDate: budgetData.startDate.toISOString(),
-      endDate: budgetData.endDate.toISOString(),
-      currency: budgetData.currency,
-      items: budgetData.items.map((item) =>
-        BudgetItemSchema.parse({
-          id: item.id,
-          budgetId: item.budgetId,
-          tagId: item.tagId,
-          expectedAmount: item.expectedAmount.toString(),
-          createdAt: item.createdAt.toISOString(),
-          updatedAt: item.updatedAt.toISOString(),
-        })
-      ),
-      createdAt: budgetData.createdAt.toISOString(),
-      updatedAt: budgetData.updatedAt.toISOString(),
-    });
+    const budget = parseBudget(budgetData);
 
     // Query ALL transactions in the budget date range with matching currency
     const transactions = await prisma.transaction.findMany({
@@ -446,23 +373,14 @@ export class BudgetService {
       },
       include: {
         tags: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
+          select: { id: true, name: true, color: true },
         },
         primaryTag: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
+          select: { id: true, name: true, color: true },
         },
       },
     });
 
-    // Parse transactions
     const parsedTransactions: ITransaction[] = transactions.map((tx) =>
       TransactionSchema.parse({
         id: tx.id,
@@ -489,10 +407,10 @@ export class BudgetService {
           : null,
         createdAt: tx.createdAt.toISOString(),
         updatedAt: tx.updatedAt.toISOString(),
-      })
+      }),
     );
 
-    // Build map of tagId -> transactions
+    // Build tag -> transactions map and alert map
     const tagTransactionMap = new Map<string | null, ITransaction[]>();
     const alertMap = new Map<string, ITransaction[]>();
 
@@ -500,23 +418,19 @@ export class BudgetService {
       const primaryTagId = transaction.primaryTag?.id ?? null;
 
       if (primaryTagId === null) {
-        // Untagged transaction - goes to Misc if exists
         const miscTransactions = tagTransactionMap.get(null) ?? [];
         miscTransactions.push(transaction);
         tagTransactionMap.set(null, miscTransactions);
       } else {
-        // Check if this tag has a budget item
         const hasBudgetItem = budget.items.some(
-          (item) => item.tagId === primaryTagId
+          (item) => item.tagId === primaryTagId,
         );
 
         if (hasBudgetItem) {
-          // Count toward budget item
           const existing = tagTransactionMap.get(primaryTagId) ?? [];
           existing.push(transaction);
           tagTransactionMap.set(primaryTagId, existing);
         } else {
-          // Add to alerts
           const existing = alertMap.get(primaryTagId) ?? [];
           existing.push(transaction);
           alertMap.set(primaryTagId, existing);
@@ -524,43 +438,123 @@ export class BudgetService {
       }
     }
 
-    // Calculate comparisons for each budget item
+    // Aggregated item comparisons (sum of all monthly amounts as expected)
     const itemComparisons: IBudgetItemComparison[] = budget.items.map(
       (item) => {
         const itemTransactions = tagTransactionMap.get(item.tagId) ?? [];
         const actualAmount = itemTransactions.reduce(
           (sum, tx) => sum + parseFloat(tx.amount),
-          0
+          0,
         );
-        const expectedAmount = parseFloat(item.expectedAmount);
+        const expectedAmount = item.monthlyAmounts.reduce(
+          (sum, ma) => sum + parseFloat(ma.expectedAmount),
+          0,
+        );
         const difference = actualAmount - expectedAmount;
         const percentage =
           expectedAmount > 0 ? (actualAmount / expectedAmount) * 100 : 0;
 
         return BudgetItemComparisonSchema.parse({
           item,
-          expected: item.expectedAmount,
+          expected: expectedAmount.toString(),
           actual: actualAmount.toString(),
           difference: difference.toString(),
           percentage: Math.round(percentage * 100) / 100,
           transactions: itemTransactions,
         });
-      }
+      },
     );
 
-    // Build alerts for tags without budget items
+    // Build monthly breakdown
+    // Group transactions by year-month
+    const txByMonth = new Map<string, ITransaction[]>();
+    for (const tx of parsedTransactions) {
+      const d = new Date(tx.transactionDate);
+      const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+      const arr = txByMonth.get(key) ?? [];
+      arr.push(tx);
+      txByMonth.set(key, arr);
+    }
+
+    // Collect all unique months from monthly amounts
+    const monthSet = new Set<string>();
+    for (const item of budget.items) {
+      for (const ma of item.monthlyAmounts) {
+        monthSet.add(`${ma.year}-${ma.month}`);
+      }
+    }
+
+    const monthlyBreakdown: IBudgetMonthlyBreakdown[] = Array.from(monthSet)
+      .sort()
+      .map((key) => {
+        const [yearStr, monthStr] = key.split("-");
+        const year = parseInt(yearStr);
+        const month = parseInt(monthStr);
+        const monthTxs = txByMonth.get(key) ?? [];
+
+        // Build tag -> transactions for this month
+        const monthTagTxMap = new Map<string | null, ITransaction[]>();
+        for (const tx of monthTxs) {
+          const tagId = tx.primaryTag?.id ?? null;
+          const hasBudgetItem = budget.items.some((i) => i.tagId === tagId);
+          if (tagId === null || hasBudgetItem) {
+            const arr = monthTagTxMap.get(tagId) ?? [];
+            arr.push(tx);
+            monthTagTxMap.set(tagId, arr);
+          }
+        }
+
+        let monthTotalExpected = 0;
+        let monthTotalActual = 0;
+
+        const items = budget.items.map((item) => {
+          const ma = item.monthlyAmounts.find(
+            (m) => m.year === year && m.month === month,
+          );
+          const expected = ma ? parseFloat(ma.expectedAmount) : 0;
+          const txsForTag = monthTagTxMap.get(item.tagId) ?? [];
+          const actual = txsForTag.reduce(
+            (s, tx) => s + parseFloat(tx.amount),
+            0,
+          );
+          const difference = actual - expected;
+          const percentage = expected > 0 ? (actual / expected) * 100 : 0;
+
+          monthTotalExpected += expected;
+          monthTotalActual += actual;
+
+          return {
+            tagId: item.tagId,
+            expected: expected.toString(),
+            actual: actual.toString(),
+            difference: difference.toString(),
+            percentage: Math.round(percentage * 100) / 100,
+            transactions: txsForTag,
+          };
+        });
+
+        const monthTotalDifference = monthTotalActual - monthTotalExpected;
+
+        return BudgetMonthlyBreakdownSchema.parse({
+          year,
+          month,
+          items,
+          totals: {
+            totalExpected: monthTotalExpected.toString(),
+            totalActual: monthTotalActual.toString(),
+            totalDifference: monthTotalDifference.toString(),
+          },
+        });
+      });
+
+    // Build alerts
     const alerts: IBudgetAlert[] = [];
-    const tagIds = Array.from(alertMap.keys());
-
-    for (const tagId of tagIds) {
-      const transactions = alertMap.get(tagId) ?? [];
-      const totalAmount = transactions.reduce(
+    for (const [tagId, txs] of alertMap) {
+      const totalAmount = txs.reduce(
         (sum, tx) => sum + parseFloat(tx.amount),
-        0
+        0,
       );
-
-      // Get tag info from first transaction
-      const firstTx = transactions[0];
+      const firstTx = txs[0];
       const tag = firstTx.primaryTag;
       if (tag) {
         alerts.push(
@@ -568,22 +562,19 @@ export class BudgetService {
             tagId: tag.id,
             tagName: tag.name,
             tagColor: tag.color,
-            transactionCount: transactions.length,
+            transactionCount: txs.length,
             totalAmount: totalAmount.toString(),
-            transactions,
-          })
+            transactions: txs,
+          }),
         );
       }
     }
 
     // Calculate totals
-    const totalExpected = budget.items.reduce(
-      (sum, item) => sum + parseFloat(item.expectedAmount),
-      0
-    );
+    const totalExpected = getTotalExpectedFromItems(budget.items);
     const totalActual = parsedTransactions.reduce(
       (sum, tx) => sum + parseFloat(tx.amount),
-      0
+      0,
     );
     const totalDifference = totalActual - totalExpected;
 
@@ -596,6 +587,7 @@ export class BudgetService {
         totalActual: totalActual.toString(),
         totalDifference: totalDifference.toString(),
       },
+      monthlyBreakdown,
     });
   }
 
@@ -603,42 +595,30 @@ export class BudgetService {
    * Get aggregated overview data for all active budgets
    */
   static async getBudgetsOverview(
-    userId: string
+    userId: string,
   ): Promise<IBudgetsOverviewResponse> {
     const now = new Date();
 
-    // Get all budgets for user
     const allBudgets = await prisma.budget.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        items: {
-          include: {
-            tag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        startDate: "desc",
-      },
+      where: { userId },
+      include: BUDGET_ITEMS_INCLUDE,
+      orderBy: { startDate: "desc" },
     });
 
-    // Filter to active budgets
     const activeBudgets = allBudgets.filter((budget) => {
       const start = new Date(budget.startDate);
       const end = new Date(budget.endDate);
       return now >= start && now <= end;
     });
 
-    // If no active budgets, return empty overview
+    const allBudgetsParsed = allBudgets.map(parseBudget);
+
     if (activeBudgets.length === 0) {
+      const totalExpectedAll = allBudgetsParsed.reduce(
+        (sum, b) => sum + getTotalExpectedFromItems(b.items),
+        0,
+      );
+
       return BudgetsOverviewResponseSchema.parse({
         overallHealth: {
           totalExpected: "0",
@@ -646,7 +626,7 @@ export class BudgetService {
           remaining: "0",
           percentage: 0,
           activeCount: 0,
-          currency: "USD", // Default fallback
+          currency: "USD",
         },
         riskSummary: {
           totalActive: 0,
@@ -661,38 +641,27 @@ export class BudgetService {
         topSpenders: [],
         context: {
           totalBudgets: allBudgets.length,
-          totalExpectedAll: allBudgets
-            .reduce((sum, b) => {
-              return (
-                sum +
-                b.items.reduce((itemSum, item) => {
-                  return itemSum + parseFloat(item.expectedAmount.toString());
-                }, 0)
-              );
-            }, 0)
-            .toString(),
+          totalExpectedAll: totalExpectedAll.toString(),
         },
       });
     }
 
-    // Determine primary currency (most common among active budgets)
+    // Determine primary currency
     const currencyCounts = new Map<string, number>();
     activeBudgets.forEach((budget) => {
       currencyCounts.set(
         budget.currency,
-        (currencyCounts.get(budget.currency) || 0) + 1
+        (currencyCounts.get(budget.currency) || 0) + 1,
       );
     });
     const primaryCurrency = Array.from(currencyCounts.entries()).sort(
-      (a, b) => b[1] - a[1]
+      (a, b) => b[1] - a[1],
     )[0][0];
 
-    // Filter to active budgets with primary currency
     const activeBudgetsPrimaryCurrency = activeBudgets.filter(
-      (budget) => budget.currency === primaryCurrency
+      (budget) => budget.currency === primaryCurrency,
     );
 
-    // Calculate overall health metrics
     let totalExpected = 0;
     let totalActual = 0;
     const budgetPercentages: number[] = [];
@@ -701,37 +670,12 @@ export class BudgetService {
       { name: string; color: string | null; amount: number }
     >();
 
-    // Process each active budget
     for (const budgetData of activeBudgetsPrimaryCurrency) {
-      const budget = BudgetSchema.parse({
-        id: budgetData.id,
-        userId: budgetData.userId,
-        name: budgetData.name,
-        startDate: budgetData.startDate.toISOString(),
-        endDate: budgetData.endDate.toISOString(),
-        currency: budgetData.currency,
-        items: budgetData.items.map((item) =>
-          BudgetItemSchema.parse({
-            id: item.id,
-            budgetId: item.budgetId,
-            tagId: item.tagId,
-            expectedAmount: item.expectedAmount.toString(),
-            createdAt: item.createdAt.toISOString(),
-            updatedAt: item.updatedAt.toISOString(),
-          })
-        ),
-        createdAt: budgetData.createdAt.toISOString(),
-        updatedAt: budgetData.updatedAt.toISOString(),
-      });
+      const budget = parseBudget(budgetData);
 
-      // Calculate expected for this budget
-      const budgetExpected = budget.items.reduce(
-        (sum, item) => sum + parseFloat(item.expectedAmount),
-        0
-      );
+      const budgetExpected = getTotalExpectedFromItems(budget.items);
       totalExpected += budgetExpected;
 
-      // Fetch transactions for this budget
       const transactions = await prisma.transaction.findMany({
         where: {
           userId,
@@ -743,23 +687,13 @@ export class BudgetService {
         },
         include: {
           primaryTag: {
-            select: {
-              id: true,
-              name: true,
-              color: true,
-            },
+            select: { id: true, name: true, color: true },
           },
         },
       });
 
-      // Calculate actual spending per tag
-      const tagAmountMap = new Map<string | null, number>();
       transactions.forEach((tx) => {
-        const tagId = tx.primaryTag?.id ?? null;
         const amount = parseFloat(tx.amount.toString());
-        tagAmountMap.set(tagId, (tagAmountMap.get(tagId) || 0) + amount);
-
-        // Track spending for biggest driver
         if (tx.primaryTag) {
           const existing = tagSpendingMap.get(tx.primaryTag.id);
           if (existing) {
@@ -774,64 +708,57 @@ export class BudgetService {
         }
       });
 
-      // Calculate actual for this budget (sum of all transactions)
       const budgetActual = transactions.reduce(
         (sum, tx) => sum + parseFloat(tx.amount.toString()),
-        0
+        0,
       );
       totalActual += budgetActual;
 
-      // Calculate percentage for risk assessment
       const budgetPercentage =
         budgetExpected > 0 ? (budgetActual / budgetExpected) * 100 : 0;
       budgetPercentages.push(budgetPercentage);
     }
 
-    // Calculate remaining
     const remaining = totalExpected - totalActual;
     const overallPercentage =
       totalExpected > 0 ? (totalActual / totalExpected) * 100 : 0;
 
-    // Calculate risk summary
     const nearingLimit = budgetPercentages.filter(
-      (pct) => pct >= 80 && pct <= 100
+      (pct) => pct >= 80 && pct <= 100,
     ).length;
     const overBudget = budgetPercentages.filter((pct) => pct > 100).length;
 
-    // Calculate time context
     const endDates = activeBudgetsPrimaryCurrency.map(
-      (b) => new Date(b.endDate)
+      (b) => new Date(b.endDate),
     );
     const earliestEndDate = new Date(
-      Math.min(...endDates.map((d) => d.getTime()))
+      Math.min(...endDates.map((d) => d.getTime())),
     );
     const daysRemaining = calculateDaysRemaining(earliestEndDate);
 
-    // Calculate spending pace (aggregate across all active budgets)
     const startDates = activeBudgetsPrimaryCurrency.map(
-      (b) => new Date(b.startDate)
+      (b) => new Date(b.startDate),
     );
     const earliestStartDate = new Date(
-      Math.min(...startDates.map((d) => d.getTime()))
+      Math.min(...startDates.map((d) => d.getTime())),
     );
     const daysElapsed = Math.max(
       1,
       Math.ceil(
-        (now.getTime() - earliestStartDate.getTime()) / (1000 * 60 * 60 * 24)
-      )
+        (now.getTime() - earliestStartDate.getTime()) / (1000 * 60 * 60 * 24),
+      ),
     );
     const totalDays = Math.ceil(
       (earliestEndDate.getTime() - earliestStartDate.getTime()) /
-        (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24),
     );
     const spendingPace = calculateSpendingPace(
       totalActual,
       totalExpected,
       daysElapsed,
-      totalDays
+      totalDays,
     );
 
-    // Find top 3 spenders
     const topSpenders: {
       tagId: string;
       tagName: string;
@@ -860,15 +787,10 @@ export class BudgetService {
       });
     }
 
-    // Calculate total expected across all budgets (for context)
-    const totalExpectedAll = allBudgets.reduce((sum, budget) => {
-      return (
-        sum +
-        budget.items.reduce((itemSum, item) => {
-          return itemSum + parseFloat(item.expectedAmount.toString());
-        }, 0)
-      );
-    }, 0);
+    const totalExpectedAll = allBudgetsParsed.reduce(
+      (sum, b) => sum + getTotalExpectedFromItems(b.items),
+      0,
+    );
 
     return BudgetsOverviewResponseSchema.parse({
       overallHealth: {

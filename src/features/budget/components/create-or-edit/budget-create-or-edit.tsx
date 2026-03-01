@@ -6,12 +6,15 @@ import {
 } from "@/features/budget/hooks/useBudgets";
 import {
   formatBudgetName,
-  getCurrentMonthPreset,
+  getCurrentYearPreset,
+  getMonthsInRange,
+  type IBudgetPreset
 } from "@/features/budget/utils/budget-presets";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
   type IBudget,
   type IBudgetItem,
+  type IBudgetPeriodType,
   type ICreateBudgetInput,
   type IUpdateBudgetInput,
 } from "@/features/shared/validation/schemas";
@@ -47,14 +50,18 @@ type IBudgetCreateOrEditPageProps = {
   budgetId?: string;
 };
 
-// Constants
 const TABS = ["general", "tags", "budget"] as const;
 const TABS_ARRAY = ["general", "tags", "budget"] as string[];
 type ITabValue = (typeof TABS)[number];
 
 const DEFAULT_CURRENCY = "EUR";
 
-// Form-specific schema with nested groups (separate from API schema)
+const MonthlyAmountEntrySchema = z.object({
+  year: z.number(),
+  month: z.number().min(1).max(12),
+  expectedAmount: z.string(),
+});
+
 const BudgetFormSchema = z.object({
   general: z
     .object({
@@ -65,12 +72,11 @@ const BudgetFormSchema = z.object({
       startDate: z.string().min(1, "Start date is required"),
       endDate: z.string().min(1, "End date is required"),
       currency: z.string().min(1, "Currency is required"),
-      preset: z.enum(["monthly", "yearly", "custom"]),
+      preset: z.enum(["monthly", "yearly", "yearly-per-month", "custom"]),
       year: z.number().optional(),
       month: z.number().optional(),
     })
     .superRefine((data, ctx) => {
-      // Validate endDate is after or equal to startDate
       if (data.startDate && data.endDate) {
         if (new Date(data.endDate) < new Date(data.startDate)) {
           ctx.addIssue({
@@ -81,7 +87,6 @@ const BudgetFormSchema = z.object({
         }
       }
 
-      // Validate year/month based on preset
       if (data.preset === "monthly") {
         if (data.year === undefined || data.year === null) {
           ctx.addIssue({
@@ -99,7 +104,7 @@ const BudgetFormSchema = z.object({
         }
       }
 
-      if (data.preset === "yearly") {
+      if (data.preset === "yearly" || data.preset === "yearly-per-month") {
         if (data.year === undefined || data.year === null) {
           ctx.addIssue({
             code: "custom",
@@ -117,16 +122,8 @@ const BudgetFormSchema = z.object({
       .array(
         z.object({
           tagId: z.string().nullable(),
-          expectedAmount: z
-            .string({ error: "Expected amount is required" })
-            .min(1, "Expected amount is required")
-            .refine(
-              (val) => {
-                const num = parseFloat(val);
-                return num > 0;
-              },
-              { message: "Expected amount must be greater than 0" }
-            ),
+          expectedAmount: z.string(),
+          monthlyAmounts: z.array(MonthlyAmountEntrySchema).optional(),
         })
       )
       .min(1, "At least one budget item is required"),
@@ -135,10 +132,6 @@ const BudgetFormSchema = z.object({
 
 type IBudgetFormData = z.infer<typeof BudgetFormSchema>;
 
-/**
- * Format a date to YYYY-MM-DD string in local timezone
- * This avoids timezone conversion issues when using toISOString()
- */
 function formatLocalDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -146,21 +139,22 @@ function formatLocalDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-/**
- * Extract tag IDs from budget items
- */
+function parseLocalDate(dateStr: string): Date {
+  const datePart = dateStr.split("T")[0];
+  const [year, month, day] = datePart.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function extractTagIds(items: IBudgetItem[]): string[] {
   return items
     .map((item) => item.tagId)
     .filter((id): id is string => id !== null);
 }
 
-/**
- * Transform budget data to form data
- */
 function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
   const tagIds = extractTagIds(budget.items);
   const startDate = new Date(budget.startDate);
+  const preset = budget.periodType as IBudgetPreset;
 
   return {
     general: {
@@ -168,7 +162,7 @@ function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
       startDate: budget.startDate.split("T")[0],
       endDate: budget.endDate.split("T")[0],
       currency: budget.currency,
-      preset: "custom" as const,
+      preset,
       year: startDate.getFullYear(),
       month: startDate.getMonth() + 1,
     },
@@ -176,26 +170,40 @@ function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
       selectedTagIds: tagIds,
     },
     budget: {
-      items: budget.items.map((item) => ({
-        tagId: item.tagId,
-        expectedAmount: item.expectedAmount,
-      })),
+      items: budget.items.map((item) => {
+        if (preset === "yearly-per-month") {
+          return {
+            tagId: item.tagId,
+            expectedAmount: "",
+            monthlyAmounts: item.monthlyAmounts.map((ma) => ({
+              year: ma.year,
+              month: ma.month,
+              expectedAmount: ma.expectedAmount,
+            })),
+          };
+        }
+
+        // For simple presets, use the first monthly amount as the display value
+        const firstAmount = item.monthlyAmounts[0]?.expectedAmount ?? "";
+        return {
+          tagId: item.tagId,
+          expectedAmount: firstAmount,
+          monthlyAmounts: undefined,
+        };
+      }),
     },
   };
 }
 
-/**
- * Get empty form values with default preset
- */
 function getEmptyFormValues(): IBudgetFormData {
-  const preset = getCurrentMonthPreset();
+  const preset = getCurrentYearPreset();
   return {
     general: {
-      name: formatBudgetName("monthly", preset),
+      name: formatBudgetName("yearly-per-month", preset),
       startDate: formatLocalDate(preset.start),
       endDate: formatLocalDate(preset.end),
       currency: DEFAULT_CURRENCY,
-      preset: "monthly" as const,
+      preset: "yearly-per-month",
       year: preset.start.getFullYear(),
       month: preset.start.getMonth() + 1,
     },
@@ -208,9 +216,6 @@ function getEmptyFormValues(): IBudgetFormData {
   };
 }
 
-/**
- * Extract error messages from form field errors
- */
 function getGroupErrorMessages(
   groupErrors: FieldErrors<IBudgetFormData["tags"]> | undefined
 ): string[] {
@@ -230,29 +235,62 @@ function getGroupErrorMessages(
   return messages;
 }
 
-/**
- * Transform form data to API input format
- */
 function transformFormDataToApiInput(
   data: IBudgetFormData
 ): ICreateBudgetInput | IUpdateBudgetInput {
+  const preset = data.general.preset as IBudgetPreset;
+  const periodType: IBudgetPeriodType = preset;
+  const startDate = parseLocalDate(data.general.startDate);
+  const endDate = parseLocalDate(data.general.endDate);
+  const months = getMonthsInRange(startDate, endDate);
+
   return {
     name: data.general.name,
+    periodType,
     startDate: data.general.startDate,
     endDate: data.general.endDate,
     currency: data.general.currency,
-    items: (data.budget.items ?? []).map((item) => ({
-      tagId: item.tagId,
-      expectedAmount: item.expectedAmount,
-    })),
+    items: (data.budget.items ?? []).map((item) => {
+      if (preset === "yearly-per-month" && item.monthlyAmounts?.length) {
+        return {
+          tagId: item.tagId,
+          monthlyAmounts: item.monthlyAmounts
+            .filter((ma) => parseFloat(ma.expectedAmount || "0") > 0)
+            .map((ma) => ({
+              year: ma.year,
+              month: ma.month,
+              expectedAmount: ma.expectedAmount,
+            })),
+        };
+      }
+
+      // For simple presets, replicate the single amount to all months
+      return {
+        tagId: item.tagId,
+        monthlyAmounts: months.map((m) => ({
+          year: m.year,
+          month: m.month,
+          expectedAmount: item.expectedAmount,
+        })),
+      };
+    }),
   };
 }
 
-/**
- * Validate that at least one budget item has amount > 0
- */
-function validateBudgetItems(items: Array<{ expectedAmount: string }>): boolean {
-  return items.some((item) => parseFloat(item.expectedAmount) > 0);
+function validateBudgetItems(
+  data: IBudgetFormData
+): boolean {
+  const preset = data.general.preset;
+  if (preset === "yearly-per-month") {
+    return data.budget.items.some((item) =>
+      item.monthlyAmounts?.some(
+        (ma) => parseFloat(ma.expectedAmount || "0") > 0
+      )
+    );
+  }
+  return data.budget.items.some(
+    (item) => parseFloat(item.expectedAmount || "0") > 0
+  );
 }
 
 export function BudgetCreateOrEditPage({
@@ -276,7 +314,6 @@ export function BudgetCreateOrEditPage({
   const selectedTagIds = form.watch("tags.selectedTagIds");
   const hasUnsavedChanges = form.formState.isDirty;
 
-  // Memoized tab state
   const tabState = useMemo(() => {
     const currentIndex = TABS.indexOf(currentTab);
     return {
@@ -285,7 +322,6 @@ export function BudgetCreateOrEditPage({
     };
   }, [currentTab]);
 
-  // Memoized error checks
   const formErrors = useMemo(() => {
     const tagsErrors = getGroupErrorMessages(form.formState.errors.tags);
     return {
@@ -296,17 +332,14 @@ export function BudgetCreateOrEditPage({
     };
   }, [form.formState.errors]);
 
-  // Ref to access TabGroup navigation methods
   const tabGroupRef = useRef<ITabGroupRef>(null);
 
-  // Initialize form with default values in create mode
   useEffect(() => {
     if (!isEditMode) {
       form.reset(getEmptyFormValues());
     }
   }, [isEditMode, form]);
 
-  // Populate form when budget loads (edit mode only)
   useEffect(() => {
     if (isEditMode && budget) {
       form.reset(transformBudgetToFormData(budget));
@@ -330,7 +363,6 @@ export function BudgetCreateOrEditPage({
   }, [hasUnsavedChanges, isEditMode, budgetId, navigate]);
 
   const handleDiscardChanges = useCallback(() => {
-    // Reset form to original values
     if (isEditMode && budget) {
       form.reset(transformBudgetToFormData(budget));
     } else {
@@ -339,7 +371,6 @@ export function BudgetCreateOrEditPage({
 
     setShowUnsavedDialog(false);
 
-    // Navigate after resetting
     if (isEditMode && budgetId) {
       navigate({
         to: "/budgets/$budgetId",
@@ -350,12 +381,10 @@ export function BudgetCreateOrEditPage({
     }
   }, [isEditMode, budget, budgetId, form, navigate]);
 
-  // Handler for Next button - navigates to next tab
   const handleNext = useCallback(() => {
     tabGroupRef.current?.goNext();
   }, []);
 
-  // Handler for Back button - navigates to previous tab
   const handleTabBack = useCallback(() => {
     tabGroupRef.current?.goBack();
   }, []);
@@ -364,11 +393,9 @@ export function BudgetCreateOrEditPage({
     async (data: IBudgetFormData) => {
       setPending(true);
 
-      // Transform nested form data to flat API format
       const submitData = transformFormDataToApiInput(data);
 
-      // Validate at least one item with amount > 0
-      if (!validateBudgetItems(submitData.items ?? [])) {
+      if (!validateBudgetItems(data)) {
         setPending(false);
         toast.error(
           "At least one budget item must have an amount greater than 0"
@@ -449,7 +476,6 @@ export function BudgetCreateOrEditPage({
         onSubmit={handleSubmit}
         className="flex flex-col min-h-full">
         <Container className="sticky top-0 z-10 bg-surface">
-          {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <IconButton

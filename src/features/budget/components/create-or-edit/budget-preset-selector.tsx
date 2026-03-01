@@ -13,11 +13,14 @@ import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Select } from "@/features/ui/select/select";
 import { Label } from "@/features/ui/typography/label";
 import { Text } from "@/features/ui/typography/text";
-import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
-import { LocaleHelpers } from "@/features/util/locale.helpers";
 import { useEffect, useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
-import { HiCalendar, HiCalendarDays, HiCog6Tooth } from "react-icons/hi2";
+import {
+  HiCalendar,
+  HiCalendarDays,
+  HiCog6Tooth,
+  HiTableCells,
+} from "react-icons/hi2";
 
 type IBudgetPresetSelectorProps = {
   onPresetChange?: (preset: IBudgetPreset, dates: IBudgetDateRange) => void;
@@ -35,20 +38,13 @@ function formatLocalDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-/**
- * Format date range for display
- */
 function formatDateRangePreview(dates: IBudgetDateRange): string {
-  const locale = LocaleHelpers.getLocale();
-
-  // For monthly/yearly presets, use shorter format
-  const startStr = DateFormatHelpers.formatIsoStringToString(
-    dates.start.toISOString()
-  );
-  const endStr = DateFormatHelpers.formatIsoStringToString(
-    dates.end.toISOString()
-  );
-  return `${startStr} - ${endStr}`;
+  const fmt: Intl.DateTimeFormatOptions = {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  };
+  return `${dates.start.toLocaleDateString("default", fmt)} – ${dates.end.toLocaleDateString("default", fmt)}`;
 }
 
 export function BudgetPresetSelector({
@@ -69,10 +65,10 @@ export function BudgetPresetSelector({
         dates = getCurrentMonthPreset();
         break;
       case "yearly":
+      case "yearly-per-month":
         dates = getCurrentYearPreset();
         break;
       case "custom":
-        // Keep existing dates or use current month
         dates =
           startDate && endDate
             ? { start: new Date(startDate), end: new Date(endDate) }
@@ -112,10 +108,11 @@ export function BudgetPresetSelector({
     const dates = getYearlyPreset(year);
     form.setValue("general.startDate", formatLocalDate(dates.start));
     form.setValue("general.endDate", formatLocalDate(dates.end));
-    const name = formatBudgetName("yearly", dates);
+    const presetForName = preset === "yearly-per-month" ? "yearly-per-month" : "yearly";
+    const name = formatBudgetName(presetForName, dates);
     form.setValue("general.name", name);
     onNameChange?.(name);
-    onPresetChange?.("yearly", dates);
+    onPresetChange?.(presetForName, dates);
   };
 
   // Trigger handlers when year/month changes for monthly/yearly presets
@@ -126,25 +123,22 @@ export function BudgetPresetSelector({
   }, [preset, watchedYear, watchedMonth]);
 
   useEffect(() => {
-    if (preset === "yearly" && watchedYear) {
+    if ((preset === "yearly" || preset === "yearly-per-month") && watchedYear) {
       handleYearChange(Number(watchedYear));
     }
   }, [preset, watchedYear]);
 
-  // Helper function to update name when custom dates change
   const handleCustomDateChange = () => {
     if (preset !== "custom") return;
 
-    // Get dates from form state
     const currentStartDate = form.getValues("general.startDate");
     const currentEndDate = form.getValues("general.endDate");
 
     if (currentStartDate && currentEndDate) {
-      // Parse dates in local timezone to avoid timezone conversion issues
       const parseLocalDate = (dateStr: string): Date => {
-        const datePart = dateStr.split("T")[0]; // Get YYYY-MM-DD part only
+        const datePart = dateStr.split("T")[0];
         const [year, month, day] = datePart.split("-").map(Number);
-        return new Date(year, month - 1, day); // Create date in local timezone
+        return new Date(year, month - 1, day);
       };
 
       const dates: IBudgetDateRange = {
@@ -163,13 +157,11 @@ export function BudgetPresetSelector({
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
 
-  // Parse date string manually to avoid timezone conversion issues
-  // Date strings from form are in YYYY-MM-DD format
   const selectedStartDate = startDate
     ? (() => {
-      const dateStr = startDate.split("T")[0]; // Get YYYY-MM-DD part only
+      const dateStr = startDate.split("T")[0];
       const [year, month, day] = dateStr.split("-").map(Number);
-      return new Date(year, month - 1, day); // Create date in local timezone
+      return new Date(year, month - 1, day);
     })()
     : null;
   const selectedYear = selectedStartDate?.getFullYear() ?? currentYear;
@@ -180,15 +172,11 @@ export function BudgetPresetSelector({
   const MIN_YEAR = currentYear - 10;
   const MAX_YEAR = currentYear + 50;
 
-  // Generate year options for searchable dropdown
   const yearOptions = useMemo(
     () =>
       Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, i) => {
         const year = MIN_YEAR + i;
-        return {
-          value: year,
-          label: String(year),
-        };
+        return { value: year, label: String(year) };
       }),
     [MIN_YEAR, MAX_YEAR]
   );
@@ -204,7 +192,6 @@ export function BudgetPresetSelector({
     [selectedYear]
   );
 
-  // Get preview dates for each preset
   const monthlyPreview = useMemo(
     () => getMonthlyPreset(selectedYear, selectedMonth),
     [selectedYear, selectedMonth]
@@ -235,44 +222,38 @@ export function BudgetPresetSelector({
         label="Budget Period"
         orientation="horizontal"
         className="mt-2">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
-          {/* Monthly Preset Card */}
-          <RadioItem
-            value="monthly"
-            icon={HiCalendar}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+          <RadioItem value="monthly" icon={HiCalendar}>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-text mb-1">Monthly</div>
-              <Text
-                size="sm"
-                isMuted>
+              <div className="font-medium text-text">Monthly</div>
+              <Text size="xs" isMuted>
                 {formatDateRangePreview(monthlyPreview)}
               </Text>
             </div>
           </RadioItem>
 
-          {/* Yearly Preset Card */}
-          <RadioItem
-            value="yearly"
-            icon={HiCalendarDays}>
+          <RadioItem value="yearly" icon={HiCalendarDays}>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-text mb-1">Yearly</div>
-              <Text
-                size="sm"
-                isMuted>
+              <div className="font-medium text-text">Yearly</div>
+              <Text size="xs" isMuted>
                 {formatDateRangePreview(yearlyPreview)}
               </Text>
             </div>
           </RadioItem>
 
-          {/* Custom Preset Card */}
-          <RadioItem
-            value="custom"
-            icon={HiCog6Tooth}>
+          <RadioItem value="yearly-per-month" icon={HiTableCells}>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-text mb-1">Custom</div>
-              <Text
-                size="sm"
-                isMuted>
+              <div className="font-medium text-text">Yearly (Monthly)</div>
+              <Text size="xs" isMuted>
+                {formatDateRangePreview(yearlyPreview)}
+              </Text>
+            </div>
+          </RadioItem>
+
+          <RadioItem value="custom" icon={HiCog6Tooth}>
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-text">Custom</div>
+              <Text size="xs" isMuted>
                 {formatDateRangePreview(customPreview)}
               </Text>
             </div>
@@ -298,7 +279,7 @@ export function BudgetPresetSelector({
         </div>
       )}
 
-      {preset === "yearly" && (
+      {(preset === "yearly" || preset === "yearly-per-month") && (
         <Select<number>
           name="general.year"
           label="Year"

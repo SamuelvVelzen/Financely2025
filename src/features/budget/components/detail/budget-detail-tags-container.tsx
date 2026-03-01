@@ -1,5 +1,8 @@
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
-import { IBudgetComparison } from "@/features/shared/validation/schemas";
+import type {
+  IBudgetComparison,
+  IBudgetMonthlyBreakdown,
+} from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
 import { Container } from "@/features/ui/container/container";
@@ -12,21 +15,32 @@ import { HiChevronDown } from "react-icons/hi";
 import { HiSquares2X2 } from "react-icons/hi2";
 import { BudgetStatusBadge, getStatusColor } from "./budget-status-badge";
 
+type IDisplayItem = {
+  id: string;
+  tagId: string | null;
+  expected: string;
+  actual: string;
+  difference: string;
+  percentage: number;
+  transactions: IBudgetComparison["items"][0]["transactions"];
+};
+
 type IBudgetDetailTagsContainerProps = {
   items: IBudgetComparison["items"];
   budget: IBudgetComparison["budget"];
+  monthlyBreakdown?: IBudgetMonthlyBreakdown | null;
 };
 
 export function BudgetDetailTagsContainer({
   items,
   budget,
+  monthlyBreakdown,
 }: IBudgetDetailTagsContainerProps) {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
 
-  // Create tag map for quick lookup
   const tagMap = useMemo(() => {
     const map = new Map<
       string,
@@ -46,75 +60,89 @@ export function BudgetDetailTagsContainer({
     return map;
   }, [tags]);
 
-  // Group items by transaction type
+  // Normalize items to a common display shape
+  const displayItems: IDisplayItem[] = useMemo(() => {
+    if (monthlyBreakdown) {
+      return monthlyBreakdown.items.map((mi, index) => ({
+        id: mi.tagId ?? `misc-${index}`,
+        tagId: mi.tagId,
+        expected: mi.expected,
+        actual: mi.actual,
+        difference: mi.difference,
+        percentage: mi.percentage,
+        transactions: mi.transactions,
+      }));
+    }
+
+    return items.map((ic) => ({
+      id: ic.item.id,
+      tagId: ic.item.tagId,
+      expected: ic.expected,
+      actual: ic.actual,
+      difference: ic.difference,
+      percentage: ic.percentage,
+      transactions: ic.transactions,
+    }));
+  }, [items, monthlyBreakdown]);
+
   const groupedItems = useMemo(() => {
-    const expenseItems: typeof items = [];
-    const incomeItems: typeof items = [];
-    const miscItems: typeof items = [];
+    const expenseItems: IDisplayItem[] = [];
+    const incomeItems: IDisplayItem[] = [];
+    const miscItems: IDisplayItem[] = [];
 
-    items.forEach((itemComparison) => {
-      const tagId = itemComparison.item.tagId;
-
-      // Misc items (tagId: null) go in misc section
-      if (tagId === null) {
-        miscItems.push(itemComparison);
+    displayItems.forEach((item) => {
+      if (item.tagId === null) {
+        miscItems.push(item);
         return;
       }
 
-      // Get transaction type from tag map
-      const tagInfo = tagMap.get(tagId);
+      const tagInfo = tagMap.get(item.tagId);
       const transactionType = tagInfo?.transactionType;
 
       if (transactionType === "EXPENSE") {
-        expenseItems.push(itemComparison);
+        expenseItems.push(item);
       } else if (transactionType === "INCOME") {
-        incomeItems.push(itemComparison);
+        incomeItems.push(item);
       } else {
-        // Fallback: if tag not found, put in misc
-        miscItems.push(itemComparison);
+        miscItems.push(item);
       }
     });
 
     return { expenseItems, incomeItems, miscItems };
-  }, [items, tagMap]);
+  }, [displayItems, tagMap]);
 
   const toggleItem = (itemId: string) => {
     setExpandedItemId((prev) => (prev === itemId ? null : itemId));
   };
 
-  // Render a single budget comparison item
-  const renderBudgetItem = (itemComparison: (typeof items)[0]) => {
-    const itemId = itemComparison.item.id;
-    const tagId = itemComparison.item.tagId;
-    const isExpanded = expandedItemId === itemId;
-    const percentage = itemComparison.percentage;
+  const renderBudgetItem = (item: IDisplayItem) => {
+    const isExpanded = expandedItemId === item.id;
+    const percentage = item.percentage;
 
-    // Get tag info from tag map or transactions
     let tagColor: string | null = null;
     let displayTagName: string;
 
-    if (tagId === null) {
+    if (item.tagId === null) {
       displayTagName = "Miscellaneous";
     } else {
-      const tagInfo = tagMap.get(tagId);
+      const tagInfo = tagMap.get(item.tagId);
       if (tagInfo) {
         displayTagName = tagInfo.name;
         tagColor = tagInfo.color;
       } else {
-        // Fallback to transaction tag if available
-        const firstTx = itemComparison.transactions[0];
-        displayTagName = firstTx?.primaryTag?.name ?? `Tag ${tagId}`;
+        const firstTx = item.transactions[0];
+        displayTagName = firstTx?.primaryTag?.name ?? `Tag ${item.tagId}`;
         tagColor = firstTx?.primaryTag?.color ?? null;
       }
     }
 
-    const hasTransactions = itemComparison.transactions.length > 0;
+    const hasTransactions = item.transactions.length > 0;
 
     return (
       <div className="border-b border-border last:border-b-0">
         <ListItem
           className={cn("flex-col overflow-hidden", isExpanded && "p-0")}
-          clicked={hasTransactions ? () => toggleItem(itemId) : undefined}>
+          clicked={hasTransactions ? () => toggleItem(item.id) : undefined}>
           <div
             className={cn(
               "flex items-center justify-between gap-4 w-full",
@@ -134,8 +162,8 @@ export function BudgetDetailTagsContainer({
                 <div className="font-medium truncate">{displayTagName}</div>
                 {!isExpanded && (
                   <div className="text-xs text-text-muted">
-                    {itemComparison.transactions.length} transaction
-                    {itemComparison.transactions.length !== 1 ? "s" : ""}
+                    {item.transactions.length} transaction
+                    {item.transactions.length !== 1 ? "s" : ""}
                   </div>
                 )}
               </div>
@@ -144,7 +172,7 @@ export function BudgetDetailTagsContainer({
               <div className="text-right min-w-[80px]">
                 <div className="text-xs text-text-muted">Expected</div>
                 <div className="text-sm font-medium">
-                  {formatCurrency(itemComparison.expected, budget.currency)}
+                  {formatCurrency(item.expected, budget.currency)}
                 </div>
               </div>
               <div className="text-right min-w-[80px]">
@@ -154,7 +182,7 @@ export function BudgetDetailTagsContainer({
                     "text-sm font-medium",
                     getStatusColor(percentage)
                   )}>
-                  {formatCurrency(itemComparison.actual, budget.currency)}
+                  {formatCurrency(item.actual, budget.currency)}
                 </div>
               </div>
               <div className="text-right min-w-[80px]">
@@ -164,7 +192,7 @@ export function BudgetDetailTagsContainer({
                     "text-sm font-medium",
                     getStatusColor(percentage)
                   )}>
-                  {formatCurrency(itemComparison.difference, budget.currency)}
+                  {formatCurrency(item.difference, budget.currency)}
                 </div>
               </div>
               <div className="w-24 justify-between items-center flex flex-col">
@@ -196,11 +224,11 @@ export function BudgetDetailTagsContainer({
             </div>
           </div>
 
-          {isExpanded && itemComparison.transactions.length > 0 && (
+          {isExpanded && item.transactions.length > 0 && (
             <div className="bg-surface-hover w-full">
               <div className="w-full h-1 border-t border-border"></div>
               <List
-                data={itemComparison.transactions}
+                data={item.transactions}
                 getItemKey={(tx) => tx.id}
                 className="w-full p-3">
                 {(tx) => (
@@ -232,41 +260,38 @@ export function BudgetDetailTagsContainer({
     <Container>
       <h3 className="text-lg font-semibold">Per-Tag Breakdown</h3>
 
-      {/* Expense Tags Section */}
       {groupedItems.expenseItems.length > 0 && (
         <Accordion
           title="Expense Tags"
           defaultOpen={true}>
           <List
             data={groupedItems.expenseItems}
-            getItemKey={(item) => item.item.id}>
-            {(itemComparison) => renderBudgetItem(itemComparison)}
+            getItemKey={(item) => item.id}>
+            {(item) => renderBudgetItem(item)}
           </List>
         </Accordion>
       )}
 
-      {/* Income Tags Section */}
       {groupedItems.incomeItems.length > 0 && (
         <Accordion
           title="Income Tags"
           defaultOpen={true}>
           <List
             data={groupedItems.incomeItems}
-            getItemKey={(item) => item.item.id}>
-            {(itemComparison) => renderBudgetItem(itemComparison)}
+            getItemKey={(item) => item.id}>
+            {(item) => renderBudgetItem(item)}
           </List>
         </Accordion>
       )}
 
-      {/* Miscellaneous Section */}
       {groupedItems.miscItems.length > 0 && (
         <Accordion
           title="Miscellaneous"
           defaultOpen={true}>
           <List
             data={groupedItems.miscItems}
-            getItemKey={(item) => item.item.id}>
-            {(itemComparison) => renderBudgetItem(itemComparison)}
+            getItemKey={(item) => item.id}>
+            {(item) => renderBudgetItem(item)}
           </List>
         </Accordion>
       )}

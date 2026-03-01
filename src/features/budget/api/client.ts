@@ -59,4 +59,3 @@ export async function getBudgetComparison(
 export async function getBudgetsOverview(): Promise<IBudgetsOverviewResponse> {
   return apiGet<IBudgetsOverviewResponse>("/budgets/overview");
 }
-

@@ -4,16 +4,18 @@ import {
   useBudgetComparison,
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
+import type { IBudgetMonthlyBreakdown } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Loading } from "@/features/ui/loading";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   HiArrowLeft,
   HiOutlineCurrencyEuro,
@@ -22,6 +24,21 @@ import {
 } from "react-icons/hi2";
 import { BudgetDetailTagsContainer } from "./budget-detail-tags-container";
 import { BudgetSummaryContainer } from "./budget-summary-container";
+
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 type IBudgetDetailPageProps = {
   budgetId: string;
@@ -36,6 +53,19 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
   const toast = useToast();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
+
+  const hasMultipleMonths =
+    comparison && comparison.monthlyBreakdown.length > 1;
+
+  const selectedBreakdown: IBudgetMonthlyBreakdown | null = useMemo(() => {
+    if (!selectedMonthKey || !comparison) return null;
+    return (
+      comparison.monthlyBreakdown.find(
+        (mb) => `${mb.year}-${mb.month}` === selectedMonthKey
+      ) ?? null
+    );
+  }, [selectedMonthKey, comparison]);
 
   const handleBack = () => {
     navigate({ to: ROUTES.BUDGETS });
@@ -95,7 +125,6 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
   return (
     <>
       <Container className="sticky top-0 z-10 bg-surface">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <IconButton
@@ -120,17 +149,41 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
             </Button>
           </div>
         </div>
+
+        {hasMultipleMonths && (
+          <div className="mt-3 max-w-xs">
+            <SelectDropdown
+              value={selectedMonthKey ?? "all"}
+              onChange={(val) =>
+                setSelectedMonthKey(
+                  val === "all" ? null : (val as string)
+                )
+              }
+              options={[
+                { value: "all", label: "All Months" },
+                ...comparison.monthlyBreakdown.map((mb) => ({
+                  value: `${mb.year}-${mb.month}`,
+                  label: `${MONTH_LABELS[mb.month - 1]} ${mb.year}`,
+                })),
+              ]}
+              clearable={false}
+            />
+          </div>
+        )}
       </Container>
 
       <BudgetSummaryContainer
-        totals={comparison.totals}
+        totals={
+          selectedBreakdown ? selectedBreakdown.totals : comparison.totals
+        }
         currency={comparison.budget.currency}
-        alerts={comparison.alerts}
+        alerts={selectedBreakdown ? [] : comparison.alerts}
       />
 
       <BudgetDetailTagsContainer
         items={comparison.items}
         budget={comparison.budget}
+        monthlyBreakdown={selectedBreakdown}
       />
 
       <DeleteDialog
