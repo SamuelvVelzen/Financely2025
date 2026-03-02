@@ -115,16 +115,34 @@ const BudgetFormSchema = z.object({
       }
     }),
   tags: z.object({
-    selectedTagIds: z.array(z.string()).min(1, "At least one tag is required"),
+    selectedTagIds: z.array(z.string()),
   }),
   budget: z.object({
     items: z
       .array(
-        z.object({
-          tagId: z.string().nullable(),
-          expectedAmount: z.string(),
-          monthlyAmounts: z.array(MonthlyAmountEntrySchema).optional(),
-        })
+        z
+          .object({
+            tagId: z.string().nullable(),
+            categoryType: z.enum(["EXPENSE", "INCOME"]).nullable().optional(),
+            expectedAmount: z.string(),
+            monthlyAmounts: z.array(MonthlyAmountEntrySchema).optional(),
+          })
+          .refine(
+            (item) => {
+              if (item.tagId === null) {
+                return (
+                  item.categoryType !== null && item.categoryType !== undefined
+                );
+              }
+              return (
+                item.categoryType === null || item.categoryType === undefined
+              );
+            },
+            {
+              message:
+                "categoryType is required when tagId is null; must be null when tagId is set",
+            },
+          ),
       )
       .min(1, "At least one budget item is required"),
   }),
@@ -174,6 +192,7 @@ function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
         if (preset === "yearly-per-month") {
           return {
             tagId: item.tagId,
+            categoryType: item.categoryType ?? undefined,
             expectedAmount: "",
             monthlyAmounts: item.monthlyAmounts.map((ma) => ({
               year: ma.year,
@@ -187,6 +206,7 @@ function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
         const firstAmount = item.monthlyAmounts[0]?.expectedAmount ?? "";
         return {
           tagId: item.tagId,
+          categoryType: item.categoryType ?? undefined,
           expectedAmount: firstAmount,
           monthlyAmounts: undefined,
         };
@@ -251,9 +271,12 @@ function transformFormDataToApiInput(
     endDate: data.general.endDate,
     currency: data.general.currency,
     items: (data.budget.items ?? []).map((item) => {
+      const categoryType =
+        item.tagId === null ? item.categoryType ?? null : null;
       if (preset === "yearly-per-month" && item.monthlyAmounts?.length) {
         return {
           tagId: item.tagId,
+          categoryType,
           monthlyAmounts: item.monthlyAmounts
             .filter((ma) => parseFloat(ma.expectedAmount || "0") > 0)
             .map((ma) => ({
@@ -267,6 +290,7 @@ function transformFormDataToApiInput(
       // For simple presets, replicate the single amount to all months
       return {
         tagId: item.tagId,
+        categoryType,
         monthlyAmounts: months.map((m) => ({
           year: m.year,
           month: m.month,

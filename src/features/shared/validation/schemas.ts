@@ -707,14 +707,28 @@ export const BudgetItemMonthlyAmountSchema = z.object({
   updatedAt: ISODateStringSchema,
 });
 
-export const BudgetItemSchema = z.object({
-  id: z.string(),
-  budgetId: z.string(),
-  tagId: z.string().nullable(),
-  monthlyAmounts: z.array(BudgetItemMonthlyAmountSchema),
-  createdAt: ISODateStringSchema,
-  updatedAt: ISODateStringSchema,
-});
+export const BudgetItemSchema = z
+  .object({
+    id: z.string(),
+    budgetId: z.string(),
+    tagId: z.string().nullable(),
+    categoryType: TransactionTypeSchema.nullable(),
+    monthlyAmounts: z.array(BudgetItemMonthlyAmountSchema),
+    createdAt: ISODateStringSchema,
+    updatedAt: ISODateStringSchema,
+  })
+  .refine(
+    (data) => {
+      if (data.tagId === null) {
+        return data.categoryType !== null && data.categoryType !== undefined;
+      }
+      return data.categoryType === null || data.categoryType === undefined;
+    },
+    {
+      message:
+        "categoryType is required when tagId is null; must be null when tagId is set",
+    },
+  );
 
 export const BudgetSchema = z.object({
   id: z.string(),
@@ -738,10 +752,24 @@ export const CreateBudgetItemMonthlyAmountInputSchema = z.object({
   ),
 });
 
-export const CreateBudgetItemInputSchema = z.object({
-  tagId: z.string().nullable(),
-  monthlyAmounts: z.array(CreateBudgetItemMonthlyAmountInputSchema).min(1),
-});
+export const CreateBudgetItemInputSchema = z
+  .object({
+    tagId: z.string().nullable(),
+    categoryType: TransactionTypeSchema.nullable().optional(),
+    monthlyAmounts: z.array(CreateBudgetItemMonthlyAmountInputSchema).min(1),
+  })
+  .refine(
+    (data) => {
+      if (data.tagId === null) {
+        return data.categoryType !== null && data.categoryType !== undefined;
+      }
+      return data.categoryType === null || data.categoryType === undefined;
+    },
+    {
+      message:
+        "categoryType is required when tagId is null; must be null when tagId is set",
+    },
+  );
 
 export const CreateBudgetInputSchema = z
   .object({
@@ -757,6 +785,22 @@ export const CreateBudgetInputSchema = z
   .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
     message: "End date must be after or equal to start date",
     path: ["endDate"],
+  })
+  .superRefine((data, ctx) => {
+    const seen = new Set<string>();
+    for (let i = 0; i < data.items.length; i++) {
+      const item = data.items[i];
+      const key =
+        item.tagId ?? `misc_${item.categoryType ?? ""}`;
+      if (seen.has(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Duplicate budget item: ${item.tagId === null ? `Miscellaneous (${item.categoryType})` : item.tagId}`,
+          path: ["items", i],
+        });
+      }
+      seen.add(key);
+    }
   });
 
 export const UpdateBudgetInputSchema = z
@@ -779,7 +823,23 @@ export const UpdateBudgetInputSchema = z
       message: "End date must be after or equal to start date",
       path: ["endDate"],
     },
-  );
+  )
+  .superRefine((data, ctx) => {
+    if (!data.items) return;
+    const seen = new Set<string>();
+    for (let i = 0; i < data.items.length; i++) {
+      const item = data.items[i];
+      const key = item.tagId ?? `misc_${item.categoryType ?? ""}`;
+      if (seen.has(key)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Duplicate budget item: ${item.tagId === null ? `Miscellaneous (${item.categoryType})` : item.tagId}`,
+          path: ["items", i],
+        });
+      }
+      seen.add(key);
+    }
+  });
 
 export const BudgetsQuerySchema = z.object({
   from: ISODateStringSchema.optional(),
@@ -802,6 +862,7 @@ export const BudgetItemComparisonSchema = z.object({
 
 export const BudgetMonthlyItemComparisonSchema = z.object({
   tagId: z.string().nullable(),
+  categoryType: TransactionTypeSchema.nullable().optional(),
   expected: DecimalStringSchema,
   actual: DecimalStringSchema,
   difference: DecimalStringSchema,

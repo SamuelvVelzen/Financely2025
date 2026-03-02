@@ -161,8 +161,9 @@ export function BudgetTagSelector({
       <div className="border-t border-border pt-4 mt-6 flex items-center gap-2">
         <HiInformationCircle className="size-4" />
         <p className="text-sm text-text-muted">
-          Transactions without tags will automatically be counted toward the
-          "Miscellaneous" category
+          Transactions without tags will be counted toward the Miscellaneous
+          (Expense) or Miscellaneous (Income) categories based on transaction
+          type.
         </p>
       </div>
     </div>

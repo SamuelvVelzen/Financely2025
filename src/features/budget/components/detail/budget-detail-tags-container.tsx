@@ -18,6 +18,7 @@ import { BudgetStatusBadge, getStatusColor } from "./budget-status-badge";
 type IDisplayItem = {
   id: string;
   tagId: string | null;
+  categoryType?: "EXPENSE" | "INCOME" | null;
   expected: string;
   actual: string;
   difference: string;
@@ -60,12 +61,13 @@ export function BudgetDetailTagsContainer({
     return map;
   }, [tags]);
 
-  // Normalize items to a common display shape
+  // Normalize items to a common display shape; stable id = tagId or misc_${categoryType}
   const displayItems: IDisplayItem[] = useMemo(() => {
     if (monthlyBreakdown) {
-      return monthlyBreakdown.items.map((mi, index) => ({
-        id: mi.tagId ?? `misc-${index}`,
+      return monthlyBreakdown.items.map((mi) => ({
+        id: mi.tagId ?? `misc_${mi.categoryType ?? "EXPENSE"}`,
         tagId: mi.tagId,
+        categoryType: mi.categoryType ?? undefined,
         expected: mi.expected,
         actual: mi.actual,
         difference: mi.difference,
@@ -75,8 +77,12 @@ export function BudgetDetailTagsContainer({
     }
 
     return items.map((ic) => ({
-      id: ic.item.id,
+      id:
+        ic.item.tagId !== null
+          ? ic.item.id
+          : `misc_${ic.item.categoryType ?? "EXPENSE"}`,
       tagId: ic.item.tagId,
+      categoryType: ic.item.categoryType ?? undefined,
       expected: ic.expected,
       actual: ic.actual,
       difference: ic.difference,
@@ -88,11 +94,14 @@ export function BudgetDetailTagsContainer({
   const groupedItems = useMemo(() => {
     const expenseItems: IDisplayItem[] = [];
     const incomeItems: IDisplayItem[] = [];
-    const miscItems: IDisplayItem[] = [];
 
     displayItems.forEach((item) => {
       if (item.tagId === null) {
-        miscItems.push(item);
+        if (item.categoryType === "INCOME") {
+          incomeItems.push(item);
+        } else {
+          expenseItems.push(item);
+        }
         return;
       }
 
@@ -104,11 +113,17 @@ export function BudgetDetailTagsContainer({
       } else if (transactionType === "INCOME") {
         incomeItems.push(item);
       } else {
-        miscItems.push(item);
+        expenseItems.push(item);
       }
     });
 
-    return { expenseItems, incomeItems, miscItems };
+    // Tagged items first, misc last
+    const sortTaggedFirst = (a: IDisplayItem, b: IDisplayItem) =>
+      (a.tagId === null ? 1 : 0) - (b.tagId === null ? 1 : 0);
+    expenseItems.sort(sortTaggedFirst);
+    incomeItems.sort(sortTaggedFirst);
+
+    return { expenseItems, incomeItems };
   }, [displayItems, tagMap]);
 
   const toggleItem = (itemId: string) => {
@@ -123,7 +138,10 @@ export function BudgetDetailTagsContainer({
     let displayTagName: string;
 
     if (item.tagId === null) {
-      displayTagName = "Miscellaneous";
+      displayTagName =
+        item.categoryType === "INCOME"
+          ? "Miscellaneous (Income)"
+          : "Miscellaneous (Expense)";
     } else {
       const tagInfo = tagMap.get(item.tagId);
       if (tagInfo) {
@@ -278,18 +296,6 @@ export function BudgetDetailTagsContainer({
           defaultOpen={true}>
           <List
             data={groupedItems.incomeItems}
-            getItemKey={(item) => item.id}>
-            {(item) => renderBudgetItem(item)}
-          </List>
-        </Accordion>
-      )}
-
-      {groupedItems.miscItems.length > 0 && (
-        <Accordion
-          title="Miscellaneous"
-          defaultOpen={true}>
-          <List
-            data={groupedItems.miscItems}
             getItemKey={(item) => item.id}>
             {(item) => renderBudgetItem(item)}
           </List>

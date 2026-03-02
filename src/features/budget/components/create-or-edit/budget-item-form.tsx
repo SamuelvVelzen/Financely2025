@@ -78,16 +78,20 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   const [itemStates, setItemStates] = useState<Record<string, IItemState>>({});
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  const getItemKey = (tagId: string | null) => tagId ?? "__misc__";
+  const getItemKey = (tagId: string | null, categoryType: string | null) =>
+    tagId ?? `misc_${categoryType ?? "EXPENSE"}`;
 
-  // Sync fields with selected tags
+  // Sync fields with selected tags; always ensure both misc items (EXPENSE and INCOME)
   useEffect(() => {
     const currentItems = form.getValues("budget.items") ?? [];
     const currentTagIds = currentItems
       .map((item: any) => item.tagId)
       .filter((id: string | null): id is string => id !== null);
-    const currentHasMisc = currentItems.some(
-      (item: any) => item.tagId === null
+    const currentMiscExpense = currentItems.find(
+      (item: any) => item.tagId === null && item.categoryType === "EXPENSE"
+    );
+    const currentMiscIncome = currentItems.find(
+      (item: any) => item.tagId === null && item.categoryType === "INCOME"
     );
 
     const itemsToKeep = currentItems.filter((item: any) => {
@@ -110,8 +114,8 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
       itemsToKeep.push(newItem);
     });
 
-    if (!currentHasMisc) {
-      const miscItem: any = { tagId: null, expectedAmount: "" };
+    const addMiscItem = (categoryType: "EXPENSE" | "INCOME") => {
+      const miscItem: any = { tagId: null, categoryType, expectedAmount: "" };
       if (isPerMonth && months.length > 0) {
         miscItem.monthlyAmounts = months.map((m) => ({
           year: m.year,
@@ -120,7 +124,9 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
         }));
       }
       itemsToKeep.push(miscItem);
-    }
+    };
+    if (!currentMiscExpense) addMiscItem("EXPENSE");
+    if (!currentMiscIncome) addMiscItem("INCOME");
 
     if (isPerMonth && months.length > 0) {
       for (const item of itemsToKeep) {
@@ -147,7 +153,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
       let changed = false;
 
       (items as any[]).forEach((item) => {
-        const key = getItemKey(item.tagId);
+        const key = getItemKey(item.tagId, item.categoryType ?? null);
         if (next[key]) return;
 
         const amounts = item.monthlyAmounts ?? [];
@@ -186,8 +192,15 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   }, [isPerMonth]);
 
   // --- Helpers ---
-  const getTagName = (tagId: string | null) => {
-    if (tagId === null) return "Miscellaneous";
+  const getTagName = (
+    tagId: string | null,
+    categoryType?: string | null
+  ) => {
+    if (tagId === null) {
+      return categoryType === "INCOME"
+        ? "Miscellaneous (Income)"
+        : "Miscellaneous (Expense)";
+    }
     const tag = selectedTags.find((t) => t.id === tagId);
     return tag?.name ?? "Unknown";
   };
@@ -208,23 +221,26 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
   const budgetItems = form.watch("budget.items") as
     | Array<{
-      tagId: string | null;
-      expectedAmount: string;
-      monthlyAmounts?: Array<{
-        year: number;
-        month: number;
+        tagId: string | null;
+        categoryType?: string | null;
         expectedAmount: string;
-      }>;
-    }>
+        monthlyAmounts?: Array<{
+          year: number;
+          month: number;
+          expectedAmount: string;
+        }>;
+      }>
     | undefined;
 
   const groupedFields = useMemo(() => {
     const expenseFields: Array<{ field: any; index: number }> = [];
     const incomeFields: Array<{ field: any; index: number }> = [];
-    const bothFields: Array<{ field: any; index: number }> = [];
+    const miscExpenseFields: Array<{ field: any; index: number }> = [];
+    const miscIncomeFields: Array<{ field: any; index: number }> = [];
 
     fields.forEach((field, index) => {
       const tagId = budgetItems?.[index]?.tagId ?? null;
+      const categoryType = budgetItems?.[index]?.categoryType ?? null;
       if (tagId !== null) {
         const transactionType = getTagTransactionType(tagId);
         if (transactionType === "EXPENSE") {
@@ -232,14 +248,23 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
         } else if (transactionType === "INCOME") {
           incomeFields.push({ field, index });
         } else {
-          bothFields.push({ field, index });
+          expenseFields.push({ field, index });
         }
       } else {
-        bothFields.push({ field, index });
+        if (categoryType === "INCOME") {
+          miscIncomeFields.push({ field, index });
+        } else {
+          miscExpenseFields.push({ field, index });
+        }
       }
     });
 
-    return { expenseFields, incomeFields, bothFields };
+    return {
+      expenseFields,
+      incomeFields,
+      miscExpenseFields,
+      miscIncomeFields,
+    };
   }, [fields, budgetItems, selectedTags]);
 
   // --- Master/Override handlers ---
@@ -349,9 +374,12 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   // --- Per-month item renderer ---
   const renderPerMonthItem = (field: any, index: number) => {
     const tagId = form.watch(`budget.items.${index}.tagId`) as string | null;
-    const tagName = getTagName(tagId);
+    const categoryType = form.watch(
+      `budget.items.${index}.categoryType`
+    ) as string | null;
+    const tagName = getTagName(tagId, categoryType);
     const tagColor = getTagColor(tagId);
-    const itemKey = getItemKey(tagId);
+    const itemKey = getItemKey(tagId, categoryType);
     const state = itemStates[itemKey] ?? {
       masterAmount: "",
       overriddenMonths: new Set<number>(),
@@ -539,7 +567,10 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   // --- Standard (non-per-month) item renderer ---
   const renderStandardItem = (field: any, index: number) => {
     const tagId = form.watch(`budget.items.${index}.tagId`) as string | null;
-    const tagName = getTagName(tagId);
+    const categoryType = form.watch(
+      `budget.items.${index}.categoryType`
+    ) as string | null;
+    const tagName = getTagName(tagId, categoryType);
     const tagColor = getTagColor(tagId);
 
     return (
@@ -606,7 +637,8 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
       </div>
 
       <div className="space-y-4">
-        {groupedFields.expenseFields.length > 0 && (
+        {(groupedFields.expenseFields.length > 0 ||
+          groupedFields.miscExpenseFields.length > 0) && (
           <Accordion
             title="Expense Tags"
             defaultOpen={true}
@@ -614,14 +646,23 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
               if (!open) setExpandedItems(new Set());
             }}>
             <List
-              data={groupedFields.expenseFields}
-              getItemKey={(item) => item.field.id}>
+              data={[
+                ...groupedFields.expenseFields,
+                ...groupedFields.miscExpenseFields,
+              ]}
+              getItemKey={(item) =>
+                getItemKey(
+                  budgetItems?.[item.index]?.tagId ?? null,
+                  budgetItems?.[item.index]?.categoryType ?? null
+                )
+              }>
               {({ field, index }) => renderBudgetItem(field, index)}
             </List>
           </Accordion>
         )}
 
-        {groupedFields.incomeFields.length > 0 && (
+        {(groupedFields.incomeFields.length > 0 ||
+          groupedFields.miscIncomeFields.length > 0) && (
           <Accordion
             title="Income Tags"
             defaultOpen={true}
@@ -629,23 +670,16 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
               if (!open) setExpandedItems(new Set());
             }}>
             <List
-              data={groupedFields.incomeFields}
-              getItemKey={(item) => item.field.id}>
-              {({ field, index }) => renderBudgetItem(field, index)}
-            </List>
-          </Accordion>
-        )}
-
-        {groupedFields.bothFields.length > 0 && (
-          <Accordion
-            title="Tags for Both"
-            defaultOpen={true}
-            onOpenChange={(open) => {
-              if (!open) setExpandedItems(new Set());
-            }}>
-            <List
-              data={groupedFields.bothFields}
-              getItemKey={(item) => item.field.id}>
+              data={[
+                ...groupedFields.incomeFields,
+                ...groupedFields.miscIncomeFields,
+              ]}
+              getItemKey={(item) =>
+                getItemKey(
+                  budgetItems?.[item.index]?.tagId ?? null,
+                  budgetItems?.[item.index]?.categoryType ?? null
+                )
+              }>
               {({ field, index }) => renderBudgetItem(field, index)}
             </List>
           </Accordion>

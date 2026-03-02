@@ -44,6 +44,7 @@ type IPrismaBudgetItem = {
   id: string;
   budgetId: string;
   tagId: string | null;
+  categoryType: string | null;
   createdAt: Date;
   updatedAt: Date;
   monthlyAmounts: Array<{
@@ -57,11 +58,17 @@ type IPrismaBudgetItem = {
   }>;
 };
 
+function getItemMapKey(tagId: string | null, categoryType: string | null): string {
+  if (tagId !== null) return tagId;
+  return `misc:${categoryType ?? "EXPENSE"}`;
+}
+
 function parseBudgetItem(item: IPrismaBudgetItem) {
   return BudgetItemSchema.parse({
     id: item.id,
     budgetId: item.budgetId,
     tagId: item.tagId,
+    categoryType: item.categoryType,
     monthlyAmounts: item.monthlyAmounts.map((ma) =>
       BudgetItemMonthlyAmountSchema.parse({
         id: ma.id,
@@ -212,28 +219,27 @@ export class BudgetService {
       }
     }
 
-    // Check for duplicate tagIds (including null for Misc)
-    const tagIdSet = new Set<string | null>();
-    for (const item of validated.items) {
-      if (tagIdSet.has(item.tagId)) {
-        throw new Error(
-          `Duplicate tag entry: ${item.tagId === null ? "Misc" : item.tagId}`,
-        );
-      }
-      tagIdSet.add(item.tagId);
-    }
+    // Duplicate check is done in CreateBudgetInputSchema superRefine (tagId + categoryType)
+    // Use transaction + unchecked BudgetItem creates so tagId and categoryType are accepted
+    const budget = await prisma.$transaction(async (tx) => {
+      const created = await tx.budget.create({
+        data: {
+          userId,
+          name: validated.name,
+          periodType: validated.periodType,
+          startDate: new Date(validated.startDate),
+          endDate: new Date(validated.endDate),
+          currency: validated.currency,
+        },
+      });
 
-    const budget = await prisma.budget.create({
-      data: {
-        userId,
-        name: validated.name,
-        periodType: validated.periodType,
-        startDate: new Date(validated.startDate),
-        endDate: new Date(validated.endDate),
-        currency: validated.currency,
-        items: {
-          create: validated.items.map((item) => ({
+      for (const item of validated.items) {
+        await tx.budgetItem.create({
+          data: {
+            budgetId: created.id,
             tagId: item.tagId,
+            categoryType:
+              item.tagId === null ? item.categoryType ?? null : null,
             monthlyAmounts: {
               create: item.monthlyAmounts.map((ma) => ({
                 year: ma.year,
@@ -241,10 +247,14 @@ export class BudgetService {
                 expectedAmount: new Prisma.Decimal(ma.expectedAmount),
               })),
             },
-          })),
-        },
-      },
-      include: BUDGET_ITEMS_INCLUDE,
+          },
+        });
+      }
+
+      return tx.budget.findUniqueOrThrow({
+        where: { id: created.id },
+        include: BUDGET_ITEMS_INCLUDE,
+      });
     });
 
     return parseBudget(budget);
@@ -281,15 +291,7 @@ export class BudgetService {
         }
       }
 
-      const tagIdSet = new Set<string | null>();
-      for (const item of validated.items) {
-        if (tagIdSet.has(item.tagId)) {
-          throw new Error(
-            `Duplicate tag entry: ${item.tagId === null ? "Misc" : item.tagId}`,
-          );
-        }
-        tagIdSet.add(item.tagId);
-      }
+      // Duplicate check is done in UpdateBudgetInputSchema superRefine (tagId + categoryType)
     }
 
     const updateData: Prisma.BudgetUpdateInput = {};
@@ -306,25 +308,37 @@ export class BudgetService {
         where: { budgetId },
       });
 
-      updateData.items = {
-        create: validated.items.map((item) => ({
-          tagId: item.tagId,
-          monthlyAmounts: {
-            create: item.monthlyAmounts.map((ma) => ({
-              year: ma.year,
-              month: ma.month,
-              expectedAmount: new Prisma.Decimal(ma.expectedAmount),
-            })),
+      // Create items with unchecked API so tagId and categoryType are accepted
+      for (const item of validated.items) {
+        await prisma.budgetItem.create({
+          data: {
+            budgetId,
+            tagId: item.tagId,
+            categoryType:
+              item.tagId === null ? item.categoryType ?? null : null,
+            monthlyAmounts: {
+              create: item.monthlyAmounts.map((ma) => ({
+                year: ma.year,
+                month: ma.month,
+                expectedAmount: new Prisma.Decimal(ma.expectedAmount),
+              })),
+            },
           },
-        })),
-      };
+        });
+      }
     }
 
-    const budget = await prisma.budget.update({
-      where: { id: budgetId },
-      data: updateData,
-      include: BUDGET_ITEMS_INCLUDE,
-    });
+    const budget =
+      Object.keys(updateData).length > 0
+        ? await prisma.budget.update({
+            where: { id: budgetId },
+            data: updateData,
+            include: BUDGET_ITEMS_INCLUDE,
+          })
+        : await prisma.budget.findUniqueOrThrow({
+            where: { id: budgetId },
+            include: BUDGET_ITEMS_INCLUDE,
+          });
 
     return parseBudget(budget);
   }
@@ -410,17 +424,18 @@ export class BudgetService {
       }),
     );
 
-    // Build tag -> transactions map and alert map
-    const tagTransactionMap = new Map<string | null, ITransaction[]>();
+    // Build key -> transactions map (key = tagId for tagged, or misc:EXPENSE/misc:INCOME for misc) and alert map
+    const tagTransactionMap = new Map<string, ITransaction[]>();
     const alertMap = new Map<string, ITransaction[]>();
 
     for (const transaction of parsedTransactions) {
       const primaryTagId = transaction.primaryTag?.id ?? null;
 
       if (primaryTagId === null) {
-        const miscTransactions = tagTransactionMap.get(null) ?? [];
+        const miscKey = `misc:${transaction.type}`;
+        const miscTransactions = tagTransactionMap.get(miscKey) ?? [];
         miscTransactions.push(transaction);
-        tagTransactionMap.set(null, miscTransactions);
+        tagTransactionMap.set(miscKey, miscTransactions);
       } else {
         const hasBudgetItem = budget.items.some(
           (item) => item.tagId === primaryTagId,
@@ -441,7 +456,8 @@ export class BudgetService {
     // Aggregated item comparisons (sum of all monthly amounts as expected)
     const itemComparisons: IBudgetItemComparison[] = budget.items.map(
       (item) => {
-        const itemTransactions = tagTransactionMap.get(item.tagId) ?? [];
+        const mapKey = getItemMapKey(item.tagId, item.categoryType ?? null);
+        const itemTransactions = tagTransactionMap.get(mapKey) ?? [];
         const actualAmount = itemTransactions.reduce(
           (sum, tx) => sum + parseFloat(tx.amount),
           0,
@@ -492,12 +508,17 @@ export class BudgetService {
         const month = parseInt(monthStr);
         const monthTxs = txByMonth.get(key) ?? [];
 
-        // Build tag -> transactions for this month
-        const monthTagTxMap = new Map<string | null, ITransaction[]>();
+        // Build key -> transactions for this month (key = tagId or misc:EXPENSE/misc:INCOME)
+        const monthTagTxMap = new Map<string, ITransaction[]>();
         for (const tx of monthTxs) {
           const tagId = tx.primaryTag?.id ?? null;
           const hasBudgetItem = budget.items.some((i) => i.tagId === tagId);
-          if (tagId === null || hasBudgetItem) {
+          if (tagId === null) {
+            const key = `misc:${tx.type}`;
+            const arr = monthTagTxMap.get(key) ?? [];
+            arr.push(tx);
+            monthTagTxMap.set(key, arr);
+          } else if (hasBudgetItem) {
             const arr = monthTagTxMap.get(tagId) ?? [];
             arr.push(tx);
             monthTagTxMap.set(tagId, arr);
@@ -512,7 +533,8 @@ export class BudgetService {
             (m) => m.year === year && m.month === month,
           );
           const expected = ma ? parseFloat(ma.expectedAmount) : 0;
-          const txsForTag = monthTagTxMap.get(item.tagId) ?? [];
+          const mapKey = getItemMapKey(item.tagId, item.categoryType ?? null);
+          const txsForTag = monthTagTxMap.get(mapKey) ?? [];
           const actual = txsForTag.reduce(
             (s, tx) => s + parseFloat(tx.amount),
             0,
@@ -525,6 +547,7 @@ export class BudgetService {
 
           return {
             tagId: item.tagId,
+            categoryType: item.categoryType ?? undefined,
             expected: expected.toString(),
             actual: actual.toString(),
             difference: difference.toString(),
