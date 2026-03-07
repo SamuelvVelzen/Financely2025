@@ -5,7 +5,6 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
-import { Container } from "@/features/ui/container/container";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
@@ -275,7 +274,7 @@ export function BudgetDetailTagsContainer({
   };
 
   return (
-    <Container>
+    <>
       <h3 className="text-lg font-semibold">Per-Tag Breakdown</h3>
 
       {groupedItems.expenseItems.length > 0 && (
@@ -301,6 +300,6 @@ export function BudgetDetailTagsContainer({
           </List>
         </Accordion>
       )}
-    </Container>
+    </>
   );
 }

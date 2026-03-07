@@ -4,6 +4,7 @@ import { cn } from "@/features/util/cn";
 import { authClient } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  HiArrowPath,
   HiArrowRightOnRectangle,
   HiArrowsRightLeft,
   HiChartBar,
@@ -74,6 +75,13 @@ export function Sidebar() {
               to={ROUTES.TRANSACTIONS}
               label="Transactions"
               icon={HiArrowsRightLeft}
+            />
+          </li>
+          <li>
+            <NavItem
+              to={ROUTES.SUBSCRIPTIONS}
+              label="Subscriptions"
+              icon={HiArrowPath}
             />
           </li>
           <li>

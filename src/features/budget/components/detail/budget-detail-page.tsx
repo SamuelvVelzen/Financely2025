@@ -12,6 +12,9 @@ import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Loading } from "@/features/ui/loading";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { Tab } from "@/features/ui/tab/tab";
+import { TabContent } from "@/features/ui/tab/tab-content";
+import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { useNavigate } from "@tanstack/react-router";
@@ -23,6 +26,7 @@ import {
   HiTrash,
 } from "react-icons/hi2";
 import { BudgetDetailTagsContainer } from "./budget-detail-tags-container";
+import { BudgetSubscriptionsTab } from "./budget-subscriptions-tab";
 import { BudgetSummaryContainer } from "./budget-summary-container";
 
 const MONTH_LABELS = [
@@ -172,19 +176,36 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
         )}
       </Container>
 
-      <BudgetSummaryContainer
-        totals={
-          selectedBreakdown ? selectedBreakdown.totals : comparison.totals
-        }
-        currency={comparison.budget.currency}
-        alerts={selectedBreakdown ? [] : comparison.alerts}
-      />
+      <Container>
+        <Tabs defaultValue="details">
+          <Tab value="details">Details</Tab>
+          <Tab value="subscriptions">Subscriptions</Tab>
 
-      <BudgetDetailTagsContainer
-        items={comparison.items}
-        budget={comparison.budget}
-        monthlyBreakdown={selectedBreakdown}
-      />
+          <TabContent value="details">
+            <BudgetSummaryContainer
+              totals={
+                selectedBreakdown
+                  ? selectedBreakdown.totals
+                  : comparison.totals
+              }
+              currency={comparison.budget.currency}
+              alerts={selectedBreakdown ? [] : comparison.alerts}
+            />
+
+            <BudgetDetailTagsContainer
+              items={comparison.items}
+              budget={comparison.budget}
+              monthlyBreakdown={selectedBreakdown}
+            />
+          </TabContent>
+
+          <TabContent value="subscriptions">
+            <BudgetSubscriptionsTab
+              budget={comparison.budget}
+            />
+          </TabContent>
+        </Tabs>
+      </Container>
 
       <DeleteDialog
         open={isDeleteDialogOpen}

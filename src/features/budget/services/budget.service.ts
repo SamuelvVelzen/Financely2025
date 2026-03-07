@@ -392,6 +392,9 @@ export class BudgetService {
         primaryTag: {
           select: { id: true, name: true, color: true },
         },
+        subscription: {
+          select: { id: true, name: true, frequency: true, active: true },
+        },
       },
     });
 
@@ -417,6 +420,14 @@ export class BudgetService {
               id: tx.primaryTag.id,
               name: tx.primaryTag.name,
               color: tx.primaryTag.color,
+            }
+          : null,
+        subscription: tx.subscription
+          ? {
+              id: tx.subscription.id,
+              name: tx.subscription.name,
+              frequency: tx.subscription.frequency,
+              active: tx.subscription.active,
             }
           : null,
         createdAt: tx.createdAt.toISOString(),

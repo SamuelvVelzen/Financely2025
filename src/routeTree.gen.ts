@@ -19,9 +19,11 @@ import { Route as appTagsRouteImport } from './routes/(app)/tags'
 import { Route as appOnboardingRouteImport } from './routes/(app)/onboarding'
 import { Route as appMessagesRouteImport } from './routes/(app)/messages'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
+import { Route as appSubscriptionsIndexRouteImport } from './routes/(app)/subscriptions.index'
 import { Route as appBudgetsIndexRouteImport } from './routes/(app)/budgets.index'
 import { Route as ApiV1TransactionsRouteImport } from './routes/api/v1/transactions'
 import { Route as ApiV1TagsRouteImport } from './routes/api/v1/tags'
+import { Route as ApiV1SubscriptionsRouteImport } from './routes/api/v1/subscriptions'
 import { Route as ApiV1MessagesRouteImport } from './routes/api/v1/messages'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiV1BudgetsRouteImport } from './routes/api/v1/budgets'
@@ -42,6 +44,9 @@ import { Route as ApiV1TagsCsvMappingRouteImport } from './routes/api/v1/tags.cs
 import { Route as ApiV1TagsCsvImportRouteImport } from './routes/api/v1/tags.csv-import'
 import { Route as ApiV1TagsBulkRouteImport } from './routes/api/v1/tags.bulk'
 import { Route as ApiV1TagsTagIdRouteImport } from './routes/api/v1/tags.$tagId'
+import { Route as ApiV1SubscriptionsDismissalsRouteImport } from './routes/api/v1/subscriptions.dismissals'
+import { Route as ApiV1SubscriptionsDetectRouteImport } from './routes/api/v1/subscriptions.detect'
+import { Route as ApiV1SubscriptionsSubscriptionIdRouteImport } from './routes/api/v1/subscriptions.$subscriptionId'
 import { Route as ApiV1MessagesReadAllRouteImport } from './routes/api/v1/messages.read-all'
 import { Route as ApiV1MessagesCountRouteImport } from './routes/api/v1/messages.count'
 import { Route as ApiV1MessagesMessageIdRouteImport } from './routes/api/v1/messages.$messageId'
@@ -53,6 +58,8 @@ import { Route as appBudgetsBudgetIdEditRouteImport } from './routes/(app)/budge
 import { Route as ApiV1WizardWizardIdProgressRouteImport } from './routes/api/v1/wizard.$wizardId.progress'
 import { Route as ApiV1WizardWizardIdCompleteRouteImport } from './routes/api/v1/wizard.$wizardId.complete'
 import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
+import { Route as ApiV1SubscriptionsDismissalsDismissalIdRouteImport } from './routes/api/v1/subscriptions.dismissals.$dismissalId'
+import { Route as ApiV1SubscriptionsDetectDismissRouteImport } from './routes/api/v1/subscriptions.detect.dismiss'
 import { Route as ApiV1MeAccountsAccountIdRouteImport } from './routes/api/v1/me.accounts.$accountId'
 import { Route as ApiV1BudgetsBudgetIdComparisonRouteImport } from './routes/api/v1/budgets.$budgetId.comparison'
 import { Route as ApiV1TransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/transactions.$transactionId.tags.$tagId'
@@ -106,6 +113,11 @@ const appAccountRoute = appAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => appRouteRoute,
 } as any)
+const appSubscriptionsIndexRoute = appSubscriptionsIndexRouteImport.update({
+  id: '/subscriptions/',
+  path: '/subscriptions/',
+  getParentRoute: () => appRouteRoute,
+} as any)
 const appBudgetsIndexRoute = appBudgetsIndexRouteImport.update({
   id: '/budgets/',
   path: '/budgets/',
@@ -119,6 +131,11 @@ const ApiV1TransactionsRoute = ApiV1TransactionsRouteImport.update({
 const ApiV1TagsRoute = ApiV1TagsRouteImport.update({
   id: '/api/v1/tags',
   path: '/api/v1/tags',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1SubscriptionsRoute = ApiV1SubscriptionsRouteImport.update({
+  id: '/api/v1/subscriptions',
+  path: '/api/v1/subscriptions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1MessagesRoute = ApiV1MessagesRouteImport.update({
@@ -226,6 +243,24 @@ const ApiV1TagsTagIdRoute = ApiV1TagsTagIdRouteImport.update({
   path: '/$tagId',
   getParentRoute: () => ApiV1TagsRoute,
 } as any)
+const ApiV1SubscriptionsDismissalsRoute =
+  ApiV1SubscriptionsDismissalsRouteImport.update({
+    id: '/dismissals',
+    path: '/dismissals',
+    getParentRoute: () => ApiV1SubscriptionsRoute,
+  } as any)
+const ApiV1SubscriptionsDetectRoute =
+  ApiV1SubscriptionsDetectRouteImport.update({
+    id: '/detect',
+    path: '/detect',
+    getParentRoute: () => ApiV1SubscriptionsRoute,
+  } as any)
+const ApiV1SubscriptionsSubscriptionIdRoute =
+  ApiV1SubscriptionsSubscriptionIdRouteImport.update({
+    id: '/$subscriptionId',
+    path: '/$subscriptionId',
+    getParentRoute: () => ApiV1SubscriptionsRoute,
+  } as any)
 const ApiV1MessagesReadAllRoute = ApiV1MessagesReadAllRouteImport.update({
   id: '/read-all',
   path: '/read-all',
@@ -284,6 +319,18 @@ const ApiV1TagsCsvMappingValidateRoute =
     path: '/validate',
     getParentRoute: () => ApiV1TagsCsvMappingRoute,
   } as any)
+const ApiV1SubscriptionsDismissalsDismissalIdRoute =
+  ApiV1SubscriptionsDismissalsDismissalIdRouteImport.update({
+    id: '/$dismissalId',
+    path: '/$dismissalId',
+    getParentRoute: () => ApiV1SubscriptionsDismissalsRoute,
+  } as any)
+const ApiV1SubscriptionsDetectDismissRoute =
+  ApiV1SubscriptionsDetectDismissRouteImport.update({
+    id: '/dismiss',
+    path: '/dismiss',
+    getParentRoute: () => ApiV1SubscriptionsDetectRoute,
+  } as any)
 const ApiV1MeAccountsAccountIdRoute =
   ApiV1MeAccountsAccountIdRouteImport.update({
     id: '/$accountId',
@@ -318,9 +365,11 @@ export interface FileRoutesByFullPath {
   '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
+  '/api/v1/subscriptions': typeof ApiV1SubscriptionsRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
   '/budgets': typeof appBudgetsIndexRoute
+  '/subscriptions': typeof appSubscriptionsIndexRoute
   '/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
   '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
   '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
@@ -329,6 +378,9 @@ export interface FileRoutesByFullPath {
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
   '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
   '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
+  '/api/v1/subscriptions/$subscriptionId': typeof ApiV1SubscriptionsSubscriptionIdRoute
+  '/api/v1/subscriptions/detect': typeof ApiV1SubscriptionsDetectRouteWithChildren
+  '/api/v1/subscriptions/dismissals': typeof ApiV1SubscriptionsDismissalsRouteWithChildren
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
   '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
@@ -346,6 +398,8 @@ export interface FileRoutesByFullPath {
   '/budgets/$budgetId': typeof appBudgetsBudgetIdIndexRoute
   '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
+  '/api/v1/subscriptions/detect/dismiss': typeof ApiV1SubscriptionsDetectDismissRoute
+  '/api/v1/subscriptions/dismissals/$dismissalId': typeof ApiV1SubscriptionsDismissalsDismissalIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
@@ -366,9 +420,11 @@ export interface FileRoutesByTo {
   '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
+  '/api/v1/subscriptions': typeof ApiV1SubscriptionsRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
   '/budgets': typeof appBudgetsIndexRoute
+  '/subscriptions': typeof appSubscriptionsIndexRoute
   '/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
   '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
   '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
@@ -377,6 +433,9 @@ export interface FileRoutesByTo {
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
   '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
   '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
+  '/api/v1/subscriptions/$subscriptionId': typeof ApiV1SubscriptionsSubscriptionIdRoute
+  '/api/v1/subscriptions/detect': typeof ApiV1SubscriptionsDetectRouteWithChildren
+  '/api/v1/subscriptions/dismissals': typeof ApiV1SubscriptionsDismissalsRouteWithChildren
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
   '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
@@ -394,6 +453,8 @@ export interface FileRoutesByTo {
   '/budgets/$budgetId': typeof appBudgetsBudgetIdIndexRoute
   '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
+  '/api/v1/subscriptions/detect/dismiss': typeof ApiV1SubscriptionsDetectDismissRoute
+  '/api/v1/subscriptions/dismissals/$dismissalId': typeof ApiV1SubscriptionsDismissalsDismissalIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
@@ -416,9 +477,11 @@ export interface FileRoutesById {
   '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
   '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
+  '/api/v1/subscriptions': typeof ApiV1SubscriptionsRouteWithChildren
   '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
   '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
   '/(app)/budgets/': typeof appBudgetsIndexRoute
+  '/(app)/subscriptions/': typeof appSubscriptionsIndexRoute
   '/(app)/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
   '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
   '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
@@ -427,6 +490,9 @@ export interface FileRoutesById {
   '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
   '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
   '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
+  '/api/v1/subscriptions/$subscriptionId': typeof ApiV1SubscriptionsSubscriptionIdRoute
+  '/api/v1/subscriptions/detect': typeof ApiV1SubscriptionsDetectRouteWithChildren
+  '/api/v1/subscriptions/dismissals': typeof ApiV1SubscriptionsDismissalsRouteWithChildren
   '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
   '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
   '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
@@ -444,6 +510,8 @@ export interface FileRoutesById {
   '/(app)/budgets/$budgetId/': typeof appBudgetsBudgetIdIndexRoute
   '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
+  '/api/v1/subscriptions/detect/dismiss': typeof ApiV1SubscriptionsDetectDismissRoute
+  '/api/v1/subscriptions/dismissals/$dismissalId': typeof ApiV1SubscriptionsDismissalsDismissalIdRoute
   '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
@@ -466,9 +534,11 @@ export interface FileRouteTypes {
     | '/api/v1/budgets'
     | '/api/v1/me'
     | '/api/v1/messages'
+    | '/api/v1/subscriptions'
     | '/api/v1/tags'
     | '/api/v1/transactions'
     | '/budgets'
+    | '/subscriptions'
     | '/budgets/$budgetId/edit'
     | '/api/v1/budgets/$budgetId'
     | '/api/v1/budgets/overview'
@@ -477,6 +547,9 @@ export interface FileRouteTypes {
     | '/api/v1/messages/$messageId'
     | '/api/v1/messages/count'
     | '/api/v1/messages/read-all'
+    | '/api/v1/subscriptions/$subscriptionId'
+    | '/api/v1/subscriptions/detect'
+    | '/api/v1/subscriptions/dismissals'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
     | '/api/v1/tags/csv-import'
@@ -494,6 +567,8 @@ export interface FileRouteTypes {
     | '/budgets/$budgetId'
     | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
+    | '/api/v1/subscriptions/detect/dismiss'
+    | '/api/v1/subscriptions/dismissals/$dismissalId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/wizard/$wizardId/complete'
     | '/api/v1/wizard/$wizardId/progress'
@@ -514,9 +589,11 @@ export interface FileRouteTypes {
     | '/api/v1/budgets'
     | '/api/v1/me'
     | '/api/v1/messages'
+    | '/api/v1/subscriptions'
     | '/api/v1/tags'
     | '/api/v1/transactions'
     | '/budgets'
+    | '/subscriptions'
     | '/budgets/$budgetId/edit'
     | '/api/v1/budgets/$budgetId'
     | '/api/v1/budgets/overview'
@@ -525,6 +602,9 @@ export interface FileRouteTypes {
     | '/api/v1/messages/$messageId'
     | '/api/v1/messages/count'
     | '/api/v1/messages/read-all'
+    | '/api/v1/subscriptions/$subscriptionId'
+    | '/api/v1/subscriptions/detect'
+    | '/api/v1/subscriptions/dismissals'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
     | '/api/v1/tags/csv-import'
@@ -542,6 +622,8 @@ export interface FileRouteTypes {
     | '/budgets/$budgetId'
     | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
+    | '/api/v1/subscriptions/detect/dismiss'
+    | '/api/v1/subscriptions/dismissals/$dismissalId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/wizard/$wizardId/complete'
     | '/api/v1/wizard/$wizardId/progress'
@@ -563,9 +645,11 @@ export interface FileRouteTypes {
     | '/api/v1/budgets'
     | '/api/v1/me'
     | '/api/v1/messages'
+    | '/api/v1/subscriptions'
     | '/api/v1/tags'
     | '/api/v1/transactions'
     | '/(app)/budgets/'
+    | '/(app)/subscriptions/'
     | '/(app)/budgets/$budgetId/edit'
     | '/api/v1/budgets/$budgetId'
     | '/api/v1/budgets/overview'
@@ -574,6 +658,9 @@ export interface FileRouteTypes {
     | '/api/v1/messages/$messageId'
     | '/api/v1/messages/count'
     | '/api/v1/messages/read-all'
+    | '/api/v1/subscriptions/$subscriptionId'
+    | '/api/v1/subscriptions/detect'
+    | '/api/v1/subscriptions/dismissals'
     | '/api/v1/tags/$tagId'
     | '/api/v1/tags/bulk'
     | '/api/v1/tags/csv-import'
@@ -591,6 +678,8 @@ export interface FileRouteTypes {
     | '/(app)/budgets/$budgetId/'
     | '/api/v1/budgets/$budgetId/comparison'
     | '/api/v1/me/accounts/$accountId'
+    | '/api/v1/subscriptions/detect/dismiss'
+    | '/api/v1/subscriptions/dismissals/$dismissalId'
     | '/api/v1/tags/csv-mapping/validate'
     | '/api/v1/wizard/$wizardId/complete'
     | '/api/v1/wizard/$wizardId/progress'
@@ -606,6 +695,7 @@ export interface RootRouteChildren {
   ApiV1BudgetsRoute: typeof ApiV1BudgetsRouteWithChildren
   ApiV1MeRoute: typeof ApiV1MeRouteWithChildren
   ApiV1MessagesRoute: typeof ApiV1MessagesRouteWithChildren
+  ApiV1SubscriptionsRoute: typeof ApiV1SubscriptionsRouteWithChildren
   ApiV1TagsRoute: typeof ApiV1TagsRouteWithChildren
   ApiV1TransactionsRoute: typeof ApiV1TransactionsRouteWithChildren
   ApiV1WizardProgressRoute: typeof ApiV1WizardProgressRoute
@@ -685,6 +775,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAccountRouteImport
       parentRoute: typeof appRouteRoute
     }
+    '/(app)/subscriptions/': {
+      id: '/(app)/subscriptions/'
+      path: '/subscriptions'
+      fullPath: '/subscriptions'
+      preLoaderRoute: typeof appSubscriptionsIndexRouteImport
+      parentRoute: typeof appRouteRoute
+    }
     '/(app)/budgets/': {
       id: '/(app)/budgets/'
       path: '/budgets'
@@ -704,6 +801,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/tags'
       fullPath: '/api/v1/tags'
       preLoaderRoute: typeof ApiV1TagsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/subscriptions': {
+      id: '/api/v1/subscriptions'
+      path: '/api/v1/subscriptions'
+      fullPath: '/api/v1/subscriptions'
+      preLoaderRoute: typeof ApiV1SubscriptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/messages': {
@@ -846,6 +950,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1TagsTagIdRouteImport
       parentRoute: typeof ApiV1TagsRoute
     }
+    '/api/v1/subscriptions/dismissals': {
+      id: '/api/v1/subscriptions/dismissals'
+      path: '/dismissals'
+      fullPath: '/api/v1/subscriptions/dismissals'
+      preLoaderRoute: typeof ApiV1SubscriptionsDismissalsRouteImport
+      parentRoute: typeof ApiV1SubscriptionsRoute
+    }
+    '/api/v1/subscriptions/detect': {
+      id: '/api/v1/subscriptions/detect'
+      path: '/detect'
+      fullPath: '/api/v1/subscriptions/detect'
+      preLoaderRoute: typeof ApiV1SubscriptionsDetectRouteImport
+      parentRoute: typeof ApiV1SubscriptionsRoute
+    }
+    '/api/v1/subscriptions/$subscriptionId': {
+      id: '/api/v1/subscriptions/$subscriptionId'
+      path: '/$subscriptionId'
+      fullPath: '/api/v1/subscriptions/$subscriptionId'
+      preLoaderRoute: typeof ApiV1SubscriptionsSubscriptionIdRouteImport
+      parentRoute: typeof ApiV1SubscriptionsRoute
+    }
     '/api/v1/messages/read-all': {
       id: '/api/v1/messages/read-all'
       path: '/read-all'
@@ -923,6 +1048,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1TagsCsvMappingValidateRouteImport
       parentRoute: typeof ApiV1TagsCsvMappingRoute
     }
+    '/api/v1/subscriptions/dismissals/$dismissalId': {
+      id: '/api/v1/subscriptions/dismissals/$dismissalId'
+      path: '/$dismissalId'
+      fullPath: '/api/v1/subscriptions/dismissals/$dismissalId'
+      preLoaderRoute: typeof ApiV1SubscriptionsDismissalsDismissalIdRouteImport
+      parentRoute: typeof ApiV1SubscriptionsDismissalsRoute
+    }
+    '/api/v1/subscriptions/detect/dismiss': {
+      id: '/api/v1/subscriptions/detect/dismiss'
+      path: '/dismiss'
+      fullPath: '/api/v1/subscriptions/detect/dismiss'
+      preLoaderRoute: typeof ApiV1SubscriptionsDetectDismissRouteImport
+      parentRoute: typeof ApiV1SubscriptionsDetectRoute
+    }
     '/api/v1/me/accounts/$accountId': {
       id: '/api/v1/me/accounts/$accountId'
       path: '/$accountId'
@@ -956,6 +1095,7 @@ interface appRouteRouteChildren {
   appIndexRoute: typeof appIndexRoute
   appBudgetsNewRoute: typeof appBudgetsNewRoute
   appBudgetsIndexRoute: typeof appBudgetsIndexRoute
+  appSubscriptionsIndexRoute: typeof appSubscriptionsIndexRoute
   appBudgetsBudgetIdEditRoute: typeof appBudgetsBudgetIdEditRoute
   appBudgetsBudgetIdIndexRoute: typeof appBudgetsBudgetIdIndexRoute
 }
@@ -969,6 +1109,7 @@ const appRouteRouteChildren: appRouteRouteChildren = {
   appIndexRoute: appIndexRoute,
   appBudgetsNewRoute: appBudgetsNewRoute,
   appBudgetsIndexRoute: appBudgetsIndexRoute,
+  appSubscriptionsIndexRoute: appSubscriptionsIndexRoute,
   appBudgetsBudgetIdEditRoute: appBudgetsBudgetIdEditRoute,
   appBudgetsBudgetIdIndexRoute: appBudgetsBudgetIdIndexRoute,
 }
@@ -1042,6 +1183,51 @@ const ApiV1MessagesRouteChildren: ApiV1MessagesRouteChildren = {
 const ApiV1MessagesRouteWithChildren = ApiV1MessagesRoute._addFileChildren(
   ApiV1MessagesRouteChildren,
 )
+
+interface ApiV1SubscriptionsDetectRouteChildren {
+  ApiV1SubscriptionsDetectDismissRoute: typeof ApiV1SubscriptionsDetectDismissRoute
+}
+
+const ApiV1SubscriptionsDetectRouteChildren: ApiV1SubscriptionsDetectRouteChildren =
+  {
+    ApiV1SubscriptionsDetectDismissRoute: ApiV1SubscriptionsDetectDismissRoute,
+  }
+
+const ApiV1SubscriptionsDetectRouteWithChildren =
+  ApiV1SubscriptionsDetectRoute._addFileChildren(
+    ApiV1SubscriptionsDetectRouteChildren,
+  )
+
+interface ApiV1SubscriptionsDismissalsRouteChildren {
+  ApiV1SubscriptionsDismissalsDismissalIdRoute: typeof ApiV1SubscriptionsDismissalsDismissalIdRoute
+}
+
+const ApiV1SubscriptionsDismissalsRouteChildren: ApiV1SubscriptionsDismissalsRouteChildren =
+  {
+    ApiV1SubscriptionsDismissalsDismissalIdRoute:
+      ApiV1SubscriptionsDismissalsDismissalIdRoute,
+  }
+
+const ApiV1SubscriptionsDismissalsRouteWithChildren =
+  ApiV1SubscriptionsDismissalsRoute._addFileChildren(
+    ApiV1SubscriptionsDismissalsRouteChildren,
+  )
+
+interface ApiV1SubscriptionsRouteChildren {
+  ApiV1SubscriptionsSubscriptionIdRoute: typeof ApiV1SubscriptionsSubscriptionIdRoute
+  ApiV1SubscriptionsDetectRoute: typeof ApiV1SubscriptionsDetectRouteWithChildren
+  ApiV1SubscriptionsDismissalsRoute: typeof ApiV1SubscriptionsDismissalsRouteWithChildren
+}
+
+const ApiV1SubscriptionsRouteChildren: ApiV1SubscriptionsRouteChildren = {
+  ApiV1SubscriptionsSubscriptionIdRoute: ApiV1SubscriptionsSubscriptionIdRoute,
+  ApiV1SubscriptionsDetectRoute: ApiV1SubscriptionsDetectRouteWithChildren,
+  ApiV1SubscriptionsDismissalsRoute:
+    ApiV1SubscriptionsDismissalsRouteWithChildren,
+}
+
+const ApiV1SubscriptionsRouteWithChildren =
+  ApiV1SubscriptionsRoute._addFileChildren(ApiV1SubscriptionsRouteChildren)
 
 interface ApiV1TagsCsvMappingRouteChildren {
   ApiV1TagsCsvMappingValidateRoute: typeof ApiV1TagsCsvMappingValidateRoute
@@ -1124,6 +1310,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1BudgetsRoute: ApiV1BudgetsRouteWithChildren,
   ApiV1MeRoute: ApiV1MeRouteWithChildren,
   ApiV1MessagesRoute: ApiV1MessagesRouteWithChildren,
+  ApiV1SubscriptionsRoute: ApiV1SubscriptionsRouteWithChildren,
   ApiV1TagsRoute: ApiV1TagsRouteWithChildren,
   ApiV1TransactionsRoute: ApiV1TransactionsRouteWithChildren,
   ApiV1WizardProgressRoute: ApiV1WizardProgressRoute,

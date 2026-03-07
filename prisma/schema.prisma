@@ -140,6 +140,8 @@ model User {
   tags            Tag[]
   messages        Message[]
   budgets         Budget[]
+  subscriptions   Subscription[]
+  subscriptionDismissals SubscriptionDismissal[]
   wizardProgress  WizardProgress[]
 }
 
@@ -167,11 +169,16 @@ model Transaction {
   primaryTagId  String?
   primaryTag    Tag?             @relation("PrimaryTag", fields: [primaryTagId], references: [id])
 
+  // subscription relation
+  subscriptionId String?
+  subscription   Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
 
   @@index([userId, transactionDate])
   @@index([userId, type, transactionDate])
+  @@index([subscriptionId])
 }
 
 model Tag {
@@ -291,5 +298,40 @@ model WizardProgress {
   updatedAt        DateTime  @updatedAt
 
   @@unique([userId, wizardId])
+  @@index([userId])
+}
+
+model Subscription {
+  id            String          @id @default(cuid())
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+
+  name          String
+  type          TransactionType
+  amount        Decimal
+  currency      String
+  frequency     String          @default("monthly") // weekly, biweekly, monthly, quarterly, biannual, yearly
+  active        Boolean         @default(true)
+
+  transactions  Transaction[]
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([userId, active])
+}
+
+model SubscriptionDismissal {
+  id              String   @id @default(cuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+
+  normalizedName  String
+  type            TransactionType
+
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, normalizedName, type])
   @@index([userId])
 }

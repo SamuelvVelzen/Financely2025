@@ -3,7 +3,6 @@ import {
   IBudgetAlert,
   IBudgetComparison,
 } from "@/features/shared/validation/schemas";
-import { Container } from "@/features/ui/container/container";
 import { cn } from "@/features/util/cn";
 import { BudgetAlerts } from "./budget-alerts";
 import { BudgetStatusBadge, getStatusColor } from "./budget-status-badge";
@@ -27,7 +26,7 @@ export function BudgetSummaryContainer({
     totalExpectedFloat > 0 ? (totalActualFloat / totalExpectedFloat) * 100 : 0;
 
   return (
-    <Container>
+    <>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-base font-semibold">Budget Summary</h3>
         <BudgetStatusBadge percentage={totalPercentage} />
@@ -80,6 +79,6 @@ export function BudgetSummaryContainer({
           className="mt-4"
         />
       )}
-    </Container>
+    </>
   );
 }

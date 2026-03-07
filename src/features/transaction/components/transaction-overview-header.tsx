@@ -9,6 +9,7 @@ import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { cn } from "@/features/util/cn";
 import {
   HiArrowDownTray,
+  HiArrowPath,
   HiArrowsRightLeft,
   HiArrowUpTray,
   HiFunnel,
@@ -23,6 +24,7 @@ export interface IActionHandlers {
   onCreateTransaction: () => void;
   onCsvImportClick: () => void;
   onCsvExportClick: () => void;
+  onDetectSubscriptions: () => void;
 }
 
 export interface ITransactionOverviewHeaderProps {
@@ -113,6 +115,12 @@ export function TransactionOverviewHeader({
               </Button>
 
               <Dropdown>
+                <DropdownItem
+                  icon={<HiArrowPath />}
+                  clicked={actions.onDetectSubscriptions}>
+                  Detect Subscriptions
+                </DropdownItem>
+                <DropdownDivider />
                 <DropdownItem
                   icon={<HiArrowDownTray />}
                   clicked={actions.onCsvImportClick}>

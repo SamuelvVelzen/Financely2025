@@ -13,14 +13,87 @@ import {
   type ITransactionsQuery,
   type IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
+import { MessageService } from "@/features/message/services/message.service";
+import { SubscriptionDetectionService } from "@/features/subscription/services/subscription-detection.service";
+import { SubscriptionService } from "@/features/subscription/services/subscription.service";
 import { prisma } from "@/features/util/prisma";
 import { Prisma } from "@prisma/client";
+
+const TRANSACTION_INCLUDE = {
+  tags: {
+    select: { id: true, name: true, color: true },
+  },
+  primaryTag: {
+    select: { id: true, name: true, color: true },
+  },
+  subscription: {
+    select: { id: true, name: true, frequency: true, active: true },
+  },
+} as const;
 
 /**
  * Transaction Service
  * Handles transaction-related business logic and data access
  */
 export class TransactionService {
+  private static parseTransaction(tx: {
+    id: string;
+    type: string;
+    amount: { toString(): string };
+    currency: string;
+    transactionDate: Date;
+    timePrecision: string;
+    name: string;
+    description: string | null;
+    externalId: string | null;
+    paymentMethod: string;
+    tags: Array<{ id: string; name: string; color: string | null }>;
+    primaryTag?: { id: string; name: string; color: string | null } | null;
+    subscription?: {
+      id: string;
+      name: string;
+      frequency: string;
+      active: boolean;
+    } | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }): ITransaction {
+    return TransactionSchema.parse({
+      id: tx.id,
+      type: tx.type,
+      amount: tx.amount.toString(),
+      currency: tx.currency,
+      transactionDate: tx.transactionDate.toISOString(),
+      timePrecision: tx.timePrecision,
+      name: tx.name,
+      description: tx.description,
+      externalId: tx.externalId,
+      paymentMethod: tx.paymentMethod,
+      tags: tx.tags.map((tag) => ({
+        id: tag.id,
+        name: tag.name,
+        color: tag.color,
+      })),
+      primaryTag: tx.primaryTag
+        ? {
+            id: tx.primaryTag.id,
+            name: tx.primaryTag.name,
+            color: tx.primaryTag.color,
+          }
+        : null,
+      subscription: tx.subscription
+        ? {
+            id: tx.subscription.id,
+            name: tx.subscription.name,
+            frequency: tx.subscription.frequency,
+            active: tx.subscription.active,
+          }
+        : null,
+      createdAt: tx.createdAt.toISOString(),
+      updatedAt: tx.updatedAt.toISOString(),
+    });
+  }
+
   /**
    * List transactions with pagination, filtering, and sorting
    */
@@ -133,52 +206,11 @@ export class TransactionService {
       orderBy: orderBy.length === 1 ? orderBy[0] : orderBy,
       skip: (page - 1) * limit,
       take: limit,
-      include: {
-        tags: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        primaryTag: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-      },
+      include: TRANSACTION_INCLUDE,
     });
 
-    // Map to DTOs
     const data: ITransaction[] = transactions.map((tx) =>
-      TransactionSchema.parse({
-        id: tx.id,
-        type: tx.type,
-        amount: tx.amount.toString(),
-        currency: tx.currency,
-        transactionDate: tx.transactionDate.toISOString(),
-        timePrecision: tx.timePrecision,
-        name: tx.name,
-        description: tx.description,
-        externalId: tx.externalId,
-        paymentMethod: tx.paymentMethod,
-        tags: tx.tags.map((tag) => ({
-          id: tag.id,
-          name: tag.name,
-          color: tag.color,
-        })),
-        primaryTag: tx.primaryTag
-          ? {
-              id: tx.primaryTag.id,
-              name: tx.primaryTag.name,
-              color: tx.primaryTag.color,
-            }
-          : null,
-        createdAt: tx.createdAt.toISOString(),
-        updatedAt: tx.updatedAt.toISOString(),
-      })
+      this.parseTransaction(tx)
     );
 
     return PaginatedTransactionsResponseSchema.parse({
@@ -198,58 +230,15 @@ export class TransactionService {
     transactionId: string
   ): Promise<ITransaction | null> {
     const transaction = await prisma.transaction.findFirst({
-      where: {
-        id: transactionId,
-        userId,
-      },
-      include: {
-        tags: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        primaryTag: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-      },
+      where: { id: transactionId, userId },
+      include: TRANSACTION_INCLUDE,
     });
 
     if (!transaction) {
       return null;
     }
 
-    return TransactionSchema.parse({
-      id: transaction.id,
-      type: transaction.type,
-      amount: transaction.amount.toString(),
-      currency: transaction.currency,
-      transactionDate: transaction.transactionDate.toISOString(),
-      timePrecision: transaction.timePrecision,
-      name: transaction.name,
-      description: transaction.description,
-      externalId: transaction.externalId,
-      paymentMethod: transaction.paymentMethod,
-      tags: transaction.tags.map((tag) => ({
-        id: tag.id,
-        name: tag.name,
-        color: tag.color,
-      })),
-      primaryTag: transaction.primaryTag
-        ? {
-            id: transaction.primaryTag.id,
-            name: transaction.primaryTag.name,
-            color: transaction.primaryTag.color,
-          }
-        : null,
-      createdAt: transaction.createdAt.toISOString(),
-      updatedAt: transaction.updatedAt.toISOString(),
-    });
+    return this.parseTransaction(transaction);
   }
 
   /**
@@ -320,6 +309,15 @@ export class TransactionService {
       }
     }
 
+    // Try to auto-flag to an existing subscription
+    const autoFlagSubId = await SubscriptionService.tryAutoFlag(
+      userId,
+      validated.name,
+      validated.type,
+      validated.currency,
+      validated.amount,
+    );
+
     const transaction = await prisma.transaction.create({
       data: {
         userId,
@@ -334,56 +332,58 @@ export class TransactionService {
         externalId: validated.externalId ?? null,
         paymentMethod: validated.paymentMethod,
         primaryTagId: validated.primaryTagId ?? null,
+        subscriptionId: autoFlagSubId,
         tags: validated.tagIds
           ? {
               connect: validated.tagIds.map((id) => ({ id })),
             }
           : undefined,
       },
-      include: {
-        tags: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        primaryTag: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-      },
+      include: TRANSACTION_INCLUDE,
     });
 
-    return TransactionSchema.parse({
-      id: transaction.id,
-      type: transaction.type,
-      amount: transaction.amount.toString(),
-      currency: transaction.currency,
-      transactionDate: transaction.transactionDate.toISOString(),
-      timePrecision: transaction.timePrecision,
-      name: transaction.name,
-      description: transaction.description,
-      externalId: transaction.externalId,
-      paymentMethod: transaction.paymentMethod,
-      tags: transaction.tags.map((tag) => ({
-        id: tag.id,
-        name: tag.name,
-        color: tag.color,
-      })),
-      primaryTag: transaction.primaryTag
-        ? {
-            id: transaction.primaryTag.id,
-            name: transaction.primaryTag.name,
-            color: transaction.primaryTag.color,
-          }
-        : null,
-      createdAt: transaction.createdAt.toISOString(),
-      updatedAt: transaction.updatedAt.toISOString(),
-    });
+    // If not auto-flagged, check if this transaction forms a new subscription pattern
+    if (!autoFlagSubId) {
+      this.triggerDetectionForTransaction(userId, transaction.id).catch(
+        () => {},
+      );
+    }
+
+    return this.parseTransaction(transaction);
+  }
+
+  /**
+   * Fire-and-forget detection for a newly created transaction.
+   * If a subscription pattern is found, creates an in-app message.
+   */
+  private static async triggerDetectionForTransaction(
+    userId: string,
+    transactionId: string,
+  ): Promise<void> {
+    const candidates =
+      await SubscriptionDetectionService.detectForTransaction(
+        userId,
+        transactionId,
+      );
+
+    if (candidates.length > 0) {
+      const candidate = candidates[0];
+      await MessageService.createMessage(userId, {
+        title: "Recurring transaction detected",
+        content: `"${candidate.displayName}" looks like a ${candidate.frequency} subscription (${candidate.occurrences} occurrences). Would you like to track it?`,
+        type: "INFO",
+        actions: [
+          {
+            label: "Review Subscriptions",
+            type: "navigate",
+            path: "/subscriptions",
+            variant: "primary",
+          },
+          { label: "Dismiss", type: "dismiss" },
+        ],
+        relatedType: "subscription",
+      });
+    }
   }
 
   /**
@@ -473,7 +473,14 @@ export class TransactionService {
           }
         }
 
-        // Create the transaction
+        const autoFlagSubId = await SubscriptionService.tryAutoFlag(
+          userId,
+          validatedItem.name,
+          validatedItem.type,
+          validatedItem.currency,
+          validatedItem.amount,
+        );
+
         const transaction = await prisma.transaction.create({
           data: {
             userId,
@@ -488,58 +495,17 @@ export class TransactionService {
             externalId: validatedItem.externalId ?? null,
             paymentMethod: validatedItem.paymentMethod,
             primaryTagId: validatedItem.primaryTagId ?? null,
+            subscriptionId: autoFlagSubId,
             tags: validatedItem.tagIds
               ? {
                   connect: validatedItem.tagIds.map((id) => ({ id })),
                 }
               : undefined,
           },
-          include: {
-            tags: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-            primaryTag: {
-              select: {
-                id: true,
-                name: true,
-                color: true,
-              },
-            },
-          },
+          include: TRANSACTION_INCLUDE,
         });
 
-        const createdTransaction = TransactionSchema.parse({
-          id: transaction.id,
-          type: transaction.type,
-          amount: transaction.amount.toString(),
-          currency: transaction.currency,
-          transactionDate: transaction.transactionDate.toISOString(),
-          timePrecision: transaction.timePrecision,
-          name: transaction.name,
-          description: transaction.description,
-          externalId: transaction.externalId,
-          paymentMethod: transaction.paymentMethod,
-          tags: transaction.tags.map((tag) => ({
-            id: tag.id,
-            name: tag.name,
-            color: tag.color,
-          })),
-          primaryTag: transaction.primaryTag
-            ? {
-                id: transaction.primaryTag.id,
-                name: transaction.primaryTag.name,
-                color: transaction.primaryTag.color,
-              }
-            : null,
-          createdAt: transaction.createdAt.toISOString(),
-          updatedAt: transaction.updatedAt.toISOString(),
-        });
-
-        created.push(createdTransaction);
+        created.push(this.parseTransaction(transaction));
       } catch (error) {
         // Handle validation errors or other errors
         const message =
@@ -549,6 +515,31 @@ export class TransactionService {
           message,
         });
       }
+    }
+
+    // Run subscription detection for the batch (fire-and-forget)
+    if (created.length > 0) {
+      SubscriptionDetectionService.detectSubscriptions(userId)
+        .then(async (candidates) => {
+          if (candidates.length > 0) {
+            await MessageService.createMessage(userId, {
+              title: "Recurring transactions detected",
+              content: `We found ${candidates.length} potential subscription${candidates.length > 1 ? "s" : ""} in your imported transactions. Review them to start tracking.`,
+              type: "INFO",
+              actions: [
+                {
+                  label: "Review Subscriptions",
+                  type: "navigate",
+                  path: "/subscriptions",
+                  variant: "primary",
+                },
+                { label: "Dismiss", type: "dismiss" },
+              ],
+              relatedType: "subscription",
+            });
+          }
+        })
+        .catch(() => {});
     }
 
     return {
@@ -689,50 +680,10 @@ export class TransactionService {
     const transaction = await prisma.transaction.update({
       where: { id: transactionId },
       data: updateData,
-      include: {
-        tags: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        primaryTag: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-      },
+      include: TRANSACTION_INCLUDE,
     });
 
-    return TransactionSchema.parse({
-      id: transaction.id,
-      type: transaction.type,
-      amount: transaction.amount.toString(),
-      currency: transaction.currency,
-      transactionDate: transaction.transactionDate.toISOString(),
-      timePrecision: transaction.timePrecision,
-      name: transaction.name,
-      description: transaction.description,
-      externalId: transaction.externalId,
-      paymentMethod: transaction.paymentMethod,
-      tags: transaction.tags.map((tag) => ({
-        id: tag.id,
-        name: tag.name,
-        color: tag.color,
-      })),
-      primaryTag: transaction.primaryTag
-        ? {
-            id: transaction.primaryTag.id,
-            name: transaction.primaryTag.name,
-            color: transaction.primaryTag.color,
-          }
-        : null,
-      createdAt: transaction.createdAt.toISOString(),
-      updatedAt: transaction.updatedAt.toISOString(),
-    });
+    return this.parseTransaction(transaction);
   }
 
   /**
@@ -792,37 +743,10 @@ export class TransactionService {
           connect: { id: tagId },
         },
       },
-      include: {
-        tags: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-      },
+      include: TRANSACTION_INCLUDE,
     });
 
-    return TransactionSchema.parse({
-      id: updated.id,
-      type: updated.type,
-      amount: updated.amount.toString(),
-      currency: updated.currency,
-      transactionDate: updated.transactionDate.toISOString(),
-      timePrecision: updated.timePrecision,
-      name: updated.name,
-      description: updated.description,
-      externalId: updated.externalId,
-      paymentMethod: updated.paymentMethod,
-      tags: updated.tags.map((tag) => ({
-        id: tag.id,
-        name: tag.name,
-        color: tag.color,
-      })),
-      primaryTag: null,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    });
+    return this.parseTransaction(updated);
   }
 
   /**
@@ -852,49 +776,9 @@ export class TransactionService {
           disconnect: { id: tagId },
         },
       },
-      include: {
-        tags: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-        primaryTag: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-          },
-        },
-      },
+      include: TRANSACTION_INCLUDE,
     });
 
-    return TransactionSchema.parse({
-      id: updated.id,
-      type: updated.type,
-      amount: updated.amount.toString(),
-      currency: updated.currency,
-      transactionDate: updated.transactionDate.toISOString(),
-      timePrecision: updated.timePrecision,
-      name: updated.name,
-      description: updated.description,
-      externalId: updated.externalId,
-      paymentMethod: updated.paymentMethod,
-      tags: updated.tags.map((tag) => ({
-        id: tag.id,
-        name: tag.name,
-        color: tag.color,
-      })),
-      primaryTag: updated.primaryTag
-        ? {
-            id: updated.primaryTag.id,
-            name: updated.primaryTag.name,
-            color: updated.primaryTag.color,
-          }
-        : null,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    });
+    return this.parseTransaction(updated);
   }
 }

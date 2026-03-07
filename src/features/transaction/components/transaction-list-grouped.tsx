@@ -13,7 +13,7 @@ import { ListItem } from "@/features/ui/list/list-item";
 import { Loading } from "@/features/ui/loading/loading";
 import { cn } from "@/features/util/cn";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
-import { HiPencil, HiTrash } from "react-icons/hi2";
+import { HiArrowPath, HiPencil, HiTrash } from "react-icons/hi2";
 
 type ITransactionListGroupedProps = {
   data: ITransaction[];
@@ -129,18 +129,28 @@ export function TransactionListGrouped({
                     </div>
                   </div>
 
-                  {/* Primary tag badge */}
-                  {transaction.primaryTag && (
+                  {/* Primary tag + subscription badges */}
+                  {(transaction.primaryTag || transaction.subscription) && (
                     <div className="flex gap-1.5 flex-wrap">
-                      <Badge
-                        backgroundColor={
-                          transaction.primaryTag.color ?? undefined
-                        }>
-                        {highlightText(
-                          transaction.primaryTag.name,
-                          searchQuery
-                        )}
-                      </Badge>
+                      {transaction.primaryTag && (
+                        <Badge
+                          backgroundColor={
+                            transaction.primaryTag.color ?? undefined
+                          }>
+                          {highlightText(
+                            transaction.primaryTag.name,
+                            searchQuery
+                          )}
+                        </Badge>
+                      )}
+                      {transaction.subscription && (
+                        <Badge
+                          variant="info"
+                          tooltip={`Part of "${transaction.subscription.name}" subscription`}>
+                          <HiArrowPath className="size-3" />
+                          Recurring
+                        </Badge>
+                      )}
                     </div>
                   )}
 

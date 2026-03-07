@@ -25,6 +25,7 @@ import { useToast } from "@/features/ui/toast";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SubscriptionDetectionDialog } from "@/features/subscription/components/subscription-detection-dialog";
 import { HiArrowsRightLeft } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../utils/export-csv";
 import { AddOrCreateTransactionDialog } from "./add-or-create-transaction-dialog";
@@ -159,6 +160,7 @@ export function TransactionOverview({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
+  const [isDetectDialogOpen, setIsDetectDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<
     ITransaction | undefined
   >(undefined);
@@ -267,6 +269,7 @@ export function TransactionOverview({
       onCreateTransaction: handleCreateTransaction,
       onCsvImportClick: handleCsvImportClick,
       onCsvExportClick: handleCsvExport,
+      onDetectSubscriptions: () => setIsDetectDialogOpen(true),
     }),
     [handleCreateTransaction, handleCsvImportClick, handleCsvExport]
   );
@@ -359,6 +362,11 @@ export function TransactionOverview({
       <TransactionCsvImportDialog
         open={isCsvImportDialogOpen}
         onOpenChange={setIsCsvImportDialogOpen}
+      />
+
+      <SubscriptionDetectionDialog
+        open={isDetectDialogOpen}
+        onOpenChange={setIsDetectDialogOpen}
       />
     </>
   );

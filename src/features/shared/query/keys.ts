@@ -72,6 +72,16 @@ export const queryKeys = {
     ["budgets", budgetId, "comparison"] as const,
   budgetsOverview: () => ["budgets", "overview"] as const,
 
+  // Subscription queries
+  subscriptions: (params?: { active?: boolean }) =>
+    ["subscriptions", params] as const,
+  subscription: (subscriptionId: string) =>
+    ["subscriptions", subscriptionId] as const,
+  subscriptionCandidates: () =>
+    ["subscriptions", "candidates"] as const,
+  subscriptionDismissals: () =>
+    ["subscriptions", "dismissals"] as const,
+
   // Wizard queries
   wizardProgress: () => ["wizard", "progress"] as const,
   wizardProgressById: (wizardId: string) =>
