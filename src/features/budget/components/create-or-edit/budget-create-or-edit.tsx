@@ -37,7 +37,7 @@ import {
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "@tanstack/react-router";
+import { useBlocker, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FieldErrors } from "react-hook-form";
 import { HiArrowLeft, HiOutlineCurrencyEuro } from "react-icons/hi2";
@@ -338,6 +338,12 @@ export function BudgetCreateOrEditPage({
   const selectedTagIds = form.watch("tags.selectedTagIds");
   const hasUnsavedChanges = form.formState.isDirty;
 
+  const blocker = useBlocker({
+    shouldBlockFn: () => hasUnsavedChanges,
+    withResolver: true,
+    enableBeforeUnload: hasUnsavedChanges,
+  });
+
   const tabState = useMemo(() => {
     const currentIndex = TABS.indexOf(currentTab);
     return {
@@ -399,11 +405,30 @@ export function BudgetCreateOrEditPage({
       navigate({
         to: "/budgets/$budgetId",
         params: { budgetId },
+        ignoreBlocker: true,
       });
     } else {
-      navigate({ to: ROUTES.BUDGETS });
+      navigate({ to: ROUTES.BUDGETS, ignoreBlocker: true });
     }
   }, [isEditMode, budget, budgetId, form, navigate]);
+
+  const showBlockerDialog = blocker.status === "blocked";
+  const showUnsavedChangesPrompt = showUnsavedDialog || showBlockerDialog;
+
+  const handleUnsavedDialogConfirm = useCallback(() => {
+    if (showBlockerDialog && blocker.reset) {
+      blocker.reset();
+    }
+    handleDiscardChanges();
+  }, [showBlockerDialog, blocker, handleDiscardChanges]);
+
+  const handleUnsavedDialogCancel = useCallback(() => {
+    if (showBlockerDialog && blocker.reset) {
+      blocker.reset();
+    } else {
+      setShowUnsavedDialog(false);
+    }
+  }, [showBlockerDialog, blocker]);
 
   const handleNext = useCallback(() => {
     tabGroupRef.current?.goNext();
@@ -620,9 +645,9 @@ export function BudgetCreateOrEditPage({
       </Form>
 
       <UnsavedChangesDialog
-        open={showUnsavedDialog}
-        onConfirm={handleDiscardChanges}
-        onCancel={() => setShowUnsavedDialog(false)}
+        open={showUnsavedChangesPrompt}
+        onConfirm={handleUnsavedDialogConfirm}
+        onCancel={handleUnsavedDialogCancel}
       />
     </>
   );
