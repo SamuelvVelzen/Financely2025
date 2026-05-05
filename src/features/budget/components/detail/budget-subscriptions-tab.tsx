@@ -50,10 +50,7 @@ export function BudgetSubscriptionsTab({
           return txDate >= budgetStart && txDate <= budgetEnd;
         });
         return { ...sub, transactionsInPeriod: txInPeriod };
-      })
-      .filter(
-        (sub) => sub.transactionsInPeriod.length > 0,
-      );
+      });
   }, [subscriptionsData, budget.currency, budget.startDate, budget.endDate]);
 
   if (isLoading) {
@@ -71,7 +68,7 @@ export function BudgetSubscriptionsTab({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-semibold text-text">
-                Subscriptions in Period
+                Subscriptions
               </h2>
               <Badge>{relevantSubscriptions.length}</Badge>
             </div>
