@@ -7,7 +7,7 @@ import {
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HiArrowPath } from "react-icons/hi2";
 import { SubscriptionCandidateCard } from "./subscription-candidate-card";
 
@@ -29,6 +29,9 @@ export function SubscriptionDetectionDialog({
   const [hasDetected, setHasDetected] = useState(false);
   const [confirmingName, setConfirmingName] = useState<string | null>(null);
   const [dismissingName, setDismissingName] = useState<string | null>(null);
+
+  const candidatesRef = useRef(candidates);
+  candidatesRef.current = candidates;
 
   useEffect(() => {
     if (!open) return;
@@ -66,21 +69,27 @@ export function SubscriptionDetectionDialog({
         },
         {
           onSuccess: () => {
-            setCandidates((prev) => {
-              const next = prev.filter(
-                (c) => c.normalizedName !== candidate.normalizedName,
-              );
-              if (next.length === 0) {
-                onOpenChange(false);
-                toast.success("All subscriptions confirmed");
-              } else {
-                toast.success(
-                  `"${candidate.displayName}" confirmed as subscription`,
-                );
-              }
-              return next;
-            });
             setConfirmingName(null);
+            const prev = candidatesRef.current;
+            const allConfirmed =
+              prev.filter(
+                (c) => c.normalizedName !== candidate.normalizedName,
+              ).length === 0;
+
+            setCandidates((p) =>
+              p.filter(
+                (c) => c.normalizedName !== candidate.normalizedName,
+              ),
+            );
+
+            if (allConfirmed) {
+              onOpenChange(false);
+              toast.success("All subscriptions confirmed");
+            } else {
+              toast.success(
+                `"${candidate.displayName}" confirmed as subscription`,
+              );
+            }
           },
           onError: () => {
             toast.error("Failed to confirm subscription");
@@ -102,17 +111,23 @@ export function SubscriptionDetectionDialog({
         },
         {
           onSuccess: () => {
-            setCandidates((prev) => {
-              const next = prev.filter(
-                (c) => c.normalizedName !== candidate.normalizedName,
-              );
-              if (next.length === 0) {
-                onOpenChange(false);
-              }
-              return next;
-            });
-            toast.success("Candidate dismissed");
             setDismissingName(null);
+            const prev = candidatesRef.current;
+            const noneLeft =
+              prev.filter(
+                (c) => c.normalizedName !== candidate.normalizedName,
+              ).length === 0;
+
+            setCandidates((p) =>
+              p.filter(
+                (c) => c.normalizedName !== candidate.normalizedName,
+              ),
+            );
+
+            if (noneLeft) {
+              onOpenChange(false);
+            }
+            toast.success("Candidate dismissed");
           },
           onError: () => {
             toast.error("Failed to dismiss candidate");
