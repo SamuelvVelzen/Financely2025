@@ -463,6 +463,7 @@ export function BudgetCreateOrEditPage({
                 navigate({
                   to: "/budgets/$budgetId",
                   params: { budgetId },
+                  ignoreBlocker: true,
                 });
               },
               onError: (error: Error) => {
@@ -477,7 +478,7 @@ export function BudgetCreateOrEditPage({
             onSuccess: () => {
               setPending(false);
               toast.success("Budget created successfully");
-              navigate({ to: ROUTES.BUDGETS });
+              navigate({ to: ROUTES.BUDGETS, ignoreBlocker: true });
             },
             onError: (error: Error) => {
               setPending(false);
