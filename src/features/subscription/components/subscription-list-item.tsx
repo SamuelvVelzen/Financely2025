@@ -1,15 +1,14 @@
 import { Currency } from "@/features/currency/components/currency";
-import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import type {
   ISubscription,
   ISubscriptionFrequency,
 } from "@/features/shared/validation/schemas";
+import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import { Badge } from "@/features/ui/badge/badge";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { ListItem } from "@/features/ui/list/list-item";
-import { cn } from "@/features/util/cn";
+import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useState } from "react";
 import {
   HiChevronDown,
@@ -18,7 +17,6 @@ import {
   HiPlay,
   HiTrash,
 } from "react-icons/hi2";
-import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 
 type ISubscriptionListItemProps = {
   subscription: ISubscription;
@@ -50,7 +48,7 @@ export function SubscriptionListItem({
           <Badge>
             {
               FREQUENCY_LABELS[
-                subscription.frequency as ISubscriptionFrequency
+              subscription.frequency as ISubscriptionFrequency
               ]
             }
           </Badge>
@@ -61,14 +59,12 @@ export function SubscriptionListItem({
 
         <div className="flex items-center gap-2 shrink-0">
           <Currency
-            amount={`${subscription.type === "EXPENSE" ? "-" : ""}${subscription.amount}`}
+            amount={subscription.amount}
+            type={subscription.type}
             currency={subscription.currency}
-            className={cn(
-              "font-semibold text-lg",
-              subscription.type === "EXPENSE"
-                ? "text-danger"
-                : "text-success",
-            )}
+            className="font-semibold text-lg"
+
+
           />
 
           <div className="flex items-center ml-1 gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
@@ -125,7 +121,8 @@ export function SubscriptionListItem({
                   )}
                 </span>
                 <Currency
-                  amount={`${tx.type === "EXPENSE" ? "-" : ""}${tx.amount}`}
+                  amount={tx.amount}
+                  type={tx.type}
                   currency={tx.currency}
                   className="text-sm"
                 />

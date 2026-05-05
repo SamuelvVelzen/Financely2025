@@ -1,9 +1,8 @@
 import { Currency } from "@/features/currency/components/currency";
-import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import type { ISubscriptionCandidate } from "@/features/shared/validation/schemas";
+import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
-import { cn } from "@/features/util/cn";
 import { HiCheck, HiXMark } from "react-icons/hi2";
 
 type ISubscriptionCandidateCardProps = {
@@ -36,14 +35,9 @@ export function SubscriptionCandidateCard({
           </Badge>
         </div>
         <Currency
-          amount={`${candidate.type === "EXPENSE" ? "-" : ""}${candidate.averageAmount}`}
+          amount={candidate.averageAmount}
           currency={candidate.currency}
-          className={cn(
-            "font-semibold text-lg",
-            candidate.type === "EXPENSE"
-              ? "text-danger"
-              : "text-success",
-          )}
+          type={candidate.type}
         />
       </div>
 

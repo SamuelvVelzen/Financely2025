@@ -1,13 +1,13 @@
-import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { Currency } from "@/features/currency/components/currency";
+import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
   CreateTransactionInputSchema,
   CurrencySchema,
   type ITransaction,
   TransactionTypeSchema,
 } from "@/features/shared/validation/schemas";
-import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import type { ISubscriptionFrequency } from "@/features/subscription/config/frequencies";
+import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import { useSubscription } from "@/features/subscription/hooks/useSubscriptions";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import {
@@ -540,7 +540,8 @@ function SubscriptionInfo({
                       )}
                     </span>
                     <Currency
-                      amount={`${tx.type === "EXPENSE" ? "-" : ""}${tx.amount}`}
+                      amount={tx.amount}
+                      type={tx.type}
                       currency={tx.currency}
                       className="text-xs"
                     />

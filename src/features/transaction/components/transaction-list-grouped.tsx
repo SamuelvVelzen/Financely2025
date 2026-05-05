@@ -98,7 +98,8 @@ export function TransactionListGrouped({
                     <div className="flex items-center gap-2 shrink-0">
                       {/* Amount */}
                       <Currency
-                        amount={`${transaction.type === "EXPENSE" ? "-" : ""}${transaction.amount}`}
+                        amount={transaction.amount}
+                        type={transaction.type}
                         currency={transaction.currency}
                         searchQuery={searchQuery}
                         className={cn("font-semibold text-lg")}

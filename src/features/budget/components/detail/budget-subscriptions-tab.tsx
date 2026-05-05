@@ -14,7 +14,6 @@ import { EmptyPage } from "@/features/ui/container/empty-container";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Loading } from "@/features/ui/loading";
-import { cn } from "@/features/util/cn";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useMemo, useState } from "react";
 import {
@@ -126,7 +125,7 @@ type ISubscriptionBudgetItemProps = {
     amount: string;
     currency: string;
     transactionDate: string;
-    type: string;
+    type: "EXPENSE" | "INCOME";
   }>;
 };
 
@@ -165,14 +164,9 @@ function SubscriptionBudgetItem({
         </div>
 
         <Currency
-          amount={`${subscription.type === "EXPENSE" ? "-" : ""}${totalInPeriod.toFixed(2)}`}
+          amount={totalInPeriod.toFixed(2)}
           currency={subscription.currency}
-          className={cn(
-            "font-semibold text-lg",
-            subscription.type === "EXPENSE"
-              ? "text-danger"
-              : "text-success",
-          )}
+          type={subscription.type}
         />
       </div>
 
@@ -220,7 +214,8 @@ function SubscriptionBudgetItem({
                       )}
                     </span>
                     <Currency
-                      amount={`${tx.type === "EXPENSE" ? "-" : ""}${tx.amount}`}
+                      amount={tx.amount}
+                      type={tx.type}
                       currency={tx.currency}
                       className="text-sm"
                     />
