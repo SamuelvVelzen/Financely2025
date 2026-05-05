@@ -97,7 +97,6 @@ export function LoginForm() {
         } else {
           setError(result.error.message || "An error occurred");
         }
-        toast.error(result.error.message || "Login failed");
         return;
       }
 
@@ -107,7 +106,6 @@ export function LoginForm() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";
       setError(message);
-      toast.error(message);
     } finally {
       setLoading(false);
     }
