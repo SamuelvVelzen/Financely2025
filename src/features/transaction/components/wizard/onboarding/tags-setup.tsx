@@ -5,6 +5,7 @@ import {
   type IRecommendedTag,
 } from "@/features/tag/config/recommended-tags";
 import { useCreateTag, useDeleteTag, useTags } from "@/features/tag/hooks/useTags";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { Button } from "@/features/ui/button/button";
 import { Spinner } from "@/features/ui/loading/spinner";
 import { useToast } from "@/features/ui/toast";
@@ -48,8 +49,10 @@ export function TagsSetup() {
         description: tag.description ?? null,
       },
       {
-        onSuccess: () => {
-          toast.success(`Tag "${tag.name}" added`);
+        onSuccess: (data) => {
+          if (!isOfflineMutationPlaceholder(data)) {
+            toast.success(`Tag "${tag.name}" added`);
+          }
         },
         onSettled: () => {
           setAddingTagName(null);

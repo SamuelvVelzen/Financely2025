@@ -1,4 +1,5 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { AddOrCreateTransactionDialog } from "@/features/transaction/components/add-or-create-transaction-dialog";
 import { TransactionListGrouped } from "@/features/transaction/components/transaction-list-grouped";
 import { useDeleteTransaction, useTransactions } from "@/features/transaction/hooks/useTransactions";
@@ -40,12 +41,14 @@ export function TransactionSetup() {
   const handleDeleteConfirm = () => {
     if (selectedTransaction) {
       deleteTransaction(selectedTransaction.id, {
-        onSuccess: () => {
+        onSuccess: (data) => {
           setIsDeleteDialogOpen(false);
           setSelectedTransaction(undefined);
-          toast.success(
-            `${selectedTransaction.type === "EXPENSE" ? "Expense" : "Income"} deleted successfully`
-          );
+          if (!isOfflineMutationPlaceholder(data)) {
+            toast.success(
+              `${selectedTransaction.type === "EXPENSE" ? "Expense" : "Income"} deleted successfully`,
+            );
+          }
         },
         onError: () => {
           toast.error("Failed to delete transaction");

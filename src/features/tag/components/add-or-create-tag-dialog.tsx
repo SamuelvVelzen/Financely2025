@@ -1,3 +1,4 @@
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import {
   CreateTagInputSchema,
   type ITag,
@@ -155,11 +156,13 @@ export function AddOrCreateTagDialog({
         updateTag(
           { tagId: tag.id, input: submitData },
           {
-            onSuccess: () => {
+            onSuccess: (data) => {
               resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
-              toast.success("Tag updated successfully");
+              if (!isOfflineMutationPlaceholder(data)) {
+                toast.success("Tag updated successfully");
+              }
               onSuccess?.();
             },
             onError: (error) => {
@@ -176,8 +179,12 @@ export function AddOrCreateTagDialog({
             resetFormToClosedState();
             setPending(false);
             onOpenChange(false);
-            toast.success("Tag created successfully");
-            onSuccess?.(createdTag);
+            if (!isOfflineMutationPlaceholder(createdTag)) {
+              toast.success("Tag created successfully");
+              onSuccess?.(createdTag);
+            } else {
+              onSuccess?.();
+            }
           },
           onError: (error) => {
             setPending(false);

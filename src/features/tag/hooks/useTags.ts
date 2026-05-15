@@ -1,3 +1,4 @@
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -38,6 +39,10 @@ export function useCreateTag() {
   return useFinMutation<ITag, Error, ICreateTagInput>({
     mutationFn: createTag,
     invalidateQueries: [queryKeys.tags],
+    getOfflineQueuedToast: (input) => ({
+      title: `Tag "${input.name}" created successfully`,
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -50,6 +55,10 @@ export function useUpdateTag() {
     {
       mutationFn: ({ tagId, input }) => updateTag(tagId, input),
       invalidateQueries: [queryKeys.tags],
+      getOfflineQueuedToast: (vars) => ({
+        title: `Tag "${vars.input.name}" updated successfully`,
+        message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+      }),
     }
   );
 }
@@ -62,6 +71,10 @@ export function useDeleteTag() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: deleteTag,
     invalidateQueries: [queryKeys.tags, queryKeys.transactions],
+    getOfflineQueuedToast: () => ({
+      title: "Tag deleted successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -134,5 +147,9 @@ export function useReorderTags() {
         queryKey: queryKeys.tags(),
       });
     },
+    getOfflineQueuedToast: () => ({
+      title: "Tag order saved",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }

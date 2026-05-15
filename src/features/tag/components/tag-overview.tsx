@@ -1,5 +1,6 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import type {
   ICreateTagInput,
   ITag,
@@ -156,10 +157,12 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const handleDeleteConfirm = () => {
     if (selectedTag) {
       deleteTag(selectedTag.id, {
-        onSuccess: () => {
+        onSuccess: (data) => {
           setIsDeleteDialogOpen(false);
           setSelectedTag(undefined);
-          toast.success("Tag deleted successfully");
+          if (!isOfflineMutationPlaceholder(data)) {
+            toast.success("Tag deleted successfully");
+          }
         },
         onError: () => {
           toast.error("Failed to delete tag");
@@ -231,8 +234,10 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
     };
 
     createTag(tagInput, {
-      onSuccess: () => {
-        toast.success(`Tag "${recommendedTag.name}" created successfully`);
+      onSuccess: (data) => {
+        if (!isOfflineMutationPlaceholder(data)) {
+          toast.success(`Tag "${recommendedTag.name}" created successfully`);
+        }
       },
       onError: () => {
         toast.error(`Failed to create tag "${recommendedTag.name}"`);

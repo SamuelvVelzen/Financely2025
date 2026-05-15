@@ -3,6 +3,7 @@ import {
   useMarkAllAsRead,
   useMessages,
 } from "@/features/message/hooks/useMessages";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { useToast } from "@/features/ui/toast";
@@ -38,8 +39,10 @@ function MessagesPage() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsRead.mutateAsync();
-      toast.success("All messages marked as read");
+      const result = await markAllAsRead.mutateAsync();
+      if (!isOfflineMutationPlaceholder(result)) {
+        toast.success("All messages marked as read");
+      }
     } catch (error) {
       toast.error("Failed to mark all messages as read");
     }

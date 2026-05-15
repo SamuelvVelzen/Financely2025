@@ -1,3 +1,4 @@
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type { IConnectedAccountsResponse } from "@/features/shared/validation/schemas";
@@ -22,6 +23,10 @@ export function useUnlinkAccount() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: unlinkAccount,
     invalidateQueries: [queryKeys.myAccounts],
+    getOfflineQueuedToast: () => ({
+      title: "Account disconnected",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 

@@ -7,6 +7,7 @@ import {
   getBudgetsOverview,
   updateBudget,
 } from "@/features/budget/api/client";
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -70,6 +71,10 @@ export function useCreateBudget() {
       () => queryKeys.budgets(),
       () => queryKeys.budgetsOverview(),
     ],
+    getOfflineQueuedToast: () => ({
+      title: "Budget created successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -96,6 +101,10 @@ export function useUpdateBudget() {
         queryKey: queryKeys.budget(variables.budgetId),
       });
     },
+    getOfflineQueuedToast: () => ({
+      title: "Budget updated successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -110,6 +119,10 @@ export function useDeleteBudget() {
       () => queryKeys.budgets(),
       () => queryKeys.budgetsOverview(),
     ],
+    getOfflineQueuedToast: () => ({
+      title: "Budget deleted successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 

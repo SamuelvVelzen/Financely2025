@@ -12,6 +12,7 @@ import {
 } from "@/features/budget/utils/budget-presets";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { parseLocalizedDecimal } from "@/features/currency/utils/currencyhelpers";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import {
   type IBudget,
   type IBudgetItem,
@@ -535,9 +536,11 @@ export function BudgetCreateOrEditPage({
           updateBudget(
             { budgetId, input: submitData as IUpdateBudgetInput },
             {
-              onSuccess: () => {
+              onSuccess: (data) => {
                 setPending(false);
-                toast.success("Budget updated successfully");
+                if (!isOfflineMutationPlaceholder(data)) {
+                  toast.success("Budget updated successfully");
+                }
                 navigate({
                   to: "/budgets/$budgetId",
                   params: { budgetId },
@@ -553,9 +556,11 @@ export function BudgetCreateOrEditPage({
           );
         } else {
           createBudget(submitData as ICreateBudgetInput, {
-            onSuccess: () => {
+            onSuccess: (data) => {
               setPending(false);
-              toast.success("Budget created successfully");
+              if (!isOfflineMutationPlaceholder(data)) {
+                toast.success("Budget created successfully");
+              }
               navigate({ to: ROUTES.BUDGETS, ignoreBlocker: true });
             },
             onError: (error: Error) => {

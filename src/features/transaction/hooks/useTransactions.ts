@@ -1,3 +1,4 @@
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import {
   useFinInfiniteQuery,
   useFinMutation,
@@ -102,6 +103,10 @@ export function useDeleteTransaction() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: deleteTransaction,
     invalidateQueries: [queryKeys.transactions],
+    getOfflineQueuedToast: () => ({
+      title: "Transaction deleted successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -308,6 +313,10 @@ export function useCreateExpense() {
   >({
     mutationFn: (input) => createTransaction({ ...input, type: "EXPENSE" }),
     invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+    getOfflineQueuedToast: () => ({
+      title: "Expense created successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -324,6 +333,10 @@ export function useUpdateExpense() {
     mutationFn: ({ transactionId, input }) =>
       updateTransaction(transactionId, input),
     invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+    getOfflineQueuedToast: () => ({
+      title: "Expense updated successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -335,6 +348,10 @@ export function useDeleteExpense() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: deleteTransaction,
     invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+    getOfflineQueuedToast: () => ({
+      title: "Expense deleted successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -413,6 +430,10 @@ export function useCreateIncome() {
   >({
     mutationFn: (input) => createTransaction({ ...input, type: "INCOME" }),
     invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+    getOfflineQueuedToast: () => ({
+      title: "Income created successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -429,6 +450,10 @@ export function useUpdateIncome() {
     mutationFn: ({ transactionId, input }) =>
       updateTransaction(transactionId, input),
     invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+    getOfflineQueuedToast: () => ({
+      title: "Income updated successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -440,6 +465,10 @@ export function useDeleteIncome() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: deleteTransaction,
     invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+    getOfflineQueuedToast: () => ({
+      title: "Income deleted successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 

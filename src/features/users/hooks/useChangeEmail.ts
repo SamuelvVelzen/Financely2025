@@ -1,3 +1,4 @@
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import { authClient } from "@/lib/auth-client";
@@ -25,6 +26,10 @@ export function useChangeEmail() {
       return { success: true };
     },
     invalidateQueries: [queryKeys.myProfile],
+    getOfflineQueuedToast: () => ({
+      title: "Verification email sent to your new address",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 

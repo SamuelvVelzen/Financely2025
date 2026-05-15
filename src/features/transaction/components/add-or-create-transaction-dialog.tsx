@@ -1,5 +1,6 @@
 import { Currency } from "@/features/currency/components/currency";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import {
   CreateTransactionInputSchema,
   CurrencySchema,
@@ -249,11 +250,13 @@ export function AddOrCreateTransactionDialog({
           updateExpense(
             { transactionId: transaction.id, input: submitData },
             {
-              onSuccess: () => {
+              onSuccess: (data) => {
                 resetFormToClosedState();
                 setPending(false);
                 onOpenChange(false);
-                toast.success("Expense updated successfully");
+                if (!isOfflineMutationPlaceholder(data)) {
+                  toast.success("Expense updated successfully");
+                }
                 onSuccess?.();
               },
               onError: (error) => {
@@ -267,11 +270,13 @@ export function AddOrCreateTransactionDialog({
           updateIncome(
             { transactionId: transaction.id, input: submitData },
             {
-              onSuccess: () => {
+              onSuccess: (data) => {
                 resetFormToClosedState();
                 setPending(false);
                 onOpenChange(false);
-                toast.success("Income updated successfully");
+                if (!isOfflineMutationPlaceholder(data)) {
+                  toast.success("Income updated successfully");
+                }
                 onSuccess?.();
               },
               onError: (error) => {
@@ -286,11 +291,13 @@ export function AddOrCreateTransactionDialog({
         // Create new transaction - use appropriate hook based on type
         if (data.type === "EXPENSE") {
           createExpense(submitData, {
-            onSuccess: () => {
+            onSuccess: (data) => {
               resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
-              toast.success("Expense created successfully");
+              if (!isOfflineMutationPlaceholder(data)) {
+                toast.success("Expense created successfully");
+              }
               onSuccess?.();
             },
             onError: (error) => {
@@ -301,11 +308,13 @@ export function AddOrCreateTransactionDialog({
           });
         } else {
           createIncome(submitData, {
-            onSuccess: () => {
+            onSuccess: (data) => {
               resetFormToClosedState();
               setPending(false);
               onOpenChange(false);
-              toast.success("Income created successfully");
+              if (!isOfflineMutationPlaceholder(data)) {
+                toast.success("Income created successfully");
+              }
               onSuccess?.();
             },
             onError: (error) => {

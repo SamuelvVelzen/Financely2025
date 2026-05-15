@@ -10,6 +10,7 @@ import { useToast } from "@/features/ui/toast";
 import { ScrollableHeader } from "@/features/ui/typography/scrollable-header";
 import { useChangePassword } from "@/features/users/hooks/useChangePassword";
 import { useConnectedAccounts } from "@/features/users/hooks/useConnectedAccounts";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 
@@ -31,11 +32,13 @@ export function ChangePassword() {
 
   const handlePasswordSubmit = async (data: IChangePasswordInput) => {
     try {
-      await changePassword.mutateAsync({
+      const result = await changePassword.mutateAsync({
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
-      toast.success("Password changed successfully");
+      if (!isOfflineMutationPlaceholder(result)) {
+        toast.success("Password changed successfully");
+      }
       passwordForm.reset();
     } catch (err) {
       toast.error(

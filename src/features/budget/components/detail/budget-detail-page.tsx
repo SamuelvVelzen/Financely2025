@@ -5,6 +5,7 @@ import {
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
 import type { IBudgetMonthlyBreakdown } from "@/features/shared/validation/schemas";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
@@ -88,9 +89,11 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
 
   const handleDeleteConfirm = () => {
     deleteBudget(budgetId, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         setIsDeleteDialogOpen(false);
-        toast.success("Budget deleted successfully");
+        if (!isOfflineMutationPlaceholder(data)) {
+          toast.success("Budget deleted successfully");
+        }
         navigate({ to: ROUTES.BUDGETS });
       },
       onError: () => {

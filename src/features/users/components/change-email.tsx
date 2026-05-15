@@ -11,6 +11,7 @@ import { Label } from "@/features/ui/typography/label";
 import { ScrollableHeader } from "@/features/ui/typography/scrollable-header";
 import { useChangeEmail } from "@/features/users/hooks/useChangeEmail";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 
@@ -29,8 +30,10 @@ export function ChangeEmail() {
 
   const handleEmailSubmit = async (data: IChangeEmailInput) => {
     try {
-      await changeEmail.mutateAsync(data);
-      toast.success("Verification email sent to your new address");
+      const result = await changeEmail.mutateAsync(data);
+      if (!isOfflineMutationPlaceholder(result)) {
+        toast.success("Verification email sent to your new address");
+      }
       emailForm.reset();
     } catch (err) {
       toast.error(

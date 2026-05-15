@@ -1,3 +1,4 @@
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import type { IUpdateUserProfileInput } from "@/features/shared/validation/schemas";
 import { UpdateUserProfileInputSchema } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
@@ -43,8 +44,10 @@ export function ProfileInformation() {
 
   const handleProfileSubmit = async (data: IUpdateUserProfileInput) => {
     try {
-      await updateProfile.mutateAsync(data);
-      toast.success("Profile updated successfully");
+      const result = await updateProfile.mutateAsync(data);
+      if (!isOfflineMutationPlaceholder(result)) {
+        toast.success("Profile updated successfully");
+      }
       setIsEditingProfile(false);
     } catch (err) {
       toast.error(

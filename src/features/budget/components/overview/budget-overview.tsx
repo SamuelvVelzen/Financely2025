@@ -3,6 +3,7 @@ import {
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
 import type { IBudget } from "@/features/shared/validation/schemas";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
@@ -88,10 +89,12 @@ export function BudgetOverview() {
   const handleDeleteConfirm = () => {
     if (selectedBudget) {
       deleteBudget(selectedBudget.id, {
-        onSuccess: () => {
+        onSuccess: (data) => {
           setIsDeleteDialogOpen(false);
           setSelectedBudget(undefined);
-          toast.success("Budget deleted successfully");
+          if (!isOfflineMutationPlaceholder(data)) {
+            toast.success("Budget deleted successfully");
+          }
         },
         onError: () => {
           toast.error("Failed to delete budget");

@@ -9,6 +9,7 @@ import {
   useUndismissCandidate,
   useUpdateSubscription,
 } from "@/features/subscription/hooks/useSubscriptions";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
@@ -54,12 +55,14 @@ export function SubscriptionsPage() {
           input: { active: !subscription.active },
         },
         {
-          onSuccess: () => {
-            toast.success(
-              subscription.active
-                ? "Subscription paused"
-                : "Subscription resumed",
-            );
+          onSuccess: (data) => {
+            if (!isOfflineMutationPlaceholder(data)) {
+              toast.success(
+                subscription.active
+                  ? "Subscription paused"
+                  : "Subscription resumed",
+              );
+            }
           },
           onError: () => {
             toast.error("Failed to update subscription");
@@ -73,8 +76,10 @@ export function SubscriptionsPage() {
   const handleDeleteConfirm = useCallback(() => {
     if (!deleteTarget) return;
     deleteSub(deleteTarget.id, {
-      onSuccess: () => {
-        toast.success("Subscription deleted");
+      onSuccess: (data) => {
+        if (!isOfflineMutationPlaceholder(data)) {
+          toast.success("Subscription deleted");
+        }
         setDeleteTarget(null);
       },
       onError: () => {
@@ -224,10 +229,12 @@ function DismissedTabContent() {
     setRestoreConfirmDismissal(null);
     setUndismissingId(dismissal.id);
     undismiss(dismissal.id, {
-      onSuccess: () => {
-        toast.success(
-          `"${dismissal.normalizedName}" can be detected again`,
-        );
+      onSuccess: (data) => {
+        if (!isOfflineMutationPlaceholder(data)) {
+          toast.success(
+            `"${dismissal.normalizedName}" can be detected again`,
+          );
+        }
         setUndismissingId(null);
       },
       onError: () => {

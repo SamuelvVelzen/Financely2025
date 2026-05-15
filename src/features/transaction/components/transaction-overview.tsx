@@ -1,6 +1,7 @@
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import type {
   ICurrency,
   IPaymentMethod,
@@ -198,12 +199,14 @@ export function TransactionOverview({
   const handleDeleteConfirm = () => {
     if (selectedTransaction) {
       deleteTransaction(selectedTransaction.id, {
-        onSuccess: () => {
+        onSuccess: (data) => {
           setIsDeleteDialogOpen(false);
           setSelectedTransaction(undefined);
-          toast.success(
-            `${selectedTransaction.type === "EXPENSE" ? "Expense" : "Income"} deleted successfully`
-          );
+          if (!isOfflineMutationPlaceholder(data)) {
+            toast.success(
+              `${selectedTransaction.type === "EXPENSE" ? "Expense" : "Income"} deleted successfully`,
+            );
+          }
         },
         onError: () => {
           toast.error("Failed to delete transaction");

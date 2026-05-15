@@ -5,6 +5,7 @@ import {
   markAllAsRead,
   markAsRead,
 } from "@/features/message/api/client";
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -57,6 +58,10 @@ export function useMarkAllAsRead() {
   return useFinMutation<{ success: boolean }, Error, void>({
     mutationFn: markAllAsRead,
     invalidateQueries: [queryKeys.messages, queryKeys.unreadCount],
+    getOfflineQueuedToast: () => ({
+      title: "All messages marked as read",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -68,5 +73,9 @@ export function useDeleteMessage() {
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: deleteMessage,
     invalidateQueries: [queryKeys.messages, queryKeys.unreadCount],
+    getOfflineQueuedToast: () => ({
+      title: "Message deleted successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }

@@ -7,6 +7,7 @@ import {
   useLinkSocialAccount,
   useUnlinkAccount,
 } from "@/features/users/hooks/useConnectedAccounts";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { getEnabledSocialProviders } from "@/lib/auth-config";
 import { useState } from "react";
 
@@ -117,8 +118,10 @@ export function ConnectedAccounts() {
   const handleUnlinkAccount = async (accountId: string) => {
     setUnlinkingId(accountId);
     try {
-      await unlinkAccount.mutateAsync(accountId);
-      toast.success("Account disconnected");
+      const result = await unlinkAccount.mutateAsync(accountId);
+      if (!isOfflineMutationPlaceholder(result)) {
+        toast.success("Account disconnected");
+      }
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to disconnect account"

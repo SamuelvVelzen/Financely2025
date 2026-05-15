@@ -1,3 +1,4 @@
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import type { ISubscriptionCandidate } from "@/features/shared/validation/schemas";
 import { detectSubscriptions } from "@/features/subscription/api/client";
 import {
@@ -68,7 +69,7 @@ export function SubscriptionDetectionDialog({
           transactionIds: candidate.transactionIds,
         },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             setConfirmingName(null);
             const prev = candidatesRef.current;
             const allConfirmed =
@@ -84,11 +85,15 @@ export function SubscriptionDetectionDialog({
 
             if (allConfirmed) {
               onOpenChange(false);
-              toast.success("All subscriptions confirmed");
-            } else {
-              toast.success(
-                `"${candidate.displayName}" confirmed as subscription`,
-              );
+            }
+            if (!isOfflineMutationPlaceholder(data)) {
+              if (allConfirmed) {
+                toast.success("All subscriptions confirmed");
+              } else {
+                toast.success(
+                  `"${candidate.displayName}" confirmed as subscription`,
+                );
+              }
             }
           },
           onError: () => {
@@ -110,7 +115,7 @@ export function SubscriptionDetectionDialog({
           type: candidate.type,
         },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             setDismissingName(null);
             const prev = candidatesRef.current;
             const noneLeft =
@@ -127,7 +132,9 @@ export function SubscriptionDetectionDialog({
             if (noneLeft) {
               onOpenChange(false);
             }
-            toast.success("Candidate dismissed");
+            if (!isOfflineMutationPlaceholder(data)) {
+              toast.success("Candidate dismissed");
+            }
           },
           onError: () => {
             toast.error("Failed to dismiss candidate");

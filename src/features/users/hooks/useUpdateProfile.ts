@@ -1,3 +1,4 @@
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type { IUpdateUserProfileInput } from "@/features/shared/validation/schemas";
@@ -35,6 +36,10 @@ export function useUpdateProfile() {
   return useFinMutation<{ success: boolean }, Error, IUpdateUserProfileInput>({
     mutationFn: updateProfile,
     invalidateQueries: [queryKeys.me, queryKeys.myProfile],
+    getOfflineQueuedToast: () => ({
+      title: "Profile updated successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 

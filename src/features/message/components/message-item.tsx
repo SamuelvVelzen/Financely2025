@@ -1,4 +1,5 @@
 import type { IMessage } from "@/features/shared/validation/schemas";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { Badge } from "@/features/ui/badge/badge";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
@@ -34,9 +35,11 @@ export function MessageItem({ message }: IMessageItemProps) {
 
   const handleDeleteConfirm = () => {
     deleteMessage.mutate(message.id, {
-      onSuccess: () => {
+      onSuccess: (data) => {
         setIsDeleteDialogOpen(false);
-        toast.success("Message deleted successfully");
+        if (!isOfflineMutationPlaceholder(data)) {
+          toast.success("Message deleted successfully");
+        }
       },
       onError: () => {
         toast.error("Failed to delete message");

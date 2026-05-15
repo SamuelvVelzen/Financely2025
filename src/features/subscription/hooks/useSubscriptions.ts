@@ -9,6 +9,7 @@ import {
   undismissCandidate,
   updateSubscription,
 } from "@/features/subscription/api/client";
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -57,6 +58,10 @@ export function useConfirmSubscription() {
       () => queryKeys.subscriptionCandidates(),
       () => queryKeys.transactions(),
     ],
+    getOfflineQueuedToast: () => ({
+      title: "Subscription confirmed",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -71,6 +76,10 @@ export function useDismissCandidate() {
       () => queryKeys.subscriptionCandidates(),
       () => queryKeys.subscriptionDismissals(),
     ],
+    getOfflineQueuedToast: () => ({
+      title: "Candidate dismissed",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -89,6 +98,10 @@ export function useUndismissCandidate() {
       () => queryKeys.subscriptionDismissals(),
       () => queryKeys.subscriptionCandidates(),
     ],
+    getOfflineQueuedToast: () => ({
+      title: "Candidate can be detected again",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -108,6 +121,12 @@ export function useUpdateSubscription() {
         queryKey: queryKeys.subscription(variables.subscriptionId),
       });
     },
+    getOfflineQueuedToast: (vars) => ({
+      title: vars.input.active
+        ? "Subscription resumed"
+        : "Subscription paused",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -118,5 +137,9 @@ export function useDeleteSubscription() {
       () => queryKeys.subscriptions(),
       () => queryKeys.transactions(),
     ],
+    getOfflineQueuedToast: () => ({
+      title: "Subscription deleted",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
