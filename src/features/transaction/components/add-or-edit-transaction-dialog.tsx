@@ -96,10 +96,14 @@ export function AddOrEditTransactionDialog({
   transaction,
   onSuccess,
 }: IAddOrEditTransactionDialog) {
-  const [pending, setPending] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    null | "close" | "addAnother"
+  >(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [hasTime, setHasTime] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const pending = pendingAction !== null;
   const isEditMode = !!transaction;
   const { mutate: createExpense } = useCreateExpense();
   const { mutate: createIncome } = useCreateIncome();
@@ -118,6 +122,14 @@ export function AddOrEditTransactionDialog({
   const resetFormToClosedState = () => {
     form.reset(getEmptyFormValues());
     setDatePickerOpen(false);
+    setShowAdvanced(false);
+  };
+
+  const resetFormForAnotherTransaction = () => {
+    form.reset(getEmptyFormValues());
+    setHasTime(false);
+    setDatePickerOpen(false);
+    setShowAdvanced(false);
   };
 
   const closeDialog = () => {
@@ -149,6 +161,7 @@ export function AddOrEditTransactionDialog({
         // Edit mode: populate form with existing transaction data
         const isDateTime = transaction.timePrecision === "DateTime";
         setHasTime(isDateTime);
+        setShowAdvanced(false);
 
         // DateInput expects ISO strings
         form.reset({
@@ -166,6 +179,7 @@ export function AddOrEditTransactionDialog({
         // Create mode: reset to defaults with current date (no time - DateOnly default)
         const now = new Date();
         setHasTime(false);
+        setShowAdvanced(false);
         // Convert to ISO with noon UTC for date-only
         const dateOnly = isoToDateOnly(now.toISOString());
         const dateOnlyIso = dateOnlyToIso(dateOnly);
@@ -185,6 +199,7 @@ export function AddOrEditTransactionDialog({
       // Reset form when dialog closes to ensure clean state
       setHasTime(false);
       setDatePickerOpen(false);
+      setShowAdvanced(false);
       form.reset(getEmptyFormValues());
     }
   }, [open, transaction?.id, form]);
@@ -220,8 +235,12 @@ export function AddOrEditTransactionDialog({
     }
   };
 
-  const handleSubmit = async (data: FormData) => {
-    setPending(true);
+  const processFormSubmit = async (
+    data: FormData,
+    afterSuccess: "close" | "addAnother",
+  ) => {
+    const resolvedAfterSuccess = isEditMode ? "close" : afterSuccess;
+    setPendingAction(resolvedAfterSuccess);
 
     // DateInput already provides ISO strings, we just need to determine precision
     const transactionDateIso = data.transactionDate;
@@ -253,7 +272,7 @@ export function AddOrEditTransactionDialog({
             {
               onSuccess: (data) => {
                 resetFormToClosedState();
-                setPending(false);
+                setPendingAction(null);
                 onOpenChange(false);
                 if (!isOfflineMutationPlaceholder(data)) {
                   toast.success("Expense updated successfully");
@@ -261,7 +280,7 @@ export function AddOrEditTransactionDialog({
                 onSuccess?.();
               },
               onError: (error) => {
-                setPending(false);
+                setPendingAction(null);
                 toast.error("Failed to update expense");
                 throw error;
               },
@@ -273,7 +292,7 @@ export function AddOrEditTransactionDialog({
             {
               onSuccess: (data) => {
                 resetFormToClosedState();
-                setPending(false);
+                setPendingAction(null);
                 onOpenChange(false);
                 if (!isOfflineMutationPlaceholder(data)) {
                   toast.success("Income updated successfully");
@@ -281,7 +300,7 @@ export function AddOrEditTransactionDialog({
                 onSuccess?.();
               },
               onError: (error) => {
-                setPending(false);
+                setPendingAction(null);
                 toast.error("Failed to update income");
                 throw error;
               },
@@ -293,16 +312,20 @@ export function AddOrEditTransactionDialog({
         if (data.type === "EXPENSE") {
           createExpense(submitData, {
             onSuccess: (data) => {
-              resetFormToClosedState();
-              setPending(false);
-              onOpenChange(false);
+              if (resolvedAfterSuccess === "addAnother") {
+                resetFormForAnotherTransaction();
+              } else {
+                resetFormToClosedState();
+                onOpenChange(false);
+              }
+              setPendingAction(null);
               if (!isOfflineMutationPlaceholder(data)) {
                 toast.success("Expense created successfully");
               }
               onSuccess?.();
             },
             onError: (error) => {
-              setPending(false);
+              setPendingAction(null);
               toast.error("Failed to create expense");
               throw error;
             },
@@ -310,16 +333,20 @@ export function AddOrEditTransactionDialog({
         } else {
           createIncome(submitData, {
             onSuccess: (data) => {
-              resetFormToClosedState();
-              setPending(false);
-              onOpenChange(false);
+              if (resolvedAfterSuccess === "addAnother") {
+                resetFormForAnotherTransaction();
+              } else {
+                resetFormToClosedState();
+                onOpenChange(false);
+              }
+              setPendingAction(null);
               if (!isOfflineMutationPlaceholder(data)) {
                 toast.success("Income created successfully");
               }
               onSuccess?.();
             },
             onError: (error) => {
-              setPending(false);
+              setPendingAction(null);
               toast.error("Failed to create income");
               throw error;
             },
@@ -327,7 +354,7 @@ export function AddOrEditTransactionDialog({
         }
       }
     } catch (err) {
-      setPending(false);
+      setPendingAction(null);
       throw err; // Let Form component handle the error
     }
   };
@@ -343,7 +370,7 @@ export function AddOrEditTransactionDialog({
         content={
           <Form<FormData>
             form={form}
-            onSubmit={handleSubmit}
+            onSubmit={(data) => processFormSubmit(data, "close")}
             id={formId}>
             <div className="space-y-4">
               {/* Transaction type selector - only show in create mode */}
@@ -398,37 +425,55 @@ export function AddOrEditTransactionDialog({
                   {hasTime ? "Remove time" : "Add time"}
                 </Button>
               </div>
-              <SelectDropdown
-                name="paymentMethod"
-                label="Payment Method"
-                options={PAYMENT_METHOD_OPTIONS}
-                placeholder="Select payment method..."
+
+              <button
+                type="button"
+                className="flex items-center gap-1 text-sm text-info hover:underline disabled:opacity-50 disabled:pointer-events-none"
                 disabled={pending}
-              />
-              <Textarea
-                name="description"
-                label="Description"
-                disabled={pending}
-                rows={3}
-                placeholder="Add details..."
-              />
-              <TagSelect
-                name="primaryTagId"
-                label="Primary Tag"
-                multiple={false}
-                placeholder="Select primary tag..."
-                disabled={pending}
-                transactionType={transactionType}
-                hint="Used for budget, sorting and display"
-              />
-              <TagSelect
-                name="tagIds"
-                label="Tags"
-                multiple={true}
-                placeholder="Select tags..."
-                disabled={pending}
-                transactionType={transactionType}
-              />
+                onClick={() => setShowAdvanced((v) => !v)}>
+                {showAdvanced ? (
+                  <HiChevronUp className="size-4 shrink-0" />
+                ) : (
+                  <HiChevronDown className="size-4 shrink-0" />
+                )}
+                {showAdvanced ? "Hide advanced options" : "Show advanced options"}
+              </button>
+
+              {showAdvanced && (
+                <div className="space-y-4 pt-1">
+                  <SelectDropdown
+                    name="paymentMethod"
+                    label="Payment Method"
+                    options={PAYMENT_METHOD_OPTIONS}
+                    placeholder="Select payment method..."
+                    disabled={pending}
+                  />
+                  <Textarea
+                    name="description"
+                    label="Description"
+                    disabled={pending}
+                    rows={3}
+                    placeholder="Add details..."
+                  />
+                  <TagSelect
+                    name="primaryTagId"
+                    label="Primary Tag"
+                    multiple={false}
+                    placeholder="Select primary tag..."
+                    disabled={pending}
+                    transactionType={transactionType}
+                    hint="Used for budget, sorting and display"
+                  />
+                  <TagSelect
+                    name="tagIds"
+                    label="Tags"
+                    multiple={true}
+                    placeholder="Select tags..."
+                    disabled={pending}
+                    transactionType={transactionType}
+                  />
+                </div>
+              )}
 
               {isEditMode && transaction?.subscription && (
                 <SubscriptionInfo
@@ -448,12 +493,29 @@ export function AddOrEditTransactionDialog({
             disabled: pending,
             buttonContent: "Cancel",
           },
+          ...(!isEditMode
+            ? [
+              {
+                clicked: () => {
+                  void form.handleSubmit((data) =>
+                    processFormSubmit(data, "addAnother"),
+                  )();
+                },
+                disabled: pending,
+                loading: {
+                  isLoading: pendingAction === "addAnother",
+                  text: `Creating ${transactionType === "EXPENSE" ? "expense" : "income"}`,
+                },
+                buttonContent: "Create & add another",
+              } as const,
+            ]
+            : []),
           {
-            variant: "primary",
-            type: "submit",
+            variant: "primary" as const,
+            type: "submit" as const,
             form: formId,
             loading: {
-              isLoading: pending,
+              isLoading: pendingAction === "close",
               text: isEditMode
                 ? `Updating ${transactionType === "EXPENSE" ? "expense" : "income"}`
                 : `Creating ${transactionType === "EXPENSE" ? "expense" : "income"}`,
