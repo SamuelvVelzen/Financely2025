@@ -43,7 +43,7 @@ import { type Resolver } from "react-hook-form";
 import { HiArrowPath, HiChevronDown, HiChevronUp } from "react-icons/hi2";
 import { z } from "zod";
 
-type IAddOrCreateTransactionDialog = {
+type IAddOrEditTransactionDialog = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction?: ITransaction;
@@ -89,12 +89,12 @@ const getEmptyFormValues = (): FormData => {
   };
 };
 
-export function AddOrCreateTransactionDialog({
+export function AddOrEditTransactionDialog({
   open,
   onOpenChange,
   transaction,
   onSuccess,
-}: IAddOrCreateTransactionDialog) {
+}: IAddOrEditTransactionDialog) {
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [hasTime, setHasTime] = useState(false);

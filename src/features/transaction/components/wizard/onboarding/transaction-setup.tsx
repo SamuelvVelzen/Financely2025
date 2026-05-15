@@ -1,6 +1,6 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import type { ITransaction } from "@/features/shared/validation/schemas";
-import { AddOrCreateTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
+import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
 import { TransactionListGrouped } from "@/features/transaction/components/transaction-list-grouped";
 import { useDeleteTransaction, useTransactions } from "@/features/transaction/hooks/useTransactions";
 import { Button } from "@/features/ui/button/button";
@@ -125,7 +125,7 @@ export function TransactionSetup() {
       )}
 
       {/* Add/Edit Transaction Dialog */}
-      <AddOrCreateTransactionDialog
+      <AddOrEditTransactionDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         transaction={selectedTransaction}

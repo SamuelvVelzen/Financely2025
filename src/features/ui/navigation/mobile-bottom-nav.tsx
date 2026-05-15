@@ -1,5 +1,5 @@
 import { ROUTES } from "@/config/routes";
-import { AddOrCreateTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
+import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
 import { cn } from "@/features/util/cn";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -71,7 +71,7 @@ export function MobileBottomNav() {
           />
         </nav>
       </Container>
-      <AddOrCreateTransactionDialog
+      <AddOrEditTransactionDialog
         open={isTransactionDialogOpen}
         onOpenChange={setIsTransactionDialogOpen}
       />

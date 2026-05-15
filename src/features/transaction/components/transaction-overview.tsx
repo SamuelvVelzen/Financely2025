@@ -29,7 +29,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiArrowsRightLeft } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../utils/export-csv";
-import { AddOrCreateTransactionDialog } from "./add-or-edit-transaction-dialog";
+import { AddOrEditTransactionDialog } from "./add-or-edit-transaction-dialog";
 import { TransactionListGrouped } from "./transaction-list-grouped";
 import { TransactionOverviewHeader } from "./transaction-overview-header";
 
@@ -338,7 +338,7 @@ export function TransactionOverview({
         )}
       </Container>
 
-      <AddOrCreateTransactionDialog
+      <AddOrEditTransactionDialog
         open={isTransactionDialogOpen}
         onOpenChange={setIsTransactionDialogOpen}
         transaction={selectedTransaction}
