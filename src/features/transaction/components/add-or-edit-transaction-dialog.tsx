@@ -26,6 +26,7 @@ import { useFinForm } from "@/features/ui/form/useForm";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
+import { Textarea } from "@/features/ui/input/textarea";
 import { RadioGroup } from "@/features/ui/radio/radio-group";
 import { RadioItem } from "@/features/ui/radio/radio-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
@@ -404,10 +405,12 @@ export function AddOrEditTransactionDialog({
                 placeholder="Select payment method..."
                 disabled={pending}
               />
-              <TextInput
+              <Textarea
                 name="description"
                 label="Description"
                 disabled={pending}
+                rows={3}
+                placeholder="Add details..."
               />
               <TagSelect
                 name="primaryTagId"
