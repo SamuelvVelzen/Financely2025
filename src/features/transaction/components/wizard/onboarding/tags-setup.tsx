@@ -1,11 +1,11 @@
-import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-create-tag-dialog";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
+import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
 import { TagList } from "@/features/tag/components/tag-list";
 import {
   RECOMMENDED_TAGS,
   type IRecommendedTag,
 } from "@/features/tag/config/recommended-tags";
 import { useCreateTag, useDeleteTag, useTags } from "@/features/tag/hooks/useTags";
-import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { Button } from "@/features/ui/button/button";
 import { Spinner } from "@/features/ui/loading/spinner";
 import { useToast } from "@/features/ui/toast";

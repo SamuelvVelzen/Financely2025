@@ -23,7 +23,7 @@ import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineTag } from "react-icons/hi2";
-import { AddOrCreateTagDialog } from "./add-or-create-tag-dialog";
+import { AddOrCreateTagDialog } from "./add-or-update-tag-dialog";
 import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 import { TagList } from "./tag-list";
 import { TagOverviewHeader } from "./tag-overview-header";
@@ -303,171 +303,171 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
           {(sortedTags.length > 0 ||
             expenseRecommendedTags.length > 0 ||
             incomeRecommendedTags.length > 0) && (
-            <Container>
-              <Tabs defaultValue="expense">
-                <Tab value="expense">Expense</Tab>
-                <Tab value="income">Income</Tab>
+              <Container>
+                <Tabs defaultValue="expense">
+                  <Tab value="expense">Expense</Tab>
+                  <Tab value="income">Income</Tab>
 
-                <TabContent value="expense">
-                  <div className="space-y-6">
-                    {expenseTags.length > 0 ? (
-                      <div>
-                        <h2 className="text-lg font-semibold mb-4 text-text">
-                          Expense Tags
-                        </h2>
-                        <TagList
-                          data={expenseTags}
-                          searchQuery={debouncedSearchQuery}
-                          onEdit={handleEditTag}
-                          onDelete={handleDeleteClick}
-                          onOrderChange={(orderedIds) => {
-                            handleSectionReorder(
-                              orderedIds as string[],
-                              sortedTags
-                            );
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <HiOutlineTag className="size-12 mx-auto text-text-muted mb-4" />
-                        <p className="text-text-muted">
-                          No expense tags yet. Create one or choose from
-                          recommended tags below.
-                        </p>
-                      </div>
-                    )}
-
-                    {expenseRecommendedTags.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4 text-text">
-                          Recommended Tags
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {expenseRecommendedTags.map(
-                            (recommendedTag, index) => (
-                              <button
-                                key={index}
-                                type="button"
-                                onClick={() =>
-                                  handleCreateFromRecommended(recommendedTag)
-                                }
-                                className="p-4 border border-border rounded-lg hover:bg-surface-hover transition-colors text-left group">
-                                <div className="flex items-center gap-3">
-                                  {recommendedTag.emoticon && (
-                                    <span className="text-2xl">
-                                      {recommendedTag.emoticon}
-                                    </span>
-                                  )}
-                                  {recommendedTag.color && (
-                                    <div
-                                      className="size-4 rounded shrink-0"
-                                      style={{
-                                        backgroundColor: recommendedTag.color,
-                                      }}
-                                    />
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-text group-hover:text-primary">
-                                      {recommendedTag.name}
-                                    </div>
-                                    {recommendedTag.description && (
-                                      <div className="text-sm text-text-muted mt-1">
-                                        {recommendedTag.description}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </button>
-                            )
-                          )}
+                  <TabContent value="expense">
+                    <div className="space-y-6">
+                      {expenseTags.length > 0 ? (
+                        <div>
+                          <h2 className="text-lg font-semibold mb-4 text-text">
+                            Expense Tags
+                          </h2>
+                          <TagList
+                            data={expenseTags}
+                            searchQuery={debouncedSearchQuery}
+                            onEdit={handleEditTag}
+                            onDelete={handleDeleteClick}
+                            onOrderChange={(orderedIds) => {
+                              handleSectionReorder(
+                                orderedIds as string[],
+                                sortedTags
+                              );
+                            }}
+                          />
                         </div>
-                      </div>
-                    )}
-                  </div>
-                </TabContent>
-
-                <TabContent value="income">
-                  <div className="space-y-6">
-                    {incomeTags.length > 0 ? (
-                      <div>
-                        <h2 className="text-lg font-semibold mb-4 text-text">
-                          Income Tags
-                        </h2>
-                        <TagList
-                          data={incomeTags}
-                          searchQuery={debouncedSearchQuery}
-                          onEdit={handleEditTag}
-                          onDelete={handleDeleteClick}
-                          onOrderChange={(orderedIds) => {
-                            handleSectionReorder(
-                              orderedIds as string[],
-                              sortedTags
-                            );
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <HiOutlineTag className="size-12 mx-auto text-text-muted mb-4" />
-                        <p className="text-text-muted">
-                          No income tags yet. Create one or choose from
-                          recommended tags below.
-                        </p>
-                      </div>
-                    )}
-
-                    {incomeRecommendedTags.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold mb-4 text-text">
-                          Recommended Tags
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {incomeRecommendedTags.map(
-                            (recommendedTag, index) => (
-                              <button
-                                key={index}
-                                type="button"
-                                onClick={() =>
-                                  handleCreateFromRecommended(recommendedTag)
-                                }
-                                className="p-4 border border-border rounded-lg hover:bg-surface-hover transition-colors text-left group">
-                                <div className="flex items-center gap-3">
-                                  {recommendedTag.emoticon && (
-                                    <span className="text-2xl">
-                                      {recommendedTag.emoticon}
-                                    </span>
-                                  )}
-                                  {recommendedTag.color && (
-                                    <div
-                                      className="size-4 rounded shrink-0"
-                                      style={{
-                                        backgroundColor: recommendedTag.color,
-                                      }}
-                                    />
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-text group-hover:text-primary">
-                                      {recommendedTag.name}
-                                    </div>
-                                    {recommendedTag.description && (
-                                      <div className="text-sm text-text-muted mt-1">
-                                        {recommendedTag.description}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </button>
-                            )
-                          )}
+                      ) : (
+                        <div className="text-center py-8">
+                          <HiOutlineTag className="size-12 mx-auto text-text-muted mb-4" />
+                          <p className="text-text-muted">
+                            No expense tags yet. Create one or choose from
+                            recommended tags below.
+                          </p>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                </TabContent>
-              </Tabs>
-            </Container>
-          )}
+                      )}
+
+                      {expenseRecommendedTags.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 text-text">
+                            Recommended Tags
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {expenseRecommendedTags.map(
+                              (recommendedTag, index) => (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() =>
+                                    handleCreateFromRecommended(recommendedTag)
+                                  }
+                                  className="p-4 border border-border rounded-lg hover:bg-surface-hover transition-colors text-left group">
+                                  <div className="flex items-center gap-3">
+                                    {recommendedTag.emoticon && (
+                                      <span className="text-2xl">
+                                        {recommendedTag.emoticon}
+                                      </span>
+                                    )}
+                                    {recommendedTag.color && (
+                                      <div
+                                        className="size-4 rounded shrink-0"
+                                        style={{
+                                          backgroundColor: recommendedTag.color,
+                                        }}
+                                      />
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium text-text group-hover:text-primary">
+                                        {recommendedTag.name}
+                                      </div>
+                                      {recommendedTag.description && (
+                                        <div className="text-sm text-text-muted mt-1">
+                                          {recommendedTag.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </TabContent>
+
+                  <TabContent value="income">
+                    <div className="space-y-6">
+                      {incomeTags.length > 0 ? (
+                        <div>
+                          <h2 className="text-lg font-semibold mb-4 text-text">
+                            Income Tags
+                          </h2>
+                          <TagList
+                            data={incomeTags}
+                            searchQuery={debouncedSearchQuery}
+                            onEdit={handleEditTag}
+                            onDelete={handleDeleteClick}
+                            onOrderChange={(orderedIds) => {
+                              handleSectionReorder(
+                                orderedIds as string[],
+                                sortedTags
+                              );
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <HiOutlineTag className="size-12 mx-auto text-text-muted mb-4" />
+                          <p className="text-text-muted">
+                            No income tags yet. Create one or choose from
+                            recommended tags below.
+                          </p>
+                        </div>
+                      )}
+
+                      {incomeRecommendedTags.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 text-text">
+                            Recommended Tags
+                          </h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {incomeRecommendedTags.map(
+                              (recommendedTag, index) => (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() =>
+                                    handleCreateFromRecommended(recommendedTag)
+                                  }
+                                  className="p-4 border border-border rounded-lg hover:bg-surface-hover transition-colors text-left group">
+                                  <div className="flex items-center gap-3">
+                                    {recommendedTag.emoticon && (
+                                      <span className="text-2xl">
+                                        {recommendedTag.emoticon}
+                                      </span>
+                                    )}
+                                    {recommendedTag.color && (
+                                      <div
+                                        className="size-4 rounded shrink-0"
+                                        style={{
+                                          backgroundColor: recommendedTag.color,
+                                        }}
+                                      />
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium text-text group-hover:text-primary">
+                                        {recommendedTag.name}
+                                      </div>
+                                      {recommendedTag.description && (
+                                        <div className="text-sm text-text-muted mt-1">
+                                          {recommendedTag.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </TabContent>
+                </Tabs>
+              </Container>
+            )}
         </>
       )}
 
@@ -483,12 +483,12 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
         initialValues={
           recommendedTagData
             ? {
-                name: recommendedTagData.name,
-                color: recommendedTagData.color ?? "",
-                description: recommendedTagData.description ?? "",
-                emoticon: recommendedTagData.emoticon ?? "",
-                transactionType: recommendedTagData.transactionType,
-              }
+              name: recommendedTagData.name,
+              color: recommendedTagData.color ?? "",
+              description: recommendedTagData.description ?? "",
+              emoticon: recommendedTagData.emoticon ?? "",
+              transactionType: recommendedTagData.transactionType,
+            }
             : undefined
         }
         onSuccess={() => {

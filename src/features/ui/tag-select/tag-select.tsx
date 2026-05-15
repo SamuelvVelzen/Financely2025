@@ -1,7 +1,7 @@
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import {
   IFormOrControlledMode,
 } from "@/features/shared/hooks/use-form-context-optional";
-import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { queryKeys } from "@/features/shared/query/keys";
@@ -9,7 +9,7 @@ import {
   type ITag,
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
-import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-create-tag-dialog";
+import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
@@ -48,7 +48,7 @@ export function TagSelect({
   const [pendingTagName, setPendingTagName] = useState<string>("");
 
   const queryClient = useQueryClient();
-  
+
   const { mode, form: formContext } = useFieldAdapter({
     name,
     value: controlledValue,
@@ -125,36 +125,36 @@ export function TagSelect({
   const selectProps =
     mode === "form" && name
       ? {
-          name,
-          options: tagOptions,
-          multiple,
-          placeholder,
-          label,
-          searchPlaceholder,
-          disabled,
-          hint,
-          onCreateNew: handleCreateNew,
-          createNewLabel: (query: string) => `Create tag "${query}"`,
-          forcePlacement,
-          className,
-          onValueChange,
-        }
+        name,
+        options: tagOptions,
+        multiple,
+        placeholder,
+        label,
+        searchPlaceholder,
+        disabled,
+        hint,
+        onCreateNew: handleCreateNew,
+        createNewLabel: (query: string) => `Create tag "${query}"`,
+        forcePlacement,
+        className,
+        onValueChange,
+      }
       : {
-          value: controlledValue ?? (multiple ? [] : ""),
-          onChange: controlledOnChange!,
-          options: tagOptions,
-          multiple,
-          placeholder,
-          label,
-          searchPlaceholder,
-          disabled,
-          hint,
-          onCreateNew: handleCreateNew,
-          createNewLabel: (query: string) => `Create tag "${query}"`,
-          forcePlacement,
-          className,
-          onValueChange,
-        };
+        value: controlledValue ?? (multiple ? [] : ""),
+        onChange: controlledOnChange!,
+        options: tagOptions,
+        multiple,
+        placeholder,
+        label,
+        searchPlaceholder,
+        disabled,
+        hint,
+        onCreateNew: handleCreateNew,
+        createNewLabel: (query: string) => `Create tag "${query}"`,
+        forcePlacement,
+        className,
+        onValueChange,
+      };
 
   return (
     <>
