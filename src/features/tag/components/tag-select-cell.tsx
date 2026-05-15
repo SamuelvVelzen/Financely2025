@@ -4,7 +4,7 @@ import type {
   ITagMetadata,
   ITransactionType,
 } from "@/features/shared/validation/schemas";
-import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
+import { AddOrEditTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
@@ -184,7 +184,7 @@ export function TagSelectCell({
           onChange={onChange}
         />
       </div>
-      <AddOrCreateTagDialog
+      <AddOrEditTagDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         initialName={pendingTagName}

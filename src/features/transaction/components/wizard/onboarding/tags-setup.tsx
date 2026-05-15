@@ -1,5 +1,5 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
-import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
+import { AddOrEditTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
 import { TagList } from "@/features/tag/components/tag-list";
 import {
   RECOMMENDED_TAGS,
@@ -292,7 +292,7 @@ export function TagsSetup() {
         </Button>
       </div>
 
-      <AddOrCreateTagDialog
+      <AddOrEditTagDialog
         open={showCustomDialog}
         onOpenChange={setShowCustomDialog}
       />

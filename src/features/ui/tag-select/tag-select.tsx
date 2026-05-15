@@ -9,7 +9,7 @@ import {
   type ITag,
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
-import { AddOrCreateTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
+import { AddOrEditTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
@@ -174,7 +174,7 @@ export function TagSelect({
           </>
         )}
       </Select>
-      <AddOrCreateTagDialog
+      <AddOrEditTagDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         initialName={pendingTagName}

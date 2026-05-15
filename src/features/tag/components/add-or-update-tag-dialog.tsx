@@ -18,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useId, useState } from "react";
 import { z } from "zod";
 
-type IAddOrCreateTagDialog = {
+type IAddOrEditTagDialog = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tag?: ITag;
@@ -42,14 +42,14 @@ const getEmptyFormValues = (): FormData => ({
   transactionType: "EXPENSE" as ITransactionType,
 });
 
-export function AddOrCreateTagDialog({
+export function AddOrEditTagDialog({
   open,
   onOpenChange,
   tag,
   initialName,
   initialValues,
   onSuccess,
-}: IAddOrCreateTagDialog) {
+}: IAddOrEditTagDialog) {
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const isEditMode = !!tag;
@@ -126,7 +126,7 @@ export function AddOrCreateTagDialog({
     // Ensure transactionType is valid (default to EXPENSE if not set)
     const transactionType =
       data.transactionType &&
-      (data.transactionType === "EXPENSE" || data.transactionType === "INCOME")
+        (data.transactionType === "EXPENSE" || data.transactionType === "INCOME")
         ? data.transactionType
         : "EXPENSE";
 
@@ -135,8 +135,8 @@ export function AddOrCreateTagDialog({
       name: data.name,
       color:
         data.color &&
-        data.color.trim() !== "" &&
-        /^#[0-9A-Fa-f]{6}$/.test(data.color.trim())
+          data.color.trim() !== "" &&
+          /^#[0-9A-Fa-f]{6}$/.test(data.color.trim())
           ? data.color.trim()
           : null,
       description:
