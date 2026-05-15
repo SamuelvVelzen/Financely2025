@@ -39,7 +39,7 @@ import {
 } from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { parseISO } from "date-fns";
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
 import { HiArrowPath, HiChevronDown, HiChevronUp } from "react-icons/hi2";
 import { z } from "zod";
@@ -119,6 +119,14 @@ export function AddOrEditTransactionDialog({
   const hasUnsavedChanges = form.formState.isDirty;
   const transactionType = form.watch("type");
 
+  const focusFirstInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        void form.setFocus("name");
+      });
+    });
+  }, [form]);
+
   const resetFormToClosedState = () => {
     form.reset(getEmptyFormValues());
     setDatePickerOpen(false);
@@ -195,6 +203,7 @@ export function AddOrEditTransactionDialog({
           primaryTagId: null,
         });
       }
+      focusFirstInput();
     } else {
       // Reset form when dialog closes to ensure clean state
       setHasTime(false);
@@ -202,7 +211,7 @@ export function AddOrEditTransactionDialog({
       setShowAdvanced(false);
       form.reset(getEmptyFormValues());
     }
-  }, [open, transaction?.id, form]);
+  }, [open, transaction?.id, form, focusFirstInput]);
 
   const handleToggleTime = () => {
     const currentValue = form.getValues("transactionDate");
@@ -314,15 +323,21 @@ export function AddOrEditTransactionDialog({
             onSuccess: (data) => {
               if (resolvedAfterSuccess === "addAnother") {
                 resetFormForAnotherTransaction();
+                setPendingAction(null);
+                if (!isOfflineMutationPlaceholder(data)) {
+                  toast.success("Expense created successfully");
+                }
+                onSuccess?.();
+                focusFirstInput();
               } else {
                 resetFormToClosedState();
                 onOpenChange(false);
+                setPendingAction(null);
+                if (!isOfflineMutationPlaceholder(data)) {
+                  toast.success("Expense created successfully");
+                }
+                onSuccess?.();
               }
-              setPendingAction(null);
-              if (!isOfflineMutationPlaceholder(data)) {
-                toast.success("Expense created successfully");
-              }
-              onSuccess?.();
             },
             onError: (error) => {
               setPendingAction(null);
@@ -335,15 +350,21 @@ export function AddOrEditTransactionDialog({
             onSuccess: (data) => {
               if (resolvedAfterSuccess === "addAnother") {
                 resetFormForAnotherTransaction();
+                setPendingAction(null);
+                if (!isOfflineMutationPlaceholder(data)) {
+                  toast.success("Income created successfully");
+                }
+                onSuccess?.();
+                focusFirstInput();
               } else {
                 resetFormToClosedState();
                 onOpenChange(false);
+                setPendingAction(null);
+                if (!isOfflineMutationPlaceholder(data)) {
+                  toast.success("Income created successfully");
+                }
+                onSuccess?.();
               }
-              setPendingAction(null);
-              if (!isOfflineMutationPlaceholder(data)) {
-                toast.success("Income created successfully");
-              }
-              onSuccess?.();
             },
             onError: (error) => {
               setPendingAction(null);

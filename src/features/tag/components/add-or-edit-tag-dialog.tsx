@@ -16,7 +16,7 @@ import { RadioGroup } from "@/features/ui/radio/radio-group";
 import { RadioItem } from "@/features/ui/radio/radio-item";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { z } from "zod";
 
 type IAddOrEditTagDialog = {
@@ -63,6 +63,14 @@ export function AddOrEditTagDialog({
     defaultValues: getEmptyFormValues(),
   });
   const hasUnsavedChanges = form.formState.isDirty;
+
+  const focusFirstInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        void form.setFocus("name");
+      });
+    });
+  }, [form]);
 
   const resetFormToClosedState = () => {
     form.reset(getEmptyFormValues());
@@ -113,11 +121,12 @@ export function AddOrEditTagDialog({
             "EXPENSE") as ITransactionType,
         });
       }
+      focusFirstInput();
     } else {
       // Reset form when dialog closes to ensure clean state
       form.reset(getEmptyFormValues());
     }
-  }, [open, tag, initialName, initialValues, form]);
+  }, [open, tag, initialName, initialValues, form, focusFirstInput]);
 
   const processFormSubmit = async (
     data: FormData,
@@ -179,16 +188,24 @@ export function AddOrEditTagDialog({
           onSuccess: (createdTag) => {
             if (resolvedAfterSuccess === "addAnother") {
               resetFormToClosedState();
+              setPendingAction(null);
+              if (!isOfflineMutationPlaceholder(createdTag)) {
+                toast.success("Tag created successfully");
+                onSuccess?.(createdTag);
+              } else {
+                onSuccess?.();
+              }
+              focusFirstInput();
             } else {
               resetFormToClosedState();
               onOpenChange(false);
-            }
-            setPendingAction(null);
-            if (!isOfflineMutationPlaceholder(createdTag)) {
-              toast.success("Tag created successfully");
-              onSuccess?.(createdTag);
-            } else {
-              onSuccess?.();
+              setPendingAction(null);
+              if (!isOfflineMutationPlaceholder(createdTag)) {
+                toast.success("Tag created successfully");
+                onSuccess?.(createdTag);
+              } else {
+                onSuccess?.();
+              }
             }
           },
           onError: (error) => {
