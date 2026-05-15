@@ -1,6 +1,6 @@
-import type { ITransaction } from "@/features/shared/validation/schemas";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
-import { AddOrCreateTransactionDialog } from "@/features/transaction/components/add-or-create-transaction-dialog";
+import type { ITransaction } from "@/features/shared/validation/schemas";
+import { AddOrCreateTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
 import { TransactionListGrouped } from "@/features/transaction/components/transaction-list-grouped";
 import { useDeleteTransaction, useTransactions } from "@/features/transaction/hooks/useTransactions";
 import { Button } from "@/features/ui/button/button";

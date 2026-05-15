@@ -7,6 +7,7 @@ import type {
   IPaymentMethod,
   ITransaction,
 } from "@/features/shared/validation/schemas";
+import { SubscriptionDetectionDialog } from "@/features/subscription/components/subscription-detection-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
 import { useTransactionFilterProps } from "@/features/transaction/hooks/use-transaction-filter-props";
@@ -26,10 +27,9 @@ import { useToast } from "@/features/ui/toast";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SubscriptionDetectionDialog } from "@/features/subscription/components/subscription-detection-dialog";
 import { HiArrowsRightLeft } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../utils/export-csv";
-import { AddOrCreateTransactionDialog } from "./add-or-create-transaction-dialog";
+import { AddOrCreateTransactionDialog } from "./add-or-edit-transaction-dialog";
 import { TransactionListGrouped } from "./transaction-list-grouped";
 import { TransactionOverviewHeader } from "./transaction-overview-header";
 
