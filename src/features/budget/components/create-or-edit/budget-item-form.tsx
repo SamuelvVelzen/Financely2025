@@ -137,6 +137,12 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
             expectedAmount: item.expectedAmount || "",
           }));
         }
+        if (
+          (item.expectedAmount === "" || item.expectedAmount === undefined) &&
+          item.monthlyAmounts?.[0]
+        ) {
+          item.expectedAmount = item.monthlyAmounts[0].expectedAmount ?? "";
+        }
       }
     }
 
@@ -292,7 +298,10 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   };
 
   const handleSyncAll = (itemKey: string, itemIndex: number) => {
-    const master = itemStates[itemKey]?.masterAmount ?? "";
+    const master =
+      (form.getValues(
+        `budget.items.${itemIndex}.expectedAmount`
+      ) as string) ?? "";
     for (let j = 0; j < months.length; j++) {
       form.setValue(
         `budget.items.${itemIndex}.monthlyAmounts.${j}.expectedAmount`,
@@ -307,14 +316,17 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
   const handleMonthValueChange = (
     itemKey: string,
+    itemIndex: number,
     monthIndex: number,
     value: string
   ) => {
-    const state = itemStates[itemKey];
-    if (!state) return;
-
-    const newOverrides = new Set(state.overriddenMonths);
-    if (value !== state.masterAmount) {
+    const master =
+      (form.getValues(
+        `budget.items.${itemIndex}.expectedAmount`
+      ) as string) ?? "";
+    const prev = itemStates[itemKey];
+    const newOverrides = new Set(prev?.overriddenMonths ?? []);
+    if (value !== master) {
       newOverrides.add(monthIndex);
     } else {
       newOverrides.delete(monthIndex);
@@ -322,7 +334,10 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
     setItemStates((prev) => ({
       ...prev,
-      [itemKey]: { ...prev[itemKey], overriddenMonths: newOverrides },
+      [itemKey]: {
+        masterAmount: prev[itemKey]?.masterAmount ?? master,
+        overriddenMonths: newOverrides,
+      },
     }));
   };
 
@@ -331,7 +346,10 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     itemIndex: number,
     monthIndex: number
   ) => {
-    const master = itemStates[itemKey]?.masterAmount ?? "";
+    const master =
+      (form.getValues(
+        `budget.items.${itemIndex}.expectedAmount`
+      ) as string) ?? "";
     form.setValue(
       `budget.items.${itemIndex}.monthlyAmounts.${monthIndex}.expectedAmount`,
       master
@@ -428,8 +446,8 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
           <div className="w-28 shrink-0">
             <DecimalInput
-              value={state.masterAmount}
-              onChange={(val) =>
+              name={`budget.items.${index}.expectedAmount`}
+              onValueChange={(val) =>
                 handleMasterChange(itemKey, index, String(val ?? ""))
               }
             />
@@ -548,6 +566,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
                         onValueChange={(val) =>
                           handleMonthValueChange(
                             itemKey,
+                            index,
                             mi,
                             String(val ?? "")
                           )

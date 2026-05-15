@@ -8,9 +8,10 @@ import {
   formatBudgetName,
   getCurrentYearPreset,
   getMonthsInRange,
-  type IBudgetPreset
+  type IBudgetPreset,
 } from "@/features/budget/utils/budget-presets";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
+import { parseLocalizedDecimal } from "@/features/currency/utils/currencyhelpers";
 import {
   type IBudget,
   type IBudgetItem,
@@ -61,6 +62,46 @@ const MonthlyAmountEntrySchema = z.object({
   month: z.number().min(1).max(12),
   expectedAmount: z.string(),
 });
+
+const BUDGET_AMOUNT_MIN_MESSAGE = "Amount should be higher than 0";
+
+function budgetAmountIsPositive(
+  raw: string | number | undefined | null
+): boolean {
+  if (raw === null || raw === undefined) {
+    return false;
+  }
+  if (typeof raw === "number") {
+    return Number.isFinite(raw) && raw > 0;
+  }
+  if (typeof raw === "object") {
+    const boxed = raw as { toFixed?: (n: number) => string };
+    if (typeof boxed.toFixed === "function") {
+      return budgetAmountIsPositive(boxed.toFixed(2));
+    }
+    return false;
+  }
+  const trimmed = String(raw).trim();
+  if (!trimmed) {
+    return false;
+  }
+  const primary = parseLocalizedDecimal(trimmed);
+  if (primary) {
+    const n = Number(primary);
+    return Number.isFinite(n) && n > 0;
+  }
+  const compact = trimmed.replace(/\s|\u00A0/g, "");
+  const lastComma = compact.lastIndexOf(",");
+  const lastDot = compact.lastIndexOf(".");
+  let candidate = compact;
+  if (lastComma !== -1 && lastComma > lastDot) {
+    candidate = compact.replace(/\./g, "").replace(",", ".");
+  } else {
+    candidate = compact.replace(/,/g, "");
+  }
+  const n = Number(candidate);
+  return Number.isFinite(n) && n > 0;
+}
 
 const BudgetFormSchema = z.object({
   general: z
@@ -146,7 +187,66 @@ const BudgetFormSchema = z.object({
       )
       .min(1, "At least one budget item is required"),
   }),
-});
+})
+  .superRefine((data, ctx) => {
+    const preset = data.general.preset;
+    if (preset === "yearly-per-month") {
+      for (let i = 0; i < data.budget.items.length; i++) {
+        const item = data.budget.items[i];
+        const monthly = item.monthlyAmounts ?? [];
+        if (monthly.length === 0) {
+          ctx.addIssue({
+            code: "custom",
+            message: BUDGET_AMOUNT_MIN_MESSAGE,
+            path: ["budget", "items", i, "expectedAmount"],
+          });
+          continue;
+        }
+        let addedMasterBlankAggregate = false;
+
+        for (let j = 0; j < monthly.length; j++) {
+          const rawMa = monthly[j].expectedAmount;
+          const monthHasOwn = String(rawMa ?? "").trim() !== "";
+          const effective = monthHasOwn ? rawMa : item.expectedAmount;
+
+          if (budgetAmountIsPositive(effective)) continue;
+
+          if (monthHasOwn) {
+            ctx.addIssue({
+              code: "custom",
+              message: BUDGET_AMOUNT_MIN_MESSAGE,
+              path: [
+                "budget",
+                "items",
+                i,
+                "monthlyAmounts",
+                j,
+                "expectedAmount",
+              ],
+            });
+          } else if (!addedMasterBlankAggregate) {
+            ctx.addIssue({
+              code: "custom",
+              message: BUDGET_AMOUNT_MIN_MESSAGE,
+              path: ["budget", "items", i, "expectedAmount"],
+            });
+            addedMasterBlankAggregate = true;
+          }
+        }
+      }
+      return;
+    }
+
+    for (let i = 0; i < data.budget.items.length; i++) {
+      if (!budgetAmountIsPositive(data.budget.items[i].expectedAmount)) {
+        ctx.addIssue({
+          code: "custom",
+          message: BUDGET_AMOUNT_MIN_MESSAGE,
+          path: ["budget", "items", i, "expectedAmount"],
+        });
+      }
+    }
+  });
 
 type IBudgetFormData = z.infer<typeof BudgetFormSchema>;
 
@@ -190,15 +290,17 @@ function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
     budget: {
       items: budget.items.map((item) => {
         if (preset === "yearly-per-month") {
+          const monthlyAmounts = item.monthlyAmounts.map((ma) => ({
+            year: ma.year,
+            month: ma.month,
+            expectedAmount: ma.expectedAmount,
+          }));
+          const firstAmount = monthlyAmounts[0]?.expectedAmount ?? "";
           return {
             tagId: item.tagId,
             categoryType: item.categoryType ?? undefined,
-            expectedAmount: "",
-            monthlyAmounts: item.monthlyAmounts.map((ma) => ({
-              year: ma.year,
-              month: ma.month,
-              expectedAmount: ma.expectedAmount,
-            })),
+            expectedAmount: firstAmount,
+            monthlyAmounts,
           };
         }
 
@@ -273,17 +375,16 @@ function transformFormDataToApiInput(
     items: (data.budget.items ?? []).map((item) => {
       const categoryType =
         item.tagId === null ? item.categoryType ?? null : null;
-      if (preset === "yearly-per-month" && item.monthlyAmounts?.length) {
+      if (preset === "yearly-per-month") {
+        const monthlyAmounts = (item.monthlyAmounts ?? []).map((ma) => ({
+          year: ma.year,
+          month: ma.month,
+          expectedAmount: ma.expectedAmount,
+        }));
         return {
           tagId: item.tagId,
           categoryType,
-          monthlyAmounts: item.monthlyAmounts
-            .filter((ma) => parseFloat(ma.expectedAmount || "0") > 0)
-            .map((ma) => ({
-              year: ma.year,
-              month: ma.month,
-              expectedAmount: ma.expectedAmount,
-            })),
+          monthlyAmounts,
         };
       }
 
@@ -299,22 +400,6 @@ function transformFormDataToApiInput(
       };
     }),
   };
-}
-
-function validateBudgetItems(
-  data: IBudgetFormData
-): boolean {
-  const preset = data.general.preset;
-  if (preset === "yearly-per-month") {
-    return data.budget.items.some((item) =>
-      item.monthlyAmounts?.some(
-        (ma) => parseFloat(ma.expectedAmount || "0") > 0
-      )
-    );
-  }
-  return data.budget.items.some(
-    (item) => parseFloat(item.expectedAmount || "0") > 0
-  );
 }
 
 export function BudgetCreateOrEditPage({
@@ -333,6 +418,7 @@ export function BudgetCreateOrEditPage({
   const form = useFinForm<IBudgetFormData>({
     resolver: zodResolver(BudgetFormSchema),
     defaultValues: getEmptyFormValues(),
+
   });
 
   const selectedTagIds = form.watch("tags.selectedTagIds");
@@ -443,14 +529,6 @@ export function BudgetCreateOrEditPage({
       setPending(true);
 
       const submitData = transformFormDataToApiInput(data);
-
-      if (!validateBudgetItems(data)) {
-        setPending(false);
-        toast.error(
-          "At least one budget item must have an amount greater than 0"
-        );
-        return;
-      }
 
       try {
         if (isEditMode && budgetId) {

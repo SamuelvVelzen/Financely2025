@@ -1,11 +1,11 @@
 import { FieldValues, useForm, UseFormProps } from "react-hook-form";
 
 export function useFinForm<TFieldValues extends FieldValues>(
-  props?: Omit<UseFormProps<TFieldValues>, "mode" | "reValidateMode">
+  props?: UseFormProps<TFieldValues>
 ) {
   return useForm<TFieldValues>({
     mode: "onSubmit",
-    reValidateMode: "onBlur",
+    reValidateMode: "onChange",
     ...props,
   });
 }

@@ -1,6 +1,31 @@
 import React, { useMemo } from "react";
-import { Controller, type ControllerRenderProps, useWatch } from "react-hook-form";
+import type { FieldError, FieldErrors } from "react-hook-form";
+import { Controller, useWatch } from "react-hook-form";
 import { useFormContextOptional } from "./use-form-context-optional";
+
+function getFieldErrorByPath(
+  errors: FieldErrors | undefined,
+  path: string
+): FieldError | undefined {
+  if (!errors || !path) return undefined;
+  const segments = path.split(".");
+  let current: unknown = errors;
+  for (const segment of segments) {
+    if (current === null || current === undefined || typeof current !== "object") {
+      return undefined;
+    }
+    current = (current as Record<string, unknown>)[segment];
+  }
+  if (
+    current &&
+    typeof current === "object" &&
+    "message" in current &&
+    typeof (current as FieldError).message === "string"
+  ) {
+    return current as FieldError;
+  }
+  return undefined;
+}
 
 export type IFieldAdapterProps<TValue> = {
   name?: string;
@@ -55,17 +80,17 @@ export function useFieldAdapter<TValue>(
   // Extract error state (only relevant in form mode)
   const error = useMemo(() => {
     if (isFormMode && form && name) {
-      return form.formState.errors[name] as { message?: string } | undefined;
+      return getFieldErrorByPath(form.formState.errors, name);
     }
     return undefined;
-  }, [isFormMode, form, name]);
+  }, [isFormMode, form, name, form?.formState.errors]);
 
   const shouldShowError = useMemo(() => {
     if (isFormMode && form) {
       return !!error && form.formState.isSubmitted;
     }
     return false;
-  }, [isFormMode, form, error]);
+  }, [isFormMode, form, error, form?.formState.isSubmitted]);
 
   const borderClass = useMemo(() => {
     return shouldShowError ? "border-danger" : "border-border";
@@ -94,9 +119,9 @@ export function useFieldAdapter<TValue>(
           controlledOnChange?.(extractedValue);
           onValueChange?.(extractedValue);
         },
-        onBlur: () => {},
+        onBlur: () => { },
         name: name || "",
-        ref: () => {},
+        ref: () => { },
       };
     } else {
       // Form mode: use form.watch for value, onChange will be provided by Controller
@@ -116,9 +141,9 @@ export function useFieldAdapter<TValue>(
             onValueChange?.(extractedValue);
           }
         },
-        onBlur: () => {},
+        onBlur: () => { },
         name: name || "",
-        ref: () => {},
+        ref: () => { },
       };
     }
   }, [isControlledMode, controlledValue, controlledOnChange, onValueChange, name, isFormMode, form, formValue]);

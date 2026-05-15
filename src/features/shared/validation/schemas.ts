@@ -764,7 +764,7 @@ export const CreateBudgetItemInputSchema = z
   .object({
     tagId: z.string().nullable(),
     categoryType: TransactionTypeSchema.nullable().optional(),
-    monthlyAmounts: z.array(CreateBudgetItemMonthlyAmountInputSchema).min(1),
+    monthlyAmounts: z.array(CreateBudgetItemMonthlyAmountInputSchema).min(0),
   })
   .refine(
     (data) => {

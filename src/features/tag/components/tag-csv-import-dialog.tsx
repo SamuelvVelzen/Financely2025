@@ -10,6 +10,7 @@ import {
   type IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
 import { Form } from "@/features/ui/form/form";
+import { useFinForm } from "@/features/ui/form/useForm";
 import { FileUploadInput } from "@/features/ui/input/file-upload-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { BodyCell } from "@/features/ui/table/body-cell";
@@ -19,7 +20,6 @@ import { TableRow } from "@/features/ui/table/table-row";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
 import {
   useGetTagCsvMapping,
   useImportTagCsv,
@@ -69,7 +69,7 @@ export function TagCsvImportDialog({
   type MappingFormData = {
     mappings: Record<string, string>;
   };
-  const mappingForm = useForm<MappingFormData>({
+  const mappingForm = useFinForm<MappingFormData>({
     defaultValues: {
       mappings: {},
     },
@@ -269,7 +269,7 @@ export function TagCsvImportDialog({
               <Label required={field.required}>{field.label}</Label>
               <Form
                 form={mappingForm}
-                onSubmit={() => {}}>
+                onSubmit={() => { }}>
                 <SelectDropdown
                   name={`mappings.${field.name}`}
                   options={columnOptions}
@@ -368,9 +368,9 @@ export function TagCsvImportDialog({
                     className={cn(
                       "px-2 py-1 rounded text-xs",
                       candidate.status === "valid" &&
-                        "bg-success/20 text-success",
+                      "bg-success/20 text-success",
                       candidate.status === "invalid" &&
-                        "bg-danger/20 text-danger"
+                      "bg-danger/20 text-danger"
                     )}>
                     {candidate.status}
                   </span>
