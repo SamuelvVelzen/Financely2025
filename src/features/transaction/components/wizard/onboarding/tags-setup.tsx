@@ -1,5 +1,5 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
-import { AddOrEditTagDialog } from "@/features/tag/components/add-or-update-tag-dialog";
+import { AddOrEditTagDialog } from "@/features/tag/components/add-or-edit-tag-dialog";
 import { TagList } from "@/features/tag/components/tag-list";
 import {
   RECOMMENDED_TAGS,

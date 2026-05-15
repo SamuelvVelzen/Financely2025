@@ -23,7 +23,7 @@ import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineTag } from "react-icons/hi2";
-import { AddOrEditTagDialog } from "./add-or-update-tag-dialog";
+import { AddOrEditTagDialog } from "./add-or-edit-tag-dialog";
 import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 import { TagList } from "./tag-list";
 import { TagOverviewHeader } from "./tag-overview-header";
