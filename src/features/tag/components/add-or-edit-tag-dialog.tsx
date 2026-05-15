@@ -12,7 +12,8 @@ import { useFinForm } from "@/features/ui/form/useForm";
 import { ColorInput } from "@/features/ui/input/color-input";
 import { EmoticonInput } from "@/features/ui/input/emoticon-input";
 import { TextInput } from "@/features/ui/input/text-input";
-import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
+import { RadioGroup } from "@/features/ui/radio/radio-group";
+import { RadioItem } from "@/features/ui/radio/radio-item";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useId, useState } from "react";
@@ -28,11 +29,6 @@ type IAddOrEditTagDialog = {
 };
 
 type FormData = z.infer<typeof CreateTagInputSchema>;
-
-const TRANSACTION_TYPE_OPTIONS = [
-  { value: "EXPENSE", label: "Expense" },
-  { value: "INCOME", label: "Income" },
-] as const;
 
 const getEmptyFormValues = (): FormData => ({
   name: "",
@@ -50,8 +46,11 @@ export function AddOrEditTagDialog({
   initialValues,
   onSuccess,
 }: IAddOrEditTagDialog) {
-  const [pending, setPending] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    null | "close" | "addAnother"
+  >(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const pending = pendingAction !== null;
   const isEditMode = !!tag;
   const { mutate: createTag } = useCreateTag();
   const { mutate: updateTag } = useUpdateTag();
@@ -120,9 +119,10 @@ export function AddOrEditTagDialog({
     }
   }, [open, tag, initialName, initialValues, form]);
 
-  const handleSubmit = async (data: FormData) => {
-    setPending(true);
-
+  const processFormSubmit = async (
+    data: FormData,
+    afterSuccess: "close" | "addAnother",
+  ) => {
     // Ensure transactionType is valid (default to EXPENSE if not set)
     const transactionType =
       data.transactionType &&
@@ -152,13 +152,13 @@ export function AddOrEditTagDialog({
 
     try {
       if (isEditMode && tag) {
-        // Update existing tag
+        setPendingAction("close");
         updateTag(
           { tagId: tag.id, input: submitData },
           {
             onSuccess: (data) => {
               resetFormToClosedState();
-              setPending(false);
+              setPendingAction(null);
               onOpenChange(false);
               if (!isOfflineMutationPlaceholder(data)) {
                 toast.success("Tag updated successfully");
@@ -166,19 +166,24 @@ export function AddOrEditTagDialog({
               onSuccess?.();
             },
             onError: (error) => {
-              setPending(false);
+              setPendingAction(null);
               toast.error("Failed to update tag");
               throw error;
             },
           }
         );
       } else {
-        // Create new tag
+        const resolvedAfterSuccess = afterSuccess;
+        setPendingAction(resolvedAfterSuccess);
         createTag(submitData, {
           onSuccess: (createdTag) => {
-            resetFormToClosedState();
-            setPending(false);
-            onOpenChange(false);
+            if (resolvedAfterSuccess === "addAnother") {
+              resetFormToClosedState();
+            } else {
+              resetFormToClosedState();
+              onOpenChange(false);
+            }
+            setPendingAction(null);
             if (!isOfflineMutationPlaceholder(createdTag)) {
               toast.success("Tag created successfully");
               onSuccess?.(createdTag);
@@ -187,14 +192,14 @@ export function AddOrEditTagDialog({
             }
           },
           onError: (error) => {
-            setPending(false);
+            setPendingAction(null);
             toast.error("Failed to create tag");
             throw error;
           },
         });
       }
     } catch (err) {
-      setPending(false);
+      setPendingAction(null);
       throw err; // Let Form component handle the error
     }
   };
@@ -206,9 +211,18 @@ export function AddOrEditTagDialog({
         content={
           <Form<FormData>
             form={form}
-            onSubmit={handleSubmit}
+            onSubmit={(data) => processFormSubmit(data, "close")}
             id={formId}>
             <div className="space-y-4">
+              <RadioGroup
+                name="transactionType"
+                label="Type"
+                required
+                disabled={pending}
+                orientation="horizontal">
+                <RadioItem value="EXPENSE">Expense</RadioItem>
+                <RadioItem value="INCOME">Income</RadioItem>
+              </RadioGroup>
               <TextInput
                 name="name"
                 label="Name"
@@ -232,14 +246,6 @@ export function AddOrEditTagDialog({
                 label="Description"
                 disabled={pending}
               />
-              <SelectDropdown
-                name="transactionType"
-                label="Transaction Type"
-                options={TRANSACTION_TYPE_OPTIONS}
-                placeholder="Select transaction type..."
-                disabled={pending}
-                required
-              />
             </div>
           </Form>
         }
@@ -249,13 +255,31 @@ export function AddOrEditTagDialog({
             disabled: pending,
             buttonContent: "Cancel",
           },
+          ...(!isEditMode
+            ? [
+                {
+                  variant: "default" as const,
+                  clicked: () => {
+                    void form.handleSubmit((data) =>
+                      processFormSubmit(data, "addAnother"),
+                    )();
+                  },
+                  disabled: pending,
+                  loading: {
+                    isLoading: pendingAction === "addAnother",
+                    text: "Creating tag",
+                  },
+                  buttonContent: "Create & add another",
+                },
+              ]
+            : []),
           {
             type: "submit",
             form: formId,
-            variant: "primary",
+            variant: "primary" as const,
             disabled: pending,
             loading: {
-              isLoading: pending,
+              isLoading: pendingAction === "close",
               text: isEditMode ? "Updating tag" : "Creating tag",
             },
             buttonContent: isEditMode ? "Update" : "Create",
