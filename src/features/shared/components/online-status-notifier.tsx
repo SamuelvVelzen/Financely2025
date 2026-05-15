@@ -32,15 +32,14 @@ export function OnlineStatusNotifier() {
           message: "You are back online",
           variant: "success",
           position: "top-center",
-          duration: 0, // Don't auto-dismiss
         });
       } else {
         toastIdRef.current = toast.show({
           title: "No Internet Connection",
-          message: "Please check your internet connection",
+          message:
+            "You can keep working; changes you save are stored on this device and sync when you reconnect.",
           variant: "warning",
           position: "top-center",
-          duration: 0, // Don't auto-dismiss
         });
       }
 

@@ -5,6 +5,7 @@
  * Provides hooks and methods for authentication operations.
  */
 
+import { clearOfflineOutboxBeforeSignOut } from "@/features/shared/offline/clear-offline-outbox-on-sign-out";
 import {
   inferAdditionalFields,
   magicLinkClient,
@@ -29,6 +30,19 @@ export const authClient = createAuthClient({
     ...(process.env.ENABLE_MAGIC_LINK !== "false" ? [magicLinkClient()] : []),
   ],
 });
+
+export type ISignOutFromAppOptions = Parameters<typeof authClient.signOut>[0];
+
+/**
+ * Clears the offline mutation outbox for the current session, then signs out via Better Auth.
+ * Accepts the same argument shape as {@link authClient.signOut}.
+ */
+export async function signOutFromApp(
+  options?: ISignOutFromAppOptions,
+): Promise<void> {
+  await clearOfflineOutboxBeforeSignOut();
+  await authClient.signOut(options);
+}
 
 // Export types for use in components
 export type Session = typeof authClient.$Infer.Session;

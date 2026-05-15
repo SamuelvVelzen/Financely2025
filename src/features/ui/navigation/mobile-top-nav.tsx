@@ -2,7 +2,7 @@ import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { cn } from "@/features/util/cn";
-import { authClient } from "@/lib/auth-client";
+import { signOutFromApp } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
 import {
   HiArrowRightOnRectangle,
@@ -33,7 +33,7 @@ export function MobileTopNav() {
   };
 
   const handleLogout = async () => {
-    await authClient.signOut({
+    await signOutFromApp({
       fetchOptions: {
         onSuccess: () => {
           navigate({ to: ROUTES.ROOT });

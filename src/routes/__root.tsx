@@ -1,4 +1,7 @@
 import { OnlineStatusNotifier } from "@/features/shared/components/online-status-notifier";
+import { OfflineMutationProcessor } from "@/features/shared/offline/offline-mutation-processor";
+import { OfflineMutationQueuedToastListener } from "@/features/shared/offline/offline-mutation-queued-toast-listener";
+import { OfflineOutboxUserBinder } from "@/features/shared/offline/offline-outbox-user-binder";
 import { QueryProvider } from "@/features/shared/query/client";
 import { ToastContainer, ToastProvider } from "@/features/ui/toast";
 import {
@@ -56,6 +59,9 @@ function RootLayout() {
       <body>
         <QueryProvider>
           <ToastProvider>
+            <OfflineOutboxUserBinder />
+            <OfflineMutationProcessor />
+            <OfflineMutationQueuedToastListener />
             <OnlineStatusNotifier />
             <Outlet />
             <ToastContainer />

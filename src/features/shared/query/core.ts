@@ -9,6 +9,16 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import {
+  dispatchOfflineMutationQueued,
+  isOfflineMutationQueuedError,
+  OFFLINE_MUTATION_PLACEHOLDER,
+  isOfflineMutationPlaceholder,
+} from "@/features/shared/offline/offline-mutation-errors";
+import {
+  clearPendingOutboxInvalidations,
+  setPendingOutboxInvalidations,
+} from "@/features/shared/offline/mutation-outbox-context";
 
 /**
  * Generic query hook wrapper with sensible defaults
@@ -29,7 +39,7 @@ export function useFinQuery<
   } & Omit<
     UseQueryOptions<TData, TError, TData, TQueryKey>,
     "queryKey" | "queryFn"
-  >
+  >,
 ) {
   return useQuery<TData, TError, TData, TQueryKey>({
     refetchOnWindowFocus: true,
@@ -56,45 +66,78 @@ export function useFinMutation<
     onSuccess?: (
       data: TData,
       variables: TVariables,
-      context: TContext
+      context: TContext,
     ) => void | Promise<void>;
+    /** Called when the mutation was stored locally for offline sync (no server round-trip yet). */
+    onQueued?: (
+      variables: TVariables,
+      context: TContext | undefined,
+      queueId: string,
+    ) => void | Promise<void>;
+    /** When queued offline, drives the single combined success toast (title + offline sync line). */
+    getOfflineQueuedToast?: (
+      variables: TVariables,
+    ) => { title: string; message?: string } | undefined;
     onError?: (
       error: TError,
       variables: TVariables,
-      context: TContext | undefined
+      context: TContext | undefined,
     ) => void | Promise<void>;
     onMutate?: (variables: TVariables) => Promise<TContext> | TContext;
     onSettled?: (
       data: TData | undefined,
       error: TError | null,
       variables: TVariables,
-      context: TContext | undefined
+      context: TContext | undefined,
     ) => void | Promise<void>;
   } & Omit<
     UseMutationOptions<TData, TError, TVariables, TContext>,
     "mutationFn" | "onSuccess"
-  >
+  >,
 ) {
   const queryClient = useQueryClient();
 
   const {
     invalidateQueries = [],
     onSuccess: userOnSuccess,
+    onQueued,
+    getOfflineQueuedToast,
     ...restOptions
   } = options;
 
   return useMutation<TData, TError, TVariables, TContext>({
     ...restOptions,
-    mutationFn: options.mutationFn,
+    /** Let mutationFn run while offline so our API client can enqueue; default would pause forever. */
+    networkMode: "always",
+    mutationFn: async (variables: TVariables) => {
+      const invalidateBases = invalidateQueries.map((fn) => [...fn().slice(0, 1)]);
+      setPendingOutboxInvalidations(invalidateBases);
+      try {
+        return await options.mutationFn(variables);
+      } catch (e: unknown) {
+        if (isOfflineMutationQueuedError(e)) {
+          await onQueued?.(variables, undefined, e.queueId);
+          const hints = getOfflineQueuedToast?.(variables);
+          dispatchOfflineMutationQueued({
+            queueId: e.queueId,
+            successTitle: hints?.title,
+            successMessage: hints?.message,
+          });
+          return OFFLINE_MUTATION_PLACEHOLDER as TData;
+        }
+        throw e;
+      } finally {
+        clearPendingOutboxInvalidations();
+      }
+    },
     onSuccess: async (data, variables, context) => {
-      // Call user's onSuccess if provided
+      if (isOfflineMutationPlaceholder(data)) {
+        return;
+      }
       await userOnSuccess?.(data, variables, context);
 
-      // Invalidate queries
       for (const queryKeyBuilder of invalidateQueries) {
         const queryKey = queryKeyBuilder();
-        // Use only the first element to match all queries with that prefix
-        // e.g., ["transactions"] will match ["transactions", {...}] for any params
         const baseKey = queryKey.slice(0, 1);
         queryClient.invalidateQueries({
           queryKey: baseKey,
@@ -123,7 +166,7 @@ export function useFinInfiniteQuery<
     queryFn: (context: { pageParam: TPageParam }) => Promise<TData>;
     getNextPageParam: (
       lastPage: TData,
-      allPages: TData[]
+      allPages: TData[],
     ) => TPageParam | undefined;
     initialPageParam: TPageParam;
     staleTime?: number;
@@ -136,7 +179,7 @@ export function useFinInfiniteQuery<
       TPageParam
     >,
     "queryKey" | "queryFn" | "getNextPageParam" | "initialPageParam"
-  >
+  >,
 ): UseInfiniteQueryResult<InfiniteData<TData>, TError> {
   const { queryFn: userQueryFn, ...restOptions } = options;
 

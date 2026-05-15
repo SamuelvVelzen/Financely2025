@@ -1,4 +1,11 @@
 import type { IErrorResponse } from "@/features/shared/validation/schemas";
+import {
+  enqueueOfflineMutation,
+  getOfflineOutboxUserId,
+  type IOfflineMutationRecord,
+} from "@/features/shared/offline/offline-mutation-outbox";
+import { getIsOnline } from "@/features/shared/offline/online-status-store";
+import { OfflineMutationQueuedError } from "@/features/shared/offline/offline-mutation-errors";
 
 /**
  * API Client Configuration
@@ -30,31 +37,14 @@ export class ApiClientError extends Error {
   }
 }
 
-/**
- * Fetch wrapper with error normalization and JSON parsing
- */
-async function fetchApi<T>(
-  endpoint: string,
-  options?: RequestInit,
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+export interface IFetchMutationInit extends RequestInit {
+  bypassOfflineGate?: boolean;
+}
 
-  // TODO: Add auth header injection here
-  // const headers = new Headers(options?.headers);
-  // headers.set("Authorization", `Bearer ${getToken()}`);
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
-
-  const data = await response.json();
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const data: unknown = await response.json();
 
   if (!response.ok) {
-    // Try to parse as error response
     if (data && typeof data === "object" && "error" in data) {
       throw ApiClientError.fromResponse(data as IErrorResponse);
     }
@@ -69,6 +59,89 @@ async function fetchApi<T>(
 }
 
 /**
+ * Fetch wrapper with error normalization and JSON parsing (GET and reads)
+ */
+async function fetchApi<T>(
+  endpoint: string,
+  options?: RequestInit,
+): Promise<T> {
+  const url = `${API_BASE_URL}${endpoint}`;
+
+  const response = await fetch(url, {
+    ...options,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+
+  return parseJsonResponse<T>(response);
+}
+
+/**
+ * JSON mutation requests with offline outbox support.
+ */
+async function fetchJsonMutation<T>(
+  endpoint: string,
+  method: "POST" | "PATCH" | "PUT" | "DELETE",
+  body: unknown | undefined,
+  init?: IFetchMutationInit,
+): Promise<T> {
+  const { bypassOfflineGate, ...rest } = init ?? {};
+  const url = `${API_BASE_URL}${endpoint}`;
+
+  if (
+    typeof window !== "undefined" &&
+    !bypassOfflineGate &&
+    !getIsOnline()
+  ) {
+    const userId = getOfflineOutboxUserId();
+    if (!userId) {
+      throw new ApiClientError(
+        "OFFLINE",
+        "You are offline. Sign in to save changes on this device until you reconnect.",
+        0,
+      );
+    }
+    const queueId = await enqueueOfflineMutation({
+      userId,
+      method,
+      endpoint,
+      body,
+    });
+    throw new OfflineMutationQueuedError(queueId);
+  }
+
+  const response = await fetch(url, {
+    ...rest,
+    method,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...rest.headers,
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  return parseJsonResponse<T>(response);
+}
+
+/**
+ * Replays one queued mutation (used by the offline processor only).
+ */
+export async function replayOfflineMutationFromRecord(
+  record: IOfflineMutationRecord,
+): Promise<unknown> {
+  return fetchJsonMutation<unknown>(
+    record.endpoint,
+    record.method,
+    record.body,
+    { bypassOfflineGate: true },
+  );
+}
+
+/**
  * GET request
  */
 export async function apiGet<T>(endpoint: string): Promise<T> {
@@ -79,20 +152,14 @@ export async function apiGet<T>(endpoint: string): Promise<T> {
  * POST request
  */
 export async function apiPost<T>(endpoint: string, body?: unknown): Promise<T> {
-  return fetchApi<T>(endpoint, {
-    method: "POST",
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  return fetchJsonMutation<T>(endpoint, "POST", body);
 }
 
 /**
  * PUT request
  */
 export async function apiPut<T>(endpoint: string, body?: unknown): Promise<T> {
-  return fetchApi<T>(endpoint, {
-    method: "PUT",
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  return fetchJsonMutation<T>(endpoint, "PUT", body);
 }
 
 /**
@@ -102,17 +169,14 @@ export async function apiPatch<T>(
   endpoint: string,
   body?: unknown,
 ): Promise<T> {
-  return fetchApi<T>(endpoint, {
-    method: "PATCH",
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  return fetchJsonMutation<T>(endpoint, "PATCH", body);
 }
 
 /**
  * DELETE request
  */
 export async function apiDelete<T>(endpoint: string): Promise<T> {
-  return fetchApi<T>(endpoint, { method: "DELETE" });
+  return fetchJsonMutation<T>(endpoint, "DELETE", undefined);
 }
 
 /**
