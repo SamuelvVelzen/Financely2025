@@ -14,55 +14,59 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as appRouteRouteImport } from './routes/(app)/route'
 import { Route as appIndexRouteImport } from './routes/(app)/index'
-import { Route as appTransactionsRouteImport } from './routes/(app)/transactions'
-import { Route as appTagsRouteImport } from './routes/(app)/tags'
 import { Route as appOnboardingRouteImport } from './routes/(app)/onboarding'
-import { Route as appMessagesRouteImport } from './routes/(app)/messages'
 import { Route as appAccountRouteImport } from './routes/(app)/account'
-import { Route as appSubscriptionsIndexRouteImport } from './routes/(app)/subscriptions.index'
-import { Route as appBudgetsIndexRouteImport } from './routes/(app)/budgets.index'
-import { Route as ApiV1TransactionsRouteImport } from './routes/api/v1/transactions'
-import { Route as ApiV1TagsRouteImport } from './routes/api/v1/tags'
-import { Route as ApiV1SubscriptionsRouteImport } from './routes/api/v1/subscriptions'
-import { Route as ApiV1MessagesRouteImport } from './routes/api/v1/messages'
+import { Route as appWorkspaceIdRouteRouteImport } from './routes/(app)/$workspaceId/route'
+import { Route as appWorkspaceIdIndexRouteImport } from './routes/(app)/$workspaceId/index'
 import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
-import { Route as ApiV1BudgetsRouteImport } from './routes/api/v1/budgets'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as appBudgetsNewRouteImport } from './routes/(app)/budgets.new'
-import { Route as appBudgetsBudgetIdIndexRouteImport } from './routes/(app)/budgets.$budgetId.index'
+import { Route as appWorkspaceIdTransactionsRouteImport } from './routes/(app)/$workspaceId/transactions'
+import { Route as appWorkspaceIdTagsRouteImport } from './routes/(app)/$workspaceId/tags'
+import { Route as appWorkspaceIdMessagesRouteImport } from './routes/(app)/$workspaceId/messages'
+import { Route as appWorkspaceIdSubscriptionsIndexRouteImport } from './routes/(app)/$workspaceId/subscriptions.index'
+import { Route as appWorkspaceIdBudgetsIndexRouteImport } from './routes/(app)/$workspaceId/budgets.index'
 import { Route as ApiV1WizardProgressRouteImport } from './routes/api/v1/wizard.progress'
-import { Route as ApiV1TransactionsCsvUploadRouteImport } from './routes/api/v1/transactions.csv-upload'
-import { Route as ApiV1TransactionsCsvTransformRouteImport } from './routes/api/v1/transactions.csv-transform'
-import { Route as ApiV1TransactionsCsvMappingRouteImport } from './routes/api/v1/transactions.csv-mapping'
-import { Route as ApiV1TransactionsCsvImportRouteImport } from './routes/api/v1/transactions.csv-import'
-import { Route as ApiV1TransactionsBulkRouteImport } from './routes/api/v1/transactions.bulk'
-import { Route as ApiV1TransactionsTransactionIdRouteImport } from './routes/api/v1/transactions.$transactionId'
-import { Route as ApiV1TagsReorderRouteImport } from './routes/api/v1/tags.reorder'
-import { Route as ApiV1TagsCsvUploadRouteImport } from './routes/api/v1/tags.csv-upload'
-import { Route as ApiV1TagsCsvParseRouteImport } from './routes/api/v1/tags.csv-parse'
-import { Route as ApiV1TagsCsvMappingRouteImport } from './routes/api/v1/tags.csv-mapping'
-import { Route as ApiV1TagsCsvImportRouteImport } from './routes/api/v1/tags.csv-import'
-import { Route as ApiV1TagsBulkRouteImport } from './routes/api/v1/tags.bulk'
-import { Route as ApiV1TagsTagIdRouteImport } from './routes/api/v1/tags.$tagId'
-import { Route as ApiV1SubscriptionsDismissalsRouteImport } from './routes/api/v1/subscriptions.dismissals'
-import { Route as ApiV1SubscriptionsDetectRouteImport } from './routes/api/v1/subscriptions.detect'
-import { Route as ApiV1SubscriptionsSubscriptionIdRouteImport } from './routes/api/v1/subscriptions.$subscriptionId'
-import { Route as ApiV1MessagesReadAllRouteImport } from './routes/api/v1/messages.read-all'
-import { Route as ApiV1MessagesCountRouteImport } from './routes/api/v1/messages.count'
-import { Route as ApiV1MessagesMessageIdRouteImport } from './routes/api/v1/messages.$messageId'
+import { Route as ApiV1MeWorkspacesRouteImport } from './routes/api/v1/me.workspaces'
 import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
 import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
-import { Route as ApiV1BudgetsOverviewRouteImport } from './routes/api/v1/budgets.overview'
-import { Route as ApiV1BudgetsBudgetIdRouteImport } from './routes/api/v1/budgets.$budgetId'
-import { Route as appBudgetsBudgetIdEditRouteImport } from './routes/(app)/budgets.$budgetId.edit'
+import { Route as ApiV1WorkspaceIdTransactionsRouteImport } from './routes/api/v1/$workspaceId/transactions'
+import { Route as ApiV1WorkspaceIdTagsRouteImport } from './routes/api/v1/$workspaceId/tags'
+import { Route as ApiV1WorkspaceIdSubscriptionsRouteImport } from './routes/api/v1/$workspaceId/subscriptions'
+import { Route as ApiV1WorkspaceIdMessagesRouteImport } from './routes/api/v1/$workspaceId/messages'
+import { Route as ApiV1WorkspaceIdBudgetsRouteImport } from './routes/api/v1/$workspaceId/budgets'
+import { Route as appWorkspaceIdBudgetsNewRouteImport } from './routes/(app)/$workspaceId/budgets.new'
+import { Route as appWorkspaceIdBudgetsBudgetIdIndexRouteImport } from './routes/(app)/$workspaceId/budgets.$budgetId.index'
 import { Route as ApiV1WizardWizardIdProgressRouteImport } from './routes/api/v1/wizard.$wizardId.progress'
 import { Route as ApiV1WizardWizardIdCompleteRouteImport } from './routes/api/v1/wizard.$wizardId.complete'
-import { Route as ApiV1TagsCsvMappingValidateRouteImport } from './routes/api/v1/tags.csv-mapping.validate'
-import { Route as ApiV1SubscriptionsDismissalsDismissalIdRouteImport } from './routes/api/v1/subscriptions.dismissals.$dismissalId'
-import { Route as ApiV1SubscriptionsDetectDismissRouteImport } from './routes/api/v1/subscriptions.detect.dismiss'
+import { Route as ApiV1MeWorkspacesWorkspaceIdRouteImport } from './routes/api/v1/me.workspaces.$workspaceId'
 import { Route as ApiV1MeAccountsAccountIdRouteImport } from './routes/api/v1/me.accounts.$accountId'
-import { Route as ApiV1BudgetsBudgetIdComparisonRouteImport } from './routes/api/v1/budgets.$budgetId.comparison'
-import { Route as ApiV1TransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/transactions.$transactionId.tags.$tagId'
+import { Route as ApiV1WorkspaceIdTransactionsCsvUploadRouteImport } from './routes/api/v1/$workspaceId/transactions.csv-upload'
+import { Route as ApiV1WorkspaceIdTransactionsCsvTransformRouteImport } from './routes/api/v1/$workspaceId/transactions.csv-transform'
+import { Route as ApiV1WorkspaceIdTransactionsCsvMappingRouteImport } from './routes/api/v1/$workspaceId/transactions.csv-mapping'
+import { Route as ApiV1WorkspaceIdTransactionsCsvImportRouteImport } from './routes/api/v1/$workspaceId/transactions.csv-import'
+import { Route as ApiV1WorkspaceIdTransactionsBulkRouteImport } from './routes/api/v1/$workspaceId/transactions.bulk'
+import { Route as ApiV1WorkspaceIdTransactionsTransactionIdRouteImport } from './routes/api/v1/$workspaceId/transactions.$transactionId'
+import { Route as ApiV1WorkspaceIdTagsReorderRouteImport } from './routes/api/v1/$workspaceId/tags.reorder'
+import { Route as ApiV1WorkspaceIdTagsCsvUploadRouteImport } from './routes/api/v1/$workspaceId/tags.csv-upload'
+import { Route as ApiV1WorkspaceIdTagsCsvParseRouteImport } from './routes/api/v1/$workspaceId/tags.csv-parse'
+import { Route as ApiV1WorkspaceIdTagsCsvMappingRouteImport } from './routes/api/v1/$workspaceId/tags.csv-mapping'
+import { Route as ApiV1WorkspaceIdTagsCsvImportRouteImport } from './routes/api/v1/$workspaceId/tags.csv-import'
+import { Route as ApiV1WorkspaceIdTagsBulkRouteImport } from './routes/api/v1/$workspaceId/tags.bulk'
+import { Route as ApiV1WorkspaceIdTagsTagIdRouteImport } from './routes/api/v1/$workspaceId/tags.$tagId'
+import { Route as ApiV1WorkspaceIdSubscriptionsDismissalsRouteImport } from './routes/api/v1/$workspaceId/subscriptions.dismissals'
+import { Route as ApiV1WorkspaceIdSubscriptionsDetectRouteImport } from './routes/api/v1/$workspaceId/subscriptions.detect'
+import { Route as ApiV1WorkspaceIdSubscriptionsSubscriptionIdRouteImport } from './routes/api/v1/$workspaceId/subscriptions.$subscriptionId'
+import { Route as ApiV1WorkspaceIdMessagesReadAllRouteImport } from './routes/api/v1/$workspaceId/messages.read-all'
+import { Route as ApiV1WorkspaceIdMessagesCountRouteImport } from './routes/api/v1/$workspaceId/messages.count'
+import { Route as ApiV1WorkspaceIdMessagesMessageIdRouteImport } from './routes/api/v1/$workspaceId/messages.$messageId'
+import { Route as ApiV1WorkspaceIdBudgetsOverviewRouteImport } from './routes/api/v1/$workspaceId/budgets.overview'
+import { Route as ApiV1WorkspaceIdBudgetsBudgetIdRouteImport } from './routes/api/v1/$workspaceId/budgets.$budgetId'
+import { Route as appWorkspaceIdBudgetsBudgetIdEditRouteImport } from './routes/(app)/$workspaceId/budgets.$budgetId.edit'
+import { Route as ApiV1WorkspaceIdTagsCsvMappingValidateRouteImport } from './routes/api/v1/$workspaceId/tags.csv-mapping.validate'
+import { Route as ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRouteImport } from './routes/api/v1/$workspaceId/subscriptions.dismissals.$dismissalId'
+import { Route as ApiV1WorkspaceIdSubscriptionsDetectDismissRouteImport } from './routes/api/v1/$workspaceId/subscriptions.detect.dismiss'
+import { Route as ApiV1WorkspaceIdBudgetsBudgetIdComparisonRouteImport } from './routes/api/v1/$workspaceId/budgets.$budgetId.comparison'
+import { Route as ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/$workspaceId/transactions.$transactionId.tags.$tagId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -88,24 +92,9 @@ const appIndexRoute = appIndexRouteImport.update({
   path: '/',
   getParentRoute: () => appRouteRoute,
 } as any)
-const appTransactionsRoute = appTransactionsRouteImport.update({
-  id: '/transactions',
-  path: '/transactions',
-  getParentRoute: () => appRouteRoute,
-} as any)
-const appTagsRoute = appTagsRouteImport.update({
-  id: '/tags',
-  path: '/tags',
-  getParentRoute: () => appRouteRoute,
-} as any)
 const appOnboardingRoute = appOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
-  getParentRoute: () => appRouteRoute,
-} as any)
-const appMessagesRoute = appMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
   getParentRoute: () => appRouteRoute,
 } as any)
 const appAccountRoute = appAccountRouteImport.update({
@@ -113,44 +102,19 @@ const appAccountRoute = appAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => appRouteRoute,
 } as any)
-const appSubscriptionsIndexRoute = appSubscriptionsIndexRouteImport.update({
-  id: '/subscriptions/',
-  path: '/subscriptions/',
+const appWorkspaceIdRouteRoute = appWorkspaceIdRouteRouteImport.update({
+  id: '/$workspaceId',
+  path: '/$workspaceId',
   getParentRoute: () => appRouteRoute,
 } as any)
-const appBudgetsIndexRoute = appBudgetsIndexRouteImport.update({
-  id: '/budgets/',
-  path: '/budgets/',
-  getParentRoute: () => appRouteRoute,
-} as any)
-const ApiV1TransactionsRoute = ApiV1TransactionsRouteImport.update({
-  id: '/api/v1/transactions',
-  path: '/api/v1/transactions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiV1TagsRoute = ApiV1TagsRouteImport.update({
-  id: '/api/v1/tags',
-  path: '/api/v1/tags',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiV1SubscriptionsRoute = ApiV1SubscriptionsRouteImport.update({
-  id: '/api/v1/subscriptions',
-  path: '/api/v1/subscriptions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiV1MessagesRoute = ApiV1MessagesRouteImport.update({
-  id: '/api/v1/messages',
-  path: '/api/v1/messages',
-  getParentRoute: () => rootRouteImport,
+const appWorkspaceIdIndexRoute = appWorkspaceIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => appWorkspaceIdRouteRoute,
 } as any)
 const ApiV1MeRoute = ApiV1MeRouteImport.update({
   id: '/api/v1/me',
   path: '/api/v1/me',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiV1BudgetsRoute = ApiV1BudgetsRouteImport.update({
-  id: '/api/v1/budgets',
-  path: '/api/v1/budgets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -158,123 +122,43 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const appBudgetsNewRoute = appBudgetsNewRouteImport.update({
-  id: '/budgets/new',
-  path: '/budgets/new',
-  getParentRoute: () => appRouteRoute,
+const appWorkspaceIdTransactionsRoute =
+  appWorkspaceIdTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
+const appWorkspaceIdTagsRoute = appWorkspaceIdTagsRouteImport.update({
+  id: '/tags',
+  path: '/tags',
+  getParentRoute: () => appWorkspaceIdRouteRoute,
 } as any)
-const appBudgetsBudgetIdIndexRoute = appBudgetsBudgetIdIndexRouteImport.update({
-  id: '/budgets/$budgetId/',
-  path: '/budgets/$budgetId/',
-  getParentRoute: () => appRouteRoute,
+const appWorkspaceIdMessagesRoute = appWorkspaceIdMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => appWorkspaceIdRouteRoute,
 } as any)
+const appWorkspaceIdSubscriptionsIndexRoute =
+  appWorkspaceIdSubscriptionsIndexRouteImport.update({
+    id: '/subscriptions/',
+    path: '/subscriptions/',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
+const appWorkspaceIdBudgetsIndexRoute =
+  appWorkspaceIdBudgetsIndexRouteImport.update({
+    id: '/budgets/',
+    path: '/budgets/',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
 const ApiV1WizardProgressRoute = ApiV1WizardProgressRouteImport.update({
   id: '/api/v1/wizard/progress',
   path: '/api/v1/wizard/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiV1TransactionsCsvUploadRoute =
-  ApiV1TransactionsCsvUploadRouteImport.update({
-    id: '/csv-upload',
-    path: '/csv-upload',
-    getParentRoute: () => ApiV1TransactionsRoute,
-  } as any)
-const ApiV1TransactionsCsvTransformRoute =
-  ApiV1TransactionsCsvTransformRouteImport.update({
-    id: '/csv-transform',
-    path: '/csv-transform',
-    getParentRoute: () => ApiV1TransactionsRoute,
-  } as any)
-const ApiV1TransactionsCsvMappingRoute =
-  ApiV1TransactionsCsvMappingRouteImport.update({
-    id: '/csv-mapping',
-    path: '/csv-mapping',
-    getParentRoute: () => ApiV1TransactionsRoute,
-  } as any)
-const ApiV1TransactionsCsvImportRoute =
-  ApiV1TransactionsCsvImportRouteImport.update({
-    id: '/csv-import',
-    path: '/csv-import',
-    getParentRoute: () => ApiV1TransactionsRoute,
-  } as any)
-const ApiV1TransactionsBulkRoute = ApiV1TransactionsBulkRouteImport.update({
-  id: '/bulk',
-  path: '/bulk',
-  getParentRoute: () => ApiV1TransactionsRoute,
-} as any)
-const ApiV1TransactionsTransactionIdRoute =
-  ApiV1TransactionsTransactionIdRouteImport.update({
-    id: '/$transactionId',
-    path: '/$transactionId',
-    getParentRoute: () => ApiV1TransactionsRoute,
-  } as any)
-const ApiV1TagsReorderRoute = ApiV1TagsReorderRouteImport.update({
-  id: '/reorder',
-  path: '/reorder',
-  getParentRoute: () => ApiV1TagsRoute,
-} as any)
-const ApiV1TagsCsvUploadRoute = ApiV1TagsCsvUploadRouteImport.update({
-  id: '/csv-upload',
-  path: '/csv-upload',
-  getParentRoute: () => ApiV1TagsRoute,
-} as any)
-const ApiV1TagsCsvParseRoute = ApiV1TagsCsvParseRouteImport.update({
-  id: '/csv-parse',
-  path: '/csv-parse',
-  getParentRoute: () => ApiV1TagsRoute,
-} as any)
-const ApiV1TagsCsvMappingRoute = ApiV1TagsCsvMappingRouteImport.update({
-  id: '/csv-mapping',
-  path: '/csv-mapping',
-  getParentRoute: () => ApiV1TagsRoute,
-} as any)
-const ApiV1TagsCsvImportRoute = ApiV1TagsCsvImportRouteImport.update({
-  id: '/csv-import',
-  path: '/csv-import',
-  getParentRoute: () => ApiV1TagsRoute,
-} as any)
-const ApiV1TagsBulkRoute = ApiV1TagsBulkRouteImport.update({
-  id: '/bulk',
-  path: '/bulk',
-  getParentRoute: () => ApiV1TagsRoute,
-} as any)
-const ApiV1TagsTagIdRoute = ApiV1TagsTagIdRouteImport.update({
-  id: '/$tagId',
-  path: '/$tagId',
-  getParentRoute: () => ApiV1TagsRoute,
-} as any)
-const ApiV1SubscriptionsDismissalsRoute =
-  ApiV1SubscriptionsDismissalsRouteImport.update({
-    id: '/dismissals',
-    path: '/dismissals',
-    getParentRoute: () => ApiV1SubscriptionsRoute,
-  } as any)
-const ApiV1SubscriptionsDetectRoute =
-  ApiV1SubscriptionsDetectRouteImport.update({
-    id: '/detect',
-    path: '/detect',
-    getParentRoute: () => ApiV1SubscriptionsRoute,
-  } as any)
-const ApiV1SubscriptionsSubscriptionIdRoute =
-  ApiV1SubscriptionsSubscriptionIdRouteImport.update({
-    id: '/$subscriptionId',
-    path: '/$subscriptionId',
-    getParentRoute: () => ApiV1SubscriptionsRoute,
-  } as any)
-const ApiV1MessagesReadAllRoute = ApiV1MessagesReadAllRouteImport.update({
-  id: '/read-all',
-  path: '/read-all',
-  getParentRoute: () => ApiV1MessagesRoute,
-} as any)
-const ApiV1MessagesCountRoute = ApiV1MessagesCountRouteImport.update({
-  id: '/count',
-  path: '/count',
-  getParentRoute: () => ApiV1MessagesRoute,
-} as any)
-const ApiV1MessagesMessageIdRoute = ApiV1MessagesMessageIdRouteImport.update({
-  id: '/$messageId',
-  path: '/$messageId',
-  getParentRoute: () => ApiV1MessagesRoute,
+const ApiV1MeWorkspacesRoute = ApiV1MeWorkspacesRouteImport.update({
+  id: '/workspaces',
+  path: '/workspaces',
+  getParentRoute: () => ApiV1MeRoute,
 } as any)
 const ApiV1MeProfileRoute = ApiV1MeProfileRouteImport.update({
   id: '/profile',
@@ -286,21 +170,46 @@ const ApiV1MeAccountsRoute = ApiV1MeAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => ApiV1MeRoute,
 } as any)
-const ApiV1BudgetsOverviewRoute = ApiV1BudgetsOverviewRouteImport.update({
-  id: '/overview',
-  path: '/overview',
-  getParentRoute: () => ApiV1BudgetsRoute,
+const ApiV1WorkspaceIdTransactionsRoute =
+  ApiV1WorkspaceIdTransactionsRouteImport.update({
+    id: '/api/v1/$workspaceId/transactions',
+    path: '/api/v1/$workspaceId/transactions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1WorkspaceIdTagsRoute = ApiV1WorkspaceIdTagsRouteImport.update({
+  id: '/api/v1/$workspaceId/tags',
+  path: '/api/v1/$workspaceId/tags',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const ApiV1BudgetsBudgetIdRoute = ApiV1BudgetsBudgetIdRouteImport.update({
-  id: '/$budgetId',
-  path: '/$budgetId',
-  getParentRoute: () => ApiV1BudgetsRoute,
+const ApiV1WorkspaceIdSubscriptionsRoute =
+  ApiV1WorkspaceIdSubscriptionsRouteImport.update({
+    id: '/api/v1/$workspaceId/subscriptions',
+    path: '/api/v1/$workspaceId/subscriptions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1WorkspaceIdMessagesRoute =
+  ApiV1WorkspaceIdMessagesRouteImport.update({
+    id: '/api/v1/$workspaceId/messages',
+    path: '/api/v1/$workspaceId/messages',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1WorkspaceIdBudgetsRoute = ApiV1WorkspaceIdBudgetsRouteImport.update({
+  id: '/api/v1/$workspaceId/budgets',
+  path: '/api/v1/$workspaceId/budgets',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const appBudgetsBudgetIdEditRoute = appBudgetsBudgetIdEditRouteImport.update({
-  id: '/budgets/$budgetId/edit',
-  path: '/budgets/$budgetId/edit',
-  getParentRoute: () => appRouteRoute,
-} as any)
+const appWorkspaceIdBudgetsNewRoute =
+  appWorkspaceIdBudgetsNewRouteImport.update({
+    id: '/budgets/new',
+    path: '/budgets/new',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
+const appWorkspaceIdBudgetsBudgetIdIndexRoute =
+  appWorkspaceIdBudgetsBudgetIdIndexRouteImport.update({
+    id: '/budgets/$budgetId/',
+    path: '/budgets/$budgetId/',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
 const ApiV1WizardWizardIdProgressRoute =
   ApiV1WizardWizardIdProgressRouteImport.update({
     id: '/api/v1/wizard/$wizardId/progress',
@@ -313,23 +222,11 @@ const ApiV1WizardWizardIdCompleteRoute =
     path: '/api/v1/wizard/$wizardId/complete',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiV1TagsCsvMappingValidateRoute =
-  ApiV1TagsCsvMappingValidateRouteImport.update({
-    id: '/validate',
-    path: '/validate',
-    getParentRoute: () => ApiV1TagsCsvMappingRoute,
-  } as any)
-const ApiV1SubscriptionsDismissalsDismissalIdRoute =
-  ApiV1SubscriptionsDismissalsDismissalIdRouteImport.update({
-    id: '/$dismissalId',
-    path: '/$dismissalId',
-    getParentRoute: () => ApiV1SubscriptionsDismissalsRoute,
-  } as any)
-const ApiV1SubscriptionsDetectDismissRoute =
-  ApiV1SubscriptionsDetectDismissRouteImport.update({
-    id: '/dismiss',
-    path: '/dismiss',
-    getParentRoute: () => ApiV1SubscriptionsDetectRoute,
+const ApiV1MeWorkspacesWorkspaceIdRoute =
+  ApiV1MeWorkspacesWorkspaceIdRouteImport.update({
+    id: '/$workspaceId',
+    path: '/$workspaceId',
+    getParentRoute: () => ApiV1MeWorkspacesRoute,
   } as any)
 const ApiV1MeAccountsAccountIdRoute =
   ApiV1MeAccountsAccountIdRouteImport.update({
@@ -337,128 +234,285 @@ const ApiV1MeAccountsAccountIdRoute =
     path: '/$accountId',
     getParentRoute: () => ApiV1MeAccountsRoute,
   } as any)
-const ApiV1BudgetsBudgetIdComparisonRoute =
-  ApiV1BudgetsBudgetIdComparisonRouteImport.update({
+const ApiV1WorkspaceIdTransactionsCsvUploadRoute =
+  ApiV1WorkspaceIdTransactionsCsvUploadRouteImport.update({
+    id: '/csv-upload',
+    path: '/csv-upload',
+    getParentRoute: () => ApiV1WorkspaceIdTransactionsRoute,
+  } as any)
+const ApiV1WorkspaceIdTransactionsCsvTransformRoute =
+  ApiV1WorkspaceIdTransactionsCsvTransformRouteImport.update({
+    id: '/csv-transform',
+    path: '/csv-transform',
+    getParentRoute: () => ApiV1WorkspaceIdTransactionsRoute,
+  } as any)
+const ApiV1WorkspaceIdTransactionsCsvMappingRoute =
+  ApiV1WorkspaceIdTransactionsCsvMappingRouteImport.update({
+    id: '/csv-mapping',
+    path: '/csv-mapping',
+    getParentRoute: () => ApiV1WorkspaceIdTransactionsRoute,
+  } as any)
+const ApiV1WorkspaceIdTransactionsCsvImportRoute =
+  ApiV1WorkspaceIdTransactionsCsvImportRouteImport.update({
+    id: '/csv-import',
+    path: '/csv-import',
+    getParentRoute: () => ApiV1WorkspaceIdTransactionsRoute,
+  } as any)
+const ApiV1WorkspaceIdTransactionsBulkRoute =
+  ApiV1WorkspaceIdTransactionsBulkRouteImport.update({
+    id: '/bulk',
+    path: '/bulk',
+    getParentRoute: () => ApiV1WorkspaceIdTransactionsRoute,
+  } as any)
+const ApiV1WorkspaceIdTransactionsTransactionIdRoute =
+  ApiV1WorkspaceIdTransactionsTransactionIdRouteImport.update({
+    id: '/$transactionId',
+    path: '/$transactionId',
+    getParentRoute: () => ApiV1WorkspaceIdTransactionsRoute,
+  } as any)
+const ApiV1WorkspaceIdTagsReorderRoute =
+  ApiV1WorkspaceIdTagsReorderRouteImport.update({
+    id: '/reorder',
+    path: '/reorder',
+    getParentRoute: () => ApiV1WorkspaceIdTagsRoute,
+  } as any)
+const ApiV1WorkspaceIdTagsCsvUploadRoute =
+  ApiV1WorkspaceIdTagsCsvUploadRouteImport.update({
+    id: '/csv-upload',
+    path: '/csv-upload',
+    getParentRoute: () => ApiV1WorkspaceIdTagsRoute,
+  } as any)
+const ApiV1WorkspaceIdTagsCsvParseRoute =
+  ApiV1WorkspaceIdTagsCsvParseRouteImport.update({
+    id: '/csv-parse',
+    path: '/csv-parse',
+    getParentRoute: () => ApiV1WorkspaceIdTagsRoute,
+  } as any)
+const ApiV1WorkspaceIdTagsCsvMappingRoute =
+  ApiV1WorkspaceIdTagsCsvMappingRouteImport.update({
+    id: '/csv-mapping',
+    path: '/csv-mapping',
+    getParentRoute: () => ApiV1WorkspaceIdTagsRoute,
+  } as any)
+const ApiV1WorkspaceIdTagsCsvImportRoute =
+  ApiV1WorkspaceIdTagsCsvImportRouteImport.update({
+    id: '/csv-import',
+    path: '/csv-import',
+    getParentRoute: () => ApiV1WorkspaceIdTagsRoute,
+  } as any)
+const ApiV1WorkspaceIdTagsBulkRoute =
+  ApiV1WorkspaceIdTagsBulkRouteImport.update({
+    id: '/bulk',
+    path: '/bulk',
+    getParentRoute: () => ApiV1WorkspaceIdTagsRoute,
+  } as any)
+const ApiV1WorkspaceIdTagsTagIdRoute =
+  ApiV1WorkspaceIdTagsTagIdRouteImport.update({
+    id: '/$tagId',
+    path: '/$tagId',
+    getParentRoute: () => ApiV1WorkspaceIdTagsRoute,
+  } as any)
+const ApiV1WorkspaceIdSubscriptionsDismissalsRoute =
+  ApiV1WorkspaceIdSubscriptionsDismissalsRouteImport.update({
+    id: '/dismissals',
+    path: '/dismissals',
+    getParentRoute: () => ApiV1WorkspaceIdSubscriptionsRoute,
+  } as any)
+const ApiV1WorkspaceIdSubscriptionsDetectRoute =
+  ApiV1WorkspaceIdSubscriptionsDetectRouteImport.update({
+    id: '/detect',
+    path: '/detect',
+    getParentRoute: () => ApiV1WorkspaceIdSubscriptionsRoute,
+  } as any)
+const ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute =
+  ApiV1WorkspaceIdSubscriptionsSubscriptionIdRouteImport.update({
+    id: '/$subscriptionId',
+    path: '/$subscriptionId',
+    getParentRoute: () => ApiV1WorkspaceIdSubscriptionsRoute,
+  } as any)
+const ApiV1WorkspaceIdMessagesReadAllRoute =
+  ApiV1WorkspaceIdMessagesReadAllRouteImport.update({
+    id: '/read-all',
+    path: '/read-all',
+    getParentRoute: () => ApiV1WorkspaceIdMessagesRoute,
+  } as any)
+const ApiV1WorkspaceIdMessagesCountRoute =
+  ApiV1WorkspaceIdMessagesCountRouteImport.update({
+    id: '/count',
+    path: '/count',
+    getParentRoute: () => ApiV1WorkspaceIdMessagesRoute,
+  } as any)
+const ApiV1WorkspaceIdMessagesMessageIdRoute =
+  ApiV1WorkspaceIdMessagesMessageIdRouteImport.update({
+    id: '/$messageId',
+    path: '/$messageId',
+    getParentRoute: () => ApiV1WorkspaceIdMessagesRoute,
+  } as any)
+const ApiV1WorkspaceIdBudgetsOverviewRoute =
+  ApiV1WorkspaceIdBudgetsOverviewRouteImport.update({
+    id: '/overview',
+    path: '/overview',
+    getParentRoute: () => ApiV1WorkspaceIdBudgetsRoute,
+  } as any)
+const ApiV1WorkspaceIdBudgetsBudgetIdRoute =
+  ApiV1WorkspaceIdBudgetsBudgetIdRouteImport.update({
+    id: '/$budgetId',
+    path: '/$budgetId',
+    getParentRoute: () => ApiV1WorkspaceIdBudgetsRoute,
+  } as any)
+const appWorkspaceIdBudgetsBudgetIdEditRoute =
+  appWorkspaceIdBudgetsBudgetIdEditRouteImport.update({
+    id: '/budgets/$budgetId/edit',
+    path: '/budgets/$budgetId/edit',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
+const ApiV1WorkspaceIdTagsCsvMappingValidateRoute =
+  ApiV1WorkspaceIdTagsCsvMappingValidateRouteImport.update({
+    id: '/validate',
+    path: '/validate',
+    getParentRoute: () => ApiV1WorkspaceIdTagsCsvMappingRoute,
+  } as any)
+const ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute =
+  ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRouteImport.update({
+    id: '/$dismissalId',
+    path: '/$dismissalId',
+    getParentRoute: () => ApiV1WorkspaceIdSubscriptionsDismissalsRoute,
+  } as any)
+const ApiV1WorkspaceIdSubscriptionsDetectDismissRoute =
+  ApiV1WorkspaceIdSubscriptionsDetectDismissRouteImport.update({
+    id: '/dismiss',
+    path: '/dismiss',
+    getParentRoute: () => ApiV1WorkspaceIdSubscriptionsDetectRoute,
+  } as any)
+const ApiV1WorkspaceIdBudgetsBudgetIdComparisonRoute =
+  ApiV1WorkspaceIdBudgetsBudgetIdComparisonRouteImport.update({
     id: '/comparison',
     path: '/comparison',
-    getParentRoute: () => ApiV1BudgetsBudgetIdRoute,
+    getParentRoute: () => ApiV1WorkspaceIdBudgetsBudgetIdRoute,
   } as any)
-const ApiV1TransactionsTransactionIdTagsTagIdRoute =
-  ApiV1TransactionsTransactionIdTagsTagIdRouteImport.update({
+const ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute =
+  ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRouteImport.update({
     id: '/tags/$tagId',
     path: '/tags/$tagId',
-    getParentRoute: () => ApiV1TransactionsTransactionIdRoute,
+    getParentRoute: () => ApiV1WorkspaceIdTransactionsTransactionIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/$workspaceId': typeof appWorkspaceIdRouteRouteWithChildren
   '/account': typeof appAccountRoute
-  '/messages': typeof appMessagesRoute
   '/onboarding': typeof appOnboardingRoute
-  '/tags': typeof appTagsRoute
-  '/transactions': typeof appTransactionsRoute
   '/': typeof appIndexRoute
-  '/budgets/new': typeof appBudgetsNewRoute
+  '/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/$workspaceId/tags': typeof appWorkspaceIdTagsRoute
+  '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
-  '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
-  '/api/v1/subscriptions': typeof ApiV1SubscriptionsRouteWithChildren
-  '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
-  '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
-  '/budgets': typeof appBudgetsIndexRoute
-  '/subscriptions': typeof appSubscriptionsIndexRoute
-  '/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
-  '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
-  '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
+  '/$workspaceId/': typeof appWorkspaceIdIndexRoute
+  '/$workspaceId/budgets/new': typeof appWorkspaceIdBudgetsNewRoute
+  '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
+  '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
+  '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
+  '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
+  '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
-  '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
-  '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
-  '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
-  '/api/v1/subscriptions/$subscriptionId': typeof ApiV1SubscriptionsSubscriptionIdRoute
-  '/api/v1/subscriptions/detect': typeof ApiV1SubscriptionsDetectRouteWithChildren
-  '/api/v1/subscriptions/dismissals': typeof ApiV1SubscriptionsDismissalsRouteWithChildren
-  '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
-  '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
-  '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
-  '/api/v1/tags/csv-mapping': typeof ApiV1TagsCsvMappingRouteWithChildren
-  '/api/v1/tags/csv-parse': typeof ApiV1TagsCsvParseRoute
-  '/api/v1/tags/csv-upload': typeof ApiV1TagsCsvUploadRoute
-  '/api/v1/tags/reorder': typeof ApiV1TagsReorderRoute
-  '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
-  '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
-  '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
-  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
-  '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
-  '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/me/workspaces': typeof ApiV1MeWorkspacesRouteWithChildren
   '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
-  '/budgets/$budgetId': typeof appBudgetsBudgetIdIndexRoute
-  '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
+  '/$workspaceId/budgets': typeof appWorkspaceIdBudgetsIndexRoute
+  '/$workspaceId/subscriptions': typeof appWorkspaceIdSubscriptionsIndexRoute
+  '/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
+  '/api/v1/$workspaceId/budgets/$budgetId': typeof ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren
+  '/api/v1/$workspaceId/budgets/overview': typeof ApiV1WorkspaceIdBudgetsOverviewRoute
+  '/api/v1/$workspaceId/messages/$messageId': typeof ApiV1WorkspaceIdMessagesMessageIdRoute
+  '/api/v1/$workspaceId/messages/count': typeof ApiV1WorkspaceIdMessagesCountRoute
+  '/api/v1/$workspaceId/messages/read-all': typeof ApiV1WorkspaceIdMessagesReadAllRoute
+  '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
+  '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
+  '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
+  '/api/v1/$workspaceId/tags/$tagId': typeof ApiV1WorkspaceIdTagsTagIdRoute
+  '/api/v1/$workspaceId/tags/bulk': typeof ApiV1WorkspaceIdTagsBulkRoute
+  '/api/v1/$workspaceId/tags/csv-import': typeof ApiV1WorkspaceIdTagsCsvImportRoute
+  '/api/v1/$workspaceId/tags/csv-mapping': typeof ApiV1WorkspaceIdTagsCsvMappingRouteWithChildren
+  '/api/v1/$workspaceId/tags/csv-parse': typeof ApiV1WorkspaceIdTagsCsvParseRoute
+  '/api/v1/$workspaceId/tags/csv-upload': typeof ApiV1WorkspaceIdTagsCsvUploadRoute
+  '/api/v1/$workspaceId/tags/reorder': typeof ApiV1WorkspaceIdTagsReorderRoute
+  '/api/v1/$workspaceId/transactions/$transactionId': typeof ApiV1WorkspaceIdTransactionsTransactionIdRouteWithChildren
+  '/api/v1/$workspaceId/transactions/bulk': typeof ApiV1WorkspaceIdTransactionsBulkRoute
+  '/api/v1/$workspaceId/transactions/csv-import': typeof ApiV1WorkspaceIdTransactionsCsvImportRoute
+  '/api/v1/$workspaceId/transactions/csv-mapping': typeof ApiV1WorkspaceIdTransactionsCsvMappingRoute
+  '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
+  '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
-  '/api/v1/subscriptions/detect/dismiss': typeof ApiV1SubscriptionsDetectDismissRoute
-  '/api/v1/subscriptions/dismissals/$dismissalId': typeof ApiV1SubscriptionsDismissalsDismissalIdRoute
-  '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
+  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRoute
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
-  '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
+  '/$workspaceId/budgets/$budgetId': typeof appWorkspaceIdBudgetsBudgetIdIndexRoute
+  '/api/v1/$workspaceId/budgets/$budgetId/comparison': typeof ApiV1WorkspaceIdBudgetsBudgetIdComparisonRoute
+  '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
+  '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
+  '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/account': typeof appAccountRoute
-  '/messages': typeof appMessagesRoute
   '/onboarding': typeof appOnboardingRoute
-  '/tags': typeof appTagsRoute
-  '/transactions': typeof appTransactionsRoute
   '/': typeof appIndexRoute
-  '/budgets/new': typeof appBudgetsNewRoute
+  '/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/$workspaceId/tags': typeof appWorkspaceIdTagsRoute
+  '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
-  '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
-  '/api/v1/subscriptions': typeof ApiV1SubscriptionsRouteWithChildren
-  '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
-  '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
-  '/budgets': typeof appBudgetsIndexRoute
-  '/subscriptions': typeof appSubscriptionsIndexRoute
-  '/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
-  '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
-  '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
+  '/$workspaceId': typeof appWorkspaceIdIndexRoute
+  '/$workspaceId/budgets/new': typeof appWorkspaceIdBudgetsNewRoute
+  '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
+  '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
+  '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
+  '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
+  '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
-  '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
-  '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
-  '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
-  '/api/v1/subscriptions/$subscriptionId': typeof ApiV1SubscriptionsSubscriptionIdRoute
-  '/api/v1/subscriptions/detect': typeof ApiV1SubscriptionsDetectRouteWithChildren
-  '/api/v1/subscriptions/dismissals': typeof ApiV1SubscriptionsDismissalsRouteWithChildren
-  '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
-  '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
-  '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
-  '/api/v1/tags/csv-mapping': typeof ApiV1TagsCsvMappingRouteWithChildren
-  '/api/v1/tags/csv-parse': typeof ApiV1TagsCsvParseRoute
-  '/api/v1/tags/csv-upload': typeof ApiV1TagsCsvUploadRoute
-  '/api/v1/tags/reorder': typeof ApiV1TagsReorderRoute
-  '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
-  '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
-  '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
-  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
-  '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
-  '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/me/workspaces': typeof ApiV1MeWorkspacesRouteWithChildren
   '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
-  '/budgets/$budgetId': typeof appBudgetsBudgetIdIndexRoute
-  '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
+  '/$workspaceId/budgets': typeof appWorkspaceIdBudgetsIndexRoute
+  '/$workspaceId/subscriptions': typeof appWorkspaceIdSubscriptionsIndexRoute
+  '/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
+  '/api/v1/$workspaceId/budgets/$budgetId': typeof ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren
+  '/api/v1/$workspaceId/budgets/overview': typeof ApiV1WorkspaceIdBudgetsOverviewRoute
+  '/api/v1/$workspaceId/messages/$messageId': typeof ApiV1WorkspaceIdMessagesMessageIdRoute
+  '/api/v1/$workspaceId/messages/count': typeof ApiV1WorkspaceIdMessagesCountRoute
+  '/api/v1/$workspaceId/messages/read-all': typeof ApiV1WorkspaceIdMessagesReadAllRoute
+  '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
+  '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
+  '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
+  '/api/v1/$workspaceId/tags/$tagId': typeof ApiV1WorkspaceIdTagsTagIdRoute
+  '/api/v1/$workspaceId/tags/bulk': typeof ApiV1WorkspaceIdTagsBulkRoute
+  '/api/v1/$workspaceId/tags/csv-import': typeof ApiV1WorkspaceIdTagsCsvImportRoute
+  '/api/v1/$workspaceId/tags/csv-mapping': typeof ApiV1WorkspaceIdTagsCsvMappingRouteWithChildren
+  '/api/v1/$workspaceId/tags/csv-parse': typeof ApiV1WorkspaceIdTagsCsvParseRoute
+  '/api/v1/$workspaceId/tags/csv-upload': typeof ApiV1WorkspaceIdTagsCsvUploadRoute
+  '/api/v1/$workspaceId/tags/reorder': typeof ApiV1WorkspaceIdTagsReorderRoute
+  '/api/v1/$workspaceId/transactions/$transactionId': typeof ApiV1WorkspaceIdTransactionsTransactionIdRouteWithChildren
+  '/api/v1/$workspaceId/transactions/bulk': typeof ApiV1WorkspaceIdTransactionsBulkRoute
+  '/api/v1/$workspaceId/transactions/csv-import': typeof ApiV1WorkspaceIdTransactionsCsvImportRoute
+  '/api/v1/$workspaceId/transactions/csv-mapping': typeof ApiV1WorkspaceIdTransactionsCsvMappingRoute
+  '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
+  '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
-  '/api/v1/subscriptions/detect/dismiss': typeof ApiV1SubscriptionsDetectDismissRoute
-  '/api/v1/subscriptions/dismissals/$dismissalId': typeof ApiV1SubscriptionsDismissalsDismissalIdRoute
-  '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
+  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRoute
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
-  '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
+  '/$workspaceId/budgets/$budgetId': typeof appWorkspaceIdBudgetsBudgetIdIndexRoute
+  '/api/v1/$workspaceId/budgets/$budgetId/comparison': typeof ApiV1WorkspaceIdBudgetsBudgetIdComparisonRoute
+  '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
+  '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
+  '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -466,56 +520,60 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/(app)/$workspaceId': typeof appWorkspaceIdRouteRouteWithChildren
   '/(app)/account': typeof appAccountRoute
-  '/(app)/messages': typeof appMessagesRoute
   '/(app)/onboarding': typeof appOnboardingRoute
-  '/(app)/tags': typeof appTagsRoute
-  '/(app)/transactions': typeof appTransactionsRoute
   '/(app)/': typeof appIndexRoute
-  '/(app)/budgets/new': typeof appBudgetsNewRoute
+  '/(app)/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/(app)/$workspaceId/tags': typeof appWorkspaceIdTagsRoute
+  '/(app)/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/v1/budgets': typeof ApiV1BudgetsRouteWithChildren
   '/api/v1/me': typeof ApiV1MeRouteWithChildren
-  '/api/v1/messages': typeof ApiV1MessagesRouteWithChildren
-  '/api/v1/subscriptions': typeof ApiV1SubscriptionsRouteWithChildren
-  '/api/v1/tags': typeof ApiV1TagsRouteWithChildren
-  '/api/v1/transactions': typeof ApiV1TransactionsRouteWithChildren
-  '/(app)/budgets/': typeof appBudgetsIndexRoute
-  '/(app)/subscriptions/': typeof appSubscriptionsIndexRoute
-  '/(app)/budgets/$budgetId/edit': typeof appBudgetsBudgetIdEditRoute
-  '/api/v1/budgets/$budgetId': typeof ApiV1BudgetsBudgetIdRouteWithChildren
-  '/api/v1/budgets/overview': typeof ApiV1BudgetsOverviewRoute
+  '/(app)/$workspaceId/': typeof appWorkspaceIdIndexRoute
+  '/(app)/$workspaceId/budgets/new': typeof appWorkspaceIdBudgetsNewRoute
+  '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
+  '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
+  '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
+  '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
+  '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
-  '/api/v1/messages/$messageId': typeof ApiV1MessagesMessageIdRoute
-  '/api/v1/messages/count': typeof ApiV1MessagesCountRoute
-  '/api/v1/messages/read-all': typeof ApiV1MessagesReadAllRoute
-  '/api/v1/subscriptions/$subscriptionId': typeof ApiV1SubscriptionsSubscriptionIdRoute
-  '/api/v1/subscriptions/detect': typeof ApiV1SubscriptionsDetectRouteWithChildren
-  '/api/v1/subscriptions/dismissals': typeof ApiV1SubscriptionsDismissalsRouteWithChildren
-  '/api/v1/tags/$tagId': typeof ApiV1TagsTagIdRoute
-  '/api/v1/tags/bulk': typeof ApiV1TagsBulkRoute
-  '/api/v1/tags/csv-import': typeof ApiV1TagsCsvImportRoute
-  '/api/v1/tags/csv-mapping': typeof ApiV1TagsCsvMappingRouteWithChildren
-  '/api/v1/tags/csv-parse': typeof ApiV1TagsCsvParseRoute
-  '/api/v1/tags/csv-upload': typeof ApiV1TagsCsvUploadRoute
-  '/api/v1/tags/reorder': typeof ApiV1TagsReorderRoute
-  '/api/v1/transactions/$transactionId': typeof ApiV1TransactionsTransactionIdRouteWithChildren
-  '/api/v1/transactions/bulk': typeof ApiV1TransactionsBulkRoute
-  '/api/v1/transactions/csv-import': typeof ApiV1TransactionsCsvImportRoute
-  '/api/v1/transactions/csv-mapping': typeof ApiV1TransactionsCsvMappingRoute
-  '/api/v1/transactions/csv-transform': typeof ApiV1TransactionsCsvTransformRoute
-  '/api/v1/transactions/csv-upload': typeof ApiV1TransactionsCsvUploadRoute
+  '/api/v1/me/workspaces': typeof ApiV1MeWorkspacesRouteWithChildren
   '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
-  '/(app)/budgets/$budgetId/': typeof appBudgetsBudgetIdIndexRoute
-  '/api/v1/budgets/$budgetId/comparison': typeof ApiV1BudgetsBudgetIdComparisonRoute
+  '/(app)/$workspaceId/budgets/': typeof appWorkspaceIdBudgetsIndexRoute
+  '/(app)/$workspaceId/subscriptions/': typeof appWorkspaceIdSubscriptionsIndexRoute
+  '/(app)/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
+  '/api/v1/$workspaceId/budgets/$budgetId': typeof ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren
+  '/api/v1/$workspaceId/budgets/overview': typeof ApiV1WorkspaceIdBudgetsOverviewRoute
+  '/api/v1/$workspaceId/messages/$messageId': typeof ApiV1WorkspaceIdMessagesMessageIdRoute
+  '/api/v1/$workspaceId/messages/count': typeof ApiV1WorkspaceIdMessagesCountRoute
+  '/api/v1/$workspaceId/messages/read-all': typeof ApiV1WorkspaceIdMessagesReadAllRoute
+  '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
+  '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
+  '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
+  '/api/v1/$workspaceId/tags/$tagId': typeof ApiV1WorkspaceIdTagsTagIdRoute
+  '/api/v1/$workspaceId/tags/bulk': typeof ApiV1WorkspaceIdTagsBulkRoute
+  '/api/v1/$workspaceId/tags/csv-import': typeof ApiV1WorkspaceIdTagsCsvImportRoute
+  '/api/v1/$workspaceId/tags/csv-mapping': typeof ApiV1WorkspaceIdTagsCsvMappingRouteWithChildren
+  '/api/v1/$workspaceId/tags/csv-parse': typeof ApiV1WorkspaceIdTagsCsvParseRoute
+  '/api/v1/$workspaceId/tags/csv-upload': typeof ApiV1WorkspaceIdTagsCsvUploadRoute
+  '/api/v1/$workspaceId/tags/reorder': typeof ApiV1WorkspaceIdTagsReorderRoute
+  '/api/v1/$workspaceId/transactions/$transactionId': typeof ApiV1WorkspaceIdTransactionsTransactionIdRouteWithChildren
+  '/api/v1/$workspaceId/transactions/bulk': typeof ApiV1WorkspaceIdTransactionsBulkRoute
+  '/api/v1/$workspaceId/transactions/csv-import': typeof ApiV1WorkspaceIdTransactionsCsvImportRoute
+  '/api/v1/$workspaceId/transactions/csv-mapping': typeof ApiV1WorkspaceIdTransactionsCsvMappingRoute
+  '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
+  '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
-  '/api/v1/subscriptions/detect/dismiss': typeof ApiV1SubscriptionsDetectDismissRoute
-  '/api/v1/subscriptions/dismissals/$dismissalId': typeof ApiV1SubscriptionsDismissalsDismissalIdRoute
-  '/api/v1/tags/csv-mapping/validate': typeof ApiV1TagsCsvMappingValidateRoute
+  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRoute
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
-  '/api/v1/transactions/$transactionId/tags/$tagId': typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
+  '/(app)/$workspaceId/budgets/$budgetId/': typeof appWorkspaceIdBudgetsBudgetIdIndexRoute
+  '/api/v1/$workspaceId/budgets/$budgetId/comparison': typeof ApiV1WorkspaceIdBudgetsBudgetIdComparisonRoute
+  '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
+  '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
+  '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -523,167 +581,178 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/$workspaceId'
     | '/account'
-    | '/messages'
     | '/onboarding'
-    | '/tags'
-    | '/transactions'
     | '/'
-    | '/budgets/new'
+    | '/$workspaceId/messages'
+    | '/$workspaceId/tags'
+    | '/$workspaceId/transactions'
     | '/api/auth/$'
-    | '/api/v1/budgets'
     | '/api/v1/me'
-    | '/api/v1/messages'
-    | '/api/v1/subscriptions'
-    | '/api/v1/tags'
-    | '/api/v1/transactions'
-    | '/budgets'
-    | '/subscriptions'
-    | '/budgets/$budgetId/edit'
-    | '/api/v1/budgets/$budgetId'
-    | '/api/v1/budgets/overview'
+    | '/$workspaceId/'
+    | '/$workspaceId/budgets/new'
+    | '/api/v1/$workspaceId/budgets'
+    | '/api/v1/$workspaceId/messages'
+    | '/api/v1/$workspaceId/subscriptions'
+    | '/api/v1/$workspaceId/tags'
+    | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
-    | '/api/v1/messages/$messageId'
-    | '/api/v1/messages/count'
-    | '/api/v1/messages/read-all'
-    | '/api/v1/subscriptions/$subscriptionId'
-    | '/api/v1/subscriptions/detect'
-    | '/api/v1/subscriptions/dismissals'
-    | '/api/v1/tags/$tagId'
-    | '/api/v1/tags/bulk'
-    | '/api/v1/tags/csv-import'
-    | '/api/v1/tags/csv-mapping'
-    | '/api/v1/tags/csv-parse'
-    | '/api/v1/tags/csv-upload'
-    | '/api/v1/tags/reorder'
-    | '/api/v1/transactions/$transactionId'
-    | '/api/v1/transactions/bulk'
-    | '/api/v1/transactions/csv-import'
-    | '/api/v1/transactions/csv-mapping'
-    | '/api/v1/transactions/csv-transform'
-    | '/api/v1/transactions/csv-upload'
+    | '/api/v1/me/workspaces'
     | '/api/v1/wizard/progress'
-    | '/budgets/$budgetId'
-    | '/api/v1/budgets/$budgetId/comparison'
+    | '/$workspaceId/budgets'
+    | '/$workspaceId/subscriptions'
+    | '/$workspaceId/budgets/$budgetId/edit'
+    | '/api/v1/$workspaceId/budgets/$budgetId'
+    | '/api/v1/$workspaceId/budgets/overview'
+    | '/api/v1/$workspaceId/messages/$messageId'
+    | '/api/v1/$workspaceId/messages/count'
+    | '/api/v1/$workspaceId/messages/read-all'
+    | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
+    | '/api/v1/$workspaceId/subscriptions/detect'
+    | '/api/v1/$workspaceId/subscriptions/dismissals'
+    | '/api/v1/$workspaceId/tags/$tagId'
+    | '/api/v1/$workspaceId/tags/bulk'
+    | '/api/v1/$workspaceId/tags/csv-import'
+    | '/api/v1/$workspaceId/tags/csv-mapping'
+    | '/api/v1/$workspaceId/tags/csv-parse'
+    | '/api/v1/$workspaceId/tags/csv-upload'
+    | '/api/v1/$workspaceId/tags/reorder'
+    | '/api/v1/$workspaceId/transactions/$transactionId'
+    | '/api/v1/$workspaceId/transactions/bulk'
+    | '/api/v1/$workspaceId/transactions/csv-import'
+    | '/api/v1/$workspaceId/transactions/csv-mapping'
+    | '/api/v1/$workspaceId/transactions/csv-transform'
+    | '/api/v1/$workspaceId/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
-    | '/api/v1/subscriptions/detect/dismiss'
-    | '/api/v1/subscriptions/dismissals/$dismissalId'
-    | '/api/v1/tags/csv-mapping/validate'
+    | '/api/v1/me/workspaces/$workspaceId'
     | '/api/v1/wizard/$wizardId/complete'
     | '/api/v1/wizard/$wizardId/progress'
-    | '/api/v1/transactions/$transactionId/tags/$tagId'
+    | '/$workspaceId/budgets/$budgetId'
+    | '/api/v1/$workspaceId/budgets/$budgetId/comparison'
+    | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
+    | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
+    | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/register'
     | '/reset-password'
     | '/account'
-    | '/messages'
     | '/onboarding'
-    | '/tags'
-    | '/transactions'
     | '/'
-    | '/budgets/new'
+    | '/$workspaceId/messages'
+    | '/$workspaceId/tags'
+    | '/$workspaceId/transactions'
     | '/api/auth/$'
-    | '/api/v1/budgets'
     | '/api/v1/me'
-    | '/api/v1/messages'
-    | '/api/v1/subscriptions'
-    | '/api/v1/tags'
-    | '/api/v1/transactions'
-    | '/budgets'
-    | '/subscriptions'
-    | '/budgets/$budgetId/edit'
-    | '/api/v1/budgets/$budgetId'
-    | '/api/v1/budgets/overview'
+    | '/$workspaceId'
+    | '/$workspaceId/budgets/new'
+    | '/api/v1/$workspaceId/budgets'
+    | '/api/v1/$workspaceId/messages'
+    | '/api/v1/$workspaceId/subscriptions'
+    | '/api/v1/$workspaceId/tags'
+    | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
-    | '/api/v1/messages/$messageId'
-    | '/api/v1/messages/count'
-    | '/api/v1/messages/read-all'
-    | '/api/v1/subscriptions/$subscriptionId'
-    | '/api/v1/subscriptions/detect'
-    | '/api/v1/subscriptions/dismissals'
-    | '/api/v1/tags/$tagId'
-    | '/api/v1/tags/bulk'
-    | '/api/v1/tags/csv-import'
-    | '/api/v1/tags/csv-mapping'
-    | '/api/v1/tags/csv-parse'
-    | '/api/v1/tags/csv-upload'
-    | '/api/v1/tags/reorder'
-    | '/api/v1/transactions/$transactionId'
-    | '/api/v1/transactions/bulk'
-    | '/api/v1/transactions/csv-import'
-    | '/api/v1/transactions/csv-mapping'
-    | '/api/v1/transactions/csv-transform'
-    | '/api/v1/transactions/csv-upload'
+    | '/api/v1/me/workspaces'
     | '/api/v1/wizard/progress'
-    | '/budgets/$budgetId'
-    | '/api/v1/budgets/$budgetId/comparison'
+    | '/$workspaceId/budgets'
+    | '/$workspaceId/subscriptions'
+    | '/$workspaceId/budgets/$budgetId/edit'
+    | '/api/v1/$workspaceId/budgets/$budgetId'
+    | '/api/v1/$workspaceId/budgets/overview'
+    | '/api/v1/$workspaceId/messages/$messageId'
+    | '/api/v1/$workspaceId/messages/count'
+    | '/api/v1/$workspaceId/messages/read-all'
+    | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
+    | '/api/v1/$workspaceId/subscriptions/detect'
+    | '/api/v1/$workspaceId/subscriptions/dismissals'
+    | '/api/v1/$workspaceId/tags/$tagId'
+    | '/api/v1/$workspaceId/tags/bulk'
+    | '/api/v1/$workspaceId/tags/csv-import'
+    | '/api/v1/$workspaceId/tags/csv-mapping'
+    | '/api/v1/$workspaceId/tags/csv-parse'
+    | '/api/v1/$workspaceId/tags/csv-upload'
+    | '/api/v1/$workspaceId/tags/reorder'
+    | '/api/v1/$workspaceId/transactions/$transactionId'
+    | '/api/v1/$workspaceId/transactions/bulk'
+    | '/api/v1/$workspaceId/transactions/csv-import'
+    | '/api/v1/$workspaceId/transactions/csv-mapping'
+    | '/api/v1/$workspaceId/transactions/csv-transform'
+    | '/api/v1/$workspaceId/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
-    | '/api/v1/subscriptions/detect/dismiss'
-    | '/api/v1/subscriptions/dismissals/$dismissalId'
-    | '/api/v1/tags/csv-mapping/validate'
+    | '/api/v1/me/workspaces/$workspaceId'
     | '/api/v1/wizard/$wizardId/complete'
     | '/api/v1/wizard/$wizardId/progress'
-    | '/api/v1/transactions/$transactionId/tags/$tagId'
+    | '/$workspaceId/budgets/$budgetId'
+    | '/api/v1/$workspaceId/budgets/$budgetId/comparison'
+    | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
+    | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
+    | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
   id:
     | '__root__'
     | '/(app)'
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/(app)/$workspaceId'
     | '/(app)/account'
-    | '/(app)/messages'
     | '/(app)/onboarding'
-    | '/(app)/tags'
-    | '/(app)/transactions'
     | '/(app)/'
-    | '/(app)/budgets/new'
+    | '/(app)/$workspaceId/messages'
+    | '/(app)/$workspaceId/tags'
+    | '/(app)/$workspaceId/transactions'
     | '/api/auth/$'
-    | '/api/v1/budgets'
     | '/api/v1/me'
-    | '/api/v1/messages'
-    | '/api/v1/subscriptions'
-    | '/api/v1/tags'
-    | '/api/v1/transactions'
-    | '/(app)/budgets/'
-    | '/(app)/subscriptions/'
-    | '/(app)/budgets/$budgetId/edit'
-    | '/api/v1/budgets/$budgetId'
-    | '/api/v1/budgets/overview'
+    | '/(app)/$workspaceId/'
+    | '/(app)/$workspaceId/budgets/new'
+    | '/api/v1/$workspaceId/budgets'
+    | '/api/v1/$workspaceId/messages'
+    | '/api/v1/$workspaceId/subscriptions'
+    | '/api/v1/$workspaceId/tags'
+    | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
-    | '/api/v1/messages/$messageId'
-    | '/api/v1/messages/count'
-    | '/api/v1/messages/read-all'
-    | '/api/v1/subscriptions/$subscriptionId'
-    | '/api/v1/subscriptions/detect'
-    | '/api/v1/subscriptions/dismissals'
-    | '/api/v1/tags/$tagId'
-    | '/api/v1/tags/bulk'
-    | '/api/v1/tags/csv-import'
-    | '/api/v1/tags/csv-mapping'
-    | '/api/v1/tags/csv-parse'
-    | '/api/v1/tags/csv-upload'
-    | '/api/v1/tags/reorder'
-    | '/api/v1/transactions/$transactionId'
-    | '/api/v1/transactions/bulk'
-    | '/api/v1/transactions/csv-import'
-    | '/api/v1/transactions/csv-mapping'
-    | '/api/v1/transactions/csv-transform'
-    | '/api/v1/transactions/csv-upload'
+    | '/api/v1/me/workspaces'
     | '/api/v1/wizard/progress'
-    | '/(app)/budgets/$budgetId/'
-    | '/api/v1/budgets/$budgetId/comparison'
+    | '/(app)/$workspaceId/budgets/'
+    | '/(app)/$workspaceId/subscriptions/'
+    | '/(app)/$workspaceId/budgets/$budgetId/edit'
+    | '/api/v1/$workspaceId/budgets/$budgetId'
+    | '/api/v1/$workspaceId/budgets/overview'
+    | '/api/v1/$workspaceId/messages/$messageId'
+    | '/api/v1/$workspaceId/messages/count'
+    | '/api/v1/$workspaceId/messages/read-all'
+    | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
+    | '/api/v1/$workspaceId/subscriptions/detect'
+    | '/api/v1/$workspaceId/subscriptions/dismissals'
+    | '/api/v1/$workspaceId/tags/$tagId'
+    | '/api/v1/$workspaceId/tags/bulk'
+    | '/api/v1/$workspaceId/tags/csv-import'
+    | '/api/v1/$workspaceId/tags/csv-mapping'
+    | '/api/v1/$workspaceId/tags/csv-parse'
+    | '/api/v1/$workspaceId/tags/csv-upload'
+    | '/api/v1/$workspaceId/tags/reorder'
+    | '/api/v1/$workspaceId/transactions/$transactionId'
+    | '/api/v1/$workspaceId/transactions/bulk'
+    | '/api/v1/$workspaceId/transactions/csv-import'
+    | '/api/v1/$workspaceId/transactions/csv-mapping'
+    | '/api/v1/$workspaceId/transactions/csv-transform'
+    | '/api/v1/$workspaceId/transactions/csv-upload'
     | '/api/v1/me/accounts/$accountId'
-    | '/api/v1/subscriptions/detect/dismiss'
-    | '/api/v1/subscriptions/dismissals/$dismissalId'
-    | '/api/v1/tags/csv-mapping/validate'
+    | '/api/v1/me/workspaces/$workspaceId'
     | '/api/v1/wizard/$wizardId/complete'
     | '/api/v1/wizard/$wizardId/progress'
-    | '/api/v1/transactions/$transactionId/tags/$tagId'
+    | '/(app)/$workspaceId/budgets/$budgetId/'
+    | '/api/v1/$workspaceId/budgets/$budgetId/comparison'
+    | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
+    | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
+    | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -692,12 +761,12 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  ApiV1BudgetsRoute: typeof ApiV1BudgetsRouteWithChildren
   ApiV1MeRoute: typeof ApiV1MeRouteWithChildren
-  ApiV1MessagesRoute: typeof ApiV1MessagesRouteWithChildren
-  ApiV1SubscriptionsRoute: typeof ApiV1SubscriptionsRouteWithChildren
-  ApiV1TagsRoute: typeof ApiV1TagsRouteWithChildren
-  ApiV1TransactionsRoute: typeof ApiV1TransactionsRouteWithChildren
+  ApiV1WorkspaceIdBudgetsRoute: typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
+  ApiV1WorkspaceIdMessagesRoute: typeof ApiV1WorkspaceIdMessagesRouteWithChildren
+  ApiV1WorkspaceIdSubscriptionsRoute: typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
+  ApiV1WorkspaceIdTagsRoute: typeof ApiV1WorkspaceIdTagsRouteWithChildren
+  ApiV1WorkspaceIdTransactionsRoute: typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   ApiV1WizardProgressRoute: typeof ApiV1WizardProgressRoute
   ApiV1WizardWizardIdCompleteRoute: typeof ApiV1WizardWizardIdCompleteRoute
   ApiV1WizardWizardIdProgressRoute: typeof ApiV1WizardWizardIdProgressRoute
@@ -740,32 +809,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appIndexRouteImport
       parentRoute: typeof appRouteRoute
     }
-    '/(app)/transactions': {
-      id: '/(app)/transactions'
-      path: '/transactions'
-      fullPath: '/transactions'
-      preLoaderRoute: typeof appTransactionsRouteImport
-      parentRoute: typeof appRouteRoute
-    }
-    '/(app)/tags': {
-      id: '/(app)/tags'
-      path: '/tags'
-      fullPath: '/tags'
-      preLoaderRoute: typeof appTagsRouteImport
-      parentRoute: typeof appRouteRoute
-    }
     '/(app)/onboarding': {
       id: '/(app)/onboarding'
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof appOnboardingRouteImport
-      parentRoute: typeof appRouteRoute
-    }
-    '/(app)/messages': {
-      id: '/(app)/messages'
-      path: '/messages'
-      fullPath: '/messages'
-      preLoaderRoute: typeof appMessagesRouteImport
       parentRoute: typeof appRouteRoute
     }
     '/(app)/account': {
@@ -775,60 +823,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appAccountRouteImport
       parentRoute: typeof appRouteRoute
     }
-    '/(app)/subscriptions/': {
-      id: '/(app)/subscriptions/'
-      path: '/subscriptions'
-      fullPath: '/subscriptions'
-      preLoaderRoute: typeof appSubscriptionsIndexRouteImport
+    '/(app)/$workspaceId': {
+      id: '/(app)/$workspaceId'
+      path: '/$workspaceId'
+      fullPath: '/$workspaceId'
+      preLoaderRoute: typeof appWorkspaceIdRouteRouteImport
       parentRoute: typeof appRouteRoute
     }
-    '/(app)/budgets/': {
-      id: '/(app)/budgets/'
-      path: '/budgets'
-      fullPath: '/budgets'
-      preLoaderRoute: typeof appBudgetsIndexRouteImport
-      parentRoute: typeof appRouteRoute
-    }
-    '/api/v1/transactions': {
-      id: '/api/v1/transactions'
-      path: '/api/v1/transactions'
-      fullPath: '/api/v1/transactions'
-      preLoaderRoute: typeof ApiV1TransactionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/v1/tags': {
-      id: '/api/v1/tags'
-      path: '/api/v1/tags'
-      fullPath: '/api/v1/tags'
-      preLoaderRoute: typeof ApiV1TagsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/v1/subscriptions': {
-      id: '/api/v1/subscriptions'
-      path: '/api/v1/subscriptions'
-      fullPath: '/api/v1/subscriptions'
-      preLoaderRoute: typeof ApiV1SubscriptionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/v1/messages': {
-      id: '/api/v1/messages'
-      path: '/api/v1/messages'
-      fullPath: '/api/v1/messages'
-      preLoaderRoute: typeof ApiV1MessagesRouteImport
-      parentRoute: typeof rootRouteImport
+    '/(app)/$workspaceId/': {
+      id: '/(app)/$workspaceId/'
+      path: '/'
+      fullPath: '/$workspaceId/'
+      preLoaderRoute: typeof appWorkspaceIdIndexRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
     }
     '/api/v1/me': {
       id: '/api/v1/me'
       path: '/api/v1/me'
       fullPath: '/api/v1/me'
       preLoaderRoute: typeof ApiV1MeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/v1/budgets': {
-      id: '/api/v1/budgets'
-      path: '/api/v1/budgets'
-      fullPath: '/api/v1/budgets'
-      preLoaderRoute: typeof ApiV1BudgetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -838,19 +851,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(app)/budgets/new': {
-      id: '/(app)/budgets/new'
-      path: '/budgets/new'
-      fullPath: '/budgets/new'
-      preLoaderRoute: typeof appBudgetsNewRouteImport
-      parentRoute: typeof appRouteRoute
+    '/(app)/$workspaceId/transactions': {
+      id: '/(app)/$workspaceId/transactions'
+      path: '/transactions'
+      fullPath: '/$workspaceId/transactions'
+      preLoaderRoute: typeof appWorkspaceIdTransactionsRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
     }
-    '/(app)/budgets/$budgetId/': {
-      id: '/(app)/budgets/$budgetId/'
-      path: '/budgets/$budgetId'
-      fullPath: '/budgets/$budgetId'
-      preLoaderRoute: typeof appBudgetsBudgetIdIndexRouteImport
-      parentRoute: typeof appRouteRoute
+    '/(app)/$workspaceId/tags': {
+      id: '/(app)/$workspaceId/tags'
+      path: '/tags'
+      fullPath: '/$workspaceId/tags'
+      preLoaderRoute: typeof appWorkspaceIdTagsRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
+    }
+    '/(app)/$workspaceId/messages': {
+      id: '/(app)/$workspaceId/messages'
+      path: '/messages'
+      fullPath: '/$workspaceId/messages'
+      preLoaderRoute: typeof appWorkspaceIdMessagesRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
+    }
+    '/(app)/$workspaceId/subscriptions/': {
+      id: '/(app)/$workspaceId/subscriptions/'
+      path: '/subscriptions'
+      fullPath: '/$workspaceId/subscriptions'
+      preLoaderRoute: typeof appWorkspaceIdSubscriptionsIndexRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
+    }
+    '/(app)/$workspaceId/budgets/': {
+      id: '/(app)/$workspaceId/budgets/'
+      path: '/budgets'
+      fullPath: '/$workspaceId/budgets'
+      preLoaderRoute: typeof appWorkspaceIdBudgetsIndexRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
     }
     '/api/v1/wizard/progress': {
       id: '/api/v1/wizard/progress'
@@ -859,138 +893,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1WizardProgressRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/transactions/csv-upload': {
-      id: '/api/v1/transactions/csv-upload'
-      path: '/csv-upload'
-      fullPath: '/api/v1/transactions/csv-upload'
-      preLoaderRoute: typeof ApiV1TransactionsCsvUploadRouteImport
-      parentRoute: typeof ApiV1TransactionsRoute
-    }
-    '/api/v1/transactions/csv-transform': {
-      id: '/api/v1/transactions/csv-transform'
-      path: '/csv-transform'
-      fullPath: '/api/v1/transactions/csv-transform'
-      preLoaderRoute: typeof ApiV1TransactionsCsvTransformRouteImport
-      parentRoute: typeof ApiV1TransactionsRoute
-    }
-    '/api/v1/transactions/csv-mapping': {
-      id: '/api/v1/transactions/csv-mapping'
-      path: '/csv-mapping'
-      fullPath: '/api/v1/transactions/csv-mapping'
-      preLoaderRoute: typeof ApiV1TransactionsCsvMappingRouteImport
-      parentRoute: typeof ApiV1TransactionsRoute
-    }
-    '/api/v1/transactions/csv-import': {
-      id: '/api/v1/transactions/csv-import'
-      path: '/csv-import'
-      fullPath: '/api/v1/transactions/csv-import'
-      preLoaderRoute: typeof ApiV1TransactionsCsvImportRouteImport
-      parentRoute: typeof ApiV1TransactionsRoute
-    }
-    '/api/v1/transactions/bulk': {
-      id: '/api/v1/transactions/bulk'
-      path: '/bulk'
-      fullPath: '/api/v1/transactions/bulk'
-      preLoaderRoute: typeof ApiV1TransactionsBulkRouteImport
-      parentRoute: typeof ApiV1TransactionsRoute
-    }
-    '/api/v1/transactions/$transactionId': {
-      id: '/api/v1/transactions/$transactionId'
-      path: '/$transactionId'
-      fullPath: '/api/v1/transactions/$transactionId'
-      preLoaderRoute: typeof ApiV1TransactionsTransactionIdRouteImport
-      parentRoute: typeof ApiV1TransactionsRoute
-    }
-    '/api/v1/tags/reorder': {
-      id: '/api/v1/tags/reorder'
-      path: '/reorder'
-      fullPath: '/api/v1/tags/reorder'
-      preLoaderRoute: typeof ApiV1TagsReorderRouteImport
-      parentRoute: typeof ApiV1TagsRoute
-    }
-    '/api/v1/tags/csv-upload': {
-      id: '/api/v1/tags/csv-upload'
-      path: '/csv-upload'
-      fullPath: '/api/v1/tags/csv-upload'
-      preLoaderRoute: typeof ApiV1TagsCsvUploadRouteImport
-      parentRoute: typeof ApiV1TagsRoute
-    }
-    '/api/v1/tags/csv-parse': {
-      id: '/api/v1/tags/csv-parse'
-      path: '/csv-parse'
-      fullPath: '/api/v1/tags/csv-parse'
-      preLoaderRoute: typeof ApiV1TagsCsvParseRouteImport
-      parentRoute: typeof ApiV1TagsRoute
-    }
-    '/api/v1/tags/csv-mapping': {
-      id: '/api/v1/tags/csv-mapping'
-      path: '/csv-mapping'
-      fullPath: '/api/v1/tags/csv-mapping'
-      preLoaderRoute: typeof ApiV1TagsCsvMappingRouteImport
-      parentRoute: typeof ApiV1TagsRoute
-    }
-    '/api/v1/tags/csv-import': {
-      id: '/api/v1/tags/csv-import'
-      path: '/csv-import'
-      fullPath: '/api/v1/tags/csv-import'
-      preLoaderRoute: typeof ApiV1TagsCsvImportRouteImport
-      parentRoute: typeof ApiV1TagsRoute
-    }
-    '/api/v1/tags/bulk': {
-      id: '/api/v1/tags/bulk'
-      path: '/bulk'
-      fullPath: '/api/v1/tags/bulk'
-      preLoaderRoute: typeof ApiV1TagsBulkRouteImport
-      parentRoute: typeof ApiV1TagsRoute
-    }
-    '/api/v1/tags/$tagId': {
-      id: '/api/v1/tags/$tagId'
-      path: '/$tagId'
-      fullPath: '/api/v1/tags/$tagId'
-      preLoaderRoute: typeof ApiV1TagsTagIdRouteImport
-      parentRoute: typeof ApiV1TagsRoute
-    }
-    '/api/v1/subscriptions/dismissals': {
-      id: '/api/v1/subscriptions/dismissals'
-      path: '/dismissals'
-      fullPath: '/api/v1/subscriptions/dismissals'
-      preLoaderRoute: typeof ApiV1SubscriptionsDismissalsRouteImport
-      parentRoute: typeof ApiV1SubscriptionsRoute
-    }
-    '/api/v1/subscriptions/detect': {
-      id: '/api/v1/subscriptions/detect'
-      path: '/detect'
-      fullPath: '/api/v1/subscriptions/detect'
-      preLoaderRoute: typeof ApiV1SubscriptionsDetectRouteImport
-      parentRoute: typeof ApiV1SubscriptionsRoute
-    }
-    '/api/v1/subscriptions/$subscriptionId': {
-      id: '/api/v1/subscriptions/$subscriptionId'
-      path: '/$subscriptionId'
-      fullPath: '/api/v1/subscriptions/$subscriptionId'
-      preLoaderRoute: typeof ApiV1SubscriptionsSubscriptionIdRouteImport
-      parentRoute: typeof ApiV1SubscriptionsRoute
-    }
-    '/api/v1/messages/read-all': {
-      id: '/api/v1/messages/read-all'
-      path: '/read-all'
-      fullPath: '/api/v1/messages/read-all'
-      preLoaderRoute: typeof ApiV1MessagesReadAllRouteImport
-      parentRoute: typeof ApiV1MessagesRoute
-    }
-    '/api/v1/messages/count': {
-      id: '/api/v1/messages/count'
-      path: '/count'
-      fullPath: '/api/v1/messages/count'
-      preLoaderRoute: typeof ApiV1MessagesCountRouteImport
-      parentRoute: typeof ApiV1MessagesRoute
-    }
-    '/api/v1/messages/$messageId': {
-      id: '/api/v1/messages/$messageId'
-      path: '/$messageId'
-      fullPath: '/api/v1/messages/$messageId'
-      preLoaderRoute: typeof ApiV1MessagesMessageIdRouteImport
-      parentRoute: typeof ApiV1MessagesRoute
+    '/api/v1/me/workspaces': {
+      id: '/api/v1/me/workspaces'
+      path: '/workspaces'
+      fullPath: '/api/v1/me/workspaces'
+      preLoaderRoute: typeof ApiV1MeWorkspacesRouteImport
+      parentRoute: typeof ApiV1MeRoute
     }
     '/api/v1/me/profile': {
       id: '/api/v1/me/profile'
@@ -1006,26 +914,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeAccountsRouteImport
       parentRoute: typeof ApiV1MeRoute
     }
-    '/api/v1/budgets/overview': {
-      id: '/api/v1/budgets/overview'
-      path: '/overview'
-      fullPath: '/api/v1/budgets/overview'
-      preLoaderRoute: typeof ApiV1BudgetsOverviewRouteImport
-      parentRoute: typeof ApiV1BudgetsRoute
+    '/api/v1/$workspaceId/transactions': {
+      id: '/api/v1/$workspaceId/transactions'
+      path: '/api/v1/$workspaceId/transactions'
+      fullPath: '/api/v1/$workspaceId/transactions'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/v1/budgets/$budgetId': {
-      id: '/api/v1/budgets/$budgetId'
-      path: '/$budgetId'
-      fullPath: '/api/v1/budgets/$budgetId'
-      preLoaderRoute: typeof ApiV1BudgetsBudgetIdRouteImport
-      parentRoute: typeof ApiV1BudgetsRoute
+    '/api/v1/$workspaceId/tags': {
+      id: '/api/v1/$workspaceId/tags'
+      path: '/api/v1/$workspaceId/tags'
+      fullPath: '/api/v1/$workspaceId/tags'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/(app)/budgets/$budgetId/edit': {
-      id: '/(app)/budgets/$budgetId/edit'
-      path: '/budgets/$budgetId/edit'
-      fullPath: '/budgets/$budgetId/edit'
-      preLoaderRoute: typeof appBudgetsBudgetIdEditRouteImport
-      parentRoute: typeof appRouteRoute
+    '/api/v1/$workspaceId/subscriptions': {
+      id: '/api/v1/$workspaceId/subscriptions'
+      path: '/api/v1/$workspaceId/subscriptions'
+      fullPath: '/api/v1/$workspaceId/subscriptions'
+      preLoaderRoute: typeof ApiV1WorkspaceIdSubscriptionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/$workspaceId/messages': {
+      id: '/api/v1/$workspaceId/messages'
+      path: '/api/v1/$workspaceId/messages'
+      fullPath: '/api/v1/$workspaceId/messages'
+      preLoaderRoute: typeof ApiV1WorkspaceIdMessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/$workspaceId/budgets': {
+      id: '/api/v1/$workspaceId/budgets'
+      path: '/api/v1/$workspaceId/budgets'
+      fullPath: '/api/v1/$workspaceId/budgets'
+      preLoaderRoute: typeof ApiV1WorkspaceIdBudgetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(app)/$workspaceId/budgets/new': {
+      id: '/(app)/$workspaceId/budgets/new'
+      path: '/budgets/new'
+      fullPath: '/$workspaceId/budgets/new'
+      preLoaderRoute: typeof appWorkspaceIdBudgetsNewRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
+    }
+    '/(app)/$workspaceId/budgets/$budgetId/': {
+      id: '/(app)/$workspaceId/budgets/$budgetId/'
+      path: '/budgets/$budgetId'
+      fullPath: '/$workspaceId/budgets/$budgetId'
+      preLoaderRoute: typeof appWorkspaceIdBudgetsBudgetIdIndexRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
     }
     '/api/v1/wizard/$wizardId/progress': {
       id: '/api/v1/wizard/$wizardId/progress'
@@ -1041,26 +977,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1WizardWizardIdCompleteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/tags/csv-mapping/validate': {
-      id: '/api/v1/tags/csv-mapping/validate'
-      path: '/validate'
-      fullPath: '/api/v1/tags/csv-mapping/validate'
-      preLoaderRoute: typeof ApiV1TagsCsvMappingValidateRouteImport
-      parentRoute: typeof ApiV1TagsCsvMappingRoute
-    }
-    '/api/v1/subscriptions/dismissals/$dismissalId': {
-      id: '/api/v1/subscriptions/dismissals/$dismissalId'
-      path: '/$dismissalId'
-      fullPath: '/api/v1/subscriptions/dismissals/$dismissalId'
-      preLoaderRoute: typeof ApiV1SubscriptionsDismissalsDismissalIdRouteImport
-      parentRoute: typeof ApiV1SubscriptionsDismissalsRoute
-    }
-    '/api/v1/subscriptions/detect/dismiss': {
-      id: '/api/v1/subscriptions/detect/dismiss'
-      path: '/dismiss'
-      fullPath: '/api/v1/subscriptions/detect/dismiss'
-      preLoaderRoute: typeof ApiV1SubscriptionsDetectDismissRouteImport
-      parentRoute: typeof ApiV1SubscriptionsDetectRoute
+    '/api/v1/me/workspaces/$workspaceId': {
+      id: '/api/v1/me/workspaces/$workspaceId'
+      path: '/$workspaceId'
+      fullPath: '/api/v1/me/workspaces/$workspaceId'
+      preLoaderRoute: typeof ApiV1MeWorkspacesWorkspaceIdRouteImport
+      parentRoute: typeof ApiV1MeWorkspacesRoute
     }
     '/api/v1/me/accounts/$accountId': {
       id: '/api/v1/me/accounts/$accountId'
@@ -1069,78 +991,243 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeAccountsAccountIdRouteImport
       parentRoute: typeof ApiV1MeAccountsRoute
     }
-    '/api/v1/budgets/$budgetId/comparison': {
-      id: '/api/v1/budgets/$budgetId/comparison'
-      path: '/comparison'
-      fullPath: '/api/v1/budgets/$budgetId/comparison'
-      preLoaderRoute: typeof ApiV1BudgetsBudgetIdComparisonRouteImport
-      parentRoute: typeof ApiV1BudgetsBudgetIdRoute
+    '/api/v1/$workspaceId/transactions/csv-upload': {
+      id: '/api/v1/$workspaceId/transactions/csv-upload'
+      path: '/csv-upload'
+      fullPath: '/api/v1/$workspaceId/transactions/csv-upload'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsCsvUploadRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsRoute
     }
-    '/api/v1/transactions/$transactionId/tags/$tagId': {
-      id: '/api/v1/transactions/$transactionId/tags/$tagId'
+    '/api/v1/$workspaceId/transactions/csv-transform': {
+      id: '/api/v1/$workspaceId/transactions/csv-transform'
+      path: '/csv-transform'
+      fullPath: '/api/v1/$workspaceId/transactions/csv-transform'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsCsvTransformRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsRoute
+    }
+    '/api/v1/$workspaceId/transactions/csv-mapping': {
+      id: '/api/v1/$workspaceId/transactions/csv-mapping'
+      path: '/csv-mapping'
+      fullPath: '/api/v1/$workspaceId/transactions/csv-mapping'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsCsvMappingRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsRoute
+    }
+    '/api/v1/$workspaceId/transactions/csv-import': {
+      id: '/api/v1/$workspaceId/transactions/csv-import'
+      path: '/csv-import'
+      fullPath: '/api/v1/$workspaceId/transactions/csv-import'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsCsvImportRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsRoute
+    }
+    '/api/v1/$workspaceId/transactions/bulk': {
+      id: '/api/v1/$workspaceId/transactions/bulk'
+      path: '/bulk'
+      fullPath: '/api/v1/$workspaceId/transactions/bulk'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsBulkRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsRoute
+    }
+    '/api/v1/$workspaceId/transactions/$transactionId': {
+      id: '/api/v1/$workspaceId/transactions/$transactionId'
+      path: '/$transactionId'
+      fullPath: '/api/v1/$workspaceId/transactions/$transactionId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsRoute
+    }
+    '/api/v1/$workspaceId/tags/reorder': {
+      id: '/api/v1/$workspaceId/tags/reorder'
+      path: '/reorder'
+      fullPath: '/api/v1/$workspaceId/tags/reorder'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsReorderRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagsRoute
+    }
+    '/api/v1/$workspaceId/tags/csv-upload': {
+      id: '/api/v1/$workspaceId/tags/csv-upload'
+      path: '/csv-upload'
+      fullPath: '/api/v1/$workspaceId/tags/csv-upload'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsCsvUploadRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagsRoute
+    }
+    '/api/v1/$workspaceId/tags/csv-parse': {
+      id: '/api/v1/$workspaceId/tags/csv-parse'
+      path: '/csv-parse'
+      fullPath: '/api/v1/$workspaceId/tags/csv-parse'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsCsvParseRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagsRoute
+    }
+    '/api/v1/$workspaceId/tags/csv-mapping': {
+      id: '/api/v1/$workspaceId/tags/csv-mapping'
+      path: '/csv-mapping'
+      fullPath: '/api/v1/$workspaceId/tags/csv-mapping'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsCsvMappingRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagsRoute
+    }
+    '/api/v1/$workspaceId/tags/csv-import': {
+      id: '/api/v1/$workspaceId/tags/csv-import'
+      path: '/csv-import'
+      fullPath: '/api/v1/$workspaceId/tags/csv-import'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsCsvImportRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagsRoute
+    }
+    '/api/v1/$workspaceId/tags/bulk': {
+      id: '/api/v1/$workspaceId/tags/bulk'
+      path: '/bulk'
+      fullPath: '/api/v1/$workspaceId/tags/bulk'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsBulkRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagsRoute
+    }
+    '/api/v1/$workspaceId/tags/$tagId': {
+      id: '/api/v1/$workspaceId/tags/$tagId'
+      path: '/$tagId'
+      fullPath: '/api/v1/$workspaceId/tags/$tagId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsTagIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagsRoute
+    }
+    '/api/v1/$workspaceId/subscriptions/dismissals': {
+      id: '/api/v1/$workspaceId/subscriptions/dismissals'
+      path: '/dismissals'
+      fullPath: '/api/v1/$workspaceId/subscriptions/dismissals'
+      preLoaderRoute: typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdSubscriptionsRoute
+    }
+    '/api/v1/$workspaceId/subscriptions/detect': {
+      id: '/api/v1/$workspaceId/subscriptions/detect'
+      path: '/detect'
+      fullPath: '/api/v1/$workspaceId/subscriptions/detect'
+      preLoaderRoute: typeof ApiV1WorkspaceIdSubscriptionsDetectRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdSubscriptionsRoute
+    }
+    '/api/v1/$workspaceId/subscriptions/$subscriptionId': {
+      id: '/api/v1/$workspaceId/subscriptions/$subscriptionId'
+      path: '/$subscriptionId'
+      fullPath: '/api/v1/$workspaceId/subscriptions/$subscriptionId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdSubscriptionsRoute
+    }
+    '/api/v1/$workspaceId/messages/read-all': {
+      id: '/api/v1/$workspaceId/messages/read-all'
+      path: '/read-all'
+      fullPath: '/api/v1/$workspaceId/messages/read-all'
+      preLoaderRoute: typeof ApiV1WorkspaceIdMessagesReadAllRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdMessagesRoute
+    }
+    '/api/v1/$workspaceId/messages/count': {
+      id: '/api/v1/$workspaceId/messages/count'
+      path: '/count'
+      fullPath: '/api/v1/$workspaceId/messages/count'
+      preLoaderRoute: typeof ApiV1WorkspaceIdMessagesCountRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdMessagesRoute
+    }
+    '/api/v1/$workspaceId/messages/$messageId': {
+      id: '/api/v1/$workspaceId/messages/$messageId'
+      path: '/$messageId'
+      fullPath: '/api/v1/$workspaceId/messages/$messageId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdMessagesMessageIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdMessagesRoute
+    }
+    '/api/v1/$workspaceId/budgets/overview': {
+      id: '/api/v1/$workspaceId/budgets/overview'
+      path: '/overview'
+      fullPath: '/api/v1/$workspaceId/budgets/overview'
+      preLoaderRoute: typeof ApiV1WorkspaceIdBudgetsOverviewRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdBudgetsRoute
+    }
+    '/api/v1/$workspaceId/budgets/$budgetId': {
+      id: '/api/v1/$workspaceId/budgets/$budgetId'
+      path: '/$budgetId'
+      fullPath: '/api/v1/$workspaceId/budgets/$budgetId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdBudgetsBudgetIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdBudgetsRoute
+    }
+    '/(app)/$workspaceId/budgets/$budgetId/edit': {
+      id: '/(app)/$workspaceId/budgets/$budgetId/edit'
+      path: '/budgets/$budgetId/edit'
+      fullPath: '/$workspaceId/budgets/$budgetId/edit'
+      preLoaderRoute: typeof appWorkspaceIdBudgetsBudgetIdEditRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
+    }
+    '/api/v1/$workspaceId/tags/csv-mapping/validate': {
+      id: '/api/v1/$workspaceId/tags/csv-mapping/validate'
+      path: '/validate'
+      fullPath: '/api/v1/$workspaceId/tags/csv-mapping/validate'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagsCsvMappingValidateRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagsCsvMappingRoute
+    }
+    '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': {
+      id: '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
+      path: '/$dismissalId'
+      fullPath: '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdSubscriptionsDismissalsRoute
+    }
+    '/api/v1/$workspaceId/subscriptions/detect/dismiss': {
+      id: '/api/v1/$workspaceId/subscriptions/detect/dismiss'
+      path: '/dismiss'
+      fullPath: '/api/v1/$workspaceId/subscriptions/detect/dismiss'
+      preLoaderRoute: typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdSubscriptionsDetectRoute
+    }
+    '/api/v1/$workspaceId/budgets/$budgetId/comparison': {
+      id: '/api/v1/$workspaceId/budgets/$budgetId/comparison'
+      path: '/comparison'
+      fullPath: '/api/v1/$workspaceId/budgets/$budgetId/comparison'
+      preLoaderRoute: typeof ApiV1WorkspaceIdBudgetsBudgetIdComparisonRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdBudgetsBudgetIdRoute
+    }
+    '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': {
+      id: '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
       path: '/tags/$tagId'
-      fullPath: '/api/v1/transactions/$transactionId/tags/$tagId'
-      preLoaderRoute: typeof ApiV1TransactionsTransactionIdTagsTagIdRouteImport
-      parentRoute: typeof ApiV1TransactionsTransactionIdRoute
+      fullPath: '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRoute
     }
   }
 }
 
+interface appWorkspaceIdRouteRouteChildren {
+  appWorkspaceIdMessagesRoute: typeof appWorkspaceIdMessagesRoute
+  appWorkspaceIdTagsRoute: typeof appWorkspaceIdTagsRoute
+  appWorkspaceIdTransactionsRoute: typeof appWorkspaceIdTransactionsRoute
+  appWorkspaceIdIndexRoute: typeof appWorkspaceIdIndexRoute
+  appWorkspaceIdBudgetsNewRoute: typeof appWorkspaceIdBudgetsNewRoute
+  appWorkspaceIdBudgetsIndexRoute: typeof appWorkspaceIdBudgetsIndexRoute
+  appWorkspaceIdSubscriptionsIndexRoute: typeof appWorkspaceIdSubscriptionsIndexRoute
+  appWorkspaceIdBudgetsBudgetIdEditRoute: typeof appWorkspaceIdBudgetsBudgetIdEditRoute
+  appWorkspaceIdBudgetsBudgetIdIndexRoute: typeof appWorkspaceIdBudgetsBudgetIdIndexRoute
+}
+
+const appWorkspaceIdRouteRouteChildren: appWorkspaceIdRouteRouteChildren = {
+  appWorkspaceIdMessagesRoute: appWorkspaceIdMessagesRoute,
+  appWorkspaceIdTagsRoute: appWorkspaceIdTagsRoute,
+  appWorkspaceIdTransactionsRoute: appWorkspaceIdTransactionsRoute,
+  appWorkspaceIdIndexRoute: appWorkspaceIdIndexRoute,
+  appWorkspaceIdBudgetsNewRoute: appWorkspaceIdBudgetsNewRoute,
+  appWorkspaceIdBudgetsIndexRoute: appWorkspaceIdBudgetsIndexRoute,
+  appWorkspaceIdSubscriptionsIndexRoute: appWorkspaceIdSubscriptionsIndexRoute,
+  appWorkspaceIdBudgetsBudgetIdEditRoute:
+    appWorkspaceIdBudgetsBudgetIdEditRoute,
+  appWorkspaceIdBudgetsBudgetIdIndexRoute:
+    appWorkspaceIdBudgetsBudgetIdIndexRoute,
+}
+
+const appWorkspaceIdRouteRouteWithChildren =
+  appWorkspaceIdRouteRoute._addFileChildren(appWorkspaceIdRouteRouteChildren)
+
 interface appRouteRouteChildren {
+  appWorkspaceIdRouteRoute: typeof appWorkspaceIdRouteRouteWithChildren
   appAccountRoute: typeof appAccountRoute
-  appMessagesRoute: typeof appMessagesRoute
   appOnboardingRoute: typeof appOnboardingRoute
-  appTagsRoute: typeof appTagsRoute
-  appTransactionsRoute: typeof appTransactionsRoute
   appIndexRoute: typeof appIndexRoute
-  appBudgetsNewRoute: typeof appBudgetsNewRoute
-  appBudgetsIndexRoute: typeof appBudgetsIndexRoute
-  appSubscriptionsIndexRoute: typeof appSubscriptionsIndexRoute
-  appBudgetsBudgetIdEditRoute: typeof appBudgetsBudgetIdEditRoute
-  appBudgetsBudgetIdIndexRoute: typeof appBudgetsBudgetIdIndexRoute
 }
 
 const appRouteRouteChildren: appRouteRouteChildren = {
+  appWorkspaceIdRouteRoute: appWorkspaceIdRouteRouteWithChildren,
   appAccountRoute: appAccountRoute,
-  appMessagesRoute: appMessagesRoute,
   appOnboardingRoute: appOnboardingRoute,
-  appTagsRoute: appTagsRoute,
-  appTransactionsRoute: appTransactionsRoute,
   appIndexRoute: appIndexRoute,
-  appBudgetsNewRoute: appBudgetsNewRoute,
-  appBudgetsIndexRoute: appBudgetsIndexRoute,
-  appSubscriptionsIndexRoute: appSubscriptionsIndexRoute,
-  appBudgetsBudgetIdEditRoute: appBudgetsBudgetIdEditRoute,
-  appBudgetsBudgetIdIndexRoute: appBudgetsBudgetIdIndexRoute,
 }
 
 const appRouteRouteWithChildren = appRouteRoute._addFileChildren(
   appRouteRouteChildren,
-)
-
-interface ApiV1BudgetsBudgetIdRouteChildren {
-  ApiV1BudgetsBudgetIdComparisonRoute: typeof ApiV1BudgetsBudgetIdComparisonRoute
-}
-
-const ApiV1BudgetsBudgetIdRouteChildren: ApiV1BudgetsBudgetIdRouteChildren = {
-  ApiV1BudgetsBudgetIdComparisonRoute: ApiV1BudgetsBudgetIdComparisonRoute,
-}
-
-const ApiV1BudgetsBudgetIdRouteWithChildren =
-  ApiV1BudgetsBudgetIdRoute._addFileChildren(ApiV1BudgetsBudgetIdRouteChildren)
-
-interface ApiV1BudgetsRouteChildren {
-  ApiV1BudgetsBudgetIdRoute: typeof ApiV1BudgetsBudgetIdRouteWithChildren
-  ApiV1BudgetsOverviewRoute: typeof ApiV1BudgetsOverviewRoute
-}
-
-const ApiV1BudgetsRouteChildren: ApiV1BudgetsRouteChildren = {
-  ApiV1BudgetsBudgetIdRoute: ApiV1BudgetsBudgetIdRouteWithChildren,
-  ApiV1BudgetsOverviewRoute: ApiV1BudgetsOverviewRoute,
-}
-
-const ApiV1BudgetsRouteWithChildren = ApiV1BudgetsRoute._addFileChildren(
-  ApiV1BudgetsRouteChildren,
 )
 
 interface ApiV1MeAccountsRouteChildren {
@@ -1155,151 +1242,217 @@ const ApiV1MeAccountsRouteWithChildren = ApiV1MeAccountsRoute._addFileChildren(
   ApiV1MeAccountsRouteChildren,
 )
 
+interface ApiV1MeWorkspacesRouteChildren {
+  ApiV1MeWorkspacesWorkspaceIdRoute: typeof ApiV1MeWorkspacesWorkspaceIdRoute
+}
+
+const ApiV1MeWorkspacesRouteChildren: ApiV1MeWorkspacesRouteChildren = {
+  ApiV1MeWorkspacesWorkspaceIdRoute: ApiV1MeWorkspacesWorkspaceIdRoute,
+}
+
+const ApiV1MeWorkspacesRouteWithChildren =
+  ApiV1MeWorkspacesRoute._addFileChildren(ApiV1MeWorkspacesRouteChildren)
+
 interface ApiV1MeRouteChildren {
   ApiV1MeAccountsRoute: typeof ApiV1MeAccountsRouteWithChildren
   ApiV1MeProfileRoute: typeof ApiV1MeProfileRoute
+  ApiV1MeWorkspacesRoute: typeof ApiV1MeWorkspacesRouteWithChildren
 }
 
 const ApiV1MeRouteChildren: ApiV1MeRouteChildren = {
   ApiV1MeAccountsRoute: ApiV1MeAccountsRouteWithChildren,
   ApiV1MeProfileRoute: ApiV1MeProfileRoute,
+  ApiV1MeWorkspacesRoute: ApiV1MeWorkspacesRouteWithChildren,
 }
 
 const ApiV1MeRouteWithChildren =
   ApiV1MeRoute._addFileChildren(ApiV1MeRouteChildren)
 
-interface ApiV1MessagesRouteChildren {
-  ApiV1MessagesMessageIdRoute: typeof ApiV1MessagesMessageIdRoute
-  ApiV1MessagesCountRoute: typeof ApiV1MessagesCountRoute
-  ApiV1MessagesReadAllRoute: typeof ApiV1MessagesReadAllRoute
+interface ApiV1WorkspaceIdBudgetsBudgetIdRouteChildren {
+  ApiV1WorkspaceIdBudgetsBudgetIdComparisonRoute: typeof ApiV1WorkspaceIdBudgetsBudgetIdComparisonRoute
 }
 
-const ApiV1MessagesRouteChildren: ApiV1MessagesRouteChildren = {
-  ApiV1MessagesMessageIdRoute: ApiV1MessagesMessageIdRoute,
-  ApiV1MessagesCountRoute: ApiV1MessagesCountRoute,
-  ApiV1MessagesReadAllRoute: ApiV1MessagesReadAllRoute,
-}
-
-const ApiV1MessagesRouteWithChildren = ApiV1MessagesRoute._addFileChildren(
-  ApiV1MessagesRouteChildren,
-)
-
-interface ApiV1SubscriptionsDetectRouteChildren {
-  ApiV1SubscriptionsDetectDismissRoute: typeof ApiV1SubscriptionsDetectDismissRoute
-}
-
-const ApiV1SubscriptionsDetectRouteChildren: ApiV1SubscriptionsDetectRouteChildren =
+const ApiV1WorkspaceIdBudgetsBudgetIdRouteChildren: ApiV1WorkspaceIdBudgetsBudgetIdRouteChildren =
   {
-    ApiV1SubscriptionsDetectDismissRoute: ApiV1SubscriptionsDetectDismissRoute,
+    ApiV1WorkspaceIdBudgetsBudgetIdComparisonRoute:
+      ApiV1WorkspaceIdBudgetsBudgetIdComparisonRoute,
   }
 
-const ApiV1SubscriptionsDetectRouteWithChildren =
-  ApiV1SubscriptionsDetectRoute._addFileChildren(
-    ApiV1SubscriptionsDetectRouteChildren,
+const ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren =
+  ApiV1WorkspaceIdBudgetsBudgetIdRoute._addFileChildren(
+    ApiV1WorkspaceIdBudgetsBudgetIdRouteChildren,
   )
 
-interface ApiV1SubscriptionsDismissalsRouteChildren {
-  ApiV1SubscriptionsDismissalsDismissalIdRoute: typeof ApiV1SubscriptionsDismissalsDismissalIdRoute
+interface ApiV1WorkspaceIdBudgetsRouteChildren {
+  ApiV1WorkspaceIdBudgetsBudgetIdRoute: typeof ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren
+  ApiV1WorkspaceIdBudgetsOverviewRoute: typeof ApiV1WorkspaceIdBudgetsOverviewRoute
 }
 
-const ApiV1SubscriptionsDismissalsRouteChildren: ApiV1SubscriptionsDismissalsRouteChildren =
+const ApiV1WorkspaceIdBudgetsRouteChildren: ApiV1WorkspaceIdBudgetsRouteChildren =
   {
-    ApiV1SubscriptionsDismissalsDismissalIdRoute:
-      ApiV1SubscriptionsDismissalsDismissalIdRoute,
+    ApiV1WorkspaceIdBudgetsBudgetIdRoute:
+      ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren,
+    ApiV1WorkspaceIdBudgetsOverviewRoute: ApiV1WorkspaceIdBudgetsOverviewRoute,
   }
 
-const ApiV1SubscriptionsDismissalsRouteWithChildren =
-  ApiV1SubscriptionsDismissalsRoute._addFileChildren(
-    ApiV1SubscriptionsDismissalsRouteChildren,
+const ApiV1WorkspaceIdBudgetsRouteWithChildren =
+  ApiV1WorkspaceIdBudgetsRoute._addFileChildren(
+    ApiV1WorkspaceIdBudgetsRouteChildren,
   )
 
-interface ApiV1SubscriptionsRouteChildren {
-  ApiV1SubscriptionsSubscriptionIdRoute: typeof ApiV1SubscriptionsSubscriptionIdRoute
-  ApiV1SubscriptionsDetectRoute: typeof ApiV1SubscriptionsDetectRouteWithChildren
-  ApiV1SubscriptionsDismissalsRoute: typeof ApiV1SubscriptionsDismissalsRouteWithChildren
+interface ApiV1WorkspaceIdMessagesRouteChildren {
+  ApiV1WorkspaceIdMessagesMessageIdRoute: typeof ApiV1WorkspaceIdMessagesMessageIdRoute
+  ApiV1WorkspaceIdMessagesCountRoute: typeof ApiV1WorkspaceIdMessagesCountRoute
+  ApiV1WorkspaceIdMessagesReadAllRoute: typeof ApiV1WorkspaceIdMessagesReadAllRoute
 }
 
-const ApiV1SubscriptionsRouteChildren: ApiV1SubscriptionsRouteChildren = {
-  ApiV1SubscriptionsSubscriptionIdRoute: ApiV1SubscriptionsSubscriptionIdRoute,
-  ApiV1SubscriptionsDetectRoute: ApiV1SubscriptionsDetectRouteWithChildren,
-  ApiV1SubscriptionsDismissalsRoute:
-    ApiV1SubscriptionsDismissalsRouteWithChildren,
-}
-
-const ApiV1SubscriptionsRouteWithChildren =
-  ApiV1SubscriptionsRoute._addFileChildren(ApiV1SubscriptionsRouteChildren)
-
-interface ApiV1TagsCsvMappingRouteChildren {
-  ApiV1TagsCsvMappingValidateRoute: typeof ApiV1TagsCsvMappingValidateRoute
-}
-
-const ApiV1TagsCsvMappingRouteChildren: ApiV1TagsCsvMappingRouteChildren = {
-  ApiV1TagsCsvMappingValidateRoute: ApiV1TagsCsvMappingValidateRoute,
-}
-
-const ApiV1TagsCsvMappingRouteWithChildren =
-  ApiV1TagsCsvMappingRoute._addFileChildren(ApiV1TagsCsvMappingRouteChildren)
-
-interface ApiV1TagsRouteChildren {
-  ApiV1TagsTagIdRoute: typeof ApiV1TagsTagIdRoute
-  ApiV1TagsBulkRoute: typeof ApiV1TagsBulkRoute
-  ApiV1TagsCsvImportRoute: typeof ApiV1TagsCsvImportRoute
-  ApiV1TagsCsvMappingRoute: typeof ApiV1TagsCsvMappingRouteWithChildren
-  ApiV1TagsCsvParseRoute: typeof ApiV1TagsCsvParseRoute
-  ApiV1TagsCsvUploadRoute: typeof ApiV1TagsCsvUploadRoute
-  ApiV1TagsReorderRoute: typeof ApiV1TagsReorderRoute
-}
-
-const ApiV1TagsRouteChildren: ApiV1TagsRouteChildren = {
-  ApiV1TagsTagIdRoute: ApiV1TagsTagIdRoute,
-  ApiV1TagsBulkRoute: ApiV1TagsBulkRoute,
-  ApiV1TagsCsvImportRoute: ApiV1TagsCsvImportRoute,
-  ApiV1TagsCsvMappingRoute: ApiV1TagsCsvMappingRouteWithChildren,
-  ApiV1TagsCsvParseRoute: ApiV1TagsCsvParseRoute,
-  ApiV1TagsCsvUploadRoute: ApiV1TagsCsvUploadRoute,
-  ApiV1TagsReorderRoute: ApiV1TagsReorderRoute,
-}
-
-const ApiV1TagsRouteWithChildren = ApiV1TagsRoute._addFileChildren(
-  ApiV1TagsRouteChildren,
-)
-
-interface ApiV1TransactionsTransactionIdRouteChildren {
-  ApiV1TransactionsTransactionIdTagsTagIdRoute: typeof ApiV1TransactionsTransactionIdTagsTagIdRoute
-}
-
-const ApiV1TransactionsTransactionIdRouteChildren: ApiV1TransactionsTransactionIdRouteChildren =
+const ApiV1WorkspaceIdMessagesRouteChildren: ApiV1WorkspaceIdMessagesRouteChildren =
   {
-    ApiV1TransactionsTransactionIdTagsTagIdRoute:
-      ApiV1TransactionsTransactionIdTagsTagIdRoute,
+    ApiV1WorkspaceIdMessagesMessageIdRoute:
+      ApiV1WorkspaceIdMessagesMessageIdRoute,
+    ApiV1WorkspaceIdMessagesCountRoute: ApiV1WorkspaceIdMessagesCountRoute,
+    ApiV1WorkspaceIdMessagesReadAllRoute: ApiV1WorkspaceIdMessagesReadAllRoute,
   }
 
-const ApiV1TransactionsTransactionIdRouteWithChildren =
-  ApiV1TransactionsTransactionIdRoute._addFileChildren(
-    ApiV1TransactionsTransactionIdRouteChildren,
+const ApiV1WorkspaceIdMessagesRouteWithChildren =
+  ApiV1WorkspaceIdMessagesRoute._addFileChildren(
+    ApiV1WorkspaceIdMessagesRouteChildren,
   )
 
-interface ApiV1TransactionsRouteChildren {
-  ApiV1TransactionsTransactionIdRoute: typeof ApiV1TransactionsTransactionIdRouteWithChildren
-  ApiV1TransactionsBulkRoute: typeof ApiV1TransactionsBulkRoute
-  ApiV1TransactionsCsvImportRoute: typeof ApiV1TransactionsCsvImportRoute
-  ApiV1TransactionsCsvMappingRoute: typeof ApiV1TransactionsCsvMappingRoute
-  ApiV1TransactionsCsvTransformRoute: typeof ApiV1TransactionsCsvTransformRoute
-  ApiV1TransactionsCsvUploadRoute: typeof ApiV1TransactionsCsvUploadRoute
+interface ApiV1WorkspaceIdSubscriptionsDetectRouteChildren {
+  ApiV1WorkspaceIdSubscriptionsDetectDismissRoute: typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
 }
 
-const ApiV1TransactionsRouteChildren: ApiV1TransactionsRouteChildren = {
-  ApiV1TransactionsTransactionIdRoute:
-    ApiV1TransactionsTransactionIdRouteWithChildren,
-  ApiV1TransactionsBulkRoute: ApiV1TransactionsBulkRoute,
-  ApiV1TransactionsCsvImportRoute: ApiV1TransactionsCsvImportRoute,
-  ApiV1TransactionsCsvMappingRoute: ApiV1TransactionsCsvMappingRoute,
-  ApiV1TransactionsCsvTransformRoute: ApiV1TransactionsCsvTransformRoute,
-  ApiV1TransactionsCsvUploadRoute: ApiV1TransactionsCsvUploadRoute,
+const ApiV1WorkspaceIdSubscriptionsDetectRouteChildren: ApiV1WorkspaceIdSubscriptionsDetectRouteChildren =
+  {
+    ApiV1WorkspaceIdSubscriptionsDetectDismissRoute:
+      ApiV1WorkspaceIdSubscriptionsDetectDismissRoute,
+  }
+
+const ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren =
+  ApiV1WorkspaceIdSubscriptionsDetectRoute._addFileChildren(
+    ApiV1WorkspaceIdSubscriptionsDetectRouteChildren,
+  )
+
+interface ApiV1WorkspaceIdSubscriptionsDismissalsRouteChildren {
+  ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute: typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
 }
 
-const ApiV1TransactionsRouteWithChildren =
-  ApiV1TransactionsRoute._addFileChildren(ApiV1TransactionsRouteChildren)
+const ApiV1WorkspaceIdSubscriptionsDismissalsRouteChildren: ApiV1WorkspaceIdSubscriptionsDismissalsRouteChildren =
+  {
+    ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute:
+      ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute,
+  }
+
+const ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren =
+  ApiV1WorkspaceIdSubscriptionsDismissalsRoute._addFileChildren(
+    ApiV1WorkspaceIdSubscriptionsDismissalsRouteChildren,
+  )
+
+interface ApiV1WorkspaceIdSubscriptionsRouteChildren {
+  ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute: typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
+  ApiV1WorkspaceIdSubscriptionsDetectRoute: typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
+  ApiV1WorkspaceIdSubscriptionsDismissalsRoute: typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
+}
+
+const ApiV1WorkspaceIdSubscriptionsRouteChildren: ApiV1WorkspaceIdSubscriptionsRouteChildren =
+  {
+    ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute:
+      ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute,
+    ApiV1WorkspaceIdSubscriptionsDetectRoute:
+      ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren,
+    ApiV1WorkspaceIdSubscriptionsDismissalsRoute:
+      ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren,
+  }
+
+const ApiV1WorkspaceIdSubscriptionsRouteWithChildren =
+  ApiV1WorkspaceIdSubscriptionsRoute._addFileChildren(
+    ApiV1WorkspaceIdSubscriptionsRouteChildren,
+  )
+
+interface ApiV1WorkspaceIdTagsCsvMappingRouteChildren {
+  ApiV1WorkspaceIdTagsCsvMappingValidateRoute: typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+}
+
+const ApiV1WorkspaceIdTagsCsvMappingRouteChildren: ApiV1WorkspaceIdTagsCsvMappingRouteChildren =
+  {
+    ApiV1WorkspaceIdTagsCsvMappingValidateRoute:
+      ApiV1WorkspaceIdTagsCsvMappingValidateRoute,
+  }
+
+const ApiV1WorkspaceIdTagsCsvMappingRouteWithChildren =
+  ApiV1WorkspaceIdTagsCsvMappingRoute._addFileChildren(
+    ApiV1WorkspaceIdTagsCsvMappingRouteChildren,
+  )
+
+interface ApiV1WorkspaceIdTagsRouteChildren {
+  ApiV1WorkspaceIdTagsTagIdRoute: typeof ApiV1WorkspaceIdTagsTagIdRoute
+  ApiV1WorkspaceIdTagsBulkRoute: typeof ApiV1WorkspaceIdTagsBulkRoute
+  ApiV1WorkspaceIdTagsCsvImportRoute: typeof ApiV1WorkspaceIdTagsCsvImportRoute
+  ApiV1WorkspaceIdTagsCsvMappingRoute: typeof ApiV1WorkspaceIdTagsCsvMappingRouteWithChildren
+  ApiV1WorkspaceIdTagsCsvParseRoute: typeof ApiV1WorkspaceIdTagsCsvParseRoute
+  ApiV1WorkspaceIdTagsCsvUploadRoute: typeof ApiV1WorkspaceIdTagsCsvUploadRoute
+  ApiV1WorkspaceIdTagsReorderRoute: typeof ApiV1WorkspaceIdTagsReorderRoute
+}
+
+const ApiV1WorkspaceIdTagsRouteChildren: ApiV1WorkspaceIdTagsRouteChildren = {
+  ApiV1WorkspaceIdTagsTagIdRoute: ApiV1WorkspaceIdTagsTagIdRoute,
+  ApiV1WorkspaceIdTagsBulkRoute: ApiV1WorkspaceIdTagsBulkRoute,
+  ApiV1WorkspaceIdTagsCsvImportRoute: ApiV1WorkspaceIdTagsCsvImportRoute,
+  ApiV1WorkspaceIdTagsCsvMappingRoute:
+    ApiV1WorkspaceIdTagsCsvMappingRouteWithChildren,
+  ApiV1WorkspaceIdTagsCsvParseRoute: ApiV1WorkspaceIdTagsCsvParseRoute,
+  ApiV1WorkspaceIdTagsCsvUploadRoute: ApiV1WorkspaceIdTagsCsvUploadRoute,
+  ApiV1WorkspaceIdTagsReorderRoute: ApiV1WorkspaceIdTagsReorderRoute,
+}
+
+const ApiV1WorkspaceIdTagsRouteWithChildren =
+  ApiV1WorkspaceIdTagsRoute._addFileChildren(ApiV1WorkspaceIdTagsRouteChildren)
+
+interface ApiV1WorkspaceIdTransactionsTransactionIdRouteChildren {
+  ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
+}
+
+const ApiV1WorkspaceIdTransactionsTransactionIdRouteChildren: ApiV1WorkspaceIdTransactionsTransactionIdRouteChildren =
+  {
+    ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute:
+      ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute,
+  }
+
+const ApiV1WorkspaceIdTransactionsTransactionIdRouteWithChildren =
+  ApiV1WorkspaceIdTransactionsTransactionIdRoute._addFileChildren(
+    ApiV1WorkspaceIdTransactionsTransactionIdRouteChildren,
+  )
+
+interface ApiV1WorkspaceIdTransactionsRouteChildren {
+  ApiV1WorkspaceIdTransactionsTransactionIdRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRouteWithChildren
+  ApiV1WorkspaceIdTransactionsBulkRoute: typeof ApiV1WorkspaceIdTransactionsBulkRoute
+  ApiV1WorkspaceIdTransactionsCsvImportRoute: typeof ApiV1WorkspaceIdTransactionsCsvImportRoute
+  ApiV1WorkspaceIdTransactionsCsvMappingRoute: typeof ApiV1WorkspaceIdTransactionsCsvMappingRoute
+  ApiV1WorkspaceIdTransactionsCsvTransformRoute: typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
+  ApiV1WorkspaceIdTransactionsCsvUploadRoute: typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
+}
+
+const ApiV1WorkspaceIdTransactionsRouteChildren: ApiV1WorkspaceIdTransactionsRouteChildren =
+  {
+    ApiV1WorkspaceIdTransactionsTransactionIdRoute:
+      ApiV1WorkspaceIdTransactionsTransactionIdRouteWithChildren,
+    ApiV1WorkspaceIdTransactionsBulkRoute:
+      ApiV1WorkspaceIdTransactionsBulkRoute,
+    ApiV1WorkspaceIdTransactionsCsvImportRoute:
+      ApiV1WorkspaceIdTransactionsCsvImportRoute,
+    ApiV1WorkspaceIdTransactionsCsvMappingRoute:
+      ApiV1WorkspaceIdTransactionsCsvMappingRoute,
+    ApiV1WorkspaceIdTransactionsCsvTransformRoute:
+      ApiV1WorkspaceIdTransactionsCsvTransformRoute,
+    ApiV1WorkspaceIdTransactionsCsvUploadRoute:
+      ApiV1WorkspaceIdTransactionsCsvUploadRoute,
+  }
+
+const ApiV1WorkspaceIdTransactionsRouteWithChildren =
+  ApiV1WorkspaceIdTransactionsRoute._addFileChildren(
+    ApiV1WorkspaceIdTransactionsRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   appRouteRoute: appRouteRouteWithChildren,
@@ -1307,12 +1460,14 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
-  ApiV1BudgetsRoute: ApiV1BudgetsRouteWithChildren,
   ApiV1MeRoute: ApiV1MeRouteWithChildren,
-  ApiV1MessagesRoute: ApiV1MessagesRouteWithChildren,
-  ApiV1SubscriptionsRoute: ApiV1SubscriptionsRouteWithChildren,
-  ApiV1TagsRoute: ApiV1TagsRouteWithChildren,
-  ApiV1TransactionsRoute: ApiV1TransactionsRouteWithChildren,
+  ApiV1WorkspaceIdBudgetsRoute: ApiV1WorkspaceIdBudgetsRouteWithChildren,
+  ApiV1WorkspaceIdMessagesRoute: ApiV1WorkspaceIdMessagesRouteWithChildren,
+  ApiV1WorkspaceIdSubscriptionsRoute:
+    ApiV1WorkspaceIdSubscriptionsRouteWithChildren,
+  ApiV1WorkspaceIdTagsRoute: ApiV1WorkspaceIdTagsRouteWithChildren,
+  ApiV1WorkspaceIdTransactionsRoute:
+    ApiV1WorkspaceIdTransactionsRouteWithChildren,
   ApiV1WizardProgressRoute: ApiV1WizardProgressRoute,
   ApiV1WizardWizardIdCompleteRoute: ApiV1WizardWizardIdCompleteRoute,
   ApiV1WizardWizardIdProgressRoute: ApiV1WizardWizardIdProgressRoute,

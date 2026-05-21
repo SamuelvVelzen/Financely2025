@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -9,39 +9,44 @@ import { json } from "@tanstack/react-start";
 import { TransactionService } from "../../services/transaction.service";
 
 /**
- * POST /api/v1/transactions/bulk
+ * POST /api/v1/:workspaceId/transactions/bulk
  * Bulk create transactions with partial success support
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
-      const body = await request.json();
-      const validated = BulkCreateTransactionInputSchema.parse(body);
-      const result = await TransactionService.bulkCreateTransactions(
-        userId,
-        validated
-      );
-
-      // Determine status code based on results
-      if (result.errors.length === 0) {
-        // All items succeeded
-        return json(result, { status: 201 });
-      } else if (result.created.length === 0) {
-        // All items failed
-        return createErrorResponse(
-          new ApiError(
-            ErrorCodes.VALIDATION_ERROR,
-            "All transactions failed to create",
-            400
-          )
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const body = await request.json();
+        const validated = BulkCreateTransactionInputSchema.parse(body);
+        const result = await TransactionService.bulkCreateTransactions(
+          userId,
+          workspaceId,
+          validated
         );
-      } else {
-        // Partial success
-        return json(result, { status: 207 });
+
+        if (result.errors.length === 0) {
+          return json(result, { status: 201 });
+        } else if (result.created.length === 0) {
+          return createErrorResponse(
+            new ApiError(
+              ErrorCodes.VALIDATION_ERROR,
+              "All transactions failed to create",
+              400
+            )
+          );
+        } else {
+          return json(result, { status: 207 });
+        }
       }
-    });
+    );
   } catch (error) {
     return createErrorResponse(error);
   }
 }
-

@@ -15,13 +15,12 @@ import {
   type IUpdateSubscriptionInput,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 
 export class SubscriptionService {
-  /**
-   * Confirm a detected subscription: create Subscription record and link transactions.
-   */
   static async confirmSubscription(
     userId: string,
+    workspaceId: IWorkspaceId,
     input: IConfirmSubscriptionInput,
   ): Promise<ISubscription> {
     const validated = ConfirmSubscriptionInputSchema.parse(input);
@@ -30,6 +29,7 @@ export class SubscriptionService {
       where: {
         id: { in: validated.transactionIds },
         userId,
+        workspaceId,
       },
     });
 
@@ -40,6 +40,7 @@ export class SubscriptionService {
     const subscription = await prisma.subscription.create({
       data: {
         userId,
+        workspaceId,
         name: validated.name,
         type: validated.type,
         amount: validated.amount,
@@ -53,6 +54,7 @@ export class SubscriptionService {
       where: {
         id: { in: validated.transactionIds },
         userId,
+        workspaceId,
       },
       data: {
         subscriptionId: subscription.id,
@@ -79,18 +81,14 @@ export class SubscriptionService {
     return this.parseSubscription(withTransactions!);
   }
 
-  /**
-   * List all subscriptions for a user.
-   */
   static async listSubscriptions(
     userId: string,
+    workspaceId: IWorkspaceId,
     query?: ISubscriptionsQuery,
   ): Promise<ISubscriptionsResponse> {
-    const validated = query
-      ? SubscriptionsQuerySchema.parse(query)
-      : {};
+    const validated = query ? SubscriptionsQuerySchema.parse(query) : {};
 
-    const where: Record<string, unknown> = { userId };
+    const where: Record<string, unknown> = { userId, workspaceId };
     if (validated.active !== undefined) {
       where.active = validated.active;
     }
@@ -118,15 +116,13 @@ export class SubscriptionService {
     });
   }
 
-  /**
-   * Get a single subscription by ID.
-   */
   static async getSubscriptionById(
     userId: string,
+    workspaceId: IWorkspaceId,
     subscriptionId: string,
   ): Promise<ISubscription | null> {
     const subscription = await prisma.subscription.findFirst({
-      where: { id: subscriptionId, userId },
+      where: { id: subscriptionId, userId, workspaceId },
       include: {
         transactions: {
           select: {
@@ -147,18 +143,16 @@ export class SubscriptionService {
     return this.parseSubscription(subscription);
   }
 
-  /**
-   * Update a subscription.
-   */
   static async updateSubscription(
     userId: string,
+    workspaceId: IWorkspaceId,
     subscriptionId: string,
     input: IUpdateSubscriptionInput,
   ): Promise<ISubscription> {
     const validated = UpdateSubscriptionInputSchema.parse(input);
 
     const existing = await prisma.subscription.findFirst({
-      where: { id: subscriptionId, userId },
+      where: { id: subscriptionId, userId, workspaceId },
     });
 
     if (!existing) {
@@ -193,15 +187,13 @@ export class SubscriptionService {
     return this.parseSubscription(updated);
   }
 
-  /**
-   * Delete a subscription and unlink its transactions.
-   */
   static async deleteSubscription(
     userId: string,
+    workspaceId: IWorkspaceId,
     subscriptionId: string,
   ): Promise<void> {
     const existing = await prisma.subscription.findFirst({
-      where: { id: subscriptionId, userId },
+      where: { id: subscriptionId, userId, workspaceId },
     });
 
     if (!existing) {
@@ -209,7 +201,7 @@ export class SubscriptionService {
     }
 
     await prisma.transaction.updateMany({
-      where: { subscriptionId },
+      where: { subscriptionId, userId, workspaceId },
       data: { subscriptionId: null },
     });
 
@@ -218,20 +210,17 @@ export class SubscriptionService {
     });
   }
 
-  /**
-   * Dismiss a subscription candidate so it won't be suggested again.
-   */
   static async dismissCandidate(
     userId: string,
+    workspaceId: IWorkspaceId,
     input: IDismissSubscriptionCandidateInput,
   ): Promise<void> {
-    const validated =
-      DismissSubscriptionCandidateInputSchema.parse(input);
+    const validated = DismissSubscriptionCandidateInputSchema.parse(input);
 
     await prisma.subscriptionDismissal.upsert({
       where: {
-        userId_normalizedName_type: {
-          userId,
+        workspaceId_normalizedName_type: {
+          workspaceId,
           normalizedName: validated.normalizedName,
           type: validated.type,
         },
@@ -239,20 +228,19 @@ export class SubscriptionService {
       update: {},
       create: {
         userId,
+        workspaceId,
         normalizedName: validated.normalizedName,
         type: validated.type,
       },
     });
   }
 
-  /**
-   * List all dismissed subscription candidates for a user.
-   */
   static async listDismissals(
     userId: string,
+    workspaceId: IWorkspaceId,
   ): Promise<ISubscriptionDismissalsResponse> {
     const dismissals = await prisma.subscriptionDismissal.findMany({
-      where: { userId },
+      where: { userId, workspaceId },
       orderBy: { createdAt: "desc" },
     });
 
@@ -266,15 +254,13 @@ export class SubscriptionService {
     });
   }
 
-  /**
-   * Remove a dismissal so the candidate can be detected again.
-   */
   static async undismissCandidate(
     userId: string,
+    workspaceId: IWorkspaceId,
     dismissalId: string,
   ): Promise<void> {
     const existing = await prisma.subscriptionDismissal.findFirst({
-      where: { id: dismissalId, userId },
+      where: { id: dismissalId, userId, workspaceId },
     });
 
     if (!existing) {
@@ -286,12 +272,9 @@ export class SubscriptionService {
     });
   }
 
-  /**
-   * Try to auto-flag a transaction to an existing active subscription.
-   * Returns the subscription ID if matched, null otherwise.
-   */
   static async tryAutoFlag(
     userId: string,
+    workspaceId: IWorkspaceId,
     transactionName: string,
     transactionType: string,
     transactionCurrency: string,
@@ -300,6 +283,7 @@ export class SubscriptionService {
     const subscriptions = await prisma.subscription.findMany({
       where: {
         userId,
+        workspaceId,
         active: true,
         type: transactionType as "EXPENSE" | "INCOME",
         currency: transactionCurrency,
@@ -342,27 +326,25 @@ export class SubscriptionService {
     return null;
   }
 
-  private static parseSubscription(
-    subscription: {
+  private static parseSubscription(subscription: {
+    id: string;
+    name: string;
+    type: string;
+    amount: { toString: () => string };
+    currency: string;
+    frequency: string;
+    active: boolean;
+    transactions?: Array<{
       id: string;
       name: string;
-      type: string;
       amount: { toString: () => string };
       currency: string;
-      frequency: string;
-      active: boolean;
-      transactions?: Array<{
-        id: string;
-        name: string;
-        amount: { toString: () => string };
-        currency: string;
-        transactionDate: Date;
-        type: string;
-      }>;
-      createdAt: Date;
-      updatedAt: Date;
-    },
-  ): ISubscription {
+      transactionDate: Date;
+      type: string;
+    }>;
+    createdAt: Date;
+    updatedAt: Date;
+  }): ISubscription {
     return SubscriptionSchema.parse({
       id: subscription.id,
       name: subscription.name,

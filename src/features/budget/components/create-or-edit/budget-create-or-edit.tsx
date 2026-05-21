@@ -1,4 +1,5 @@
-import { ROUTES } from "@/config/routes";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import {
   useBudget,
   useCreateBudget,
@@ -407,6 +408,8 @@ export function BudgetCreateOrEditPage({
   budgetId,
 }: IBudgetCreateOrEditPageProps) {
   const navigate = useNavigate();
+  const workspaceId = useActiveWorkspaceId();
+  const workspaceRouteParam = workspaceIdToRouteParam(workspaceId);
   const isEditMode = !!budgetId;
   const { data: budget, isLoading: budgetLoading } = useBudget(budgetId ?? "");
   const { mutate: createBudget } = useCreateBudget();
@@ -471,13 +474,16 @@ export function BudgetCreateOrEditPage({
 
     if (isEditMode && budgetId) {
       navigate({
-        to: "/budgets/$budgetId",
-        params: { budgetId },
+        to: "/$workspaceId/budgets/$budgetId",
+        params: { workspaceId: workspaceRouteParam, budgetId },
       });
     } else {
-      navigate({ to: ROUTES.BUDGETS });
+      navigate({
+        to: "/$workspaceId/budgets",
+        params: { workspaceId: workspaceRouteParam },
+      });
     }
-  }, [hasUnsavedChanges, isEditMode, budgetId, navigate]);
+  }, [hasUnsavedChanges, isEditMode, budgetId, navigate, workspaceId]);
 
   const handleDiscardChanges = useCallback(() => {
     if (isEditMode && budget) {
@@ -490,14 +496,18 @@ export function BudgetCreateOrEditPage({
 
     if (isEditMode && budgetId) {
       navigate({
-        to: "/budgets/$budgetId",
-        params: { budgetId },
+        to: "/$workspaceId/budgets/$budgetId",
+        params: { workspaceId: workspaceRouteParam, budgetId },
         ignoreBlocker: true,
       });
     } else {
-      navigate({ to: ROUTES.BUDGETS, ignoreBlocker: true });
+      navigate({
+        to: "/$workspaceId/budgets",
+        params: { workspaceId: workspaceRouteParam },
+        ignoreBlocker: true,
+      });
     }
-  }, [isEditMode, budget, budgetId, form, navigate]);
+  }, [isEditMode, budget, budgetId, form, navigate, workspaceId]);
 
   const showBlockerDialog = blocker.status === "blocked";
   const showUnsavedChangesPrompt = showUnsavedDialog || showBlockerDialog;
@@ -542,8 +552,8 @@ export function BudgetCreateOrEditPage({
                   toast.success("Budget updated successfully");
                 }
                 navigate({
-                  to: "/budgets/$budgetId",
-                  params: { budgetId },
+                  to: "/$workspaceId/budgets/$budgetId",
+                  params: { workspaceId: workspaceRouteParam, budgetId },
                   ignoreBlocker: true,
                 });
               },
@@ -561,7 +571,11 @@ export function BudgetCreateOrEditPage({
               if (!isOfflineMutationPlaceholder(data)) {
                 toast.success("Budget created successfully");
               }
-              navigate({ to: ROUTES.BUDGETS, ignoreBlocker: true });
+              navigate({
+                to: "/$workspaceId/budgets",
+                params: { workspaceId: workspaceRouteParam },
+                ignoreBlocker: true,
+              });
             },
             onError: (error: Error) => {
               setPending(false);
@@ -576,7 +590,7 @@ export function BudgetCreateOrEditPage({
         toast.error("An unexpected error occurred");
       }
     },
-    [isEditMode, budgetId, createBudget, updateBudget, navigate, toast]
+    [isEditMode, budgetId, createBudget, updateBudget, navigate, toast, workspaceId]
   );
 
   if (isEditMode && budgetLoading) {

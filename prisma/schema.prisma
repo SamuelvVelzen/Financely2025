@@ -136,6 +136,7 @@ model User {
   userInfo      UserInfo       @relation(fields: [userInfoId], references: [id], onDelete: Cascade)
 
   // App domain relations
+  workspaces     Workspace[]
   transactions    Transaction[]
   tags            Tag[]
   messages        Message[]
@@ -145,10 +146,31 @@ model User {
   wizardProgress  WizardProgress[]
 }
 
+// Financial workspace ("space"): isolated books per user (solo v1)
+model Workspace {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions             Transaction[]
+  tags                     Tag[]
+  messages                 Message[]
+  budgets                  Budget[]
+  subscriptions            Subscription[]
+  subscriptionDismissals   SubscriptionDismissal[]
+
+  @@index([userId])
+}
+
 model Transaction {
   id            String           @id @default(cuid())
   user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
+  workspaceId   Int
+  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   type          TransactionType
   amount        Decimal
@@ -178,6 +200,8 @@ model Transaction {
 
   @@index([userId, transactionDate])
   @@index([userId, type, transactionDate])
+  @@index([workspaceId, transactionDate])
+  @@index([workspaceId, type, transactionDate])
   @@index([subscriptionId])
 }
 
@@ -185,6 +209,8 @@ model Tag {
   id            String           @id @default(cuid())
   user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
+  workspaceId   Int
+  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   name          String
   color         String?           // optional color like #FF6600
@@ -200,14 +226,17 @@ model Tag {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
-  @@unique([userId, name])
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
 }
 
 model Message {
   id          String      @id @default(cuid())
   userId      String
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  workspaceId Int
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   title       String
   content     String
   type        MessageType @default(INFO)
@@ -229,12 +258,17 @@ model Message {
   @@index([userId, read])
   @@index([userId, createdAt])
   @@index([userId, type])
+  @@index([workspaceId, read])
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, type])
 }
 
 model Budget {
   id            String         @id @default(cuid())
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
+  workspaceId   Int
+  workspace     Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   name          String
   periodType    String         @default("monthly") // monthly | yearly | yearly-per-month | custom
@@ -248,6 +282,7 @@ model Budget {
   updatedAt     DateTime       @updatedAt
 
   @@index([userId, startDate, endDate])
+  @@index([workspaceId, startDate, endDate])
 }
 
 model BudgetItem {
@@ -305,6 +340,8 @@ model Subscription {
   id            String          @id @default(cuid())
   user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
+  workspaceId   Int
+  workspace     Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   name          String
   type          TransactionType
@@ -320,18 +357,23 @@ model Subscription {
 
   @@index([userId])
   @@index([userId, active])
+  @@index([workspaceId])
+  @@index([workspaceId, active])
 }
 
 model SubscriptionDismissal {
   id              String   @id @default(cuid())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId          String
+  workspaceId     Int
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   normalizedName  String
   type            TransactionType
 
   createdAt       DateTime @default(now())
 
-  @@unique([userId, normalizedName, type])
+  @@unique([workspaceId, normalizedName, type])
   @@index([userId])
+  @@index([workspaceId])
 }

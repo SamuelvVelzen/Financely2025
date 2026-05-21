@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -20,9 +20,15 @@ import {
  * POST /api/v1/tags/csv-parse
  * Parse CSV rows using mapping, return paginated candidate tags with validation errors
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async () => {
+    return await withWorkspaceAuth(params.workspaceId, async () => {
       const formData = await request.formData();
       const file = formData.get("file") as File | null;
       const mappingJson = formData.get("mapping") as string | null;

@@ -19,12 +19,15 @@ import {
 import { calculateFilterCount } from "@/features/transaction/utils/filter-count";
 import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
 import { serializeFilterStateToQuery } from "@/features/transaction/utils/transaction-filter-model";
+import type { ITransactionFilterQueryParams } from "@/features/transaction/utils/transaction-filter-query-schema";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Loading } from "@/features/ui/loading/loading";
 import { useToast } from "@/features/ui/toast";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiArrowsRightLeft } from "react-icons/hi2";
@@ -43,6 +46,8 @@ export function TransactionOverview({
   initialState,
 }: ITransactionOverviewProps) {
   const navigate = useNavigate();
+  const workspaceId = useActiveWorkspaceId();
+  const workspaceRouteParam = workspaceIdToRouteParam(workspaceId);
   const { isMobile } = useResponsive();
   const expandedHeaderRef = useRef<HTMLDivElement>(null);
   const [isSticky, setExpandedHeaderElement] = useScrollPosition();
@@ -85,11 +90,12 @@ export function TransactionOverview({
   useEffect(() => {
     const queryParams = serializeFilterStateToQuery(debouncedFilterState);
     navigate({
-      to: "/transactions",
-      search: queryParams,
+      to: "/$workspaceId/transactions",
+      params: { workspaceId: workspaceRouteParam },
+      search: queryParams as ITransactionFilterQueryParams,
       replace: true, // Use replace to avoid cluttering browser history
     });
-  }, [debouncedFilterState, navigate]);
+  }, [debouncedFilterState, navigate, workspaceId, workspaceRouteParam]);
 
   // Build query with all filters (backend filtering) - no page param for infinite query
   const query = useMemo((): Parameters<typeof useInfiniteTransactions>[0] => {

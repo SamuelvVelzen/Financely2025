@@ -6,6 +6,7 @@
  * - Never include functions, class instances, or Date objects
  * - Convert Dates to ISO strings
  * - All keys should be serializable
+ * - Workspace id is included for workspace-scoped domain caches
  */
 
 export const queryKeys = {
@@ -15,74 +16,89 @@ export const queryKeys = {
   myAccounts: () => ["me", "accounts"] as const,
 
   // Tag queries
-  tags: (params?: { q?: string; sort?: "name:asc" | "name:desc" }) =>
-    ["tags", params] as const,
+  tags: (
+    workspaceId: number,
+    params?: { q?: string; sort?: "name:asc" | "name:desc" },
+  ) => ["tags", workspaceId, params] as const,
 
   // Transaction queries
-  transactions: (params?: {
-    page?: number;
-    limit?: number;
-    from?: string; // ISO date string
-    to?: string; // ISO date string
-    type?: "INCOME" | "EXPENSE";
-    tagIds?: string[];
-    q?: string;
-    sort?: string; // e.g., "transactionDate:desc"
-  }) => ["transactions", params] as const,
+  transactions: (
+    workspaceId: number,
+    params?: {
+      page?: number;
+      limit?: number;
+      from?: string;
+      to?: string;
+      type?: "INCOME" | "EXPENSE";
+      tagIds?: string[];
+      q?: string;
+      sort?: string;
+    },
+  ) => ["transactions", workspaceId, params] as const,
 
-  // Expense queries (transactions with type EXPENSE)
-  expenses: (params?: {
-    page?: number;
-    limit?: number;
-    from?: string; // ISO date string
-    to?: string; // ISO date string
-    tagIds?: string[];
-    q?: string;
-    sort?: string; // e.g., "transactionDate:desc"
-  }) => ["expenses", params] as const,
+  expenses: (
+    workspaceId: number,
+    params?: {
+      page?: number;
+      limit?: number;
+      from?: string;
+      to?: string;
+      tagIds?: string[];
+      q?: string;
+      sort?: string;
+    },
+  ) => ["expenses", workspaceId, params] as const,
 
-  // Income queries (transactions with type INCOME)
-  incomes: (params?: {
-    page?: number;
-    limit?: number;
-    from?: string; // ISO date string
-    to?: string; // ISO date string
-    tagIds?: string[];
-    q?: string;
-    sort?: string; // e.g., "transactionDate:desc"
-  }) => ["incomes", params] as const,
+  incomes: (
+    workspaceId: number,
+    params?: {
+      page?: number;
+      limit?: number;
+      from?: string;
+      to?: string;
+      tagIds?: string[];
+      q?: string;
+      sort?: string;
+    },
+  ) => ["incomes", workspaceId, params] as const,
 
-  // Message queries
-  messages: (params?: {
-    page?: number;
-    limit?: number;
-    read?: boolean;
-    type?: "INFO" | "SUCCESS" | "WARNING" | "ERROR";
-  }) => ["messages", params] as const,
-  message: (messageId: string) => ["messages", messageId] as const,
-  unreadCount: () => ["messages", "unread-count"] as const,
+  messages: (
+    workspaceId: number,
+    params?: {
+      page?: number;
+      limit?: number;
+      read?: boolean;
+      type?: "INFO" | "SUCCESS" | "WARNING" | "ERROR";
+    },
+  ) => ["messages", workspaceId, params] as const,
+  message: (workspaceId: number, messageId: string) =>
+    ["messages", workspaceId, messageId] as const,
+  unreadCount: (workspaceId: number) =>
+    ["messages", workspaceId, "unread-count"] as const,
 
-  // Budget queries
-  budgets: (params?: {
-    from?: string; // ISO date string
-    to?: string; // ISO date string
-  }) => ["budgets", params] as const,
-  budget: (budgetId: string) => ["budgets", budgetId] as const,
-  budgetComparison: (budgetId: string) =>
-    ["budgets", budgetId, "comparison"] as const,
-  budgetsOverview: () => ["budgets", "overview"] as const,
+  budgets: (
+    workspaceId: number,
+    params?: {
+      from?: string;
+      to?: string;
+    },
+  ) => ["budgets", workspaceId, params] as const,
+  budget: (workspaceId: number, budgetId: string) =>
+    ["budgets", workspaceId, budgetId] as const,
+  budgetComparison: (workspaceId: number, budgetId: string) =>
+    ["budgets", workspaceId, budgetId, "comparison"] as const,
+  budgetsOverview: (workspaceId: number) =>
+    ["budgets", workspaceId, "overview"] as const,
 
-  // Subscription queries
-  subscriptions: (params?: { active?: boolean }) =>
-    ["subscriptions", params] as const,
-  subscription: (subscriptionId: string) =>
-    ["subscriptions", subscriptionId] as const,
-  subscriptionCandidates: () =>
-    ["subscriptions", "candidates"] as const,
-  subscriptionDismissals: () =>
-    ["subscriptions", "dismissals"] as const,
+  subscriptions: (workspaceId: number, params?: { active?: boolean }) =>
+    ["subscriptions", workspaceId, params] as const,
+  subscription: (workspaceId: number, subscriptionId: string) =>
+    ["subscriptions", workspaceId, subscriptionId] as const,
+  subscriptionCandidates: (workspaceId: number) =>
+    ["subscriptions", workspaceId, "candidates"] as const,
+  subscriptionDismissals: (workspaceId: number) =>
+    ["subscriptions", workspaceId, "dismissals"] as const,
 
-  // Wizard queries
   wizardProgress: () => ["wizard", "progress"] as const,
   wizardProgressById: (wizardId: string) =>
     ["wizard", "progress", wizardId] as const,

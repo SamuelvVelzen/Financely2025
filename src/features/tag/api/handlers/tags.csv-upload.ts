@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -15,9 +15,15 @@ import {
  * POST /api/v1/tags/csv-upload
  * Accept CSV file, validate type/size, parse headers, return columns + sample rows
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async () => {
+    return await withWorkspaceAuth(params.workspaceId, async () => {
       const formData = await request.formData();
       const file = formData.get("file") as File | null;
 

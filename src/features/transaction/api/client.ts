@@ -19,7 +19,12 @@ import type {
   ITransactionsQuery,
   IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
+import { workspaceApiV1Path } from "@/features/workspace/workspace-api-path";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import type { BankEnum } from "../config/banks";
+
+const API_V1_BASE =
+  typeof window !== "undefined" ? "/api/v1" : "http://localhost:3000/api/v1";
 
 export interface ICsvMappingSuggestion {
   mapping: ICsvFieldMapping;
@@ -29,73 +34,100 @@ export interface ICsvMappingSuggestion {
 }
 
 /**
- * Transaction API Client
- * Client-side functions for interacting with transaction endpoints
+ * Transaction API Client (workspace-scoped paths: /api/v1/:workspaceId/transactions/...)
  */
 
 export async function getTransactions(
+  workspaceId: IWorkspaceId,
   query?: ITransactionsQuery
 ): Promise<IPaginatedTransactionsResponse> {
   const queryString = query ? buildQueryString(query) : "";
-  return apiGet<IPaginatedTransactionsResponse>(`/transactions${queryString}`);
+  return apiGet<IPaginatedTransactionsResponse>(
+    `${workspaceApiV1Path(workspaceId, "transactions")}${queryString}`
+  );
 }
 
 export async function createTransaction(
+  workspaceId: IWorkspaceId,
   input: ICreateTransactionInput
 ): Promise<ITransaction> {
-  return apiPost<ITransaction>("/transactions", input);
+  return apiPost<ITransaction>(
+    workspaceApiV1Path(workspaceId, "transactions"),
+    input
+  );
 }
 
 export async function updateTransaction(
+  workspaceId: IWorkspaceId,
   transactionId: string,
   input: IUpdateTransactionInput
 ): Promise<ITransaction> {
-  return apiPatch<ITransaction>(`/transactions/${transactionId}`, input);
+  return apiPatch<ITransaction>(
+    workspaceApiV1Path(workspaceId, `transactions/${transactionId}`),
+    input
+  );
 }
 
 export async function deleteTransaction(
+  workspaceId: IWorkspaceId,
   transactionId: string
 ): Promise<{ success: boolean }> {
-  return apiDelete<{ success: boolean }>(`/transactions/${transactionId}`);
+  return apiDelete<{ success: boolean }>(
+    workspaceApiV1Path(workspaceId, `transactions/${transactionId}`)
+  );
 }
 
 export async function addTagToTransaction(
+  workspaceId: IWorkspaceId,
   transactionId: string,
   tagId: string
 ): Promise<ITransaction> {
   return apiPost<ITransaction>(
-    `/transactions/${transactionId}/tags/${tagId}`,
+    workspaceApiV1Path(
+      workspaceId,
+      `transactions/${transactionId}/tags/${tagId}`
+    ),
     {}
   );
 }
 
 export async function removeTagFromTransaction(
+  workspaceId: IWorkspaceId,
   transactionId: string,
   tagId: string
 ): Promise<ITransaction> {
   return apiDelete<ITransaction>(
-    `/transactions/${transactionId}/tags/${tagId}`
+    workspaceApiV1Path(
+      workspaceId,
+      `transactions/${transactionId}/tags/${tagId}`
+    )
   );
 }
 
 export async function bulkCreateTransactions(
+  workspaceId: IWorkspaceId,
   input: IBulkCreateTransactionInput
 ): Promise<IBulkCreateTransactionResponse> {
-  return apiPost<IBulkCreateTransactionResponse>("/transactions/bulk", input);
+  return apiPost<IBulkCreateTransactionResponse>(
+    workspaceApiV1Path(workspaceId, "transactions/bulk"),
+    input
+  );
 }
 
-/**
- * CSV Import API Client Functions
- */
-
-export async function uploadCsvFile(file: File): Promise<ICsvUploadResponse> {
+export async function uploadCsvFile(
+  workspaceId: IWorkspaceId,
+  file: File
+): Promise<ICsvUploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch("/api/v1/transactions/csv-upload", {
-    method: "POST",
-    body: formData,
-  });
+  const response = await fetch(
+    `${API_V1_BASE}${workspaceApiV1Path(workspaceId, "transactions/csv-upload")}`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -106,35 +138,47 @@ export async function uploadCsvFile(file: File): Promise<ICsvUploadResponse> {
 }
 
 export async function getCsvMapping(
+  workspaceId: IWorkspaceId,
   columns: string[],
   bank?: BankEnum
 ): Promise<ICsvMappingSuggestion> {
-  return apiPost<ICsvMappingSuggestion>("/transactions/csv-mapping", {
-    columns,
-    bank,
-  });
+  return apiPost<ICsvMappingSuggestion>(
+    workspaceApiV1Path(workspaceId, "transactions/csv-mapping"),
+    {
+      columns,
+      bank,
+    }
+  );
 }
 
 export async function transformCsvRows(
+  workspaceId: IWorkspaceId,
   rows: Record<string, string>[],
   mapping: ICsvFieldMapping,
   typeDetectionStrategy?: string,
   defaultCurrency?: ICurrency,
   bank?: BankEnum
 ): Promise<ICsvTransformResponse> {
-  return apiPost<ICsvTransformResponse>("/transactions/csv-transform", {
-    rows,
-    mapping,
-    typeDetectionStrategy,
-    defaultCurrency,
-    bank,
-  });
+  return apiPost<ICsvTransformResponse>(
+    workspaceApiV1Path(workspaceId, "transactions/csv-transform"),
+    {
+      rows,
+      mapping,
+      typeDetectionStrategy,
+      defaultCurrency,
+      bank,
+    }
+  );
 }
 
 export async function importCsvTransactions(
+  workspaceId: IWorkspaceId,
   transactions: ICreateTransactionInput[]
 ): Promise<ICsvImportResponse> {
-  return apiPost<ICsvImportResponse>("/transactions/csv-import", {
-    transactions,
-  });
+  return apiPost<ICsvImportResponse>(
+    workspaceApiV1Path(workspaceId, "transactions/csv-import"),
+    {
+      transactions,
+    }
+  );
 }

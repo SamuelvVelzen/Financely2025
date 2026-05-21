@@ -14,48 +14,68 @@ import type {
   ICreateBudgetInput,
   IUpdateBudgetInput,
 } from "@/features/shared/validation/schemas";
-
-/**
- * Budget API Client
- * Client-side functions for interacting with budget endpoints
- */
+import { workspaceApiV1Path } from "@/features/workspace/workspace-api-path";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 
 export async function getBudgets(
-  query?: IBudgetsQuery
+  workspaceId: IWorkspaceId,
+  query?: IBudgetsQuery,
 ): Promise<IBudgetsResponse> {
   const queryString = query ? buildQueryString(query) : "";
-  return apiGet<IBudgetsResponse>(`/budgets${queryString}`);
+  return apiGet<IBudgetsResponse>(
+    `${workspaceApiV1Path(workspaceId, "budgets")}${queryString}`,
+  );
 }
 
-export async function getBudget(budgetId: string): Promise<IBudget> {
-  return apiGet<IBudget>(`/budgets/${budgetId}`);
+export async function getBudget(
+  workspaceId: IWorkspaceId,
+  budgetId: string,
+): Promise<IBudget> {
+  return apiGet<IBudget>(
+    workspaceApiV1Path(workspaceId, `budgets/${budgetId}`),
+  );
 }
 
 export async function createBudget(
-  input: ICreateBudgetInput
+  workspaceId: IWorkspaceId,
+  input: ICreateBudgetInput,
 ): Promise<IBudget> {
-  return apiPost<IBudget>("/budgets", input);
+  return apiPost<IBudget>(workspaceApiV1Path(workspaceId, "budgets"), input);
 }
 
 export async function updateBudget(
+  workspaceId: IWorkspaceId,
   budgetId: string,
-  input: IUpdateBudgetInput
+  input: IUpdateBudgetInput,
 ): Promise<IBudget> {
-  return apiPatch<IBudget>(`/budgets/${budgetId}`, input);
+  return apiPatch<IBudget>(
+    workspaceApiV1Path(workspaceId, `budgets/${budgetId}`),
+    input,
+  );
 }
 
 export async function deleteBudget(
-  budgetId: string
+  workspaceId: IWorkspaceId,
+  budgetId: string,
 ): Promise<{ success: boolean }> {
-  return apiDelete<{ success: boolean }>(`/budgets/${budgetId}`);
+  return apiDelete<{ success: boolean }>(
+    workspaceApiV1Path(workspaceId, `budgets/${budgetId}`),
+  );
 }
 
 export async function getBudgetComparison(
-  budgetId: string
+  workspaceId: IWorkspaceId,
+  budgetId: string,
 ): Promise<IBudgetComparison> {
-  return apiGet<IBudgetComparison>(`/budgets/${budgetId}/comparison`);
+  return apiGet<IBudgetComparison>(
+    workspaceApiV1Path(workspaceId, `budgets/${budgetId}/comparison`),
+  );
 }
 
-export async function getBudgetsOverview(): Promise<IBudgetsOverviewResponse> {
-  return apiGet<IBudgetsOverviewResponse>("/budgets/overview");
+export async function getBudgetsOverview(
+  workspaceId: IWorkspaceId,
+): Promise<IBudgetsOverviewResponse> {
+  return apiGet<IBudgetsOverviewResponse>(
+    workspaceApiV1Path(workspaceId, "budgets/overview"),
+  );
 }

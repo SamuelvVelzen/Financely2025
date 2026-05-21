@@ -1,17 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, TransactionType } from "@prisma/client";
 import { hashPassword } from "better-auth/crypto";
 
 const prisma = new PrismaClient();
 
-// Seed user credentials
 const SEED_USER_EMAIL = "dev@gmail.com";
 const SEED_USER_PASSWORD = "devdevdev";
 const SEED_USER_FIRST_NAME = "Demo";
 const SEED_USER_LAST_NAME = "User";
 
-/**
- * Default tags for financial management
- */
+const WORKSPACE_PERSONAL = "Personal";
+const WORKSPACE_BUSINESS_DEMO = "Business demo";
+
 const defaultTags = [
   {
     name: "Food & Dining",
@@ -19,7 +18,7 @@ const defaultTags = [
     description: "Restaurants, groceries, and food-related expenses",
     emoticon: "🍔",
     order: 0,
-    transactionType: "EXPENSE",
+    transactionType: TransactionType.EXPENSE,
   },
   {
     name: "Transportation",
@@ -27,7 +26,7 @@ const defaultTags = [
     description: "Gas, public transit, car maintenance, and travel",
     emoticon: "🚗",
     order: 1,
-    transactionType: "EXPENSE",
+    transactionType: TransactionType.EXPENSE,
   },
   {
     name: "Shopping",
@@ -35,7 +34,7 @@ const defaultTags = [
     description: "General shopping and retail purchases",
     emoticon: "🛍️",
     order: 2,
-    transactionType: "EXPENSE",
+    transactionType: TransactionType.EXPENSE,
   },
   {
     name: "Entertainment",
@@ -43,7 +42,7 @@ const defaultTags = [
     description: "Movies, concerts, hobbies, and leisure activities",
     emoticon: "🎬",
     order: 3,
-    transactionType: "EXPENSE",
+    transactionType: TransactionType.EXPENSE,
   },
   {
     name: "Bills & Utilities",
@@ -51,7 +50,7 @@ const defaultTags = [
     description: "Electricity, water, internet, phone, and other bills",
     emoticon: "💡",
     order: 4,
-    transactionType: "EXPENSE",
+    transactionType: TransactionType.EXPENSE,
   },
   {
     name: "Healthcare",
@@ -59,7 +58,7 @@ const defaultTags = [
     description: "Medical expenses, prescriptions, and health services",
     emoticon: "🏥",
     order: 5,
-    transactionType: "EXPENSE",
+    transactionType: TransactionType.EXPENSE,
   },
   {
     name: "Income",
@@ -67,7 +66,7 @@ const defaultTags = [
     description: "Salary, freelance income, and other earnings",
     emoticon: "💰",
     order: 6,
-    transactionType: "INCOME",
+    transactionType: TransactionType.INCOME,
   },
   {
     name: "Savings",
@@ -75,7 +74,7 @@ const defaultTags = [
     description: "Savings transfers and investment contributions",
     emoticon: "💾",
     order: 7,
-    transactionType: "EXPENSE",
+    transactionType: TransactionType.EXPENSE,
   },
   {
     name: "Other",
@@ -83,20 +82,38 @@ const defaultTags = [
     description: "Miscellaneous expenses that don't fit other categories",
     emoticon: "📦",
     order: 8,
-    transactionType: "EXPENSE",
+    transactionType: TransactionType.EXPENSE,
   },
 ];
+
+async function ensureWorkspacesForUser(userId: string) {
+  let personal = await prisma.workspace.findFirst({
+    where: { userId, name: WORKSPACE_PERSONAL },
+  });
+  if (!personal) {
+    personal = await prisma.workspace.create({
+      data: { userId, name: WORKSPACE_PERSONAL },
+    });
+  }
+  let business = await prisma.workspace.findFirst({
+    where: { userId, name: WORKSPACE_BUSINESS_DEMO },
+  });
+  if (!business) {
+    business = await prisma.workspace.create({
+      data: { userId, name: WORKSPACE_BUSINESS_DEMO },
+    });
+  }
+  return { personalId: personal.id, businessId: business.id };
+}
 
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // Create user with credentials
   console.log("👤 Creating seed user...");
 
   const normalizedEmail = SEED_USER_EMAIL.toLowerCase().trim();
   const displayName = `${SEED_USER_FIRST_NAME} ${SEED_USER_LAST_NAME}`;
 
-  // Check if UserInfo exists (UserInfo is now the BetterAuth table)
   let userInfo = await prisma.userInfo.findUnique({
     where: { email: normalizedEmail },
     include: { user: true },
@@ -105,11 +122,10 @@ async function main() {
   let appUser: { id: string } | null = userInfo?.user ?? null;
 
   if (!userInfo) {
-    // Create UserInfo (BetterAuth user)
     userInfo = await prisma.userInfo.create({
       data: {
         email: normalizedEmail,
-        emailVerified: true, // Skip email verification for seed user
+        emailVerified: true,
         firstName: SEED_USER_FIRST_NAME,
         lastName: SEED_USER_LAST_NAME,
         name: displayName,
@@ -117,47 +133,56 @@ async function main() {
       include: { user: true },
     });
 
-    // Create the app User record linked to UserInfo
     appUser = await prisma.user.create({
       data: {
         userInfoId: userInfo.id,
+        workspaces: {
+          create: [
+            { name: WORKSPACE_PERSONAL },
+            { name: WORKSPACE_BUSINESS_DEMO },
+          ],
+        },
       },
     });
 
-    // Hash password and create account (Account references UserInfo.id)
     const hashedPassword = await hashPassword(SEED_USER_PASSWORD);
 
     await prisma.account.create({
       data: {
-        userId: userInfo.id, // This is now the UserInfo ID
-        accountId: userInfo.id, // For credential accounts, accountId = userId
-        providerId: "credential", // BetterAuth uses "credential" for email/password
+        userId: userInfo.id,
+        accountId: userInfo.id,
+        providerId: "credential",
         password: hashedPassword,
       },
     });
 
-    console.log("✅ User created");
+    console.log("✅ User created with workspaces");
   } else {
     console.log("✅ User already exists");
 
-    // Ensure app User exists
     if (!userInfo.user) {
       appUser = await prisma.user.create({
         data: {
           userInfoId: userInfo.id,
+          workspaces: {
+            create: [
+              { name: WORKSPACE_PERSONAL },
+              { name: WORKSPACE_BUSINESS_DEMO },
+            ],
+          },
         },
       });
-      console.log("✅ App User created");
+      console.log("✅ App User created with workspaces");
     }
   }
 
-  // At this point, appUser is guaranteed to exist
   if (!appUser) {
     throw new Error("Failed to create or find app user");
   }
 
-  // Create tags for the user (tags reference the app User)
-  console.log(`\n📋 Creating/updating ${defaultTags.length} default tags...`);
+  const { personalId } = await ensureWorkspacesForUser(appUser.id);
+
+  console.log(`\n📋 Creating/updating ${defaultTags.length} default tags in "${WORKSPACE_PERSONAL}"...`);
 
   let createdCount = 0;
   let updatedCount = 0;
@@ -165,18 +190,16 @@ async function main() {
 
   for (const tag of defaultTags) {
     try {
-      // Try to find existing tag
       const existingTag = await prisma.tag.findUnique({
         where: {
-          userId_name: {
-            userId: appUser.id,
+          workspaceId_name: {
+            workspaceId: personalId,
             name: tag.name,
           },
         },
       });
 
       if (existingTag) {
-        // Update existing tag with transactionType and emoticon
         await prisma.tag.update({
           where: { id: existingTag.id },
           data: {
@@ -187,10 +210,10 @@ async function main() {
         console.log(`  🔄 Updated tag: ${tag.name}`);
         updatedCount++;
       } else {
-        // Create new tag
         await prisma.tag.create({
           data: {
-            userId: appUser.id, // This is the app User ID
+            userId: appUser.id,
+            workspaceId: personalId,
             name: tag.name,
             color: tag.color,
             description: tag.description,
@@ -202,9 +225,9 @@ async function main() {
         console.log(`  ✅ Created tag: ${tag.name}`);
         createdCount++;
       }
-    } catch (error: any) {
-      // Handle unique constraint violation (shouldn't happen with upsert logic above)
-      if (error.code === "P2002") {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code === "P2002") {
         console.log(`  ⏭️  Tag already exists: ${tag.name}`);
         skippedCount++;
       } else {

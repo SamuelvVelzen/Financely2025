@@ -8,6 +8,7 @@ import {
 import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import type {
   ICreateMessageInput,
   IMessage,
@@ -15,49 +16,45 @@ import type {
   IMessagesResponse,
 } from "@/features/shared/validation/schemas";
 
-/**
- * Query messages list
- * - staleTime: 30 seconds (short, messages change frequently)
- * - Supports pagination, filtering by read status and type
- */
 export function useMessages(query?: IMessagesQuery) {
+  const workspaceId = useActiveWorkspaceId();
   return useFinQuery<IMessagesResponse, Error>({
-    queryKey: queryKeys.messages(query),
-    queryFn: () => getMessages(query),
-    staleTime: 30 * 1000, // 30 seconds
+    queryKey: queryKeys.messages(workspaceId, query),
+    queryFn: () => getMessages(workspaceId, query),
+    staleTime: 30 * 1000,
   });
 }
 
-/**
- * Create message mutation
- * - Invalidates messages query on success
- */
 export function useCreateMessage() {
+  const workspaceId = useActiveWorkspaceId();
   return useFinMutation<IMessage, Error, ICreateMessageInput>({
-    mutationFn: createMessage,
-    invalidateQueries: [queryKeys.messages, queryKeys.unreadCount],
+    mutationFn: (input) => createMessage(workspaceId, input),
+    invalidateQueries: [
+      () => queryKeys.messages(workspaceId),
+      () => queryKeys.unreadCount(workspaceId),
+    ],
   });
 }
 
-/**
- * Mark message as read mutation
- * - Invalidates messages query and unread count on success
- */
 export function useMarkAsRead() {
+  const workspaceId = useActiveWorkspaceId();
   return useFinMutation<IMessage, Error, string>({
-    mutationFn: markAsRead,
-    invalidateQueries: [queryKeys.messages, queryKeys.unreadCount],
+    mutationFn: (messageId) => markAsRead(workspaceId, messageId),
+    invalidateQueries: [
+      () => queryKeys.messages(workspaceId),
+      () => queryKeys.unreadCount(workspaceId),
+    ],
   });
 }
 
-/**
- * Mark all messages as read mutation
- * - Invalidates messages query and unread count on success
- */
 export function useMarkAllAsRead() {
+  const workspaceId = useActiveWorkspaceId();
   return useFinMutation<{ success: boolean }, Error, void>({
-    mutationFn: markAllAsRead,
-    invalidateQueries: [queryKeys.messages, queryKeys.unreadCount],
+    mutationFn: () => markAllAsRead(workspaceId),
+    invalidateQueries: [
+      () => queryKeys.messages(workspaceId),
+      () => queryKeys.unreadCount(workspaceId),
+    ],
     getOfflineQueuedToast: () => ({
       title: "All messages marked as read",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -65,14 +62,14 @@ export function useMarkAllAsRead() {
   });
 }
 
-/**
- * Delete message mutation
- * - Invalidates messages query and unread count on success
- */
 export function useDeleteMessage() {
+  const workspaceId = useActiveWorkspaceId();
   return useFinMutation<{ success: boolean }, Error, string>({
-    mutationFn: deleteMessage,
-    invalidateQueries: [queryKeys.messages, queryKeys.unreadCount],
+    mutationFn: (messageId) => deleteMessage(workspaceId, messageId),
+    invalidateQueries: [
+      () => queryKeys.messages(workspaceId),
+      () => queryKeys.unreadCount(workspaceId),
+    ],
     getOfflineQueuedToast: () => ({
       title: "Message deleted successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,

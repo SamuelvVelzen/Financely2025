@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -7,14 +7,19 @@ import {
 import { TagService } from "@/features/tag/services/tag.service";
 
 /**
- * POST /api/v1/tags/reorder
- * Reorder tags by updating their order values
+ * POST /api/v1/:workspaceId/tags/reorder
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
       const body = await request.json();
-      await TagService.reorderTags(userId, body);
+      await TagService.reorderTags(userId, workspaceId, body);
       return Response.json({ success: true });
     });
   } catch (error) {
@@ -29,5 +34,3 @@ export async function POST({ request }: { request: Request }) {
     return createErrorResponse(error);
   }
 }
-
-

@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -7,20 +7,24 @@ import {
 import { TagService } from "@/features/tag/services/tag.service";
 
 /**
- * PATCH /api/v1/tags/:id
- * Update a tag
+ * PATCH /api/v1/:workspaceId/tags/:tagId
  */
 export async function PATCH({
   request,
   params,
 }: {
   request: Request;
-  params: { tagId: string };
+  params: { workspaceId: string; tagId: string };
 }) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
       const body = await request.json();
-      const result = await TagService.updateTag(userId, params.tagId, body);
+      const result = await TagService.updateTag(
+        userId,
+        workspaceId,
+        params.tagId,
+        body
+      );
       return Response.json(result);
     });
   } catch (error) {
@@ -46,19 +50,17 @@ export async function PATCH({
 }
 
 /**
- * DELETE /api/v1/tags/:id
- * Delete a tag
+ * DELETE /api/v1/:workspaceId/tags/:tagId
  */
 export async function DELETE({
-  request,
   params,
 }: {
   request: Request;
-  params: { tagId: string };
+  params: { workspaceId: string; tagId: string };
 }) {
   try {
-    return await withAuth(async (userId) => {
-      await TagService.deleteTag(userId, params.tagId);
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
+      await TagService.deleteTag(userId, workspaceId, params.tagId);
       return Response.json({ success: true }, { status: 200 });
     });
   } catch (error) {

@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -7,19 +7,29 @@ import {
 import {
   CsvTransformRequestSchema,
   CsvTransformResponseSchema,
+  CurrencySchema,
+  type ICurrency,
 } from "@/features/shared/validation/schemas";
 import { json } from "@tanstack/react-start";
 import { BankSchema } from "../../validation/transaction.schema";
 import { convertRowsToCandidates, MAX_ROWS } from "../../services/csv.service";
 
 /**
- * POST /api/v1/transactions/csv-transform
+ * POST /api/v1/:workspaceId/transactions/csv-transform
  * Transform raw CSV rows into candidate transactions using the provided mapping
  * No file upload needed - accepts rows as JSON
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
       const body = await request.json();
 
       // Validate request body
@@ -38,6 +48,10 @@ export async function POST({ request }: { request: Request }) {
       const { rows, mapping, typeDetectionStrategy, defaultCurrency, bank } =
         parseResult.data;
 
+      const parsedDefaultCurrency =
+        defaultCurrency !== undefined
+          ? CurrencySchema.parse(defaultCurrency)
+          : undefined;
       // Check row count limit
       if (rows.length > MAX_ROWS) {
         return createErrorResponse(
@@ -57,8 +71,9 @@ export async function POST({ request }: { request: Request }) {
         rows,
         mapping,
         userId,
+        workspaceId,
         typeDetectionStrategy || "default",
-        defaultCurrency,
+        parsedDefaultCurrency as ICurrency | undefined,
         validatedBank
       );
 
@@ -76,7 +91,8 @@ export async function POST({ request }: { request: Request }) {
       });
 
       return json(response, { status: 200 });
-    });
+      }
+    );
   } catch (error) {
     return createErrorResponse(error);
   }

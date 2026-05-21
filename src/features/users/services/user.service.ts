@@ -1,9 +1,10 @@
 import {
   formatFullName,
-  UserSchema,
+  UserResponseSchema,
   type IUserResponse,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
+import { WorkspaceService } from "@/features/workspace/services/workspace.service";
 
 /**
  * User Service
@@ -21,22 +22,31 @@ export class UserService {
       include: { userInfo: true },
     });
 
-    if (!user) {
+    if (!user || !user.userInfo) {
       return null;
     }
 
+    await WorkspaceService.ensureAtLeastOneWorkspace(user.id);
+    const workspaces = await WorkspaceService.listForUser(user.id);
+
     const name = formatFullName(
-      user.userInfo?.firstName,
-      user.userInfo?.lastName,
-      user.userInfo?.suffix
+      user.userInfo.firstName,
+      user.userInfo.lastName,
+      user.userInfo.suffix
     );
 
-    return UserSchema.parse({
+    return UserResponseSchema.parse({
       id: user.id,
-      email: user.email,
+      email: user.userInfo.email,
       name,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
+      workspaces: workspaces.map((w) => ({
+        id: w.id,
+        name: w.name,
+        createdAt: w.createdAt.toISOString(),
+        updatedAt: w.updatedAt.toISOString(),
+      })),
     });
   }
 
@@ -55,53 +65,49 @@ export class UserService {
     lastName: string,
     suffix?: string
   ): Promise<IUserResponse> {
-    const existing = await prisma.user.findUnique({
-      where: { email },
-      include: { userInfo: true },
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existingInfo = await prisma.userInfo.findUnique({
+      where: { email: normalizedEmail },
+      include: { user: true },
     });
 
-    if (existing) {
-      const computedName = formatFullName(
-        existing.userInfo?.firstName,
-        existing.userInfo?.lastName,
-        existing.userInfo?.suffix
-      );
-
-      return UserSchema.parse({
-        id: existing.id,
-        email: existing.email,
-        name: computedName,
-        createdAt: existing.createdAt.toISOString(),
-        updatedAt: existing.updatedAt.toISOString(),
-      });
+    if (existingInfo?.user) {
+      const full = await this.getUserById(existingInfo.user.id);
+      if (!full) {
+        throw new Error("User record inconsistent");
+      }
+      return full;
     }
 
-    const user = await prisma.user.create({
+    const displayName =
+      formatFullName(firstName, lastName, suffix) ??
+      `${firstName} ${lastName}`.trim();
+
+    const userInfo = await prisma.userInfo.create({
       data: {
-        email,
-        userInfo: {
-          create: {
-            firstName: firstName ?? null,
-            lastName: lastName ?? null,
-            suffix: suffix ?? null,
-          },
+        email: normalizedEmail,
+        emailVerified: true,
+        firstName,
+        lastName,
+        suffix: suffix ?? null,
+        name: displayName,
+      },
+    });
+
+    const appUser = await prisma.user.create({
+      data: {
+        userInfoId: userInfo.id,
+        workspaces: {
+          create: [{ name: "Personal" }],
         },
       },
-      include: { userInfo: true },
     });
 
-    const computedName = formatFullName(
-      user.userInfo?.firstName,
-      user.userInfo?.lastName,
-      user.userInfo?.suffix
-    );
-
-    return UserSchema.parse({
-      id: user.id,
-      email: user.email,
-      name: computedName,
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
-    });
+    const full = await this.getUserById(appUser.id);
+    if (!full) {
+      throw new Error("Failed to load created user");
+    }
+    return full;
   }
 }

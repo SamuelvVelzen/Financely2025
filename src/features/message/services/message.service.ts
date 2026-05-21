@@ -11,24 +11,23 @@ import {
   type IUpdateMessageInput,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 
 /**
- * Message Service
- * Handles message-related business logic and data access
+ * Message Service (workspace-scoped in-app messages)
  */
 export class MessageService {
-  /**
-   * Create a new message
-   */
   static async createMessage(
     userId: string,
-    input: ICreateMessageInput
+    workspaceId: IWorkspaceId,
+    input: ICreateMessageInput,
   ): Promise<IMessage> {
     const validated = CreateMessageInputSchema.parse(input);
 
     const message = await prisma.message.create({
       data: {
         userId,
+        workspaceId,
         title: validated.title,
         content: validated.content,
         type: validated.type,
@@ -43,17 +42,16 @@ export class MessageService {
     return this.parseMessage(message);
   }
 
-  /**
-   * List messages for a user with pagination and filtering
-   */
   static async listMessages(
     userId: string,
-    query: IMessagesQuery
+    workspaceId: IWorkspaceId,
+    query: IMessagesQuery,
   ): Promise<IMessagesResponse> {
     const validated = MessagesQuerySchema.parse(query);
 
-    const where: any = {
+    const where: Record<string, unknown> = {
       userId,
+      workspaceId,
     };
 
     if (validated.read !== undefined) {
@@ -85,17 +83,16 @@ export class MessageService {
     });
   }
 
-  /**
-   * Get message by ID (user-scoped)
-   */
   static async getMessageById(
     userId: string,
-    messageId: string
+    workspaceId: IWorkspaceId,
+    messageId: string,
   ): Promise<IMessage | null> {
     const message = await prisma.message.findFirst({
       where: {
         id: messageId,
         userId,
+        workspaceId,
       },
     });
 
@@ -106,17 +103,16 @@ export class MessageService {
     return this.parseMessage(message);
   }
 
-  /**
-   * Mark message as read
-   */
   static async markAsRead(
     userId: string,
-    messageId: string
+    workspaceId: IWorkspaceId,
+    messageId: string,
   ): Promise<IMessage> {
     const message = await prisma.message.findFirst({
       where: {
         id: messageId,
         userId,
+        workspaceId,
       },
     });
 
@@ -137,13 +133,14 @@ export class MessageService {
     return this.parseMessage(updated);
   }
 
-  /**
-   * Mark all messages as read for a user
-   */
-  static async markAllAsRead(userId: string): Promise<void> {
+  static async markAllAsRead(
+    userId: string,
+    workspaceId: IWorkspaceId,
+  ): Promise<void> {
     await prisma.message.updateMany({
       where: {
         userId,
+        workspaceId,
         read: false,
       },
       data: {
@@ -153,14 +150,16 @@ export class MessageService {
     });
   }
 
-  /**
-   * Delete a message
-   */
-  static async deleteMessage(userId: string, messageId: string): Promise<void> {
+  static async deleteMessage(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    messageId: string,
+  ): Promise<void> {
     const message = await prisma.message.findFirst({
       where: {
         id: messageId,
         userId,
+        workspaceId,
       },
     });
 
@@ -175,21 +174,19 @@ export class MessageService {
     });
   }
 
-  /**
-   * Get unread count for a user
-   */
-  static async getUnreadCount(userId: string): Promise<number> {
+  static async getUnreadCount(
+    userId: string,
+    workspaceId: IWorkspaceId,
+  ): Promise<number> {
     return prisma.message.count({
       where: {
         userId,
+        workspaceId,
         read: false,
       },
     });
   }
 
-  /**
-   * Parse message from database format to API format
-   */
   private static parseMessage(message: {
     id: string;
     userId: string;
@@ -208,8 +205,7 @@ export class MessageService {
     if (message.actions) {
       try {
         parsedActions = JSON.parse(message.actions);
-      } catch (e) {
-        // Invalid JSON, ignore
+      } catch {
         parsedActions = null;
       }
     }
@@ -230,4 +226,3 @@ export class MessageService {
     });
   }
 }
-

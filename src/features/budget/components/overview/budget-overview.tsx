@@ -5,6 +5,8 @@ import {
 import type { IBudget } from "@/features/shared/validation/schemas";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
@@ -20,6 +22,8 @@ import { BudgetOverviewHeader } from "./budget-overview-header";
 
 export function BudgetOverview() {
   const navigate = useNavigate();
+  const workspaceId = useActiveWorkspaceId();
+  const workspaceRouteParam = workspaceIdToRouteParam(workspaceId);
   const expandedHeaderRef = useRef<HTMLDivElement>(null);
   const [isSticky, setExpandedHeaderElement] = useScrollPosition();
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,20 +68,23 @@ export function BudgetOverview() {
   };
 
   const handleCreateBudget = () => {
-    navigate({ to: "/budgets/new" });
+    navigate({
+      to: "/$workspaceId/budgets/new",
+      params: { workspaceId: workspaceRouteParam },
+    });
   };
 
   const handleEditBudget = (budget: IBudget) => {
     navigate({
-      to: "/budgets/$budgetId/edit",
-      params: { budgetId: budget.id },
+      to: "/$workspaceId/budgets/$budgetId/edit",
+      params: { workspaceId: workspaceRouteParam, budgetId: budget.id },
     });
   };
 
   const handleViewBudget = (budget: IBudget) => {
     navigate({
-      to: "/budgets/$budgetId",
-      params: { budgetId: budget.id },
+      to: "/$workspaceId/budgets/$budgetId",
+      params: { workspaceId: workspaceRouteParam, budgetId: budget.id },
     });
   };
 

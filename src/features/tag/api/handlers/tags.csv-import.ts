@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -15,15 +15,22 @@ import { TagService } from "../../services/tag.service";
  * POST /api/v1/tags/csv-import
  * Accept approved tags, re-validate, call TagService.bulkCreateTags, return results
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
       const body = await request.json();
       const validated = TagCsvImportRequestSchema.parse(body);
 
       // Re-validate all tags using the bulk create service
       const result = await TagService.bulkCreateTags(
         userId,
+        workspaceId,
         validated.tags
       );
 
@@ -53,4 +60,3 @@ export async function POST({ request }: { request: Request }) {
     return createErrorResponse(error);
   }
 }
-

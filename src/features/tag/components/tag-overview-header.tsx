@@ -123,7 +123,7 @@ export function TagOverviewHeader({
         <div className={cn(isSticky && "overflow-hidden")}>
           <SearchInput
             value={searchQuery}
-            onChange={onSearchChange}
+            onChange={(v) => onSearchChange(v ?? "")}
             placeholder="Search tags by name, description, or color..."
           />
         </div>

@@ -1,5 +1,8 @@
 import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
+import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { cn } from "@/features/util/cn";
 import { signOutFromApp } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
@@ -24,6 +27,8 @@ import { useSidebar } from "./useSidebar";
 export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
   const navigate = useNavigate();
+  const workspaceId = useNavWorkspaceId();
+  const workspaceParams = { workspaceId: workspaceIdToRouteParam(workspaceId) };
   const { data: unreadCountData } = useUnreadCount();
   const unreadCount = unreadCountData?.count || 0;
   const isExpandedContainerClasses = isExpanded ? "w-60 px-4" : "w-20 px-2";
@@ -40,7 +45,7 @@ export function Sidebar() {
           "transition-[margin,max-width] duration-500",
           isExpanded ? "mx-0" : "mx-2.5"
         )}>
-        <BaseLink to={ROUTES.ROOT}>
+        <BaseLink to="/$workspaceId" params={workspaceParams}>
           <div className="flex items-center overflow-hidden">
             <Logo />
             <span
@@ -53,40 +58,49 @@ export function Sidebar() {
         </BaseLink>
       </div>
 
+      {isExpanded ? (
+        <WorkspaceSwitcher className="mb-4 px-0.5" />
+      ) : null}
+
       {/* Main Navigation */}
       <nav className="flex-1 w-full">
         <ul>
           <li>
             <NavItem
-              to={ROUTES.ROOT}
+              to="/$workspaceId"
+              params={workspaceParams}
               label="Dashboard"
               icon={HiChartBar}
             />
           </li>
           <li>
             <NavItem
-              to={ROUTES.BUDGETS}
+              to="/$workspaceId/budgets"
+              params={workspaceParams}
               label="Budgets"
               icon={HiOutlineCurrencyEuro}
             />
           </li>
           <li>
             <NavItem
-              to={ROUTES.TRANSACTIONS}
+              to="/$workspaceId/transactions"
+              params={workspaceParams}
               label="Transactions"
               icon={HiArrowsRightLeft}
             />
           </li>
           <li>
             <NavItem
-              to={ROUTES.SUBSCRIPTIONS}
+              to="/$workspaceId/subscriptions"
+              params={workspaceParams}
               label="Subscriptions"
               icon={HiArrowPath}
             />
           </li>
           <li>
             <NavItem
-              to={ROUTES.TAGS}
+              to="/$workspaceId/tags"
+              params={workspaceParams}
               label="Tags"
               icon={HiOutlineTag}
             />
@@ -98,7 +112,8 @@ export function Sidebar() {
       <div className="mt-auto">
         <div className={"h-px w-full border-t border-border my-2"}></div>
         <NavItem
-          to={ROUTES.MESSAGES}
+          to="/$workspaceId/messages"
+          params={workspaceParams}
           label="Messages"
           icon={HiOutlineBell}
           badge={unreadCount > 0 ? unreadCount : undefined}

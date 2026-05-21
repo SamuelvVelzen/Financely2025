@@ -22,6 +22,14 @@ import {
   removeTagFromTransaction,
   updateTransaction,
 } from "../api/client";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+
+function requireWorkspaceId(id: number | null): number {
+  if (id == null) {
+    throw new Error("Workspace is required");
+  }
+  return id;
+}
 
 /**
  * Query transactions with pagination
@@ -29,10 +37,16 @@ import {
  * - Supports pagination, filtering, sorting
  */
 export function useTransactions(query?: ITransactionsQuery) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null;
   return useFinQuery<IPaginatedTransactionsResponse, Error>({
-    queryKey: queryKeys.transactions(query),
-    queryFn: () => getTransactions(query),
+    queryKey: enabled
+      ? queryKeys.transactions(workspaceId, query)
+      : (["transactions", "disabled"] as const),
+    queryFn: () =>
+      getTransactions(requireWorkspaceId(workspaceId), query),
     staleTime: 30 * 1000, // 30 seconds
+    enabled,
   });
 }
 
@@ -43,19 +57,23 @@ export function useTransactions(query?: ITransactionsQuery) {
 export function useInfiniteTransactions(
   query?: Omit<ITransactionsQuery, "page">
 ) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null;
   return useFinInfiniteQuery<
     IPaginatedTransactionsResponse,
     Error,
-    ReturnType<typeof queryKeys.transactions>,
+    readonly unknown[],
     number
   >({
-    queryKey: queryKeys.transactions({ ...query, page: undefined }),
+    queryKey: enabled
+      ? queryKeys.transactions(workspaceId, { ...query, page: undefined })
+      : (["transactions", "disabled"] as const),
     queryFn: ({ pageParam = 1 }) => {
       const transactionsQuery = {
         ...query,
         page: pageParam,
       } as ITransactionsQuery;
-      return getTransactions(transactionsQuery);
+      return getTransactions(requireWorkspaceId(workspaceId), transactionsQuery);
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.hasNext) {
@@ -65,6 +83,7 @@ export function useInfiniteTransactions(
     },
     initialPageParam: 1,
     staleTime: 30 * 1000,
+    enabled,
   });
 }
 
@@ -73,9 +92,11 @@ export function useInfiniteTransactions(
  * - Invalidates transactions query on success
  */
 export function useCreateTransaction() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<ITransaction, Error, ICreateTransactionInput>({
-    mutationFn: createTransaction,
-    invalidateQueries: [queryKeys.transactions],
+    mutationFn: (input) =>
+      createTransaction(requireWorkspaceId(workspaceId), input),
+    invalidateQueries: [() => queryKeys.transactions(workspaceId!)],
   });
 }
 
@@ -84,14 +105,15 @@ export function useCreateTransaction() {
  * - Invalidates transactions query on success
  */
 export function useUpdateTransaction() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<
     ITransaction,
     Error,
     { transactionId: string; input: IUpdateTransactionInput }
   >({
     mutationFn: ({ transactionId, input }) =>
-      updateTransaction(transactionId, input),
-    invalidateQueries: [queryKeys.transactions],
+      updateTransaction(requireWorkspaceId(workspaceId), transactionId, input),
+    invalidateQueries: [() => queryKeys.transactions(workspaceId!)],
   });
 }
 
@@ -100,9 +122,10 @@ export function useUpdateTransaction() {
  * - Invalidates transactions query on success
  */
 export function useDeleteTransaction() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<{ success: boolean }, Error, string>({
-    mutationFn: deleteTransaction,
-    invalidateQueries: [queryKeys.transactions],
+    mutationFn: (id) => deleteTransaction(requireWorkspaceId(workspaceId), id),
+    invalidateQueries: [() => queryKeys.transactions(workspaceId!)],
     getOfflineQueuedToast: () => ({
       title: "Transaction deleted successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -117,6 +140,7 @@ export function useDeleteTransaction() {
  */
 export function useAddTagToTransaction() {
   const queryClient = useQueryClient();
+  const workspaceId = useNavWorkspaceId();
 
   return useFinMutation<
     ITransaction,
@@ -129,23 +153,20 @@ export function useAddTagToTransaction() {
     }
   >({
     mutationFn: ({ transactionId, tagId }) =>
-      addTagToTransaction(transactionId, tagId),
-    invalidateQueries: [queryKeys.transactions],
+      addTagToTransaction(requireWorkspaceId(workspaceId), transactionId, tagId),
+    invalidateQueries: [() => queryKeys.transactions(workspaceId!)],
     onMutate: async ({ transactionId, tagId }) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({
-        queryKey: queryKeys.transactions(),
+        queryKey: ["transactions", workspaceId],
       });
 
-      // Snapshot previous value for rollback
       const previousTransactions =
         queryClient.getQueriesData<IPaginatedTransactionsResponse>({
-          queryKey: queryKeys.transactions(),
+          queryKey: ["transactions", workspaceId],
         });
 
-      // Optimistically update
       queryClient.setQueriesData<IPaginatedTransactionsResponse>(
-        { queryKey: queryKeys.transactions() },
+        { queryKey: ["transactions", workspaceId] },
         (old) => {
           if (!old) return old;
           return {
@@ -184,9 +205,8 @@ export function useAddTagToTransaction() {
       }
     },
     onSettled: () => {
-      // Refetch to ensure consistency
       queryClient.invalidateQueries({
-        queryKey: queryKeys.transactions(),
+        queryKey: ["transactions", workspaceId],
       });
     },
   });
@@ -199,6 +219,7 @@ export function useAddTagToTransaction() {
  */
 export function useRemoveTagFromTransaction() {
   const queryClient = useQueryClient();
+  const workspaceId = useNavWorkspaceId();
 
   return useFinMutation<
     ITransaction,
@@ -211,23 +232,20 @@ export function useRemoveTagFromTransaction() {
     }
   >({
     mutationFn: ({ transactionId, tagId }) =>
-      removeTagFromTransaction(transactionId, tagId),
-    invalidateQueries: [queryKeys.transactions],
+      removeTagFromTransaction(requireWorkspaceId(workspaceId), transactionId, tagId),
+    invalidateQueries: [() => queryKeys.transactions(workspaceId!)],
     onMutate: async ({ transactionId, tagId }) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({
-        queryKey: queryKeys.transactions(),
+        queryKey: ["transactions", workspaceId],
       });
 
-      // Snapshot previous value
       const previousTransactions =
         queryClient.getQueriesData<IPaginatedTransactionsResponse>({
-          queryKey: queryKeys.transactions(),
+          queryKey: ["transactions", workspaceId],
         });
 
-      // Optimistically update
       queryClient.setQueriesData<IPaginatedTransactionsResponse>(
-        { queryKey: queryKeys.transactions() },
+        { queryKey: ["transactions", workspaceId] },
         (old) => {
           if (!old) return old;
           return {
@@ -263,9 +281,8 @@ export function useRemoveTagFromTransaction() {
       }
     },
     onSettled: () => {
-      // Refetch to ensure consistency
       queryClient.invalidateQueries({
-        queryKey: queryKeys.transactions(),
+        queryKey: ["transactions", workspaceId],
       });
     },
   });
@@ -292,11 +309,19 @@ export function useExpenses(
     "queryKey" | "queryFn" | "staleTime"
   >
 ) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null;
   return useFinQuery<IPaginatedTransactionsResponse, Error>({
-    queryKey: queryKeys.expenses(query),
+    queryKey: enabled
+      ? queryKeys.expenses(workspaceId, query)
+      : (["expenses", "disabled"] as const),
     queryFn: () =>
-      getTransactions({ ...query, type: "EXPENSE" } as ITransactionsQuery),
+      getTransactions(requireWorkspaceId(workspaceId), {
+        ...query,
+        type: "EXPENSE",
+      } as ITransactionsQuery),
     staleTime: 30_000, // 30 seconds
+    enabled,
     ...(options ?? {}),
   });
 }
@@ -306,13 +331,18 @@ export function useExpenses(
  * - Invalidates expenses and transactions queries on success
  */
 export function useCreateExpense() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<
     ITransaction,
     Error,
     Omit<ICreateTransactionInput, "type">
   >({
-    mutationFn: (input) => createTransaction({ ...input, type: "EXPENSE" }),
-    invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+    mutationFn: (input) =>
+      createTransaction(requireWorkspaceId(workspaceId), { ...input, type: "EXPENSE" }),
+    invalidateQueries: [
+      () => queryKeys.expenses(workspaceId!),
+      () => queryKeys.transactions(workspaceId!),
+    ],
     getOfflineQueuedToast: () => ({
       title: "Expense created successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -325,14 +355,18 @@ export function useCreateExpense() {
  * - Invalidates expenses and transactions queries on success
  */
 export function useUpdateExpense() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<
     ITransaction,
     Error,
     { transactionId: string; input: Omit<IUpdateTransactionInput, "type"> }
   >({
     mutationFn: ({ transactionId, input }) =>
-      updateTransaction(transactionId, input),
-    invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+      updateTransaction(requireWorkspaceId(workspaceId), transactionId, input),
+    invalidateQueries: [
+      () => queryKeys.expenses(workspaceId!),
+      () => queryKeys.transactions(workspaceId!),
+    ],
     getOfflineQueuedToast: () => ({
       title: "Expense updated successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -345,9 +379,13 @@ export function useUpdateExpense() {
  * - Invalidates expenses and transactions queries on success
  */
 export function useDeleteExpense() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<{ success: boolean }, Error, string>({
-    mutationFn: deleteTransaction,
-    invalidateQueries: [queryKeys.expenses, queryKeys.transactions],
+    mutationFn: (id) => deleteTransaction(requireWorkspaceId(workspaceId), id),
+    invalidateQueries: [
+      () => queryKeys.expenses(workspaceId!),
+      () => queryKeys.transactions(workspaceId!),
+    ],
     getOfflineQueuedToast: () => ({
       title: "Expense deleted successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -362,20 +400,24 @@ export function useDeleteExpense() {
 export function useInfiniteExpenses(
   query?: Omit<ITransactionsQuery, "type" | "page">
 ) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null;
   return useFinInfiniteQuery<
     IPaginatedTransactionsResponse,
     Error,
-    ReturnType<typeof queryKeys.expenses>,
+    readonly unknown[],
     number
   >({
-    queryKey: queryKeys.expenses({ ...query, page: undefined }),
+    queryKey: enabled
+      ? queryKeys.expenses(workspaceId, { ...query, page: undefined })
+      : (["expenses", "disabled"] as const),
     queryFn: ({ pageParam = 1 }) => {
       const expensesQuery = {
         ...query,
         type: "EXPENSE" as const,
         page: pageParam,
       } as ITransactionsQuery;
-      return getTransactions(expensesQuery);
+      return getTransactions(requireWorkspaceId(workspaceId), expensesQuery);
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.hasNext) {
@@ -385,6 +427,7 @@ export function useInfiniteExpenses(
     },
     initialPageParam: 1,
     staleTime: 30 * 1000,
+    enabled,
   });
 }
 
@@ -409,11 +452,19 @@ export function useIncomes(
     "queryKey" | "queryFn" | "staleTime"
   >
 ) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null;
   return useFinQuery<IPaginatedTransactionsResponse, Error>({
-    queryKey: queryKeys.incomes(query),
+    queryKey: enabled
+      ? queryKeys.incomes(workspaceId, query)
+      : (["incomes", "disabled"] as const),
     queryFn: () =>
-      getTransactions({ ...query, type: "INCOME" } as ITransactionsQuery),
+      getTransactions(requireWorkspaceId(workspaceId), {
+        ...query,
+        type: "INCOME",
+      } as ITransactionsQuery),
     staleTime: 30 * 1000, // 30 seconds
+    enabled,
     ...options,
   });
 }
@@ -423,13 +474,18 @@ export function useIncomes(
  * - Invalidates incomes and transactions queries on success
  */
 export function useCreateIncome() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<
     ITransaction,
     Error,
     Omit<ICreateTransactionInput, "type">
   >({
-    mutationFn: (input) => createTransaction({ ...input, type: "INCOME" }),
-    invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+    mutationFn: (input) =>
+      createTransaction(requireWorkspaceId(workspaceId), { ...input, type: "INCOME" }),
+    invalidateQueries: [
+      () => queryKeys.incomes(workspaceId!),
+      () => queryKeys.transactions(workspaceId!),
+    ],
     getOfflineQueuedToast: () => ({
       title: "Income created successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -442,14 +498,18 @@ export function useCreateIncome() {
  * - Invalidates incomes and transactions queries on success
  */
 export function useUpdateIncome() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<
     ITransaction,
     Error,
     { transactionId: string; input: Omit<IUpdateTransactionInput, "type"> }
   >({
     mutationFn: ({ transactionId, input }) =>
-      updateTransaction(transactionId, input),
-    invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+      updateTransaction(requireWorkspaceId(workspaceId), transactionId, input),
+    invalidateQueries: [
+      () => queryKeys.incomes(workspaceId!),
+      () => queryKeys.transactions(workspaceId!),
+    ],
     getOfflineQueuedToast: () => ({
       title: "Income updated successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -462,9 +522,13 @@ export function useUpdateIncome() {
  * - Invalidates incomes and transactions queries on success
  */
 export function useDeleteIncome() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<{ success: boolean }, Error, string>({
-    mutationFn: deleteTransaction,
-    invalidateQueries: [queryKeys.incomes, queryKeys.transactions],
+    mutationFn: (id) => deleteTransaction(requireWorkspaceId(workspaceId), id),
+    invalidateQueries: [
+      () => queryKeys.incomes(workspaceId!),
+      () => queryKeys.transactions(workspaceId!),
+    ],
     getOfflineQueuedToast: () => ({
       title: "Income deleted successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -479,20 +543,24 @@ export function useDeleteIncome() {
 export function useInfiniteIncomes(
   query?: Omit<ITransactionsQuery, "type" | "page">
 ) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null;
   return useFinInfiniteQuery<
     IPaginatedTransactionsResponse,
     Error,
-    ReturnType<typeof queryKeys.incomes>,
+    readonly unknown[],
     number
   >({
-    queryKey: queryKeys.incomes({ ...query, page: undefined }),
+    queryKey: enabled
+      ? queryKeys.incomes(workspaceId, { ...query, page: undefined })
+      : (["incomes", "disabled"] as const),
     queryFn: ({ pageParam = 1 }) => {
       const incomesQuery = {
         ...query,
         type: "INCOME" as const,
         page: pageParam,
       } as ITransactionsQuery;
-      return getTransactions(incomesQuery);
+      return getTransactions(requireWorkspaceId(workspaceId), incomesQuery);
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.hasNext) {
@@ -502,5 +570,6 @@ export function useInfiniteIncomes(
     },
     initialPageParam: 1,
     staleTime: 30 * 1000,
+    enabled,
   });
 }

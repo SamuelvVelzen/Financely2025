@@ -16,29 +16,35 @@ import {
   reorderTags,
   updateTag,
 } from "@/features/tag/api/client";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { useQueryClient } from "@tanstack/react-query";
 
-/**
- * Query tags list
- * - staleTime: 1-2 minutes (medium, keeps UI snappy)
- * - Supports filtering (q) and sorting
- */
+function requireWorkspaceId(id: number | null): number {
+  if (id == null) {
+    throw new Error("Workspace is required");
+  }
+  return id;
+}
+
 export function useTags(query?: ITagsQuery) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null;
   return useFinQuery<ITagsResponse, Error>({
-    queryKey: queryKeys.tags(query),
-    queryFn: () => getTags(query),
-    staleTime: 1 * 60 * 1000, // 1 minute
+    queryKey: enabled
+      ? queryKeys.tags(workspaceId, query)
+      : (["tags", "disabled"] as const),
+    queryFn: () => getTags(requireWorkspaceId(workspaceId), query),
+    staleTime: 1 * 60 * 1000,
+    enabled,
   });
 }
 
-/**
- * Create tag mutation
- * - Invalidates tags query on success
- */
 export function useCreateTag() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<ITag, Error, ICreateTagInput>({
-    mutationFn: createTag,
-    invalidateQueries: [queryKeys.tags],
+    mutationFn: (input) =>
+      createTag(requireWorkspaceId(workspaceId), input),
+    invalidateQueries: [() => queryKeys.tags(workspaceId!)],
     getOfflineQueuedToast: (input) => ({
       title: `Tag "${input.name}" created successfully`,
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -46,31 +52,30 @@ export function useCreateTag() {
   });
 }
 
-/**
- * Update tag mutation
- * - Invalidates tags query on success
- */
 export function useUpdateTag() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<ITag, Error, { tagId: string; input: IUpdateTagInput }>(
     {
-      mutationFn: ({ tagId, input }) => updateTag(tagId, input),
-      invalidateQueries: [queryKeys.tags],
+      mutationFn: ({ tagId, input }) =>
+        updateTag(requireWorkspaceId(workspaceId), tagId, input),
+      invalidateQueries: [() => queryKeys.tags(workspaceId!)],
       getOfflineQueuedToast: (vars) => ({
         title: `Tag "${vars.input.name}" updated successfully`,
         message: OFFLINE_MUTATION_DEFAULT_DETAIL,
       }),
-    }
+    },
   );
 }
 
-/**
- * Delete tag mutation
- * - Invalidates tags query on success
- */
 export function useDeleteTag() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<{ success: boolean }, Error, string>({
-    mutationFn: deleteTag,
-    invalidateQueries: [queryKeys.tags, queryKeys.transactions],
+    mutationFn: (tagId) =>
+      deleteTag(requireWorkspaceId(workspaceId), tagId),
+    invalidateQueries: [
+      () => queryKeys.tags(workspaceId!),
+      () => queryKeys.transactions(workspaceId!),
+    ],
     getOfflineQueuedToast: () => ({
       title: "Tag deleted successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -78,39 +83,37 @@ export function useDeleteTag() {
   });
 }
 
-/**
- * Reorder tags mutation
- * - Optimistic update: immediately reorders tags in cache
- * - Invalidates tags query on success to sync with server
- * - Reverts on error
- */
 export function useReorderTags() {
+  const workspaceId = useNavWorkspaceId();
   const queryClient = useQueryClient();
+  const wid = workspaceId;
 
   return useFinMutation<
     { success: boolean },
     Error,
     IReorderTagsInput,
-    { previousTags: ITagsResponse | undefined }
+    {
+      previousEntries: Array<[readonly unknown[], ITagsResponse | undefined]>;
+    }
   >({
-    mutationFn: reorderTags,
+    mutationFn: (input) => reorderTags(requireWorkspaceId(wid), input),
     onMutate: async (variables) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({
-        queryKey: queryKeys.tags(),
+        queryKey: ["tags", wid],
       });
 
-      // Snapshot previous value for rollback
-      const previousTags = queryClient.getQueryData<ITagsResponse>(
-        queryKeys.tags()
-      );
+      const entries = queryClient.getQueriesData<ITagsResponse>({
+        queryKey: ["tags", wid],
+      });
+      const previousEntries: Array<
+        [readonly unknown[], ITagsResponse | undefined]
+      > = entries.map(([key, data]) => [key, data]);
 
-      // Optimistically update the cache
-      if (previousTags) {
-        const tagMap = new Map(previousTags.data.map((tag) => [tag.id, tag]));
+      const baseData = entries[0]?.[1];
+      if (baseData) {
+        const tagMap = new Map(baseData.data.map((tag) => [tag.id, tag]));
         const reorderedTags: ITag[] = [];
 
-        // Reorder based on provided tagIds
         variables.tagIds.forEach((tagId) => {
           const tag = tagMap.get(tagId);
           if (tag) {
@@ -118,33 +121,31 @@ export function useReorderTags() {
           }
         });
 
-        // Add any tags not in the reorder list (shouldn't happen, but safety check)
-        previousTags.data.forEach((tag) => {
+        baseData.data.forEach((tag) => {
           if (!variables.tagIds.includes(tag.id)) {
             reorderedTags.push(tag);
           }
         });
 
-        queryClient.setQueryData<ITagsResponse>(queryKeys.tags(), {
-          data: reorderedTags,
-        });
+        for (const [key] of entries) {
+          queryClient.setQueryData<ITagsResponse>(key as readonly unknown[], {
+            data: reorderedTags,
+          });
+        }
       }
 
-      return { previousTags };
+      return { previousEntries };
     },
-    onError: (error, variables, context) => {
-      // Rollback on error
-      if (context?.previousTags) {
-        queryClient.setQueryData<ITagsResponse>(
-          queryKeys.tags(),
-          context.previousTags
-        );
+    onError: (_error, _variables, context) => {
+      for (const [key, data] of context?.previousEntries ?? []) {
+        if (data !== undefined) {
+          queryClient.setQueryData(key as readonly unknown[], data);
+        }
       }
     },
     onSettled: () => {
-      // Refetch to ensure sync with server
       queryClient.invalidateQueries({
-        queryKey: queryKeys.tags(),
+        queryKey: ["tags", wid],
       });
     },
     getOfflineQueuedToast: () => ({

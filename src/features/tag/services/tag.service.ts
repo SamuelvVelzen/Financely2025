@@ -14,17 +14,16 @@ import {
   type IUpdateTagInput,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 
 /**
  * Tag Service
- * Handles tag-related business logic and data access
+ * Handles tag-related business logic and data access (workspace-scoped).
  */
 export class TagService {
-  /**
-   * List tags for a user with optional filtering and sorting
-   */
   static async listTags(
     userId: string,
+    workspaceId: IWorkspaceId,
     query: ITagsQuery
   ): Promise<{ data: ITag[] }> {
     const validated = TagsQuerySchema.parse(query);
@@ -32,6 +31,7 @@ export class TagService {
     const tags = await prisma.tag.findMany({
       where: {
         userId,
+        workspaceId,
         ...(validated.q && {
           OR: [
             {
@@ -62,7 +62,6 @@ export class TagService {
     return {
       data: tags
         .filter((tag) => {
-          // Filter out tags with invalid transactionType (shouldn't happen after migration)
           return (
             tag.transactionType === "EXPENSE" || tag.transactionType === "INCOME"
           );
@@ -94,14 +93,16 @@ export class TagService {
     };
   }
 
-  /**
-   * Get tag by ID (user-scoped)
-   */
-  static async getTagById(userId: string, tagId: string): Promise<ITag | null> {
+  static async getTagById(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    tagId: string
+  ): Promise<ITag | null> {
     const tag = await prisma.tag.findFirst({
       where: {
         id: tagId,
         userId,
+        workspaceId,
       },
     });
 
@@ -122,21 +123,17 @@ export class TagService {
     });
   }
 
-  /**
-   * Create a new tag
-   * Enforces unique name per user
-   */
   static async createTag(
     userId: string,
+    workspaceId: IWorkspaceId,
     input: ICreateTagInput
   ): Promise<ITag> {
     const validated = CreateTagInputSchema.parse(input);
 
-    // Check for duplicate name
     const existing = await prisma.tag.findUnique({
       where: {
-        userId_name: {
-          userId,
+        workspaceId_name: {
+          workspaceId,
           name: validated.name,
         },
       },
@@ -146,13 +143,12 @@ export class TagService {
       throw new Error("Tag with this name already exists");
     }
 
-    // Determine order: use provided order, or set to max + 1
     let order: number;
     if (validated.order !== undefined) {
       order = validated.order;
     } else {
       const maxOrderTag = await prisma.tag.findFirst({
-        where: { userId },
+        where: { userId, workspaceId },
         orderBy: { order: "desc" },
         select: { order: true },
       });
@@ -162,6 +158,7 @@ export class TagService {
     const tag = await prisma.tag.create({
       data: {
         userId,
+        workspaceId,
         name: validated.name,
         color: validated.color ?? null,
         description: validated.description ?? null,
@@ -183,28 +180,24 @@ export class TagService {
     });
   }
 
-  /**
-   * Update tag
-   */
   static async updateTag(
     userId: string,
+    workspaceId: IWorkspaceId,
     tagId: string,
     input: IUpdateTagInput
   ): Promise<ITag> {
-    // Verify tag belongs to user
-    const existing = await this.getTagById(userId, tagId);
+    const existing = await this.getTagById(userId, workspaceId, tagId);
     if (!existing) {
       throw new Error("Tag not found");
     }
 
     const validated = UpdateTagInputSchema.parse(input);
 
-    // If updating name, check for duplicates
     if (validated.name && validated.name !== existing.name) {
       const duplicate = await prisma.tag.findUnique({
         where: {
-          userId_name: {
-            userId,
+          workspaceId_name: {
+            workspaceId,
             name: validated.name,
           },
         },
@@ -246,12 +239,12 @@ export class TagService {
     });
   }
 
-  /**
-   * Delete tag
-   */
-  static async deleteTag(userId: string, tagId: string): Promise<void> {
-    // Verify tag belongs to user
-    const existing = await this.getTagById(userId, tagId);
+  static async deleteTag(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    tagId: string
+  ): Promise<void> {
+    const existing = await this.getTagById(userId, workspaceId, tagId);
     if (!existing) {
       throw new Error("Tag not found");
     }
@@ -261,13 +254,9 @@ export class TagService {
     });
   }
 
-  /**
-   * Bulk create tags
-   * Processes each tag individually to allow partial success
-   * Returns created tags and errors with indices
-   */
   static async bulkCreateTags(
     userId: string,
+    workspaceId: IWorkspaceId,
     input: IBulkCreateTagInput
   ): Promise<IBulkCreateTagResponse> {
     const validated = BulkCreateTagInputSchema.parse(input);
@@ -275,12 +264,10 @@ export class TagService {
     const created: ITag[] = [];
     const errors: Array<{ index: number; message: string }> = [];
 
-    // Track names seen in this batch to detect duplicates within the batch
     const seenNames = new Set<string>();
 
-    // Get all existing tag names for this user to check against
     const existingTags = await prisma.tag.findMany({
-      where: { userId },
+      where: { userId, workspaceId },
       select: { name: true },
     });
     const existingNames = new Set(
@@ -291,10 +278,8 @@ export class TagService {
       const item = validated[index];
 
       try {
-        // Validate individual item
         const validatedItem = CreateTagInputSchema.parse(item);
 
-        // Check for duplicate within batch
         if (seenNames.has(validatedItem.name)) {
           errors.push({
             index,
@@ -303,7 +288,6 @@ export class TagService {
           continue;
         }
 
-        // Check for duplicate against existing tags
         if (existingNames.has(validatedItem.name)) {
           errors.push({
             index,
@@ -312,23 +296,22 @@ export class TagService {
           continue;
         }
 
-        // Determine order: use provided order, or set to max + 1
         let order: number;
         if (validatedItem.order !== undefined) {
           order = validatedItem.order;
         } else {
           const maxOrderTag = await prisma.tag.findFirst({
-            where: { userId },
+            where: { userId, workspaceId },
             orderBy: { order: "desc" },
             select: { order: true },
           });
           order = maxOrderTag ? maxOrderTag.order + 1 : 0;
         }
 
-        // Create the tag
         const tag = await prisma.tag.create({
           data: {
             userId,
+            workspaceId,
             name: validatedItem.name,
             color: validatedItem.color ?? null,
             description: validatedItem.description ?? null,
@@ -352,9 +335,8 @@ export class TagService {
 
         created.push(createdTag);
         seenNames.add(validatedItem.name);
-        existingNames.add(validatedItem.name); // Update to prevent duplicates in same batch
+        existingNames.add(validatedItem.name);
       } catch (error) {
-        // Handle validation errors or other errors
         const message =
           error instanceof Error ? error.message : "Unknown error occurred";
         errors.push({
@@ -370,22 +352,18 @@ export class TagService {
     };
   }
 
-  /**
-   * Reorder tags
-   * Updates order values based on the provided array of tag IDs
-   * Each tag's order is set to its index in the array
-   */
   static async reorderTags(
     userId: string,
+    workspaceId: IWorkspaceId,
     input: IReorderTagsInput
   ): Promise<void> {
     const validated = ReorderTagsInputSchema.parse(input);
 
-    // Verify all tags belong to the user
     const tags = await prisma.tag.findMany({
       where: {
         id: { in: validated.tagIds },
         userId,
+        workspaceId,
       },
       select: { id: true },
     });
@@ -394,7 +372,6 @@ export class TagService {
       throw new Error("One or more tags not found or do not belong to user");
     }
 
-    // Update each tag's order based on its position in the array
     await prisma.$transaction(
       validated.tagIds.map((tagId, index) =>
         prisma.tag.update({

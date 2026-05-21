@@ -9,6 +9,7 @@ import {
 } from "@/features/shared/validation/schemas";
 import { TagService } from "@/features/tag/services/tag.service";
 import { prisma } from "@/features/util/prisma";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import type { BankEnum } from "../config/banks";
 import {
   PAYMENT_METHOD_VALUES,
@@ -704,6 +705,7 @@ function parseTagNames(value: string): string[] {
  */
 export async function fetchTagMetadataByNames(
   userId: string,
+  workspaceId: IWorkspaceId,
   tagNames: string[]
 ): Promise<
   Map<string, { id: string; color: string | null; emoticon: string | null }>
@@ -715,6 +717,7 @@ export async function fetchTagMetadataByNames(
   const tags = await prisma.tag.findMany({
     where: {
       userId,
+      workspaceId,
       name: {
         in: tagNames,
       },
@@ -751,6 +754,7 @@ export async function fetchTagMetadataByNames(
 export async function parseTags(
   value: string,
   userId: string,
+  workspaceId: IWorkspaceId,
   transactionType: ITransactionType
 ): Promise<string[]> {
   if (!value) return [];
@@ -767,6 +771,7 @@ export async function parseTags(
     const existingTags = await prisma.tag.findMany({
       where: {
         userId,
+        workspaceId,
         name: tagName,
       },
       take: 1,
@@ -777,7 +782,7 @@ export async function parseTags(
     } else {
       // Create new tag
       try {
-        const newTag = await TagService.createTag(userId, {
+        const newTag = await TagService.createTag(userId, workspaceId, {
           name: tagName,
           transactionType,
         });
@@ -787,6 +792,7 @@ export async function parseTags(
         const retryTags = await prisma.tag.findMany({
           where: {
             userId,
+            workspaceId,
             name: tagName,
           },
           take: 1,
@@ -810,6 +816,7 @@ export async function parseTags(
 export async function parsePrimaryTag(
   value: string,
   userId: string,
+  workspaceId: IWorkspaceId,
   transactionType: ITransactionType
 ): Promise<string | null> {
   if (!value || !value.trim()) return null;
@@ -820,6 +827,7 @@ export async function parsePrimaryTag(
   const existingTags = await prisma.tag.findMany({
     where: {
       userId,
+      workspaceId,
       name: tagName,
       transactionType,
     },
@@ -832,7 +840,7 @@ export async function parsePrimaryTag(
 
   // Create new tag with matching transaction type
   try {
-    const newTag = await TagService.createTag(userId, {
+    const newTag = await TagService.createTag(userId, workspaceId, {
       name: tagName,
       transactionType,
     });
@@ -842,7 +850,9 @@ export async function parsePrimaryTag(
     const retryTags = await prisma.tag.findMany({
       where: {
         userId,
+        workspaceId,
         name: tagName,
+        transactionType,
       },
       take: 1,
     });
@@ -909,8 +919,9 @@ export async function convertRowsToCandidates(
   rows: Record<string, string>[],
   mapping: ICsvFieldMapping,
   userId: string,
+  workspaceId: IWorkspaceId,
   typeDetectionStrategy: string,
-  defaultCurrency?: "USD" | "EUR" | "GBP" | "CAD" | "AUD" | "JPY",
+  defaultCurrency?: ICurrency,
   bank?: BankEnum | null
 ): Promise<ICsvCandidateTransaction[]> {
   const candidates: ICsvCandidateTransaction[] = [];
@@ -996,9 +1007,14 @@ export async function convertRowsToCandidates(
 
   const primaryTagMetadataMap = await fetchTagMetadataByNames(
     userId,
+    workspaceId,
     primaryTagNamesArray
   );
-  const tagsMetadataMap = await fetchTagMetadataByNames(userId, tagNamesArray);
+  const tagsMetadataMap = await fetchTagMetadataByNames(
+    userId,
+    workspaceId,
+    tagNamesArray
+  );
 
   // Second pass: add tag metadata to candidates
   return candidates.map((candidate) => {

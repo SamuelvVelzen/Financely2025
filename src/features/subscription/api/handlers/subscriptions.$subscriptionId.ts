@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   ErrorCodes,
@@ -7,58 +7,78 @@ import {
 import { SubscriptionService } from "@/features/subscription/services/subscription.service";
 import { json } from "@tanstack/react-start";
 
-function getSubscriptionId(request: Request): string {
-  const url = new URL(request.url);
-  const parts = url.pathname.split("/");
-  return parts[parts.length - 1];
-}
-
-export async function GET({ request }: { request: Request }) {
+export async function GET({
+  params,
+}: {
+  params: { workspaceId: string; subscriptionId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
-      const subscriptionId = getSubscriptionId(request);
-      const result = await SubscriptionService.getSubscriptionById(
-        userId,
-        subscriptionId,
-      );
-      if (!result) {
-        throw new ApiError(
-          ErrorCodes.NOT_FOUND,
-          "Subscription not found",
-          404,
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const result = await SubscriptionService.getSubscriptionById(
+          userId,
+          workspaceId,
+          params.subscriptionId
         );
+        if (!result) {
+          throw new ApiError(
+            ErrorCodes.NOT_FOUND,
+            "Subscription not found",
+            404
+          );
+        }
+        return json(result);
       }
-      return json(result);
-    });
+    );
   } catch (error) {
     return createErrorResponse(error);
   }
 }
 
-export async function PATCH({ request }: { request: Request }) {
+export async function PATCH({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string; subscriptionId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
-      const subscriptionId = getSubscriptionId(request);
-      const body = await request.json();
-      const result = await SubscriptionService.updateSubscription(
-        userId,
-        subscriptionId,
-        body,
-      );
-      return json(result);
-    });
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const body = await request.json();
+        const result = await SubscriptionService.updateSubscription(
+          userId,
+          workspaceId,
+          params.subscriptionId,
+          body
+        );
+        return json(result);
+      }
+    );
   } catch (error) {
     return createErrorResponse(error);
   }
 }
 
-export async function DELETE({ request }: { request: Request }) {
+export async function DELETE({
+  params,
+}: {
+  params: { workspaceId: string; subscriptionId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
-      const subscriptionId = getSubscriptionId(request);
-      await SubscriptionService.deleteSubscription(userId, subscriptionId);
-      return json({ success: true });
-    });
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        await SubscriptionService.deleteSubscription(
+          userId,
+          workspaceId,
+          params.subscriptionId
+        );
+        return json({ success: true });
+      }
+    );
   } catch (error) {
     return createErrorResponse(error);
   }

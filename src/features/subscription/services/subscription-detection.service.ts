@@ -5,6 +5,7 @@ import {
 } from "@/features/subscription/config/frequencies";
 import type { ISubscriptionCandidate } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 
 type IRawTransaction = {
   id: string;
@@ -15,26 +16,19 @@ type IRawTransaction = {
   type: "EXPENSE" | "INCOME";
 };
 
-/**
- * Normalize a transaction name for grouping.
- * Strips trailing dates, reference numbers, and whitespace differences.
- */
 function normalizeName(name: string): string {
   return name
     .toLowerCase()
     .trim()
     .replace(/\s+/g, " ")
-    .replace(/\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}/g, "") // dates like 01/15/2025
-    .replace(/\b\d{4}[\/\-.]\d{1,2}[\/\-.]\d{1,2}\b/g, "") // dates like 2025-01-15
-    .replace(/\s*#\s*\d+/g, "") // reference numbers like #12345
-    .replace(/\s*ref\s*:?\s*\d+/gi, "") // ref: 12345
+    .replace(/\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}/g, "")
+    .replace(/\b\d{4}[\/\-.]\d{1,2}[\/\-.]\d{1,2}\b/g, "")
+    .replace(/\s*#\s*\d+/g, "")
+    .replace(/\s*ref\s*:?\s*\d+/gi, "")
     .replace(/\s+$/, "")
     .trim();
 }
 
-/**
- * Check if a set of amounts are consistent (within tolerance).
- */
 function areAmountsConsistent(
   amounts: number[],
   tolerancePercent = 5,
@@ -47,13 +41,7 @@ function areAmountsConsistent(
   );
 }
 
-/**
- * Detect the recurrence frequency from a sorted list of dates.
- * Returns the best matching frequency or null if no pattern found.
- */
-function detectFrequency(
-  dates: Date[],
-): ISubscriptionFrequency | null {
+function detectFrequency(dates: Date[]): ISubscriptionFrequency | null {
   if (dates.length < 2) return null;
 
   const intervals: number[] = [];
@@ -81,16 +69,14 @@ function detectFrequency(
 }
 
 export class SubscriptionDetectionService {
-  /**
-   * Detect potential subscriptions from a user's transactions.
-   * Groups by normalized name + type + currency, checks amount consistency and recurrence.
-   */
   static async detectSubscriptions(
     userId: string,
+    workspaceId: IWorkspaceId,
   ): Promise<ISubscriptionCandidate[]> {
     const transactions = await prisma.transaction.findMany({
       where: {
         userId,
+        workspaceId,
         subscriptionId: null,
       },
       select: {
@@ -105,7 +91,7 @@ export class SubscriptionDetectionService {
     });
 
     const dismissals = await prisma.subscriptionDismissal.findMany({
-      where: { userId },
+      where: { userId, workspaceId },
       select: { normalizedName: true, type: true },
     });
 
@@ -164,17 +150,13 @@ export class SubscriptionDetectionService {
     return candidates;
   }
 
-  /**
-   * Check a single newly created transaction against existing ones
-   * to detect if it forms a subscription pattern.
-   * Returns candidates that include the new transaction.
-   */
   static async detectForTransaction(
     userId: string,
+    workspaceId: IWorkspaceId,
     transactionId: string,
   ): Promise<ISubscriptionCandidate[]> {
     const newTx = await prisma.transaction.findFirst({
-      where: { id: transactionId, userId },
+      where: { id: transactionId, userId, workspaceId },
       select: {
         id: true,
         name: true,
@@ -189,14 +171,20 @@ export class SubscriptionDetectionService {
 
     const normalized = normalizeName(newTx.name);
 
-    const dismissals = await prisma.subscriptionDismissal.findFirst({
-      where: { userId, normalizedName: normalized, type: newTx.type },
+    const dismissal = await prisma.subscriptionDismissal.findFirst({
+      where: {
+        userId,
+        workspaceId,
+        normalizedName: normalized,
+        type: newTx.type,
+      },
     });
-    if (dismissals) return [];
+    if (dismissal) return [];
 
     const similarTransactions = await prisma.transaction.findMany({
       where: {
         userId,
+        workspaceId,
         type: newTx.type,
         currency: newTx.currency,
         subscriptionId: null,

@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -9,40 +9,66 @@ import { BudgetService } from "@/features/budget/services/budget.service";
 import { json } from "@tanstack/react-start";
 
 /**
- * GET /api/v1/budgets
+ * GET /api/v1/:workspaceId/budgets
  * List budgets with optional filtering
  */
-export async function GET({ request }: { request: Request }) {
+export async function GET({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
-      const url = new URL(request.url);
-      const query = {
-        from: url.searchParams.get("from") ?? undefined,
-        to: url.searchParams.get("to") ?? undefined,
-        q: url.searchParams.get("q") ?? undefined,
-      };
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const url = new URL(request.url);
+        const query = {
+          from: url.searchParams.get("from") ?? undefined,
+          to: url.searchParams.get("to") ?? undefined,
+          q: url.searchParams.get("q") ?? undefined,
+        };
 
-      const validated = BudgetsQuerySchema.parse(query);
-      const result = await BudgetService.listBudgets(userId, validated);
-      return json(result);
-    });
+        const validated = BudgetsQuerySchema.parse(query);
+        const result = await BudgetService.listBudgets(
+          userId,
+          workspaceId,
+          validated
+        );
+        return json(result);
+      }
+    );
   } catch (error) {
     return createErrorResponse(error);
   }
 }
 
 /**
- * POST /api/v1/budgets
+ * POST /api/v1/:workspaceId/budgets
  * Create a new budget
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
-      const body = await request.json();
-      const result = await BudgetService.createBudget(userId, body);
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const body = await request.json();
+        const result = await BudgetService.createBudget(
+          userId,
+          workspaceId,
+          body
+        );
 
-      return json(result, { status: 201 });
-    });
+        return json(result, { status: 201 });
+      }
+    );
   } catch (error) {
     if (
       error instanceof Error &&
@@ -61,14 +87,9 @@ export async function POST({ request }: { request: Request }) {
       error.message.includes("Duplicate tag entry")
     ) {
       return createErrorResponse(
-        new ApiError(
-          ErrorCodes.CONFLICT,
-          error.message,
-          409
-        )
+        new ApiError(ErrorCodes.CONFLICT, error.message, 409)
       );
     }
     return createErrorResponse(error);
   }
 }
-

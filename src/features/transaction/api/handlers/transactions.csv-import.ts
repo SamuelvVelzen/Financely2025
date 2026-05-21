@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import { MessageFactory } from "@/features/message/services/message.factory";
 import {
   ApiError,
@@ -13,6 +13,7 @@ import {
 import { json } from "@tanstack/react-start";
 import { parsePrimaryTag, parseTags } from "../../services/csv.service";
 import { TransactionService } from "../../services/transaction.service";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 
 /**
  * Check if a string is a valid CUID (tag ID format)
@@ -27,7 +28,8 @@ function isTagId(value: string): boolean {
  */
 async function resolveTransactionTags(
   transaction: ICreateTransactionInput,
-  userId: string
+  userId: string,
+  workspaceId: IWorkspaceId,
 ): Promise<ICreateTransactionInput> {
   const resolved = { ...transaction };
 
@@ -51,6 +53,7 @@ async function resolveTransactionTags(
         const resolvedTagIds = await parseTags(
           tagNames.join(","),
           userId,
+          workspaceId,
           transaction.type
         );
         resolved.tagIds = [...existingTagIds, ...resolvedTagIds];
@@ -71,6 +74,7 @@ async function resolveTransactionTags(
         resolved.primaryTagId = await parsePrimaryTag(
           transaction.primaryTagId,
           userId,
+          workspaceId,
           transaction.type
         );
       } catch (error) {
@@ -87,19 +91,27 @@ async function resolveTransactionTags(
 }
 
 /**
- * POST /api/v1/transactions/csv/import
+ * POST /api/v1/:workspaceId/transactions/csv-import
  * Accept approved transactions, re-validate, call TransactionService.bulkCreateTransactions, return results
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
       const body = await request.json();
       const validated = CsvImportRequestSchema.parse(body);
 
       // Resolve tag names to tagIds before importing
       const transactionsWithResolvedTags = await Promise.all(
         validated.transactions.map((transaction) =>
-          resolveTransactionTags(transaction, userId)
+          resolveTransactionTags(transaction, userId, workspaceId)
         )
       );
 
@@ -107,6 +119,7 @@ export async function POST({ request }: { request: Request }) {
       // The service will handle validation and return errors for invalid items
       const result = await TransactionService.bulkCreateTransactions(
         userId,
+        workspaceId,
         transactionsWithResolvedTags
       );
 
@@ -120,6 +133,7 @@ export async function POST({ request }: { request: Request }) {
       if (result.created.length > 0) {
         MessageFactory.createTransactionImportMessage(
           userId,
+          workspaceId,
           result.created.length,
           result.errors.length
         ).catch((error) => {
@@ -143,7 +157,8 @@ export async function POST({ request }: { request: Request }) {
         // Partial success
         return json(response, { status: 207 });
       }
-    });
+      }
+    );
   } catch (error) {
     return createErrorResponse(error);
   }

@@ -1,7 +1,7 @@
-import { ROUTES } from "@/config/routes";
 import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { cn } from "@/features/util/cn";
-import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   HiArrowsRightLeft,
@@ -15,7 +15,8 @@ import { Container } from "../container/container";
 import { MobileNavItem } from "./mobile-nav-item";
 
 export function MobileBottomNav() {
-  const navigate = useNavigate();
+  const workspaceId = useNavWorkspaceId();
+  const workspaceParams = { workspaceId: workspaceIdToRouteParam(workspaceId) };
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
 
   const handleCreateTransaction = () => {
@@ -38,13 +39,15 @@ export function MobileBottomNav() {
         aria-label="Bottom navigation">
         <nav className="relative flex w-full">
           <MobileNavItem
-            to={ROUTES.ROOT}
+            to="/$workspaceId"
+            params={workspaceParams}
             label="Dashboard"
             icon={HiChartBar}
             className="flex-1"
           />
           <MobileNavItem
-            to={ROUTES.BUDGETS}
+            to="/$workspaceId/budgets"
+            params={workspaceParams}
             label="Budgets"
             icon={HiOutlineCurrencyEuro}
             className="flex-1"
@@ -58,13 +61,15 @@ export function MobileBottomNav() {
             </IconButton>
           </div>
           <MobileNavItem
-            to={ROUTES.TRANSACTIONS}
+            to="/$workspaceId/transactions"
+            params={workspaceParams}
             label="Transactions"
             icon={HiArrowsRightLeft}
             className="flex-1"
           />
           <MobileNavItem
-            to={ROUTES.TAGS}
+            to="/$workspaceId/tags"
+            params={workspaceParams}
             label="Tags"
             icon={HiOutlineTag}
             className="flex-1"

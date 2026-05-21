@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -9,22 +9,24 @@ import { TagService } from "@/features/tag/services/tag.service";
 import { json } from "@tanstack/react-start";
 
 /**
- * POST /api/v1/tags/bulk
- * Bulk create tags with partial success support
+ * POST /api/v1/:workspaceId/tags/bulk
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
       const body = await request.json();
       const validated = BulkCreateTagInputSchema.parse(body);
-      const result = await TagService.bulkCreateTags(userId, validated);
+      const result = await TagService.bulkCreateTags(userId, workspaceId, validated);
 
-      // Determine status code based on results
       if (result.errors.length === 0) {
-        // All items succeeded
         return json(result, { status: 201 });
       } else if (result.created.length === 0) {
-        // All items failed
         return createErrorResponse(
           new ApiError(
             ErrorCodes.VALIDATION_ERROR,
@@ -33,7 +35,6 @@ export async function POST({ request }: { request: Request }) {
           )
         );
       } else {
-        // Partial success
         return json(result, { status: 207 });
       }
     });

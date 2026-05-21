@@ -1,6 +1,7 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import type { ISubscriptionCandidate } from "@/features/shared/validation/schemas";
 import { detectSubscriptions } from "@/features/subscription/api/client";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import {
   useConfirmSubscription,
   useDismissCandidate,
@@ -21,6 +22,7 @@ export function SubscriptionDetectionDialog({
   open,
   onOpenChange,
 }: ISubscriptionDetectionDialogProps) {
+  const workspaceId = useNavWorkspaceId();
   const toast = useToast();
   const { mutate: confirmSub } = useConfirmSubscription();
   const { mutate: dismissCandidate } = useDismissCandidate();
@@ -35,7 +37,7 @@ export function SubscriptionDetectionDialog({
   candidatesRef.current = candidates;
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !workspaceId) return;
 
     setCandidates([]);
     setHasDetected(false);
@@ -43,7 +45,7 @@ export function SubscriptionDetectionDialog({
     setDismissingName(null);
 
     setIsDetecting(true);
-    detectSubscriptions()
+    detectSubscriptions(workspaceId)
       .then((result) => {
         setCandidates(result.candidates);
         setHasDetected(true);
@@ -54,7 +56,7 @@ export function SubscriptionDetectionDialog({
       .finally(() => {
         setIsDetecting(false);
       });
-  }, [open]);
+  }, [open, workspaceId, toast]);
 
   const handleConfirm = useCallback(
     (candidate: ISubscriptionCandidate) => {

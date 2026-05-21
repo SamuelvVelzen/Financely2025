@@ -1,4 +1,3 @@
-import { ROUTES } from "@/config/routes";
 import {
   useBudget,
   useBudgetComparison,
@@ -6,6 +5,8 @@ import {
 } from "@/features/budget/hooks/useBudgets";
 import type { IBudgetMonthlyBreakdown } from "@/features/shared/validation/schemas";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
@@ -51,6 +52,8 @@ type IBudgetDetailPageProps = {
 
 export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
   const navigate = useNavigate();
+  const workspaceId = useActiveWorkspaceId();
+  const workspaceRouteParam = workspaceIdToRouteParam(workspaceId);
   const { data: budget, isLoading: budgetLoading } = useBudget(budgetId);
   const { data: comparison, isLoading: comparisonLoading } =
     useBudgetComparison(budgetId);
@@ -73,13 +76,16 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
   }, [selectedMonthKey, comparison]);
 
   const handleBack = () => {
-    navigate({ to: ROUTES.BUDGETS });
+    navigate({
+      to: "/$workspaceId/budgets",
+      params: { workspaceId: workspaceRouteParam },
+    });
   };
 
   const handleEdit = () => {
     navigate({
-      to: "/budgets/$budgetId/edit",
-      params: { budgetId },
+      to: "/$workspaceId/budgets/$budgetId/edit",
+      params: { workspaceId: workspaceRouteParam, budgetId },
     });
   };
 
@@ -94,7 +100,10 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
         if (!isOfflineMutationPlaceholder(data)) {
           toast.success("Budget deleted successfully");
         }
-        navigate({ to: ROUTES.BUDGETS });
+        navigate({
+          to: "/$workspaceId/budgets",
+          params: { workspaceId: workspaceRouteParam },
+        });
       },
       onError: () => {
         toast.error("Failed to delete budget");

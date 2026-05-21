@@ -11,6 +11,7 @@ import {
 } from "@/features/shared/validation/schemas";
 import { AddOrEditTagDialog } from "@/features/tag/components/add-or-edit-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -41,6 +42,7 @@ export function TagSelect({
   onChange: controlledOnChange,
   onValueChange,
 }: ITagSelectProps) {
+  const workspaceId = useNavWorkspaceId();
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
   const orderedTags = useOrderedData(tags) as ITag[];
@@ -85,7 +87,11 @@ export function TagSelect({
   // Handle tag creation success
   const handleTagCreated = (createdTag?: ITag) => {
     // Invalidate tags query to refresh the list
-    queryClient.invalidateQueries({ queryKey: queryKeys.tags() });
+    if (workspaceId != null) {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tags(workspaceId),
+      });
+    }
     setIsCreateDialogOpen(false);
     setPendingTagName("");
 

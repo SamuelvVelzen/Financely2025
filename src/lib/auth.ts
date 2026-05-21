@@ -81,10 +81,13 @@ export const auth = betterAuth({
     user: {
       create: {
         after: async (userInfo) => {
-          // Create the app User record linked to this UserInfo
+          // Create the app User record linked to this UserInfo + default workspace
           await prisma.user.create({
             data: {
               userInfoId: userInfo.id,
+              workspaces: {
+                create: [{ name: "Personal" }],
+              },
             },
           });
         },

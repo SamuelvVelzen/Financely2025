@@ -17,6 +17,7 @@ import { MessageService } from "@/features/message/services/message.service";
 import { SubscriptionDetectionService } from "@/features/subscription/services/subscription-detection.service";
 import { SubscriptionService } from "@/features/subscription/services/subscription.service";
 import { prisma } from "@/features/util/prisma";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import { Prisma } from "@prisma/client";
 
 const TRANSACTION_INCLUDE = {
@@ -47,7 +48,7 @@ export class TransactionService {
     description: string | null;
     externalId: string | null;
     paymentMethod: string;
-    tags: Array<{ id: string; name: string; color: string | null }>;
+    tags?: Array<{ id: string; name: string; color: string | null }>;
     primaryTag?: { id: string; name: string; color: string | null } | null;
     subscription?: {
       id: string;
@@ -58,6 +59,7 @@ export class TransactionService {
     createdAt: Date;
     updatedAt: Date;
   }): ITransaction {
+    const tags = tx.tags ?? [];
     return TransactionSchema.parse({
       id: tx.id,
       type: tx.type,
@@ -69,7 +71,7 @@ export class TransactionService {
       description: tx.description,
       externalId: tx.externalId,
       paymentMethod: tx.paymentMethod,
-      tags: tx.tags.map((tag) => ({
+      tags: tags.map((tag) => ({
         id: tag.id,
         name: tag.name,
         color: tag.color,
@@ -99,6 +101,7 @@ export class TransactionService {
    */
   static async listTransactions(
     userId: string,
+    workspaceId: IWorkspaceId,
     query: ITransactionsQuery
   ): Promise<IPaginatedTransactionsResponse> {
     const validated = TransactionsQuerySchema.parse(query);
@@ -121,6 +124,7 @@ export class TransactionService {
     // Use transactionDate for day-based filters (includes both precision types)
     const where: Prisma.TransactionWhereInput = {
       userId,
+      workspaceId,
       ...(from || to
         ? {
             transactionDate: {
@@ -227,10 +231,11 @@ export class TransactionService {
    */
   static async getTransactionById(
     userId: string,
+    workspaceId: IWorkspaceId,
     transactionId: string
   ): Promise<ITransaction | null> {
     const transaction = await prisma.transaction.findFirst({
-      where: { id: transactionId, userId },
+      where: { id: transactionId, userId, workspaceId },
       include: TRANSACTION_INCLUDE,
     });
 
@@ -246,6 +251,7 @@ export class TransactionService {
    */
   static async createTransaction(
     userId: string,
+    workspaceId: IWorkspaceId,
     input: ICreateTransactionInput
   ): Promise<ITransaction> {
     const validated = CreateTransactionInputSchema.parse(input);
@@ -256,6 +262,7 @@ export class TransactionService {
         where: {
           id: { in: validated.tagIds },
           userId,
+          workspaceId,
         },
       });
 
@@ -270,6 +277,7 @@ export class TransactionService {
         where: {
           id: validated.primaryTagId,
           userId,
+          workspaceId,
         },
       });
 
@@ -312,6 +320,7 @@ export class TransactionService {
     // Try to auto-flag to an existing subscription
     const autoFlagSubId = await SubscriptionService.tryAutoFlag(
       userId,
+      workspaceId,
       validated.name,
       validated.type,
       validated.currency,
@@ -321,6 +330,7 @@ export class TransactionService {
     const transaction = await prisma.transaction.create({
       data: {
         userId,
+        workspaceId,
         type: validated.type,
         amount: validated.amount,
         currency: validated.currency,
@@ -344,7 +354,7 @@ export class TransactionService {
 
     // If not auto-flagged, check if this transaction forms a new subscription pattern
     if (!autoFlagSubId) {
-      this.triggerDetectionForTransaction(userId, transaction.id).catch(
+      this.triggerDetectionForTransaction(userId, workspaceId, transaction.id).catch(
         () => {},
       );
     }
@@ -358,17 +368,19 @@ export class TransactionService {
    */
   private static async triggerDetectionForTransaction(
     userId: string,
+    workspaceId: IWorkspaceId,
     transactionId: string,
   ): Promise<void> {
     const candidates =
       await SubscriptionDetectionService.detectForTransaction(
         userId,
+        workspaceId,
         transactionId,
       );
 
     if (candidates.length > 0) {
       const candidate = candidates[0];
-      await MessageService.createMessage(userId, {
+      await MessageService.createMessage(userId, workspaceId, {
         title: "Recurring transaction detected",
         content: `"${candidate.displayName}" looks like a ${candidate.frequency} subscription (${candidate.occurrences} occurrences). Would you like to track it?`,
         type: "INFO",
@@ -376,7 +388,7 @@ export class TransactionService {
           {
             label: "Review Subscriptions",
             type: "navigate",
-            path: "/subscriptions",
+            path: `/${workspaceId}/subscriptions`,
             variant: "primary",
           },
           { label: "Dismiss", type: "dismiss" },
@@ -393,6 +405,7 @@ export class TransactionService {
    */
   static async bulkCreateTransactions(
     userId: string,
+    workspaceId: IWorkspaceId,
     input: IBulkCreateTransactionInput
   ): Promise<IBulkCreateTransactionResponse> {
     const validated = BulkCreateTransactionInputSchema.parse(input);
@@ -413,6 +426,7 @@ export class TransactionService {
             where: {
               id: { in: validatedItem.tagIds },
               userId,
+              workspaceId,
             },
           });
 
@@ -431,6 +445,7 @@ export class TransactionService {
             where: {
               id: validatedItem.primaryTagId,
               userId,
+              workspaceId,
             },
           });
 
@@ -475,6 +490,7 @@ export class TransactionService {
 
         const autoFlagSubId = await SubscriptionService.tryAutoFlag(
           userId,
+          workspaceId,
           validatedItem.name,
           validatedItem.type,
           validatedItem.currency,
@@ -484,6 +500,7 @@ export class TransactionService {
         const transaction = await prisma.transaction.create({
           data: {
             userId,
+            workspaceId,
             type: validatedItem.type,
             amount: validatedItem.amount,
             currency: validatedItem.currency,
@@ -519,10 +536,10 @@ export class TransactionService {
 
     // Run subscription detection for the batch (fire-and-forget)
     if (created.length > 0) {
-      SubscriptionDetectionService.detectSubscriptions(userId)
+      SubscriptionDetectionService.detectSubscriptions(userId, workspaceId)
         .then(async (candidates) => {
           if (candidates.length > 0) {
-            await MessageService.createMessage(userId, {
+            await MessageService.createMessage(userId, workspaceId, {
               title: "Recurring transactions detected",
               content: `We found ${candidates.length} potential subscription${candidates.length > 1 ? "s" : ""} in your imported transactions. Review them to start tracking.`,
               type: "INFO",
@@ -530,7 +547,7 @@ export class TransactionService {
                 {
                   label: "Review Subscriptions",
                   type: "navigate",
-                  path: "/subscriptions",
+                  path: `/${workspaceId}/subscriptions`,
                   variant: "primary",
                 },
                 { label: "Dismiss", type: "dismiss" },
@@ -553,11 +570,16 @@ export class TransactionService {
    */
   static async updateTransaction(
     userId: string,
+    workspaceId: IWorkspaceId,
     transactionId: string,
     input: IUpdateTransactionInput
   ): Promise<ITransaction> {
     // Verify transaction belongs to user
-    const existing = await this.getTransactionById(userId, transactionId);
+    const existing = await this.getTransactionById(
+      userId,
+      workspaceId,
+      transactionId
+    );
     if (!existing) {
       throw new Error("Transaction not found");
     }
@@ -570,6 +592,7 @@ export class TransactionService {
         where: {
           id: { in: validated.tagIds },
           userId,
+          workspaceId,
         },
       });
 
@@ -585,6 +608,7 @@ export class TransactionService {
           where: {
             id: validated.primaryTagId,
             userId,
+            workspaceId,
           },
         });
 
@@ -691,10 +715,15 @@ export class TransactionService {
    */
   static async deleteTransaction(
     userId: string,
+    workspaceId: IWorkspaceId,
     transactionId: string
   ): Promise<void> {
     // Verify transaction belongs to user
-    const existing = await this.getTransactionById(userId, transactionId);
+    const existing = await this.getTransactionById(
+      userId,
+      workspaceId,
+      transactionId
+    );
     if (!existing) {
       throw new Error("Transaction not found");
     }
@@ -709,6 +738,7 @@ export class TransactionService {
    */
   static async addTagToTransaction(
     userId: string,
+    workspaceId: IWorkspaceId,
     transactionId: string,
     tagId: string
   ): Promise<ITransaction> {
@@ -717,6 +747,7 @@ export class TransactionService {
       where: {
         id: transactionId,
         userId,
+        workspaceId,
       },
     });
 
@@ -729,6 +760,7 @@ export class TransactionService {
       where: {
         id: tagId,
         userId,
+        workspaceId,
       },
     });
 
@@ -754,6 +786,7 @@ export class TransactionService {
    */
   static async removeTagFromTransaction(
     userId: string,
+    workspaceId: IWorkspaceId,
     transactionId: string,
     tagId: string
   ): Promise<ITransaction> {
@@ -762,6 +795,7 @@ export class TransactionService {
       where: {
         id: transactionId,
         userId,
+        workspaceId,
       },
     });
 

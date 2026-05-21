@@ -20,6 +20,8 @@ import { TabContent } from "@/features/ui/tab/tab-content";
 import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineTag } from "react-icons/hi2";
@@ -34,6 +36,8 @@ interface ITagOverviewProps {
 
 export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const navigate = useNavigate();
+  const workspaceId = useActiveWorkspaceId();
+  const workspaceRouteParam = workspaceIdToRouteParam(workspaceId);
   const expandedHeaderRef = useRef<HTMLDivElement>(null);
   const [isSticky, setExpandedHeaderElement] = useScrollPosition();
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
@@ -58,11 +62,12 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   useEffect(() => {
     const trimmedQuery = debouncedSearchQuery.trim();
     navigate({
-      to: "/tags",
+      to: "/$workspaceId/tags",
+      params: { workspaceId: workspaceRouteParam },
       search: trimmedQuery ? { q: trimmedQuery } : {},
       replace: true, // Use replace to avoid cluttering browser history
     });
-  }, [debouncedSearchQuery, navigate]);
+  }, [debouncedSearchQuery, navigate, workspaceId, workspaceRouteParam]);
 
   // Build query with search filter (backend filtering)
   const query = useMemo(() => {

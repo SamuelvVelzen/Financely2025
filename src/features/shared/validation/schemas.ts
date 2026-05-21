@@ -558,12 +558,28 @@ export const UserSchema = z.object({
   updatedAt: ISODateStringSchema,
 });
 
+export const WorkspaceSummarySchema = z.object({
+  id: z.number().int(),
+  name: z.string(),
+  createdAt: ISODateStringSchema,
+  updatedAt: ISODateStringSchema,
+});
+
+export const CreateWorkspaceBodySchema = z.object({
+  name: z.string().min(1, "Name is required").max(100),
+});
+
+export const RenameWorkspaceBodySchema = z.object({
+  name: z.string().min(1, "Name is required").max(100),
+});
+
 /**
  * User Response schema (includes email and name from UserInfo)
  */
 export const UserResponseSchema = UserSchema.extend({
   email: z.string().email(),
   name: z.string(),
+  workspaces: z.array(WorkspaceSummarySchema),
 });
 
 /**

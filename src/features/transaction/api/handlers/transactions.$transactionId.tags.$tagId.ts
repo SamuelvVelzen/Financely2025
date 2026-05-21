@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -7,7 +7,7 @@ import {
 import { TransactionService } from "../../services/transaction.service";
 
 /**
- * POST /api/v1/transactions/:id/tags/:tagId
+ * POST /api/v1/:workspaceId/transactions/:transactionId/tags/:tagId
  * Add a tag to a transaction
  */
 export async function POST({
@@ -15,17 +15,21 @@ export async function POST({
   params,
 }: {
   request: Request;
-  params: { transactionId: string; tagId: string };
+  params: { workspaceId: string; transactionId: string; tagId: string };
 }) {
   try {
-    return await withAuth(async (userId) => {
-      const result = await TransactionService.addTagToTransaction(
-        userId,
-        params.transactionId,
-        params.tagId
-      );
-      return Response.json(result, { status: 200 });
-    });
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const result = await TransactionService.addTagToTransaction(
+          userId,
+          workspaceId,
+          params.transactionId,
+          params.tagId
+        );
+        return Response.json(result, { status: 200 });
+      }
+    );
   } catch (error) {
     if (
       error instanceof Error &&
@@ -41,7 +45,7 @@ export async function POST({
 }
 
 /**
- * DELETE /api/v1/transactions/:id/tags/:tagId
+ * DELETE /api/v1/:workspaceId/transactions/:transactionId/tags/:tagId
  * Remove a tag from a transaction
  */
 export async function DELETE({
@@ -49,17 +53,21 @@ export async function DELETE({
   params,
 }: {
   request: Request;
-  params: { transactionId: string; tagId: string };
+  params: { workspaceId: string; transactionId: string; tagId: string };
 }) {
   try {
-    return await withAuth(async (userId) => {
-      const result = await TransactionService.removeTagFromTransaction(
-        userId,
-        params.transactionId,
-        params.tagId
-      );
-      return Response.json(result, { status: 200 });
-    });
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const result = await TransactionService.removeTagFromTransaction(
+          userId,
+          workspaceId,
+          params.transactionId,
+          params.tagId
+        );
+        return Response.json(result, { status: 200 });
+      }
+    );
   } catch (error) {
     if (
       error instanceof Error &&

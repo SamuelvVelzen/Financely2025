@@ -6,7 +6,9 @@ import type {
   ICsvImportResponse,
   ICsvTransformResponse,
   ICsvUploadResponse,
+  ICreateTransactionInput,
 } from "@/features/shared/validation/schemas";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import {
   getCsvMapping,
   importCsvTransactions,
@@ -16,40 +18,49 @@ import {
 } from "../api/client";
 import type { BankEnum } from "../config/banks";
 
-/**
- * Upload CSV file mutation
- */
+function requireWorkspaceId(id: number | null): number {
+  if (id == null) {
+    throw new Error("Workspace is required");
+  }
+  return id;
+}
+
 export function useUploadCsvFile() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<ICsvUploadResponse, Error, File>({
-    mutationFn: uploadCsvFile,
+    mutationFn: (file) =>
+      uploadCsvFile(requireWorkspaceId(workspaceId), file),
   });
 }
 
-/**
- * Get auto-detected CSV mapping query
- */
 export function useGetCsvMapping(
   columns: string[] | undefined,
-  bank?: BankEnum | null
+  bank?: BankEnum | null,
 ) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled =
+    !!columns && columns.length > 0 && workspaceId != null;
   return useFinQuery<ICsvMappingSuggestion, Error>({
-    queryKey: ["csv-mapping", columns, bank],
+    queryKey: enabled
+      ? ["csv-mapping", workspaceId, columns, bank]
+      : (["csv-mapping", "disabled"] as const),
     queryFn: () => {
       if (!columns || columns.length === 0) {
         throw new Error("Columns are required");
       }
-      return getCsvMapping(columns, bank || undefined);
+      return getCsvMapping(
+        requireWorkspaceId(workspaceId),
+        columns,
+        bank || undefined,
+      );
     },
-    enabled: !!columns && columns.length > 0,
-    staleTime: Infinity, // Mapping doesn't change
+    enabled,
+    staleTime: Infinity,
   });
 }
 
-/**
- * Transform CSV rows mutation
- * Transforms raw CSV rows into candidate transactions using the provided mapping
- */
 export function useTransformCsvRows() {
+  const workspaceId = useNavWorkspaceId();
   return useFinMutation<
     ICsvTransformResponse,
     Error,
@@ -61,22 +72,33 @@ export function useTransformCsvRows() {
       bank?: BankEnum;
     }
   >({
-    mutationFn: ({ rows, mapping, typeDetectionStrategy, defaultCurrency, bank }) =>
-      transformCsvRows(rows, mapping, typeDetectionStrategy, defaultCurrency, bank),
+    mutationFn: ({
+      rows,
+      mapping,
+      typeDetectionStrategy,
+      defaultCurrency,
+      bank,
+    }) =>
+      transformCsvRows(
+        requireWorkspaceId(workspaceId),
+        rows,
+        mapping,
+        typeDetectionStrategy,
+        defaultCurrency,
+        bank,
+      ),
   });
 }
 
-/**
- * Import CSV transactions mutation
- * Invalidates transactions, expenses, and incomes queries on success
- */
 export function useImportCsvTransactions() {
-  return useFinMutation<ICsvImportResponse, Error, any[]>({
-    mutationFn: importCsvTransactions,
+  const workspaceId = useNavWorkspaceId();
+  return useFinMutation<ICsvImportResponse, Error, ICreateTransactionInput[]>({
+    mutationFn: (transactions) =>
+      importCsvTransactions(requireWorkspaceId(workspaceId), transactions),
     invalidateQueries: [
-      queryKeys.transactions,
-      queryKeys.expenses,
-      queryKeys.incomes,
+      () => queryKeys.transactions(workspaceId!),
+      () => queryKeys.expenses(workspaceId!),
+      () => queryKeys.incomes(workspaceId!),
     ],
   });
 }

@@ -1,6 +1,8 @@
 import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { cn } from "@/features/util/cn";
 import { signOutFromApp } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
@@ -19,6 +21,8 @@ import { BaseLink } from "./base-link";
 export function MobileTopNav() {
   const { data: profile } = useMyProfile();
   const navigate = useNavigate();
+  const workspaceId = useNavWorkspaceId();
+  const workspaceParams = { workspaceId: workspaceIdToRouteParam(workspaceId) };
   const { data: unreadCountData } = useUnreadCount();
   const unreadCount = unreadCountData?.count || 0;
 
@@ -58,7 +62,7 @@ export function MobileTopNav() {
         "border-t-0 rounded-t-none",
         "flex items-center justify-between"
       )}>
-      <BaseLink to={ROUTES.ROOT}>
+      <BaseLink to="/$workspaceId" params={workspaceParams}>
         <div className="flex items-center gap-3">
           <Logo />
           <span className="font-bold text-text text-lg whitespace-nowrap">
@@ -94,7 +98,10 @@ export function MobileTopNav() {
                 </div>
               }
               clicked={() => {
-                navigate({ to: ROUTES.MESSAGES });
+                navigate({
+                  to: "/$workspaceId/messages",
+                  params: workspaceParams,
+                });
               }}
             />
             <DropdownItem

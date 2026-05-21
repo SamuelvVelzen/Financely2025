@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -7,7 +7,7 @@ import {
 import { TransactionService } from "../../services/transaction.service";
 
 /**
- * PATCH /api/v1/transactions/:id
+ * PATCH /api/v1/:workspaceId/transactions/:transactionId
  * Update a transaction
  */
 export async function PATCH({
@@ -15,18 +15,22 @@ export async function PATCH({
   params,
 }: {
   request: Request;
-  params: { transactionId: string };
+  params: { workspaceId: string; transactionId: string };
 }) {
   try {
-    return await withAuth(async (userId) => {
-      const body = await request.json();
-      const result = await TransactionService.updateTransaction(
-        userId,
-        params.transactionId,
-        body
-      );
-      return Response.json(result);
-    });
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const body = await request.json();
+        const result = await TransactionService.updateTransaction(
+          userId,
+          workspaceId,
+          params.transactionId,
+          body
+        );
+        return Response.json(result);
+      }
+    );
   } catch (error) {
     if (error instanceof Error && error.message === "Transaction not found") {
       return createErrorResponse(
@@ -46,7 +50,7 @@ export async function PATCH({
 }
 
 /**
- * DELETE /api/v1/transactions/:id
+ * DELETE /api/v1/:workspaceId/transactions/:transactionId
  * Delete a transaction
  */
 export async function DELETE({
@@ -54,13 +58,20 @@ export async function DELETE({
   params,
 }: {
   request: Request;
-  params: { transactionId: string };
+  params: { workspaceId: string; transactionId: string };
 }) {
   try {
-    return await withAuth(async (userId) => {
-      await TransactionService.deleteTransaction(userId, params.transactionId);
-      return Response.json({ success: true }, { status: 200 });
-    });
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        await TransactionService.deleteTransaction(
+          userId,
+          workspaceId,
+          params.transactionId
+        );
+        return Response.json({ success: true }, { status: 200 });
+      }
+    );
   } catch (error) {
     if (error instanceof Error && error.message === "Transaction not found") {
       return createErrorResponse(

@@ -1,23 +1,22 @@
-import type { ICreateMessageInput, IMessageAction } from "@/features/shared/validation/schemas";
+import type { IMessageAction } from "@/features/shared/validation/schemas";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import { MessageService } from "./message.service";
 
 /**
  * Message Factory
- * Helper functions for creating common message types
+ * Helper functions for creating common message types (workspace-scoped).
  */
 export class MessageFactory {
-  /**
-   * Create a subscription found message
-   */
   static async createSubscriptionFoundMessage(
     userId: string,
-    count: number
+    workspaceId: IWorkspaceId,
+    count: number,
   ): Promise<void> {
     const actions: IMessageAction[] = [
       {
         label: "View Subscriptions",
         type: "navigate",
-        path: "/subscriptions",
+        path: `/${workspaceId}/subscriptions`,
         variant: "primary",
       },
       {
@@ -27,7 +26,7 @@ export class MessageFactory {
       },
     ];
 
-    await MessageService.createMessage(userId, {
+    await MessageService.createMessage(userId, workspaceId, {
       title: "Subscriptions Found",
       content: `We found ${count} potential subscription${count !== 1 ? "s" : ""} in your transactions.`,
       type: "INFO",
@@ -35,24 +34,22 @@ export class MessageFactory {
     });
   }
 
-  /**
-   * Create an expense alert message
-   */
   static async createExpenseAlertMessage(
     userId: string,
+    workspaceId: IWorkspaceId,
     currentAmount: number,
     previousAmount: number,
-    currency: string = "USD"
+    currency: string = "USD",
   ): Promise<void> {
     const percentage = Math.round(
-      ((currentAmount - previousAmount) / previousAmount) * 100
+      ((currentAmount - previousAmount) / previousAmount) * 100,
     );
 
     const actions: IMessageAction[] = [
       {
         label: "View Transactions",
         type: "navigate",
-        path: "/transactions",
+        path: `/${workspaceId}/transactions`,
         variant: "primary",
       },
       {
@@ -62,7 +59,7 @@ export class MessageFactory {
       },
     ];
 
-    await MessageService.createMessage(userId, {
+    await MessageService.createMessage(userId, workspaceId, {
       title: "High Monthly Expenses",
       content: `Your expenses this month (${currency} ${currentAmount.toFixed(2)}) are ${percentage}% higher than last month (${currency} ${previousAmount.toFixed(2)}).`,
       type: "WARNING",
@@ -70,20 +67,18 @@ export class MessageFactory {
     });
   }
 
-  /**
-   * Create a transaction import success message
-   */
   static async createTransactionImportMessage(
     userId: string,
+    workspaceId: IWorkspaceId,
     successCount: number,
     failureCount: number,
-    importId?: string
+    importId?: string,
   ): Promise<void> {
     const actions: IMessageAction[] = [
       {
         label: "View Transactions",
         type: "navigate",
-        path: "/transactions",
+        path: `/${workspaceId}/transactions`,
         variant: "primary",
       },
       {
@@ -98,7 +93,7 @@ export class MessageFactory {
       content += ` ${failureCount} transaction${failureCount !== 1 ? "s" : ""} failed to import.`;
     }
 
-    await MessageService.createMessage(userId, {
+    await MessageService.createMessage(userId, workspaceId, {
       title: "Import Complete",
       content,
       type: failureCount > 0 ? "WARNING" : "SUCCESS",
@@ -108,17 +103,15 @@ export class MessageFactory {
     });
   }
 
-  /**
-   * Create a generic system message
-   */
   static async createSystemMessage(
     userId: string,
+    workspaceId: IWorkspaceId,
     title: string,
     content: string,
     type: "INFO" | "SUCCESS" | "WARNING" | "ERROR" = "INFO",
-    actions?: IMessageAction[]
+    actions?: IMessageAction[],
   ): Promise<void> {
-    await MessageService.createMessage(userId, {
+    await MessageService.createMessage(userId, workspaceId, {
       title,
       content,
       type,
@@ -132,4 +125,3 @@ export class MessageFactory {
     });
   }
 }
-

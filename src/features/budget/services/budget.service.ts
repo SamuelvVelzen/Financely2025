@@ -27,6 +27,7 @@ import {
   type IUpdateBudgetInput,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
+import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import { Prisma } from "@prisma/client";
 
 const BUDGET_ITEMS_INCLUDE = {
@@ -133,6 +134,7 @@ export class BudgetService {
    */
   static async listBudgets(
     userId: string,
+    workspaceId: IWorkspaceId,
     query: IBudgetsQuery,
   ): Promise<{ data: IBudget[] }> {
     const validated = BudgetsQuerySchema.parse(query);
@@ -140,6 +142,7 @@ export class BudgetService {
     const budgets = await prisma.budget.findMany({
       where: {
         userId,
+        workspaceId,
         ...(validated.from || validated.to
           ? {
               OR: [
@@ -180,10 +183,11 @@ export class BudgetService {
    */
   static async getBudgetById(
     userId: string,
+    workspaceId: IWorkspaceId,
     budgetId: string,
   ): Promise<IBudget | null> {
     const budget = await prisma.budget.findFirst({
-      where: { id: budgetId, userId },
+      where: { id: budgetId, userId, workspaceId },
       include: BUDGET_ITEMS_INCLUDE,
     });
 
@@ -199,6 +203,7 @@ export class BudgetService {
    */
   static async createBudget(
     userId: string,
+    workspaceId: IWorkspaceId,
     input: ICreateBudgetInput,
   ): Promise<IBudget> {
     const validated = CreateBudgetInputSchema.parse(input);
@@ -210,7 +215,7 @@ export class BudgetService {
 
     if (tagIds.length > 0) {
       const userTags = await prisma.tag.findMany({
-        where: { id: { in: tagIds }, userId },
+        where: { id: { in: tagIds }, userId, workspaceId },
         select: { id: true },
       });
 
@@ -225,6 +230,7 @@ export class BudgetService {
       const created = await tx.budget.create({
         data: {
           userId,
+          workspaceId,
           name: validated.name,
           periodType: validated.periodType,
           startDate: new Date(validated.startDate),
@@ -265,10 +271,11 @@ export class BudgetService {
    */
   static async updateBudget(
     userId: string,
+    workspaceId: IWorkspaceId,
     budgetId: string,
     input: IUpdateBudgetInput,
   ): Promise<IBudget> {
-    const existing = await this.getBudgetById(userId, budgetId);
+    const existing = await this.getBudgetById(userId, workspaceId, budgetId);
     if (!existing) {
       throw new Error("Budget not found");
     }
@@ -282,7 +289,7 @@ export class BudgetService {
 
       if (tagIds.length > 0) {
         const userTags = await prisma.tag.findMany({
-          where: { id: { in: tagIds }, userId },
+          where: { id: { in: tagIds }, userId, workspaceId },
           select: { id: true },
         });
 
@@ -346,8 +353,12 @@ export class BudgetService {
   /**
    * Delete budget
    */
-  static async deleteBudget(userId: string, budgetId: string): Promise<void> {
-    const existing = await this.getBudgetById(userId, budgetId);
+  static async deleteBudget(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    budgetId: string,
+  ): Promise<void> {
+    const existing = await this.getBudgetById(userId, workspaceId, budgetId);
     if (!existing) {
       throw new Error("Budget not found");
     }
@@ -362,10 +373,11 @@ export class BudgetService {
    */
   static async getBudgetComparison(
     userId: string,
+    workspaceId: IWorkspaceId,
     budgetId: string,
   ): Promise<IBudgetComparison> {
     const budgetData = await prisma.budget.findFirst({
-      where: { id: budgetId, userId },
+      where: { id: budgetId, userId, workspaceId },
       include: BUDGET_ITEMS_INCLUDE,
     });
 
@@ -379,6 +391,7 @@ export class BudgetService {
     const transactions = await prisma.transaction.findMany({
       where: {
         userId,
+        workspaceId,
         currency: budget.currency,
         transactionDate: {
           gte: new Date(budget.startDate),
@@ -630,11 +643,12 @@ export class BudgetService {
    */
   static async getBudgetsOverview(
     userId: string,
+    workspaceId: IWorkspaceId,
   ): Promise<IBudgetsOverviewResponse> {
     const now = new Date();
 
     const allBudgets = await prisma.budget.findMany({
-      where: { userId },
+      where: { userId, workspaceId },
       include: BUDGET_ITEMS_INCLUDE,
       orderBy: { startDate: "desc" },
     });
@@ -713,6 +727,7 @@ export class BudgetService {
       const transactions = await prisma.transaction.findMany({
         where: {
           userId,
+          workspaceId,
           currency: budget.currency,
           transactionDate: {
             gte: new Date(budget.startDate),

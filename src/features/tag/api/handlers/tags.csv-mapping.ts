@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -18,9 +18,15 @@ import {
  * POST /api/v1/tags/csv-mapping
  * Auto-detect and return field mapping suggestions
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async () => {
+    return await withWorkspaceAuth(params.workspaceId, async () => {
       const body = await request.json();
       const { columns } = body;
 
@@ -48,9 +54,15 @@ export async function POST({ request }: { request: Request }) {
  * POST /api/v1/tags/csv-mapping/validate
  * Validate mapping against required fields
  */
-export async function validate({ request }: { request: Request }) {
+export async function validate({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async () => {
+    return await withWorkspaceAuth(params.workspaceId, async () => {
       const body = await request.json();
       const mapping = TagCsvFieldMappingSchema.parse(body.mapping);
 

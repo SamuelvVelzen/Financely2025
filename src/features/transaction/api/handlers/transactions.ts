@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -9,12 +9,18 @@ import { json } from "@tanstack/react-start";
 import { TransactionService } from "../../services/transaction.service";
 
 /**
- * GET /api/v1/transactions
+ * GET /api/v1/:workspaceId/transactions
  * List transactions with pagination, filtering, and sorting
  */
-export async function GET({ request }: { request: Request }) {
+export async function GET({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
       const url = new URL(request.url);
       const query = {
         page: url.searchParams.get("page") ?? undefined,
@@ -40,6 +46,7 @@ export async function GET({ request }: { request: Request }) {
       const validated = TransactionsQuerySchema.parse(query);
       const result = await TransactionService.listTransactions(
         userId,
+        workspaceId,
         validated
       );
       return json(result);
@@ -50,14 +57,24 @@ export async function GET({ request }: { request: Request }) {
 }
 
 /**
- * POST /api/v1/transactions
+ * POST /api/v1/:workspaceId/transactions
  * Create a new transaction
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
       const body = await request.json();
-      const result = await TransactionService.createTransaction(userId, body);
+      const result = await TransactionService.createTransaction(
+        userId,
+        workspaceId,
+        body
+      );
       return json(result, { status: 201 });
     });
   } catch (error) {

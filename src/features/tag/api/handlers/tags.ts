@@ -1,4 +1,4 @@
-import { withAuth } from "@/features/auth/context";
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
 import {
   ApiError,
   createErrorResponse,
@@ -9,12 +9,17 @@ import { TagService } from "@/features/tag/services/tag.service";
 import { json } from "@tanstack/react-start";
 
 /**
- * GET /api/v1/tags
- * List tags with optional filtering and sorting
+ * GET /api/v1/:workspaceId/tags
  */
-export async function GET({ request }: { request: Request }) {
+export async function GET({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
       const url = new URL(request.url);
       const query = {
         q: url.searchParams.get("q") ?? undefined,
@@ -24,7 +29,7 @@ export async function GET({ request }: { request: Request }) {
       };
 
       const validated = TagsQuerySchema.parse(query);
-      const result = await TagService.listTags(userId, validated);
+      const result = await TagService.listTags(userId, workspaceId, validated);
       return json(result);
     });
   } catch (error) {
@@ -33,14 +38,19 @@ export async function GET({ request }: { request: Request }) {
 }
 
 /**
- * POST /api/v1/tags
- * Create a new tag
+ * POST /api/v1/:workspaceId/tags
  */
-export async function POST({ request }: { request: Request }) {
+export async function POST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string };
+}) {
   try {
-    return await withAuth(async (userId) => {
+    return await withWorkspaceAuth(params.workspaceId, async ({ userId, workspaceId }) => {
       const body = await request.json();
-      const result = await TagService.createTag(userId, body);
+      const result = await TagService.createTag(userId, workspaceId, body);
 
       return json(result, { status: 201 });
     });

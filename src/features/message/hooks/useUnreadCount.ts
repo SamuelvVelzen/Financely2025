@@ -1,18 +1,27 @@
 import { getUnreadCount } from "@/features/message/api/client";
 import { useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import type { IUnreadCountResponse } from "@/features/shared/validation/schemas";
 
 /**
- * Query unread message count
- * - staleTime: 15 minutes (data stays fresh for 15 minutes)
- * - refetchInterval: 15 minutes (auto-refresh every 15 minutes)
+ * Unread count for the resolved nav workspace (sidebar, top nav on /account, etc.).
  */
 export function useUnreadCount() {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null;
   return useFinQuery<IUnreadCountResponse, Error>({
-    queryKey: queryKeys.unreadCount(),
-    queryFn: getUnreadCount,
-    staleTime: 15 * 60 * 1000, // 15 minutes
-    refetchInterval: 15 * 60 * 1000, // Auto-refresh every 15 minutes
+    queryKey: enabled
+      ? queryKeys.unreadCount(workspaceId)
+      : (["unread-count", "disabled"] as const),
+    queryFn: () => {
+      if (workspaceId == null) {
+        throw new Error("Unread count query ran without a workspace");
+      }
+      return getUnreadCount(workspaceId);
+    },
+    staleTime: 15 * 60 * 1000,
+    refetchInterval: 15 * 60 * 1000,
+    enabled,
   });
 }

@@ -10,6 +10,7 @@ import {
 import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import type {
   IBudget,
   IBudgetComparison,
@@ -21,55 +22,42 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { useQueryClient } from "@tanstack/react-query";
 
-/**
- * Query budgets list
- * - staleTime: 2 minutes (medium, keeps UI snappy)
- * - Supports filtering by date range
- */
 export function useBudgets(query?: IBudgetsQuery) {
+  const workspaceId = useActiveWorkspaceId();
   return useFinQuery<IBudgetsResponse, Error>({
-    queryKey: queryKeys.budgets(query),
-    queryFn: () => getBudgets(query),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    queryKey: queryKeys.budgets(workspaceId, query),
+    queryFn: () => getBudgets(workspaceId, query),
+    staleTime: 2 * 60 * 1000,
   });
 }
 
-/**
- * Query single budget
- * - staleTime: 2 minutes
- */
 export function useBudget(budgetId: string) {
+  const workspaceId = useActiveWorkspaceId();
   return useFinQuery<IBudget, Error>({
-    queryKey: queryKeys.budget(budgetId),
-    queryFn: () => getBudget(budgetId),
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    queryKey: queryKeys.budget(workspaceId, budgetId),
+    queryFn: () => getBudget(workspaceId, budgetId),
+    staleTime: 2 * 60 * 1000,
     ...(budgetId ? {} : { enabled: false }),
   });
 }
 
-/**
- * Query budget comparison
- * - staleTime: 30 seconds (frequently changing data)
- */
 export function useBudgetComparison(budgetId: string) {
+  const workspaceId = useActiveWorkspaceId();
   return useFinQuery<IBudgetComparison, Error>({
-    queryKey: queryKeys.budgetComparison(budgetId),
-    queryFn: () => getBudgetComparison(budgetId),
-    staleTime: 30 * 1000, // 30 seconds
+    queryKey: queryKeys.budgetComparison(workspaceId, budgetId),
+    queryFn: () => getBudgetComparison(workspaceId, budgetId),
+    staleTime: 30 * 1000,
     ...(budgetId ? {} : { enabled: false }),
   });
 }
 
-/**
- * Create budget mutation
- * - Invalidates budgets query and overview on success
- */
 export function useCreateBudget() {
+  const workspaceId = useActiveWorkspaceId();
   return useFinMutation<IBudget, Error, ICreateBudgetInput>({
-    mutationFn: createBudget,
+    mutationFn: (input) => createBudget(workspaceId, input),
     invalidateQueries: [
-      () => queryKeys.budgets(),
-      () => queryKeys.budgetsOverview(),
+      () => queryKeys.budgets(workspaceId),
+      () => queryKeys.budgetsOverview(workspaceId),
     ],
     getOfflineQueuedToast: () => ({
       title: "Budget created successfully",
@@ -78,11 +66,8 @@ export function useCreateBudget() {
   });
 }
 
-/**
- * Update budget mutation
- * - Invalidates budgets query, specific budget query, and overview on success
- */
 export function useUpdateBudget() {
+  const workspaceId = useActiveWorkspaceId();
   const queryClient = useQueryClient();
 
   return useFinMutation<
@@ -90,15 +75,15 @@ export function useUpdateBudget() {
     Error,
     { budgetId: string; input: IUpdateBudgetInput }
   >({
-    mutationFn: ({ budgetId, input }) => updateBudget(budgetId, input),
+    mutationFn: ({ budgetId, input }) =>
+      updateBudget(workspaceId, budgetId, input),
     invalidateQueries: [
-      () => queryKeys.budgets(),
-      () => queryKeys.budgetsOverview(),
+      () => queryKeys.budgets(workspaceId),
+      () => queryKeys.budgetsOverview(workspaceId),
     ],
-    onSuccess: async (data, variables) => {
-      // Invalidate the specific budget query using budgetId from variables
+    onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.budget(variables.budgetId),
+        queryKey: queryKeys.budget(workspaceId, variables.budgetId),
       });
     },
     getOfflineQueuedToast: () => ({
@@ -108,16 +93,13 @@ export function useUpdateBudget() {
   });
 }
 
-/**
- * Delete budget mutation
- * - Invalidates budgets query and overview on success
- */
 export function useDeleteBudget() {
+  const workspaceId = useActiveWorkspaceId();
   return useFinMutation<{ success: boolean }, Error, string>({
-    mutationFn: deleteBudget,
+    mutationFn: (budgetId) => deleteBudget(workspaceId, budgetId),
     invalidateQueries: [
-      () => queryKeys.budgets(),
-      () => queryKeys.budgetsOverview(),
+      () => queryKeys.budgets(workspaceId),
+      () => queryKeys.budgetsOverview(workspaceId),
     ],
     getOfflineQueuedToast: () => ({
       title: "Budget deleted successfully",
@@ -126,14 +108,11 @@ export function useDeleteBudget() {
   });
 }
 
-/**
- * Query budgets overview (aggregated metrics for active budgets)
- * - staleTime: 30 seconds (frequently changing data, like comparison)
- */
 export function useBudgetsOverview() {
+  const workspaceId = useActiveWorkspaceId();
   return useFinQuery<IBudgetsOverviewResponse, Error>({
-    queryKey: queryKeys.budgetsOverview(),
-    queryFn: () => getBudgetsOverview(),
-    staleTime: 30 * 1000, // 30 seconds
+    queryKey: queryKeys.budgetsOverview(workspaceId),
+    queryFn: () => getBudgetsOverview(workspaceId),
+    staleTime: 30 * 1000,
   });
 }
