@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { HiEye, HiEyeSlash } from "react-icons/hi2";
-import { BaseInput, type IBaseInputProps } from "./input";
+import { BaseInput, type IPasswordInputProps } from "./input";
 
-export type IPasswordInputProps = Omit<IBaseInputProps, "type">;
+export type { IPasswordInputProps };
 
 export function PasswordInput(props: IPasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);

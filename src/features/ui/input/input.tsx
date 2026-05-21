@@ -1,5 +1,4 @@
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
-import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
@@ -11,7 +10,7 @@ type RenderFieldParams = {
   inputProps: React.InputHTMLAttributes<HTMLInputElement>;
 };
 
-export type IBaseInputProps = Omit<
+type ISharedBaseInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "id" | "name" | "value" | "onChange"
 > &
@@ -23,7 +22,41 @@ export type IBaseInputProps = Omit<
     prefixIcon?: React.ReactNode;
     suffixIcon?: React.ReactNode;
     renderField?: (params: RenderFieldParams) => React.ReactNode;
-  } & IFormOrControlledMode<string | number>;
+  };
+
+/**
+ * Form mode vs controlled mode (see {@link IFormOrControlledMode}).
+ * Expressed as a union so `Omit<IBaseInputProps, …>` distributes correctly on wrapper inputs.
+ */
+export type IBaseInputProps =
+  | (ISharedBaseInputProps & {
+      name: string;
+      value?: never;
+      onChange?: never;
+      onValueChange?: (value: string | number | undefined) => void;
+    })
+  | (ISharedBaseInputProps & {
+      name?: never;
+      value: string | number;
+      onChange: (value: string | number | undefined) => void;
+      onValueChange?: (value: string | number | undefined) => void;
+    });
+
+/** Distributes `Omit` over a union (wrapper inputs, e.g. {@link ITextInputProps}). */
+export type IDistributeOmitInputKey<T, K extends PropertyKey> = T extends unknown
+  ? Omit<T, K & keyof T>
+  : never;
+
+type IDistributeWith<T, E> = T extends unknown ? T & E : never;
+
+export type ITextInputProps = IDistributeOmitInputKey<IBaseInputProps, "type">;
+
+export type IPasswordInputProps = ITextInputProps;
+
+export type INumberInputProps = IDistributeWith<
+  IDistributeOmitInputKey<IBaseInputProps, "type">,
+  { min?: number; max?: number; step?: number | "any" }
+>;
 
 export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
   (

@@ -7,7 +7,11 @@ import { cn } from "@/features/util/cn";
 import React, { useEffect, useMemo, useRef } from "react";
 
 import { LocaleHelpers } from "@/features/util/locale.helpers";
-import { BaseInput, type IBaseInputProps } from "./input";
+import {
+  BaseInput,
+  type IBaseInputProps,
+  IDistributeOmitInputKey,
+} from "./input";
 
 const FRACTION_DIGITS = 2;
 
@@ -17,7 +21,7 @@ type CaretInfo = {
   inFraction: boolean;
 };
 
-export type IDecimalInputProps = Omit<
+export type IDecimalInputProps = IDistributeOmitInputKey<
   IBaseInputProps,
   "type" | "inputMode" | "renderField" | "placeholder"
 > & {

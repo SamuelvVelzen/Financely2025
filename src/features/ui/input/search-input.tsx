@@ -104,8 +104,12 @@ export function SearchInput({
             : ({
                 value: controlledValue,
                 onChange: (value: string | number | undefined) => {
-                  controlledOnChange?.(value as string | undefined);
-                  onValueChange?.(value);
+                  const asString =
+                    value === undefined || value === null
+                      ? undefined
+                      : String(value);
+                  controlledOnChange?.(asString);
+                  onValueChange?.(asString);
                 },
               } as {
                 value: string;

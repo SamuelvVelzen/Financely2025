@@ -1,6 +1,6 @@
-import { BaseInput, IBaseInputProps } from "./input";
+import { BaseInput, type ITextInputProps } from "./input";
 
-export type ITextInputProps = Omit<IBaseInputProps, "type">;
+export type { ITextInputProps };
 
 export function TextInput({ ...props }: ITextInputProps) {
   return (

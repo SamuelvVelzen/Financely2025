@@ -104,12 +104,16 @@ export function RangeInput({
     }
   }, [isDragging, sliderMin, sliderMax, value]);
 
-  const handleMinDecimalChange = (normalized: string) => {
-    if (!normalized) {
+  const handleMinDecimalChange = (normalized: string | number | undefined) => {
+    const s =
+      normalized === undefined || normalized === null
+        ? ""
+        : String(normalized);
+    if (!s) {
       onChange({ ...value, min: undefined });
       return;
     }
-    let minValue = parseFloat(normalized);
+    let minValue = parseFloat(s);
     if (Number.isNaN(minValue)) {
       return;
     }
@@ -121,12 +125,16 @@ export function RangeInput({
     }
   };
 
-  const handleMaxDecimalChange = (normalized: string) => {
-    if (!normalized) {
+  const handleMaxDecimalChange = (normalized: string | number | undefined) => {
+    const s =
+      normalized === undefined || normalized === null
+        ? ""
+        : String(normalized);
+    if (!s) {
       onChange({ ...value, max: undefined });
       return;
     }
-    let maxValue = parseFloat(normalized);
+    let maxValue = parseFloat(s);
     if (Number.isNaN(maxValue)) {
       return;
     }

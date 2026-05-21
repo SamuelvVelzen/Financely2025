@@ -1,10 +1,6 @@
-import { BaseInput, IBaseInputProps } from "./input";
+import { BaseInput, type INumberInputProps } from "./input";
 
-export type INumberInputProps = Omit<IBaseInputProps, "type"> & {
-  min?: number;
-  max?: number;
-  step?: number | "any";
-};
+export type { INumberInputProps };
 
 export function NumberInput({ min, max, step, ...props }: INumberInputProps) {
   return (
