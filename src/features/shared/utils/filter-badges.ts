@@ -4,7 +4,7 @@ import {
   formatMonthYear,
 } from "@/features/util/date/date-helpers";
 import type { IFilterState } from "../../transaction/hooks/useTransactionFilters";
-import { DEFAULT_FILTER_STATE } from "./transaction-filter-model";
+import { DEFAULT_FILTER_STATE } from "@/features/transaction/utils/transaction-filter-model";
 
 export interface IFilterBadge {
   id: string;

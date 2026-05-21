@@ -99,7 +99,7 @@ export function BudgetOverviewHeader({
         <div className={cn(isSticky && "overflow-hidden")}>
           <SearchInput
             value={searchQuery}
-            onChange={onSearchChange}
+            onChange={(v) => onSearchChange(v ?? "")}
             placeholder="Search budgets by name..."
           />
         </div>

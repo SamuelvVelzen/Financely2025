@@ -30,7 +30,6 @@ if (process.env.NODE_ENV !== "production") {
 
 // Export types and enums for use in server code
 export type {
-  Currency,
   Tag,
   Transaction,
   TransactionType,

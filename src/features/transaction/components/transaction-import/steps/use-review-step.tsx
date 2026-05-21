@@ -216,9 +216,9 @@ function ReviewStepContent({
                 <BodyCell>
                   <DecimalInput
                     value={candidate.data.amount || ""}
-                    onValueChange={(normalizedValue) => {
+                    onChange={(v) => {
                       updateCandidate(candidate.rowIndex, {
-                        amount: String(normalizedValue || ""),
+                        amount: String(v ?? ""),
                       });
                     }}
                   />

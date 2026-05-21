@@ -19,7 +19,7 @@ import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactElement } from "react";
 import {
   useGetTagCsvMapping,
   useImportTagCsv,
@@ -343,7 +343,7 @@ export function TagCsvImportDialog({
           selectedRows={selectedRows}
           onSelectionChange={setSelectedRows}
           rowCount={candidates.length}
-          getRowIndex={(row) => {
+          getRowIndex={(row: ReactElement) => {
             const props = row.props as { rowIndex?: number };
             return props.rowIndex ?? -1;
           }}
@@ -568,7 +568,7 @@ export function TagCsvImportDialog({
       onOpenChange={onOpenChange}
       hasUnsavedChanges={() => hasUnsavedChanges}
       onReset={resetAllState}
-      isBusy={isBusy}
+      dismissible={!isBusy}
     />
   );
 }

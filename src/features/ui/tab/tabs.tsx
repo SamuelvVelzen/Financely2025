@@ -37,6 +37,22 @@ export function Tabs({
 
   const getTabs = () => tabsRef.current;
 
+  const goNext = () => {
+    const tabs = tabsRef.current;
+    const i = tabs.indexOf(value);
+    if (i >= 0 && i < tabs.length - 1) {
+      setValue(tabs[i + 1]!);
+    }
+  };
+
+  const goBack = () => {
+    const tabs = tabsRef.current;
+    const i = tabs.indexOf(value);
+    if (i > 0) {
+      setValue(tabs[i - 1]!);
+    }
+  };
+
   // Update container height based on active tab content
   useEffect(() => {
     if (!panelsContainerRef.current) return;
@@ -123,7 +139,16 @@ export function Tabs({
   });
 
   return (
-    <TabContext.Provider value={{ value, setValue, id, registerTab, getTabs }}>
+    <TabContext.Provider
+      value={{
+        value,
+        setValue,
+        id,
+        registerTab,
+        getTabs,
+        goNext,
+        goBack,
+      }}>
       <div className={cn("w-full", className)}>
         {tabChildren.length > 0 && <TabList>{tabChildren}</TabList>}
         {otherChildren}
