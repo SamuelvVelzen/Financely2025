@@ -1,6 +1,29 @@
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 
+type IDragHandleIconProps = IPropsWithClassName;
+
+/** Six-dot grip icon used for drag-to-reorder affordances. */
+export function DragHandleIcon({ className = "size-5" }: IDragHandleIconProps) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden>
+      <circle cx="7" cy="5" r="1.5" fill="currentColor" />
+      <circle cx="7" cy="10" r="1.5" fill="currentColor" />
+      <circle cx="7" cy="15" r="1.5" fill="currentColor" />
+      <circle cx="13" cy="5" r="1.5" fill="currentColor" />
+      <circle cx="13" cy="10" r="1.5" fill="currentColor" />
+      <circle cx="13" cy="15" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 type IDragHandleProps = IPropsWithClassName;
 
 export function DragHandle({ className = "" }: IDragHandleProps) {
@@ -11,52 +34,7 @@ export function DragHandle({ className = "" }: IDragHandleProps) {
         className
       )}
       draggable={false}>
-      <svg
-        width="20"
-        height="20"
-        viewBox="0 0 20 20"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="size-5">
-        {/* Left column: 3 dots */}
-        <circle
-          cx="7"
-          cy="5"
-          r="1.5"
-          fill="currentColor"
-        />
-        <circle
-          cx="7"
-          cy="10"
-          r="1.5"
-          fill="currentColor"
-        />
-        <circle
-          cx="7"
-          cy="15"
-          r="1.5"
-          fill="currentColor"
-        />
-        {/* Right column: 3 dots */}
-        <circle
-          cx="13"
-          cy="5"
-          r="1.5"
-          fill="currentColor"
-        />
-        <circle
-          cx="13"
-          cy="10"
-          r="1.5"
-          fill="currentColor"
-        />
-        <circle
-          cx="13"
-          cy="15"
-          r="1.5"
-          fill="currentColor"
-        />
-      </svg>
+      <DragHandleIcon />
     </div>
   );
 }
