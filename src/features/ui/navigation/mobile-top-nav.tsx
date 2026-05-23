@@ -1,5 +1,6 @@
 import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
+import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
@@ -92,7 +93,7 @@ export function MobileTopNav() {
                   <HiOutlineBell className="size-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-danger text-white rounded-full">
-                      {unreadCount}
+                      {formatUnreadBadgeLabel(unreadCount)}
                     </span>
                   )}
                 </div>

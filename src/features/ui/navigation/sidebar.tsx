@@ -1,5 +1,6 @@
 import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
+import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
 import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
@@ -116,7 +117,9 @@ export function Sidebar() {
           params={workspaceParams}
           label="Messages"
           icon={HiOutlineBell}
-          badge={unreadCount > 0 ? unreadCount : undefined}
+          badge={
+            unreadCount > 0 ? formatUnreadBadgeLabel(unreadCount) : undefined
+          }
         />
         <div className="relative">
           <NavItem
