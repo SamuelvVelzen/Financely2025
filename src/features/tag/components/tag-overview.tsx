@@ -90,6 +90,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<ITag | undefined>(undefined);
+  const [isReorderMode, setIsReorderMode] = useState(false);
 
   // Separate tags into two sections
   const expenseTags = useMemo(
@@ -258,6 +259,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
     () => ({
       onCreateTag: handleCreateTag,
       onCsvImportClick: () => setIsCsvImportDialogOpen(true),
+      onToggleReorder: () => setIsReorderMode((prev) => !prev),
     }),
     [handleCreateTag]
   );
@@ -316,6 +318,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         actions={actions}
+        isReorderMode={isReorderMode}
         isSticky={isSticky}
         filterCount={filterCount}
         onFiltersClick={handleStickyFiltersClick}
@@ -359,6 +362,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
                       <TagList
                         data={expenseTags}
                         searchQuery={debouncedSearchQuery}
+                        draggable={isReorderMode}
                         onEdit={handleEditTag}
                         onDelete={handleDeleteClick}
                         onOrderChange={(orderedIds) => {
@@ -413,6 +417,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
                       <TagList
                         data={incomeTags}
                         searchQuery={debouncedSearchQuery}
+                        draggable={isReorderMode}
                         onEdit={handleEditTag}
                         onDelete={handleDeleteClick}
                         onOrderChange={(orderedIds) => {

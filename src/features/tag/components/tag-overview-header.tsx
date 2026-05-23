@@ -3,6 +3,7 @@ import { Container } from "@/features/ui/container/container";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { SearchInput } from "@/features/ui/input/search-input";
+import { DragHandleIcon } from "@/features/ui/list/drag-handle";
 import { cn } from "@/features/util/cn";
 import {
   HiArrowDownTray,
@@ -17,21 +18,48 @@ import {
 export interface IActionHandlers {
   onCreateTag: () => void;
   onCsvImportClick: () => void;
+  onToggleReorder: () => void;
 }
 
 export interface ITagOverviewHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   actions: IActionHandlers;
+  isReorderMode: boolean;
   isSticky: boolean;
   filterCount: number;
   onFiltersClick: () => void;
+}
+
+function TagHeaderDropdown({
+  actions,
+  isReorderMode,
+}: {
+  actions: IActionHandlers;
+  isReorderMode: boolean;
+}) {
+  return (
+    <Dropdown>
+      <DropdownItem
+        icon={<DragHandleIcon className="size-4" />}
+        text="Reorder tags"
+        clicked={actions.onToggleReorder}
+        selected={isReorderMode}
+      />
+      <DropdownItem
+        icon={<HiArrowDownTray className="size-4" />}
+        clicked={actions.onCsvImportClick}>
+        Import from CSV
+      </DropdownItem>
+    </Dropdown>
+  );
 }
 
 export function TagOverviewHeader({
   searchQuery,
   onSearchChange,
   actions,
+  isReorderMode,
   isSticky,
   filterCount,
   onFiltersClick,
@@ -72,13 +100,10 @@ export function TagOverviewHeader({
                 size="sm">
                 <HiPlus className="size-5" /> Add
               </Button>
-              <Dropdown>
-                <DropdownItem
-                  icon={<HiArrowDownTray />}
-                  clicked={actions.onCsvImportClick}>
-                  Import from CSV
-                </DropdownItem>
-              </Dropdown>
+              <TagHeaderDropdown
+                actions={actions}
+                isReorderMode={isReorderMode}
+              />
               {hasActiveFilters && (
                 <Button
                   clicked={onFiltersClick}
@@ -102,13 +127,10 @@ export function TagOverviewHeader({
                 size="sm">
                 <HiPlus className="size-6" /> Add
               </Button>
-              <Dropdown>
-                <DropdownItem
-                  icon={<HiArrowDownTray />}
-                  clicked={actions.onCsvImportClick}>
-                  Import from CSV
-                </DropdownItem>
-              </Dropdown>
+              <TagHeaderDropdown
+                actions={actions}
+                isReorderMode={isReorderMode}
+              />
             </>
           )}
         </div>

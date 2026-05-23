@@ -2,33 +2,54 @@ import { ReactNode } from "react";
 import { useSortableList } from "./hooks/use-sortable-list";
 import { IListProps, List } from "./list";
 
-type ISortableListProps<T> = Omit<IListProps<T>, "data" | "children"> & {
+export type ISortableListDragProps = {
+  onDragStart: (e: React.DragEvent) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragEnd: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent) => void;
+  isDragging: boolean;
+  isDragOver: boolean;
+  isOriginalPosition: boolean;
+  draggedItemHeight: number | null;
+};
+
+type ISortableListBaseProps<T> = Omit<IListProps<T>, "data" | "children"> & {
   data: T[];
   storageKey?: string;
   getItemId: (item: T) => string | number;
+};
+
+export type ISortableListDraggableProps<T> = ISortableListBaseProps<T> & {
+  draggable?: true;
   onOrderChange?: (orderedIds: (string | number)[]) => void;
   children: (
     item: T,
     index: number,
-    dragProps: {
-      onDragStart: (e: React.DragEvent) => void;
-      onDragOver: (e: React.DragEvent) => void;
-      onDragEnd: (e: React.DragEvent) => void;
-      onDrop: (e: React.DragEvent) => void;
-      isDragging: boolean;
-      isDragOver: boolean;
-      isOriginalPosition: boolean;
-      draggedItemHeight: number | null;
-    }
+    dragProps: ISortableListDragProps
   ) => ReactNode;
 };
 
+export type ISortableListStaticProps<T> = ISortableListBaseProps<T> & {
+  draggable: false;
+  onOrderChange?: never;
+  children: (item: T, index: number) => ReactNode;
+};
+
+export type ISortableListProps<T> =
+  | ISortableListDraggableProps<T>
+  | ISortableListStaticProps<T>;
+
+export function SortableList<T>(
+  props: ISortableListDraggableProps<T>
+): ReactNode;
+export function SortableList<T>(props: ISortableListStaticProps<T>): ReactNode;
 export function SortableList<T>({
   data,
   children,
   storageKey,
   getItemId,
   onOrderChange,
+  draggable = true,
   className,
   getItemKey,
 }: ISortableListProps<T>) {
@@ -46,13 +67,23 @@ export function SortableList<T>({
     data,
     getItemId,
     storageKey,
-    onOrderChange,
+    onOrderChange: draggable ? onOrderChange : undefined,
   });
+
+  if (!draggable) {
+    const staticChildren = children as ISortableListStaticProps<T>["children"];
+    return (
+      <List data={data} className={className} getItemKey={getItemKey}>
+        {(item, index) => staticChildren(item, index)}
+      </List>
+    );
+  }
+
+  const draggableChildren = children as ISortableListDraggableProps<T>["children"];
 
   return (
     <div
-      onDragEnd={(e) => {
-        // Handle drops outside the container
+      onDragEnd={() => {
         if (draggedIndex !== null) {
           handleDragEnd();
         }
@@ -66,10 +97,9 @@ export function SortableList<T>({
           const isDragOver = dragOverIndex === index;
           const isOriginalPosition = draggedIndex === index;
 
-          const dragProps = {
+          const dragProps: ISortableListDragProps = {
             onDragStart: (e: React.DragEvent) => {
               handleDragStart(index);
-              // Get height from dataTransfer if available
               const heightStr = e.dataTransfer.getData("text/height");
               if (heightStr) {
                 const height = parseInt(heightStr, 10);
@@ -81,7 +111,7 @@ export function SortableList<T>({
             onDragOver: (e: React.DragEvent) => {
               handleDragOver(e, index);
             },
-            onDragEnd: (e: React.DragEvent) => {
+            onDragEnd: () => {
               handleDragEnd();
             },
             onDrop: (e: React.DragEvent) => {
@@ -93,7 +123,7 @@ export function SortableList<T>({
             draggedItemHeight,
           };
 
-          return children(item, index, dragProps);
+          return draggableChildren(item, index, dragProps);
         }}
       </List>
     </div>
