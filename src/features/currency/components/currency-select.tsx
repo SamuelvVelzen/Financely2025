@@ -10,21 +10,21 @@ import { ISelectOption } from "@/features/ui/select/select";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type IconType } from "react-icons";
 import {
-  PiCurrencyCircleDollarDuotone,
-  PiCurrencyCnyDuotone,
-  PiCurrencyDollarDuotone,
-  PiCurrencyDollarSimpleDuotone,
-  PiCurrencyEurDuotone,
-  PiCurrencyGbpDuotone,
+  PiCurrencyCircleDollar,
+  PiCurrencyCny,
+  PiCurrencyDollar,
+  PiCurrencyDollarSimple,
+  PiCurrencyEur,
+  PiCurrencyGbp,
 } from "react-icons/pi";
 
 const CURRENCY_ICONS: Partial<Record<ICurrency, IconType>> = {
-  USD: PiCurrencyDollarDuotone,
-  EUR: PiCurrencyEurDuotone,
-  GBP: PiCurrencyGbpDuotone,
-  CAD: PiCurrencyDollarSimpleDuotone,
-  AUD: PiCurrencyCircleDollarDuotone,
-  JPY: PiCurrencyCnyDuotone,
+  USD: PiCurrencyDollar,
+  EUR: PiCurrencyEur,
+  GBP: PiCurrencyGbp,
+  CAD: PiCurrencyDollarSimple,
+  AUD: PiCurrencyCircleDollar,
+  JPY: PiCurrencyCny,
 };
 
 const currencyOptions: ISelectOption[] = getCurrencyOptions();
@@ -45,7 +45,7 @@ export function CurrencySelect({ className, ...props }: ICurrencySelectProps) {
       clearable={false}>
       {(option) => {
         const Icon =
-          CURRENCY_ICONS[option.value as ICurrency] ?? PiCurrencyDollarDuotone;
+          CURRENCY_ICONS[option.value as ICurrency] ?? PiCurrencyDollar;
 
         return (
           <span className="flex items-center gap-2 w-full">
