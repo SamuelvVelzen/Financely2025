@@ -1,11 +1,13 @@
 /**
  * Email Service Abstraction Layer
- * 
- * Centralized email sending service for all authentication emails.
- * Currently implements console.log for development.
- * Ready for future integration with email providers (Resend, SMTP, SendGrid, etc.)
+ *
+ * Sends auth emails via Resend when RESEND_API_KEY is set.
+ * In development without Resend, logs metadata only (no URLs or tokens).
  */
 
+import { getEmailProvider } from "./email-config";
+import { sendEmailViaConsole } from "./providers/console.provider";
+import { sendEmailViaResend } from "./providers/resend.provider";
 import type {
   EmailUser,
   VerificationEmailPayload,
@@ -21,7 +23,7 @@ export class EmailService {
   static async sendVerificationEmail(
     payload: VerificationEmailPayload
   ): Promise<void> {
-    const { user, url, token } = payload;
+    const { user, url } = payload;
 
     const emailOptions: EmailOptions = {
       to: user.email,
@@ -31,7 +33,7 @@ export class EmailService {
         <h1>Verify your email address</h1>
         <p>Hello ${user.name || user.email},</p>
         <p>Please verify your email address by clicking the link below:</p>
-        <p><a href="${url}">${url}</a></p>
+        <p><a href="${url}">Verify email</a></p>
         <p>This link will expire in 1 hour.</p>
         <p>If you didn't request this, please ignore this email.</p>
       `,
@@ -46,7 +48,7 @@ export class EmailService {
   static async sendResetPasswordEmail(
     payload: ResetPasswordEmailPayload
   ): Promise<void> {
-    const { user, url, token } = payload;
+    const { user, url } = payload;
 
     const emailOptions: EmailOptions = {
       to: user.email,
@@ -56,7 +58,7 @@ export class EmailService {
         <h1>Reset your password</h1>
         <p>Hello ${user.name || user.email},</p>
         <p>You requested to reset your password. Click the link below to reset it:</p>
-        <p><a href="${url}">${url}</a></p>
+        <p><a href="${url}">Reset password</a></p>
         <p>This link will expire in 1 hour.</p>
         <p>If you didn't request this, please ignore this email.</p>
       `,
@@ -71,7 +73,7 @@ export class EmailService {
   static async sendMagicLinkEmail(
     payload: MagicLinkEmailPayload
   ): Promise<void> {
-    const { user, url, token } = payload;
+    const { user, url } = payload;
 
     const emailOptions: EmailOptions = {
       to: user.email,
@@ -81,7 +83,7 @@ export class EmailService {
         <h1>Your magic link to sign in</h1>
         <p>Hello ${user.name || user.email},</p>
         <p>Click the link below to sign in:</p>
-        <p><a href="${url}">${url}</a></p>
+        <p><a href="${url}">Sign in</a></p>
         <p>This link will expire in 15 minutes and can only be used once.</p>
         <p>If you didn't request this, please ignore this email.</p>
       `,
@@ -90,26 +92,14 @@ export class EmailService {
     await this.sendEmail(emailOptions);
   }
 
-  /**
-   * Core email sending method
-   * Currently logs to console. Replace with actual email provider integration.
-   */
   private static async sendEmail(options: EmailOptions): Promise<void> {
-    // TODO: Replace with actual email provider (Resend, SMTP, SendGrid, etc.)
-    console.log("=".repeat(60));
-    console.log("📧 EMAIL SEND REQUEST");
-    console.log("=".repeat(60));
-    console.log("To:", options.to);
-    console.log("Subject:", options.subject);
-    console.log("\n--- Text Content ---");
-    console.log(options.text || "N/A");
-    if (options.html) {
-      console.log("\n--- HTML Content ---");
-      console.log(options.html);
+    const provider = getEmailProvider();
+
+    if (provider === "resend") {
+      await sendEmailViaResend(options);
+      return;
     }
-    console.log("=".repeat(60));
-    console.log("\n");
+
+    await sendEmailViaConsole(options);
   }
 }
-
-
