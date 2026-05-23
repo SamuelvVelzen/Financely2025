@@ -3,8 +3,57 @@ import { hashPassword } from "better-auth/crypto";
 
 const prisma = new PrismaClient();
 
+/** Known weak credentials — must never be created in production. */
 const SEED_USER_EMAIL = "dev@gmail.com";
 const SEED_USER_PASSWORD = "devdevdev";
+
+/**
+ * Refuse to seed when NODE_ENV is production.
+ * Optional escape hatch for controlled environments: SEED_ALLOW_IN_PRODUCTION=true
+ * plus non-default SEED_USER_PASSWORD (min 12 chars).
+ */
+function assertSeedEnvironmentAllowed(): void {
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!isProduction) {
+    return;
+  }
+
+  const allowOverride = process.env.SEED_ALLOW_IN_PRODUCTION === "true";
+  const passwordOverride = process.env.SEED_USER_PASSWORD?.trim();
+  const emailOverride = process.env.SEED_USER_EMAIL?.trim();
+
+  const hasSafeOverrides =
+    allowOverride &&
+    emailOverride &&
+    emailOverride !== SEED_USER_EMAIL &&
+    passwordOverride &&
+    passwordOverride !== SEED_USER_PASSWORD &&
+    passwordOverride.length >= 12;
+
+  if (hasSafeOverrides) {
+    console.warn(
+      "⚠️  Running seed in production with SEED_ALLOW_IN_PRODUCTION and custom credentials."
+    );
+    return;
+  }
+
+  console.error(
+    "❌ Refusing to run seed in production.\n" +
+      "   This script creates a demo user with well-known credentials (dev@gmail.com / devdevdev).\n" +
+      "   For local development, run: yarn seed (with NODE_ENV unset or development).\n" +
+      "   To seed a non-local environment intentionally, set SEED_ALLOW_IN_PRODUCTION=true,\n" +
+      "   SEED_USER_EMAIL, and SEED_USER_PASSWORD (12+ chars, not the defaults)."
+  );
+  process.exit(1);
+}
+
+function resolveSeedCredentials(): { email: string; password: string } {
+  return {
+    email: (process.env.SEED_USER_EMAIL?.trim() || SEED_USER_EMAIL).toLowerCase(),
+    password: process.env.SEED_USER_PASSWORD?.trim() || SEED_USER_PASSWORD,
+  };
+}
 const SEED_USER_FIRST_NAME = "Demo";
 const SEED_USER_LAST_NAME = "User";
 
@@ -107,11 +156,15 @@ async function ensureWorkspacesForUser(userId: string) {
 }
 
 async function main() {
+  assertSeedEnvironmentAllowed();
+
+  const { email: seedEmail, password: seedPassword } = resolveSeedCredentials();
+
   console.log("🌱 Starting seed...");
 
   console.log("👤 Creating seed user...");
 
-  const normalizedEmail = SEED_USER_EMAIL.toLowerCase().trim();
+  const normalizedEmail = seedEmail.toLowerCase().trim();
   const displayName = `${SEED_USER_FIRST_NAME} ${SEED_USER_LAST_NAME}`;
 
   let userInfo = await prisma.userInfo.findUnique({
@@ -145,7 +198,7 @@ async function main() {
       },
     });
 
-    const hashedPassword = await hashPassword(SEED_USER_PASSWORD);
+    const hashedPassword = await hashPassword(seedPassword);
 
     await prisma.account.create({
       data: {
@@ -241,10 +294,14 @@ async function main() {
   console.log(`   Created: ${createdCount} tags`);
   console.log(`   Updated: ${updatedCount} tags`);
   console.log(`   Skipped: ${skippedCount} tags`);
-  console.log(`\n📧 Seed User Credentials:`);
-  console.log(`   Email: ${SEED_USER_EMAIL}`);
-  console.log(`   Password: ${SEED_USER_PASSWORD}`);
-  console.log(`   (Use these credentials to log in)`);
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`\n📧 Seed user (development only):`);
+    console.log(`   Email: ${normalizedEmail}`);
+    console.log(`   Password: ${seedPassword}`);
+    console.log(`   (Use these credentials to log in locally)`);
+  } else {
+    console.log(`\n📧 Seed user created: ${normalizedEmail}`);
+  }
 }
 
 main()
