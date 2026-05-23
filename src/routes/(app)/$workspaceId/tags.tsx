@@ -11,7 +11,7 @@ export const Route = createFileRoute("/(app)/$workspaceId/tags")({
   head: () => ({
     meta: [
       {
-        title: "Tags | Financely  ",
+        title: "Tags | Financely",
       },
     ],
   }),
