@@ -1,6 +1,7 @@
 import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
+import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
 import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
@@ -19,6 +20,7 @@ import {
 } from "react-icons/hi2";
 import { IconButton } from "../button/icon-button";
 import { Container } from "../container/container";
+import { Skeleton } from "../skeleton";
 import { Logo } from "../logo/logo";
 import { ThemeToggle } from "../ThemeToggle";
 import { BaseLink } from "./base-link";
@@ -27,6 +29,7 @@ import { useSidebar } from "./useSidebar";
 
 export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
+  const { isLoading: profileLoading, initials } = useProfileAvatar();
   const navigate = useNavigate();
   const workspaceId = useNavWorkspaceId();
   const workspaceParams = { workspaceId: workspaceIdToRouteParam(workspaceId) };
@@ -127,8 +130,14 @@ export function Sidebar() {
             label="Account"
             className={cn(isExpanded ? "pr-4" : "")}
             customIcon={
-              <div className="size-7 bg-primary rounded-full flex items-center justify-center shrink-0">
-                <span className="text-white text-xs font-semibold">SV</span>
+              <div className="size-7 bg-primary rounded-full flex items-center justify-center shrink-0 overflow-hidden">
+                {profileLoading ? (
+                  <Skeleton className="size-full" rounded="full" />
+                ) : (
+                  <span className="text-white text-xs font-semibold">
+                    {initials}
+                  </span>
+                )}
               </div>
             }
             postfixContent={<ThemeToggle />}

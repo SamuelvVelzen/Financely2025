@@ -1,7 +1,7 @@
 import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
-import { useMyProfile } from "@/features/users/hooks/useMyProfile";
+import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { cn } from "@/features/util/cn";
@@ -13,6 +13,7 @@ import {
   HiOutlineUserCircle,
 } from "react-icons/hi2";
 import { Container } from "../container/container";
+import { Skeleton } from "../skeleton";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import { Logo } from "../logo/logo";
@@ -20,22 +21,12 @@ import { ThemeToggle } from "../ThemeToggle";
 import { BaseLink } from "./base-link";
 
 export function MobileTopNav() {
-  const { data: profile } = useMyProfile();
+  const { isLoading: profileLoading, initials } = useProfileAvatar();
   const navigate = useNavigate();
   const workspaceId = useNavWorkspaceId();
   const workspaceParams = { workspaceId: workspaceIdToRouteParam(workspaceId) };
   const { data: unreadCountData } = useUnreadCount();
   const unreadCount = unreadCountData?.count || 0;
-
-  // Get initials from profile
-  const getInitials = () => {
-    if (!profile) return "U";
-    const firstName = profile.firstName || "";
-    const lastName = profile.lastName || "";
-    const firstInitial = firstName.charAt(0).toUpperCase();
-    const lastInitial = lastName.charAt(0).toUpperCase();
-    return firstInitial && lastInitial ? `${firstInitial}${lastInitial}` : "U";
-  };
 
   const handleLogout = async () => {
     await signOutFromApp({
@@ -48,8 +39,12 @@ export function MobileTopNav() {
   };
 
   const avatarContent = (
-    <div className="size-8 bg-primary rounded-full flex items-center justify-center shrink-0">
-      <span className="text-white text-xs font-semibold">{getInitials()}</span>
+    <div className="size-8 bg-primary rounded-full flex items-center justify-center shrink-0 overflow-hidden">
+      {profileLoading ? (
+        <Skeleton className="size-full" rounded="full" />
+      ) : (
+        <span className="text-white text-xs font-semibold">{initials}</span>
+      )}
     </div>
   );
 
