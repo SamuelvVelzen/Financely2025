@@ -1,6 +1,8 @@
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITag } from "@/features/shared/validation/schemas";
 import { IconButton } from "@/features/ui/button/icon-button";
+import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { SortableList } from "@/features/ui/list/sortable-list";
 import { SortableListItem } from "@/features/ui/list/sortable-list-item";
 import { HiPencil, HiTrash } from "react-icons/hi2";
@@ -61,18 +63,21 @@ export function TagList({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 motion-safe:transition-opacity">
+          <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
             {onEdit && (
-              <IconButton clicked={() => onEdit(tag)}>
-                <HiPencil className="size-5" />
+              <IconButton clicked={() => onEdit(tag)} size="sm">
+                <HiPencil className="size-4" />
               </IconButton>
             )}
             {onDelete && (
-              <IconButton
-                clicked={() => onDelete(tag.id)}
-                className="text-danger hover:text-danger-hover">
-                <HiTrash className="size-5" />
-              </IconButton>
+              <Dropdown size="sm">
+                <DropdownItem
+                  icon={<HiTrash className="size-4" />}
+                  text="Delete"
+                  clicked={() => onDelete(tag.id)}
+                  className="text-danger hover:bg-danger/10"
+                />
+              </Dropdown>
             )}
           </div>
         </SortableListItem>
