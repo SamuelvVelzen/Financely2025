@@ -1,4 +1,5 @@
 import { LoginForm } from "@/features/auth/components/login-form";
+import { sanitizeAuthRedirect } from "@/features/auth/sanitize-auth-redirect";
 import { Container } from "@/features/ui/container/container";
 import { Title } from "@/features/ui/typography/title";
 import { authClient } from "@/lib/auth-client";
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
   validateSearch: (search: Record<string, unknown>) => {
     return {
-      redirect: (search.redirect as string) || "/",
+      redirect: sanitizeAuthRedirect(search.redirect as string | undefined),
     };
   },
 });
@@ -21,7 +22,7 @@ function LoginPage() {
   useEffect(() => {
     authClient.getSession().then((session) => {
       if (session.data) {
-        window.location.href = redirect || "/";
+        window.location.assign(redirect);
       }
     });
   }, [redirect]);

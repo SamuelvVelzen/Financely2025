@@ -101,8 +101,7 @@ export function LoginForm() {
       }
 
       toast.success("Welcome back!");
-      // Redirect after successful login
-      navigate({ to: redirect || "/" });
+      navigate({ href: redirect });
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";
       setError(message);
