@@ -60,15 +60,20 @@ export function Badge({
   className,
   tooltip,
   tooltipPlacement = "auto",
+  style,
   ...rest
 }: IBadgeProps) {
-  const backgroundColorClass = backgroundColor
-    ? `bg-[${backgroundColor}]`
+  const useCustomColor = Boolean(backgroundColor);
+  const contrastingTextColor = backgroundColor
+    ? getContrastingTextColor(backgroundColor)
+    : undefined;
+  const backgroundColorClass = useCustomColor
+    ? undefined
     : variant
       ? variantClasses[variant].backgroundColor
       : "bg-surface-hover";
-  const textColorClass = backgroundColor
-    ? `text-[${getContrastingTextColor(backgroundColor)}]`
+  const textColorClass = useCustomColor
+    ? undefined
     : variant
       ? variantClasses[variant].textColor
       : "text-text";
@@ -82,7 +87,13 @@ export function Badge({
         textColorClass,
         className
       )}
-      style={{ ...rest.style, backgroundColor, color: textColorClass }}>
+      style={{
+        ...style,
+        ...(useCustomColor && {
+          backgroundColor,
+          color: contrastingTextColor,
+        }),
+      }}>
       {children}
     </span>
   );
