@@ -24,6 +24,7 @@ export function SubscriptionDetectionDialog({
 }: ISubscriptionDetectionDialogProps) {
   const workspaceId = useNavWorkspaceId();
   const toast = useToast();
+  const { error: showDetectError } = toast;
   const { mutate: confirmSub } = useConfirmSubscription();
   const { mutate: dismissCandidate } = useDismissCandidate();
 
@@ -51,12 +52,12 @@ export function SubscriptionDetectionDialog({
         setHasDetected(true);
       })
       .catch(() => {
-        toast.error("Failed to detect subscriptions");
+        showDetectError("Failed to detect subscriptions");
       })
       .finally(() => {
         setIsDetecting(false);
       });
-  }, [open, workspaceId, toast]);
+  }, [open, workspaceId, showDetectError]);
 
   const handleConfirm = useCallback(
     (candidate: ISubscriptionCandidate) => {
