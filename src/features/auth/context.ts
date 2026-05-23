@@ -21,7 +21,7 @@ async function getAppUserId(userInfoId: string): Promise<string> {
 
 /**
  * Assert that a user is authenticated
- * @throws Error if user is not authenticated
+ * @throws UnauthorizedError if user is not authenticated
  * @returns userId (the app User ID, not the UserInfo ID)
  */
 export async function requireAuth(): Promise<string> {

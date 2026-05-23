@@ -61,6 +61,18 @@ export function createErrorResponse(
     );
   }
 
+  if (error instanceof Error && error.message === "Unauthorized") {
+    return Response.json(
+      ErrorResponseSchema.parse({
+        error: {
+          code: ErrorCodes.UNAUTHORIZED,
+          message: "Unauthorized",
+        },
+      }),
+      { status: 401 }
+    );
+  }
+
   if (error instanceof z.ZodError) {
     return Response.json(
       ErrorResponseSchema.parse({
