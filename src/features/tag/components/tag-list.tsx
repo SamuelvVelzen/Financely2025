@@ -20,7 +20,65 @@ type ITagListProps = {
   draggable?: boolean;
 };
 
-function TagListItemContent({
+function TagListItemMain({
+  tag,
+  searchQuery,
+}: {
+  tag: ITag;
+  searchQuery?: string;
+}) {
+  const { highlightText } = useHighlightText();
+
+  return (
+    <div className="flex items-center gap-3">
+      {tag.emoticon && <span className="text-lg">{tag.emoticon}</span>}
+      {tag.color && (
+        <div
+          className="size-4 rounded"
+          style={{ backgroundColor: tag.color }}
+        />
+      )}
+      <span className="text-text">{highlightText(tag.name, searchQuery)}</span>
+      {tag.description && (
+        <span className="text-sm text-text-muted">
+          {highlightText(tag.description, searchQuery)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function TagListItemActions({
+  tag,
+  onEdit,
+  onDelete,
+}: {
+  tag: ITag;
+  onEdit?: (tag: ITag) => void;
+  onDelete?: (tagId: string) => void;
+}) {
+  return (
+    <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
+      {onEdit && (
+        <IconButton clicked={() => onEdit(tag)} size="sm">
+          <HiPencil className="size-4" />
+        </IconButton>
+      )}
+      {onDelete && (
+        <Dropdown size="sm">
+          <DropdownItem
+            icon={<HiTrash className="size-4" />}
+            text="Delete"
+            clicked={() => onDelete(tag.id)}
+            className="text-danger hover:bg-danger/10"
+          />
+        </Dropdown>
+      )}
+    </div>
+  );
+}
+
+function TagListItem({
   tag,
   searchQuery,
   onEdit,
@@ -31,42 +89,10 @@ function TagListItemContent({
   onEdit?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
 }) {
-  const { highlightText } = useHighlightText();
-
   return (
     <>
-      <div className="flex items-center gap-3">
-        {tag.emoticon && <span className="text-lg">{tag.emoticon}</span>}
-        {tag.color && (
-          <div
-            className="size-4 rounded"
-            style={{ backgroundColor: tag.color }}
-          />
-        )}
-        <span className="text-text">{highlightText(tag.name, searchQuery)}</span>
-        {tag.description && (
-          <span className="text-sm text-text-muted">
-            {highlightText(tag.description, searchQuery)}
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
-        {onEdit && (
-          <IconButton clicked={() => onEdit(tag)} size="sm">
-            <HiPencil className="size-4" />
-          </IconButton>
-        )}
-        {onDelete && (
-          <Dropdown size="sm">
-            <DropdownItem
-              icon={<HiTrash className="size-4" />}
-              text="Delete"
-              clicked={() => onDelete(tag.id)}
-              className="text-danger hover:bg-danger/10"
-            />
-          </Dropdown>
-        )}
-      </div>
+      <TagListItemMain tag={tag} searchQuery={searchQuery} />
+      <TagListItemActions tag={tag} onEdit={onEdit} onDelete={onDelete} />
     </>
   );
 }
@@ -96,12 +122,8 @@ function DraggableTagListItem({
       onDragOver={dragProps.onDragOver}
       onDragEnd={dragProps.onDragEnd}
       onDrop={dragProps.onDrop}>
-      <TagListItemContent
-        tag={tag}
-        searchQuery={searchQuery}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      <TagListItemMain tag={tag} searchQuery={searchQuery} />
+      <TagListItemActions tag={tag} onEdit={onEdit} onDelete={onDelete} />
     </SortableListItem>
   );
 }
@@ -139,7 +161,7 @@ export function TagList({
     <SortableList {...listProps} draggable={false}>
       {(tag) => (
         <SortableListItem className="group" draggable={false}>
-          <TagListItemContent
+          <TagListItem
             tag={tag}
             searchQuery={searchQuery}
             onEdit={onEdit}
