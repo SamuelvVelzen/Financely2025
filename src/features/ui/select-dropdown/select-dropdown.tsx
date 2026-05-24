@@ -37,6 +37,8 @@ export type ISelectDropdownProps<
   ) => ReactNode;
   disabled?: boolean;
   required?: boolean;
+  /** Accessible name when `label` is omitted */
+  "aria-label"?: string;
 } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -55,6 +57,7 @@ export function SelectDropdown<
   children,
   disabled = false,
   required = false,
+  "aria-label": ariaLabel,
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,
@@ -141,12 +144,13 @@ export function SelectDropdown<
     return false;
   };
 
-  // On mobile, use native select (only works in form mode)
-  if (isMobile && mode === "form") {
+  // On mobile, use native select for better touch UX
+  const controlledMode = mode === "controlled" && controlledOnChange != null;
+  const formMode = mode === "form" && formContext && name;
+  if (isMobile && (controlledMode || formMode)) {
     return (
       <NativeSelect
         className={className}
-        name={name!}
         options={options}
         multiple={multiple}
         placeholder={placeholder}
@@ -155,6 +159,16 @@ export function SelectDropdown<
         required={required}
         valueToString={valueToString}
         stringToValue={stringToValue}
+        aria-label={ariaLabel}
+        {...(name != null
+          ? { name }
+          : {
+              value: (multiple
+                ? (controlledValue ?? [])
+                : (controlledValue ?? ("" as TValue))) as TValue | TValue[],
+              onChange: controlledOnChange!,
+            })}
+        onValueChange={onValueChange}
       />
     );
   }
