@@ -1,3 +1,4 @@
+import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import type {
   ISubscription,
   ISubscriptionDismissal,
@@ -10,7 +11,6 @@ import {
   useUpdateSubscription,
 } from "@/features/subscription/hooks/useSubscriptions";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
-import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
@@ -24,19 +24,16 @@ import { Tab } from "@/features/ui/tab/tab";
 import { TabContent } from "@/features/ui/tab/tab-content";
 import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
-import { Title } from "@/features/ui/typography/title";
-import { useCallback, useState } from "react";
-import {
-  HiArrowPath,
-  HiArrowUturnLeft,
-  HiMagnifyingGlass,
-  HiNoSymbol,
-} from "react-icons/hi2";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { HiArrowPath, HiArrowUturnLeft, HiNoSymbol } from "react-icons/hi2";
 import { SubscriptionDetectionDialog } from "./subscription-detection-dialog";
 import { SubscriptionListItem } from "./subscription-list-item";
+import { SubscriptionOverviewHeader } from "./subscription-overview-header";
 
 export function SubscriptionsPage() {
   const toast = useToast();
+  const expandedHeaderRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setExpandedHeaderElement] = useScrollPosition();
   const {
     data: subscriptionsData,
     isLoading,
@@ -52,6 +49,19 @@ export function SubscriptionsPage() {
   );
 
   const subscriptions = subscriptionsData?.data ?? [];
+
+  useEffect(() => {
+    if (expandedHeaderRef.current) {
+      setExpandedHeaderElement(expandedHeaderRef.current);
+    }
+  }, [setExpandedHeaderElement]);
+
+  const actions = useMemo(
+    () => ({
+      onDetectSubscriptions: () => setIsDetectDialogOpen(true),
+    }),
+    [],
+  );
 
   const handleToggleActive = useCallback(
     (subscription: ISubscription) => {
@@ -94,68 +104,46 @@ export function SubscriptionsPage() {
     });
   }, [deleteTarget, deleteSub, toast]);
 
-  if (isLoading) {
-    return (
-      <Container>
-        <Loading text="Loading subscriptions" />
-      </Container>
-    );
-  }
+  return (
+    <>
+      <div ref={expandedHeaderRef} className="h-0" />
 
-  if (subscriptionsError) {
-    return (
-      <>
-        <Container className="sticky top-0 z-10 bg-surface">
-          <Title>Subscriptions</Title>
-        </Container>
-        <Container>
+      <SubscriptionOverviewHeader
+        actions={actions}
+        isSticky={isSticky}
+        subscriptionCount={subscriptions.length}
+      />
+
+      <Container>
+        {isLoading && <Loading text="Loading subscriptions" />}
+
+        {subscriptionsError && !isLoading && (
           <QueryErrorState
             title="Unable to load subscriptions"
             message={subscriptionsError.message}
             onRetry={() => void refetchSubscriptions()}
           />
-        </Container>
-      </>
-    );
-  }
+        )}
 
-  return (
-    <>
-      <Container className="sticky top-0 z-10 bg-surface">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Title>Subscriptions</Title>
-            {subscriptions.length > 0 && (
-              <Badge>{subscriptions.length}</Badge>
-            )}
-          </div>
-          <Button
-            variant="primary"
-            clicked={() => setIsDetectDialogOpen(true)}>
-            <HiMagnifyingGlass className="size-4 mr-2" />
-            Detect Subscriptions
-          </Button>
-        </div>
-      </Container>
+        {!isLoading && !subscriptionsError && (
+          <Tabs defaultValue="subscriptions">
+            <Tab value="subscriptions">Subscriptions</Tab>
+            <Tab value="dismissed">Dismissed</Tab>
 
-      <Container>
-        <Tabs defaultValue="subscriptions">
-          <Tab value="subscriptions">Subscriptions</Tab>
-          <Tab value="dismissed">Dismissed</Tab>
+            <TabContent value="subscriptions">
+              <SubscriptionsTabContent
+                subscriptions={subscriptions}
+                onToggleActive={handleToggleActive}
+                onDelete={setDeleteTarget}
+                onDetect={() => setIsDetectDialogOpen(true)}
+              />
+            </TabContent>
 
-          <TabContent value="subscriptions">
-            <SubscriptionsTabContent
-              subscriptions={subscriptions}
-              onToggleActive={handleToggleActive}
-              onDelete={setDeleteTarget}
-              onDetect={() => setIsDetectDialogOpen(true)}
-            />
-          </TabContent>
-
-          <TabContent value="dismissed">
-            <DismissedTabContent />
-          </TabContent>
-        </Tabs>
+            <TabContent value="dismissed">
+              <DismissedTabContent />
+            </TabContent>
+          </Tabs>
+        )}
       </Container>
 
       <SubscriptionDetectionDialog
