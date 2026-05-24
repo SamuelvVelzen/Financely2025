@@ -27,9 +27,14 @@ function rebasePathname(
 
 type IWorkspaceSwitcherProps = {
   className?: string;
+  /** Hides visible label; keeps an accessible name for screen readers. */
+  compact?: boolean;
 };
 
-export function WorkspaceSwitcher({ className }: IWorkspaceSwitcherProps) {
+export function WorkspaceSwitcher({
+  className,
+  compact = false,
+}: IWorkspaceSwitcherProps) {
   const { data: me } = useMe();
   const workspaceId = useNavWorkspaceId();
   const pathname = useRouterState({
@@ -73,13 +78,14 @@ export function WorkspaceSwitcher({ className }: IWorkspaceSwitcherProps) {
   }
 
   return (
-    <div className={cn("w-full", className)}>
+    <div className={cn(compact ? "min-w-0 max-w-[9rem] sm:max-w-[11rem]" : "w-full", className)}>
       <NativeSelect
-        label="Workspace"
+        label={compact ? undefined : "Workspace"}
+        aria-label="Workspace"
         options={options}
         value={currentSegment}
         onChange={handleChange}
-        className="text-sm"
+        className={cn("text-sm", compact && "[&_select]:h-8 [&_select]:py-1 [&_select]:text-xs")}
       />
     </div>
   );

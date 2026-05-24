@@ -2,6 +2,7 @@ import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
 import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
+import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { cn } from "@/features/util/cn";
@@ -58,16 +59,17 @@ export function MobileTopNav() {
         "border-t-0 rounded-t-none",
         "flex items-center justify-between"
       )}>
-      <BaseLink to="/$workspaceId" params={workspaceParams}>
-        <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <BaseLink
+          to="/$workspaceId"
+          params={workspaceParams}
+          className="shrink-0">
           <Logo />
-          <span className="font-bold text-text text-lg whitespace-nowrap">
-            Financely
-          </span>
-        </div>
-      </BaseLink>
+        </BaseLink>
+        <WorkspaceSwitcher compact />
+      </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3">
         <ThemeToggle />
         <div className="[&_button]:w-auto [&_button]:h-auto [&_button]:p-0 [&_button]:bg-transparent [&_button]:border-0 [&_button]:shadow-none [&_button]:hover:bg-transparent [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-primary [&_button]:focus-visible:ring-offset-2 [&_button]:rounded-full">
           <Dropdown
