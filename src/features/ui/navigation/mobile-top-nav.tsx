@@ -2,22 +2,23 @@ import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
 import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
+import { cn } from "@/features/util/cn";
 import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
-import { cn } from "@/features/util/cn";
 import { signOutFromApp } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
 import {
+  HiArrowPath,
   HiArrowRightOnRectangle,
   HiOutlineBell,
   HiOutlineUserCircle,
 } from "react-icons/hi2";
 import { Container } from "../container/container";
-import { Skeleton } from "../skeleton";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import { Logo } from "../logo/logo";
+import { Skeleton } from "../skeleton";
 import { ThemeToggle } from "../ThemeToggle";
 import { BaseLink } from "./base-link";
 
@@ -71,45 +72,55 @@ export function MobileTopNav() {
 
       <div className="flex shrink-0 items-center gap-3">
         <ThemeToggle />
-        <div className="[&_button]:w-auto [&_button]:h-auto [&_button]:p-0 [&_button]:bg-transparent [&_button]:border-0 [&_button]:shadow-none [&_button]:hover:bg-transparent [&_button]:focus-visible:ring-2 [&_button]:focus-visible:ring-primary [&_button]:focus-visible:ring-offset-2 [&_button]:rounded-full">
-          <Dropdown
-            dropdownSelector={avatarContent}
-            placement="bottom"
-            size="sm">
-            <DropdownItem
-              text="Account"
-              icon={<HiOutlineUserCircle className="size-5" />}
-              clicked={() => {
-                navigate({ to: ROUTES.ACCOUNT });
-              }}
-            />
-            <DropdownItem
-              text="Messages"
-              icon={
-                <div className="relative">
-                  <HiOutlineBell className="size-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-danger text-white rounded-full">
-                      {formatUnreadBadgeLabel(unreadCount)}
-                    </span>
-                  )}
-                </div>
-              }
-              clicked={() => {
-                navigate({
-                  to: "/$workspaceId/messages",
-                  params: workspaceParams,
-                });
-              }}
-            />
-            <DropdownItem
-              text="Logout"
-              icon={<HiArrowRightOnRectangle className="size-5" />}
-              clicked={handleLogout}
-              className="text-danger hover:text-danger-hover"
-            />
-          </Dropdown>
-        </div>
+
+        <Dropdown
+          dropdownSelector={avatarContent}
+          placement="bottom"
+          size="sm">
+          <DropdownItem
+            text="Account"
+            icon={<HiOutlineUserCircle className="size-5" />}
+            clicked={() => {
+              navigate({ to: ROUTES.ACCOUNT });
+            }}
+          />
+          <DropdownItem
+            text="Messages"
+            icon={
+              <div className="relative">
+                <HiOutlineBell className="size-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-danger text-white rounded-full">
+                    {formatUnreadBadgeLabel(unreadCount)}
+                  </span>
+                )}
+              </div>
+            }
+            clicked={() => {
+              navigate({
+                to: "/$workspaceId/messages",
+                params: workspaceParams,
+              });
+            }}
+          />
+          <DropdownItem
+            text="Subscriptions"
+            icon={<HiArrowPath className="size-5" />}
+            clicked={() => {
+              navigate({
+                to: "/$workspaceId/subscriptions",
+                params: workspaceParams,
+              });
+            }}
+          />
+          <DropdownItem
+            text="Logout"
+            icon={<HiArrowRightOnRectangle className="size-5" />}
+            clicked={handleLogout}
+            className="text-danger hover:text-danger-hover"
+          />
+        </Dropdown>
+
       </div>
     </Container>
   );
