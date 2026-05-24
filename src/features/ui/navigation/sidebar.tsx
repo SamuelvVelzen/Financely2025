@@ -2,10 +2,10 @@ import { ROUTES } from "@/config/routes";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
 import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
+import { cn } from "@/features/util/cn";
 import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
-import { cn } from "@/features/util/cn";
 import { signOutFromApp } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -20,8 +20,8 @@ import {
 } from "react-icons/hi2";
 import { IconButton } from "../button/icon-button";
 import { Container } from "../container/container";
-import { Skeleton } from "../skeleton";
 import { Logo } from "../logo/logo";
+import { Skeleton } from "../skeleton";
 import { ThemeToggle } from "../ThemeToggle";
 import { BaseLink } from "./base-link";
 import { NavItem } from "./nav-item";
@@ -53,9 +53,8 @@ export function Sidebar() {
           <div className="flex items-center overflow-hidden">
             <Logo />
             <span
-              className={`font-bold text-text text-lg whitespace-nowrap overflow-hidden transition-[margin,max-width] duration-500 ${
-                isExpanded ? "ml-3 max-w-full" : "ml-3 max-w-0"
-              }`}>
+              className={`font-bold text-text text-lg whitespace-nowrap overflow-hidden transition-[margin,max-width] duration-500 ${isExpanded ? "ml-3 max-w-full" : "ml-3 max-w-0"
+                }`}>
               Financely
             </span>
           </div>
@@ -74,6 +73,7 @@ export function Sidebar() {
               to="/$workspaceId"
               params={workspaceParams}
               label="Dashboard"
+              activeOptions={{ exact: true }}
               icon={HiChartBar}
             />
           </li>

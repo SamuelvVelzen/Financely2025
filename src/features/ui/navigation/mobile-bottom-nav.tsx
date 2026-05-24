@@ -1,7 +1,7 @@
 import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
+import { cn } from "@/features/util/cn";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
-import { cn } from "@/features/util/cn";
 import { useState } from "react";
 import {
   HiArrowsRightLeft,
@@ -43,6 +43,7 @@ export function MobileBottomNav() {
             params={workspaceParams}
             label="Dashboard"
             icon={HiChartBar}
+            activeOptions={{ exact: true }}
             className="flex-1"
           />
           <MobileNavItem
