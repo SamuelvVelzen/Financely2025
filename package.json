@@ -8,6 +8,8 @@
     "build": "prisma generate && vite build",
     "start": "node .output/server/index.mjs",
     "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:migrate:dev": "prisma migrate dev",
@@ -48,6 +50,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5",
     "vite": "^7.1.12",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   }
 }

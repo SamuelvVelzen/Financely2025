@@ -5,21 +5,14 @@
  * Handles all requests to /api/auth/*
  */
 
-import { createRateLimitResponse } from "@/features/shared/rate-limit/create-rate-limit-response";
-import { getClientIp } from "@/features/shared/rate-limit/get-client-ip";
-import { getAuthRateLimitPolicy } from "@/features/shared/rate-limit/rate-limit-policies";
-import { checkRateLimit } from "@/features/shared/rate-limit/rate-limit";
+import { applyAuthRateLimit } from "@/features/shared/rate-limit/apply-auth-rate-limit";
 import { auth } from "@/lib/auth";
 import { createFileRoute } from "@tanstack/react-router";
 
 function rateLimitedAuthHandler(request: Request): Response | Promise<Response> {
-  const policy = getAuthRateLimitPolicy(request);
-  const path = new URL(request.url).pathname;
-  const key = `auth:${request.method}:${getClientIp(request)}:${path}`;
-  const result = checkRateLimit(key, policy);
-
-  if (!result.allowed) {
-    return createRateLimitResponse(result.retryAfterMs);
+  const blocked = applyAuthRateLimit(request);
+  if (blocked) {
+    return blocked;
   }
 
   return auth.handler(request);

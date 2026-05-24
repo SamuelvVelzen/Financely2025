@@ -1,5 +1,6 @@
 import { PrismaClient, TransactionType } from "@prisma/client";
 import { hashPassword } from "better-auth/crypto";
+import { checkSeedEnvironment } from "./seed-guard";
 
 const prisma = new PrismaClient();
 
@@ -7,45 +8,15 @@ const prisma = new PrismaClient();
 const SEED_USER_EMAIL = "dev@gmail.com";
 const SEED_USER_PASSWORD = "devdevdev";
 
-/**
- * Refuse to seed when NODE_ENV is production.
- * Optional escape hatch for controlled environments: SEED_ALLOW_IN_PRODUCTION=true
- * plus non-default SEED_USER_PASSWORD (min 12 chars).
- */
 function assertSeedEnvironmentAllowed(): void {
-  const isProduction = process.env.NODE_ENV === "production";
-
-  if (!isProduction) {
-    return;
+  const result = checkSeedEnvironment(process.env);
+  if (result.warning) {
+    console.warn(`⚠️  ${result.warning}`);
   }
-
-  const allowOverride = process.env.SEED_ALLOW_IN_PRODUCTION === "true";
-  const passwordOverride = process.env.SEED_USER_PASSWORD?.trim();
-  const emailOverride = process.env.SEED_USER_EMAIL?.trim();
-
-  const hasSafeOverrides =
-    allowOverride &&
-    emailOverride &&
-    emailOverride !== SEED_USER_EMAIL &&
-    passwordOverride &&
-    passwordOverride !== SEED_USER_PASSWORD &&
-    passwordOverride.length >= 12;
-
-  if (hasSafeOverrides) {
-    console.warn(
-      "⚠️  Running seed in production with SEED_ALLOW_IN_PRODUCTION and custom credentials."
-    );
-    return;
+  if (!result.allowed) {
+    console.error(`❌ ${result.errorMessage}`);
+    process.exit(1);
   }
-
-  console.error(
-    "❌ Refusing to run seed in production.\n" +
-      "   This script creates a demo user with well-known credentials (dev@gmail.com / devdevdev).\n" +
-      "   For local development, run: yarn seed (with NODE_ENV unset or development).\n" +
-      "   To seed a non-local environment intentionally, set SEED_ALLOW_IN_PRODUCTION=true,\n" +
-      "   SEED_USER_EMAIL, and SEED_USER_PASSWORD (12+ chars, not the defaults)."
-  );
-  process.exit(1);
 }
 
 function resolveSeedCredentials(): { email: string; password: string } {
