@@ -1,5 +1,14 @@
 const DEFAULT_AUTH_REDIRECT = "/";
 
+/** Subset of TanStack Router `location` used to build a post-auth redirect path. */
+export interface IAuthRedirectLocation {
+  publicHref?: string;
+  href: string;
+  pathname: string;
+  searchStr: string;
+  hash: string;
+}
+
 interface ISanitizeAuthRedirectOptions {
   /** When validating absolute URLs (e.g. copied from location.href). */
   origin?: string;
@@ -15,6 +24,21 @@ function sanitizeRelativePath(path: string): string {
   }
 
   return path || DEFAULT_AUTH_REDIRECT;
+}
+
+/**
+ * Builds a relative path from a TanStack Router location for login `?redirect=`.
+ * Use `publicHref` / `href` — `location.search` is a parsed object, not a query string.
+ */
+export function getAuthRedirectPath(location: IAuthRedirectLocation): string {
+  const raw =
+    location.publicHref?.trim() ||
+    location.href.trim() ||
+    `${location.pathname}${location.searchStr}${
+      location.hash ? `#${location.hash}` : ""
+    }`;
+
+  return sanitizeAuthRedirect(raw);
 }
 
 /**

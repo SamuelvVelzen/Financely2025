@@ -1,3 +1,4 @@
+import { getAuthRedirectPath } from "@/features/auth/sanitize-auth-redirect";
 import { PermissionHelpers } from "@/features/auth/permission.helpers";
 import { MobileBottomNav } from "@/features/ui/navigation/mobile-bottom-nav";
 import { MobileTopNav } from "@/features/ui/navigation/mobile-top-nav";
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/(app)")({
       throw redirect({
         to: "/login",
         search: {
-          redirect: location.pathname + location.search,
+          redirect: getAuthRedirectPath(location),
         },
       });
     }

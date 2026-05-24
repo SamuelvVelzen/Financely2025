@@ -1,4 +1,5 @@
 import { ROUTES } from "@/config/routes";
+import { getAuthRedirectPath } from "@/features/auth/sanitize-auth-redirect";
 import { ApiClientError } from "@/features/shared/api/client";
 import { ErrorCodes } from "@/features/shared/api/errors";
 import { getProfileInitials } from "@/features/users/utils/get-profile-initials";
@@ -23,11 +24,11 @@ export function useProfileAvatar() {
       void navigate({
         to: ROUTES.LOGIN,
         search: {
-          redirect: location.pathname + location.search,
+          redirect: getAuthRedirectPath(location),
         },
       });
     }
-  }, [isLoading, isError, error, navigate, location.pathname, location.search]);
+  }, [isLoading, isError, error, navigate, location]);
 
   return {
     isLoading,

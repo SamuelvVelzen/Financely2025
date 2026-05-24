@@ -1,5 +1,44 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeAuthRedirect } from "./sanitize-auth-redirect";
+import {
+  getAuthRedirectPath,
+  sanitizeAuthRedirect,
+} from "./sanitize-auth-redirect";
+
+describe("getAuthRedirectPath", () => {
+  it("uses publicHref instead of concatenating pathname + search object", () => {
+    expect(
+      getAuthRedirectPath({
+        publicHref: "/1/subscriptions",
+        href: "/1/subscriptions",
+        pathname: "/1/subscriptions",
+        searchStr: "",
+        hash: "",
+      }),
+    ).toBe("/1/subscriptions");
+  });
+
+  it("uses full href when it includes search and hash", () => {
+    expect(
+      getAuthRedirectPath({
+        href: "/account?tab=profile#settings",
+        pathname: "/account",
+        searchStr: "?tab=profile",
+        hash: "settings",
+      }),
+    ).toBe("/account?tab=profile#settings");
+  });
+
+  it("falls back to pathname, searchStr, and hash when href is empty", () => {
+    expect(
+      getAuthRedirectPath({
+        href: "",
+        pathname: "/account",
+        searchStr: "?tab=profile",
+        hash: "settings",
+      }),
+    ).toBe("/account?tab=profile#settings");
+  });
+});
 
 describe("sanitizeAuthRedirect", () => {
   it("returns / for missing or empty values", () => {

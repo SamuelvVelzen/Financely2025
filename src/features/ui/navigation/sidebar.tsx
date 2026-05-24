@@ -1,4 +1,5 @@
 import { ROUTES } from "@/config/routes";
+import { getAuthRedirectPath } from "@/features/auth/sanitize-auth-redirect";
 import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
 import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
@@ -7,7 +8,7 @@ import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-swi
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { signOutFromApp } from "@/lib/auth-client";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   HiArrowPath,
   HiArrowRightOnRectangle,
@@ -31,6 +32,7 @@ export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();
   const { isLoading: profileLoading, initials } = useProfileAvatar();
   const navigate = useNavigate();
+  const location = useRouterState({ select: (s) => s.location });
   const workspaceId = useNavWorkspaceId();
   const workspaceParams = { workspaceId: workspaceIdToRouteParam(workspaceId) };
   const { data: unreadCountData } = useUnreadCount();
@@ -169,10 +171,14 @@ export function Sidebar() {
           icon={HiArrowRightOnRectangle}
           isAction={true}
           clicked={async () => {
+            const redirect = getAuthRedirectPath(location);
             await signOutFromApp({
               fetchOptions: {
                 onSuccess: () => {
-                  navigate({ to: ROUTES.ROOT });
+                  void navigate({
+                    to: ROUTES.LOGIN,
+                    search: { redirect },
+                  });
                 },
               },
             });
