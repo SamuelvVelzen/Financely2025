@@ -14,6 +14,7 @@ import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
+import { QueryErrorState } from "@/features/ui/container/query-error-state";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { List } from "@/features/ui/list/list";
@@ -36,7 +37,12 @@ import { SubscriptionListItem } from "./subscription-list-item";
 
 export function SubscriptionsPage() {
   const toast = useToast();
-  const { data: subscriptionsData, isLoading } = useSubscriptions();
+  const {
+    data: subscriptionsData,
+    isLoading,
+    error: subscriptionsError,
+    refetch: refetchSubscriptions,
+  } = useSubscriptions();
   const { mutate: updateSub } = useUpdateSubscription();
   const { mutate: deleteSub } = useDeleteSubscription();
 
@@ -93,6 +99,23 @@ export function SubscriptionsPage() {
       <Container>
         <Loading text="Loading subscriptions" />
       </Container>
+    );
+  }
+
+  if (subscriptionsError) {
+    return (
+      <>
+        <Container className="sticky top-0 z-10 bg-surface">
+          <Title>Subscriptions</Title>
+        </Container>
+        <Container>
+          <QueryErrorState
+            title="Unable to load subscriptions"
+            message={subscriptionsError.message}
+            onRetry={() => void refetchSubscriptions()}
+          />
+        </Container>
+      </>
     );
   }
 
@@ -207,7 +230,12 @@ function SubscriptionsTabContent({
 
 function DismissedTabContent() {
   const toast = useToast();
-  const { data: dismissalsData, isLoading } = useSubscriptionDismissals();
+  const {
+    data: dismissalsData,
+    isLoading,
+    error,
+    refetch,
+  } = useSubscriptionDismissals();
   const { mutate: undismiss, isPending: isUndismissing } =
     useUndismissCandidate();
   const [undismissingId, setUndismissingId] = useState<string | null>(null);
@@ -250,6 +278,16 @@ function DismissedTabContent() {
 
   if (isLoading) {
     return <Loading text="Loading dismissed subscriptions" />;
+  }
+
+  if (error) {
+    return (
+      <QueryErrorState
+        title="Unable to load dismissed subscriptions"
+        message={error.message}
+        onRetry={() => void refetch()}
+      />
+    );
   }
 
   if (dismissals.length === 0) {

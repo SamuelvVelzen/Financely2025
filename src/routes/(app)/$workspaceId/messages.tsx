@@ -6,6 +6,7 @@ import {
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
+import { QueryErrorState } from "@/features/ui/container/query-error-state";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
 import { createFileRoute } from "@tanstack/react-router";
@@ -30,7 +31,7 @@ function MessagesPage() {
   const toast = useToast();
   const markAllAsRead = useMarkAllAsRead();
 
-  const { data, isLoading } = useMessages({
+  const { data, isLoading, error, refetch } = useMessages({
     read: filter === "unread" ? false : undefined,
     type: typeFilter,
     page: 1,
@@ -117,10 +118,18 @@ function MessagesPage() {
           />
         </div>
 
-        <MessageList
-          messages={data?.data || []}
-          isLoading={isLoading}
-        />
+        {error && !isLoading ? (
+          <QueryErrorState
+            title="Unable to load messages"
+            message={error.message}
+            onRetry={() => void refetch()}
+          />
+        ) : (
+          <MessageList
+            messages={data?.data || []}
+            isLoading={isLoading}
+          />
+        )}
       </Container>
     </>
   );

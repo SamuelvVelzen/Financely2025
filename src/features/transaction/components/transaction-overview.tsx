@@ -22,6 +22,7 @@ import { serializeFilterStateToQuery } from "@/features/transaction/utils/transa
 import type { ITransactionFilterQueryParams } from "@/features/transaction/utils/transaction-filter-query-schema";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
+import { QueryErrorState } from "@/features/ui/container/query-error-state";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Loading } from "@/features/ui/loading/loading";
 import { useToast } from "@/features/ui/toast";
@@ -152,6 +153,7 @@ export function TransactionOverview({
     data,
     isLoading,
     error,
+    refetch,
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
@@ -304,6 +306,14 @@ export function TransactionOverview({
           <div className="flex items-center justify-center">
             <Loading text="Loading transactions" />
           </div>
+        )}
+
+        {error && !isLoading && (
+          <QueryErrorState
+            title="Unable to load transactions"
+            message={error.message}
+            onRetry={() => void refetch()}
+          />
         )}
 
         {isEmpty && (
