@@ -49,6 +49,8 @@ export type ISelectProps<
   required?: boolean;
   /** Custom className for the selector button */
   selectorClassName?: string;
+  /** Accessible name when `label` is omitted */
+  "aria-label"?: string;
 } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -72,6 +74,7 @@ export function Select<
   forcePlacement,
   required = false,
   selectorClassName,
+  "aria-label": ariaLabel,
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,
@@ -209,12 +212,13 @@ export function Select<
     isOpen,
   ]);
 
-  // On mobile, use native select (only supports form mode for now)
-  if (isMobile && mode === "form" && formContext) {
+  // On mobile, use native select for better touch UX
+  const controlledMode = mode === "controlled" && controlledOnChange != null;
+  const formMode = mode === "form" && formContext && name;
+  if (isMobile && (controlledMode || formMode)) {
     return (
       <NativeSelect
         className={className}
-        name={name!}
         options={options}
         multiple={multiple}
         placeholder={placeholder}
@@ -223,6 +227,16 @@ export function Select<
         required={required}
         valueToString={valueToString}
         stringToValue={stringToValue}
+        aria-label={ariaLabel}
+        {...(name != null
+          ? { name }
+          : {
+            value: (multiple
+              ? (controlledValue ?? [])
+              : (controlledValue ?? ("" as TValue))) as TValue | TValue[],
+            onChange: controlledOnChange!,
+          })}
+        onValueChange={onValueChange}
       />
     );
   }
