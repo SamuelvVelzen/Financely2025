@@ -1,5 +1,5 @@
 import { workspacePath } from "@/config/routes";
-import { NativeSelect } from "@/features/ui/select/native-select";
+import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { cn } from "@/features/util/cn";
 import { useMe } from "@/features/users/hooks/useUser";
 import { ACTIVE_WORKSPACE_STORAGE_KEY } from "@/features/workspace/constants";
@@ -79,12 +79,13 @@ export function WorkspaceSwitcher({
 
   return (
     <div className={cn(compact ? "min-w-0 max-w-[9rem] sm:max-w-[11rem]" : "w-full", className)}>
-      <NativeSelect
+      <SelectDropdown
         label={compact ? undefined : "Workspace"}
         aria-label="Workspace"
         options={options}
         value={currentSegment}
         onChange={handleChange}
+        clearable={false}
         className={cn("text-sm", compact && "[&_select]:h-8 [&_select]:py-1 [&_select]:text-xs")}
       />
     </div>
