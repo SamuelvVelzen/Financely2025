@@ -1,4 +1,8 @@
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
+import {
+  getFieldAriaDescribedBy,
+  getFieldDescriptionIds,
+} from "@/features/ui/form/field-aria";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
@@ -80,6 +84,7 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
   ) => {
     const generatedId = useId();
     const inputId = id || generatedId;
+    const { errorId, hintId } = getFieldDescriptionIds(inputId);
 
     const {
       field,
@@ -121,6 +126,15 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
         currentField.onChange(e);
       };
 
+      const hasError = shouldShowError && !!error?.message;
+      const ariaDescribedBy = getFieldAriaDescribedBy({
+        showError: hasError,
+        errorId,
+        hint,
+        hintId,
+      });
+      const ariaInvalid = hasError ? true : undefined;
+
       return (
         <div className={label || hint ? "space-y-1" : ""}>
           {label && (
@@ -149,6 +163,8 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
                   type,
                   id: inputId,
                   required,
+                  "aria-invalid": ariaInvalid,
+                  "aria-describedby": ariaDescribedBy,
                   className: cn(
                     baseClasses,
                     borderClass,
@@ -164,6 +180,8 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
                 type={type}
                 id={inputId}
                 required={required}
+                aria-invalid={ariaInvalid}
+                aria-describedby={ariaDescribedBy}
                 className={cn(
                   baseClasses,
                   borderClass,
@@ -187,11 +205,20 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
               </div>
             )}
           </div>
-          {shouldShowError && error?.message && (
-            <p className="text-sm text-danger mt-1">{error.message}</p>
+          {hasError && (
+            <p
+              id={errorId}
+              role="alert"
+              className="text-sm text-danger mt-1">
+              {error.message}
+            </p>
           )}
-          {!shouldShowError && hint && (
-            <p className="text-xs text-text-muted mt-1">{hint}</p>
+          {!hasError && hint && (
+            <p
+              id={hintId}
+              className="text-xs text-text-muted mt-1">
+              {hint}
+            </p>
           )}
         </div>
       );

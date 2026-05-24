@@ -1,5 +1,9 @@
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
+import {
+  getFieldAriaDescribedBy,
+  getFieldDescriptionIds,
+} from "@/features/ui/form/field-aria";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
@@ -46,6 +50,7 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
   ) => {
     const generatedId = useId();
     const inputId = id || generatedId;
+    const { errorId, hintId } = getFieldDescriptionIds(inputId);
 
     const {
       field,
@@ -83,6 +88,15 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
         currentField.onChange(e);
       };
 
+      const hasError = shouldShowError && !!error?.message;
+      const ariaDescribedBy = getFieldAriaDescribedBy({
+        showError: hasError,
+        errorId,
+        hint,
+        hintId,
+      });
+      const ariaInvalid = hasError ? true : undefined;
+
       return (
         <div className={label || hint ? "space-y-1" : ""}>
           {label && (
@@ -110,6 +124,8 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
                 textareaProps: {
                   id: inputId,
                   required,
+                  "aria-invalid": ariaInvalid,
+                  "aria-describedby": ariaDescribedBy,
                   className: cn(
                     baseClasses,
                     borderClass,
@@ -123,6 +139,8 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
               <textarea
                 id={inputId}
                 required={required}
+                aria-invalid={ariaInvalid}
+                aria-describedby={ariaDescribedBy}
                 className={cn(
                   baseClasses,
                   borderClass,
@@ -146,11 +164,20 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
               </div>
             )}
           </div>
-          {shouldShowError && error?.message && (
-            <p className="text-sm text-danger mt-1">{error.message}</p>
+          {hasError && (
+            <p
+              id={errorId}
+              role="alert"
+              className="text-sm text-danger mt-1">
+              {error.message}
+            </p>
           )}
-          {!shouldShowError && hint && (
-            <p className="text-xs text-text-muted mt-1">{hint}</p>
+          {!hasError && hint && (
+            <p
+              id={hintId}
+              className="text-xs text-text-muted mt-1">
+              {hint}
+            </p>
           )}
         </div>
       );

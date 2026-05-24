@@ -56,6 +56,7 @@ export function NavItem({
         )}
       </div>
       <span
+        aria-hidden={!isExpanded}
         className={cn(
           "whitespace-nowrap text-base overflow-hidden text-left transition-[max-width,opacity,flex-basis,margin] duration-500",
           isExpanded
@@ -83,6 +84,7 @@ export function NavItem({
 
   const activeClasses = "bg-background text-text font-semibold";
   const inactiveClasses = "text-text-muted hover:bg-background hover:text-text";
+  const collapsedAccessibleName = !isExpanded ? { "aria-label": label } : {};
 
   if (isAction) {
     return (
@@ -95,8 +97,8 @@ export function NavItem({
           "cursor-pointer",
           className
         )}
-        title={isExpanded ? label : label}
-        onClick={clicked}>
+        onClick={clicked}
+        {...collapsedAccessibleName}>
         {content}
       </button>
     );
@@ -109,9 +111,9 @@ export function NavItem({
     <BaseLink
       to={to}
       className={cn(combinedClasses)}
-      title={isExpanded ? label : label}
       inactiveProps={{ className: inactiveClasses }}
       activeProps={{ className: combinedActiveClasses }}
+      {...collapsedAccessibleName}
       {...props}>
       {content}
     </BaseLink>

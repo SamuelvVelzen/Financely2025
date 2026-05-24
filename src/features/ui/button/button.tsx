@@ -63,7 +63,8 @@ export function Button({
 
   const baseClasses =
     "border rounded-2xl cursor-pointer flex items-center justify-center text-base font-medium gap-2 bg-surface focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
-  const disabledClasses = (disabled || isLoading) && "pointer-events-none";
+  const isDisabled = disabled || isLoading;
+  const disabledClasses = isDisabled && "opacity-50 cursor-not-allowed";
   const sizeClasses: { [key in IButtonSize]: string } = {
     xs: "px-0.5 py-0.25 text-xs",
     sm: "px-2 py-0.75 text-sm",
@@ -71,7 +72,7 @@ export function Button({
     lg: "px-6 py-1.75 text-lg",
   };
 
-  const button = (
+  return (
     <button
       type={type}
       className={cn(
@@ -81,7 +82,8 @@ export function Button({
         className,
         disabledClasses
       )}
-      disabled={disabled || isLoading}
+      disabled={isDisabled}
+      aria-busy={isLoading || undefined}
       onClick={(event) => {
         // Prevent default form submission for button-type buttons
         if (type === "button") {
@@ -99,10 +101,4 @@ export function Button({
       {buttonContent ?? children}
     </button>
   );
-
-  if (disabled || isLoading) {
-    return <span className="opacity-50 cursor-not-allowed">{button}</span>;
-  }
-
-  return button;
 }

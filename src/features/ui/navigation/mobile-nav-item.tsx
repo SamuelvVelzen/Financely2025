@@ -6,6 +6,8 @@ import { BaseLink, IBaseLinkProps } from "./base-link";
 
 type IMobileNavItemProps = {
   label: string;
+  /** Full name for screen readers when `label` is abbreviated on small screens. */
+  accessibleLabel?: string;
   icon?: React.ComponentType<{ className?: string }>;
   customIcon?: React.ReactNode;
   badge?: number | string | null;
@@ -26,6 +28,7 @@ type IMobileNavItemProps = {
 export function MobileNavItem({
   className = "",
   label,
+  accessibleLabel,
   icon: Icon,
   isAction = false,
   customIcon,
@@ -34,6 +37,8 @@ export function MobileNavItem({
   to,
   ...props
 }: IMobileNavItemProps) {
+  const ariaLabel = accessibleLabel ?? label;
+
   const content = (
     <div className="flex flex-col items-center justify-center gap-1 min-w-0 flex-1">
       <div className="relative">
@@ -74,7 +79,7 @@ export function MobileNavItem({
           className
         )}
         onClick={clicked}
-        aria-label={label}>
+        aria-label={ariaLabel}>
         {content}
       </button>
     );
@@ -87,7 +92,7 @@ export function MobileNavItem({
     <BaseLink
       to={to}
       className={cn(combinedClasses)}
-      aria-label={label}
+      aria-label={ariaLabel}
       inactiveProps={{ className: inactiveClasses }}
       activeProps={{ className: combinedActiveClasses }}
       {...props}>

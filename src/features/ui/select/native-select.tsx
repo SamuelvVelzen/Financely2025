@@ -2,10 +2,14 @@ import {
   IFormOrControlledMode,
 } from "@/features/shared/hooks/use-form-context-optional";
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
+import {
+  getFieldAriaDescribedBy,
+  getFieldDescriptionIds,
+} from "@/features/ui/form/field-aria";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { SelectHTMLAttributes } from "react";
+import { SelectHTMLAttributes, useId } from "react";
 import { ISelectOption } from "./select";
 import {
   createStringToValueConverter,
@@ -52,12 +56,29 @@ export function NativeSelect<
   const convertValueToString = createValueToStringConverter(valueToString);
   const convertStringToValue = createStringToValueConverter(stringToValue);
 
-  const { field, error, borderClass, renderWithController } = useFieldAdapter({
+  const selectId = useId();
+  const { errorId } = getFieldDescriptionIds(selectId);
+
+  const {
+    field,
+    error,
+    borderClass,
+    shouldShowError,
+    renderWithController,
+  } = useFieldAdapter({
     name,
     value: controlledValue,
     onChange: controlledOnChange,
     onValueChange,
   });
+
+  const hasError = shouldShowError && !!error?.message;
+  const ariaDescribedBy = getFieldAriaDescribedBy({
+    showError: hasError,
+    errorId,
+    hintId: errorId,
+  });
+  const ariaInvalid = hasError ? true : undefined;
 
   const baseClasses =
     "border rounded-2xl bg-surface text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
@@ -85,6 +106,9 @@ export function NativeSelect<
         {label && <Label>{label}</Label>}
         <select
           {...selectProps}
+          id={selectId}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
           multiple={multiple}
           disabled={disabled}
           className={cn(
@@ -134,8 +158,11 @@ export function NativeSelect<
             </option>
           ))}
         </select>
-        {error && (
-          <p className="text-sm text-danger mt-1">
+        {hasError && (
+          <p
+            id={errorId}
+            role="alert"
+            className="text-sm text-danger mt-1">
             {error.message || String(error)}
           </p>
         )}

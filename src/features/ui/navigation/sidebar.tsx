@@ -66,7 +66,9 @@ export function Sidebar() {
       ) : null}
 
       {/* Main Navigation */}
-      <nav className="flex-1 w-full">
+      <nav
+        aria-label="Main navigation"
+        className="flex-1 w-full">
         <ul>
           <li>
             <NavItem
@@ -113,7 +115,9 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom Navigation */}
-      <div className="mt-auto">
+      <nav
+        aria-label="Account and messages"
+        className="mt-auto">
         <div className={"h-px w-full border-t border-border my-2"}></div>
         <NavItem
           to="/$workspaceId/messages"
@@ -175,7 +179,7 @@ export function Sidebar() {
           }}
           className="text-danger hover:text-danger-hover"
         />
-      </div>
+      </nav>
     </Container>
   );
 }

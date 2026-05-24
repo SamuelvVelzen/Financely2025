@@ -25,6 +25,9 @@ export function TabContent({
       role="tabpanel"
       id={panelId}
       aria-labelledby={triggerId}
+      aria-hidden={!isActive}
+      inert={!isActive ? true : undefined}
+      tabIndex={isActive ? undefined : -1}
       data-state={isActive ? "active" : "inactive"}
       className={cn(
         "absolute inset-x-0 top-0 pt-4 transition-opacity duration-300 ease-in-out",
