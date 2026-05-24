@@ -38,7 +38,7 @@ export type ISelectDropdownProps<
   disabled?: boolean;
   required?: boolean;
   /** Accessible name when `label` is omitted */
-  "aria-label"?: string;
+  ariaLabel?: string;
 } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -57,7 +57,7 @@ export function SelectDropdown<
   children,
   disabled = false,
   required = false,
-  "aria-label": ariaLabel,
+  ariaLabel,
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,

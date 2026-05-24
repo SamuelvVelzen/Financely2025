@@ -82,7 +82,7 @@ export function MessageItem({ message }: IMessageItemProps) {
               variant="danger"
               size="sm"
               clicked={() => setIsDeleteDialogOpen(true)}
-              aria-label="Delete message">
+              ariaLabel="Delete message">
               <HiTrash className="size-4" />
             </IconButton>
           </div>

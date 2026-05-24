@@ -122,7 +122,7 @@ export function SearchInput({
           suffixIcon={
             <IconButton
               clicked={handleClear}
-              aria-label="Clear search"
+              ariaLabel="Clear search"
               className="p-0">
               <HiX className="size-5" />
             </IconButton>

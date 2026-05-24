@@ -233,7 +233,7 @@ export function RangeInput({
               <IconButton
                 clicked={handleClear}
                 className="absolute left-1/2 -translate-x-1/2 text-text-muted hover:text-text p-1"
-                aria-label="Clear range">
+                ariaLabel="Clear range">
                 <HiX className="size-4" />
               </IconButton>
             )}

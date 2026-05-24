@@ -50,7 +50,7 @@ export type ISelectProps<
   /** Custom className for the selector button */
   selectorClassName?: string;
   /** Accessible name when `label` is omitted */
-  "aria-label"?: string;
+  ariaLabel?: string;
 } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -74,7 +74,7 @@ export function Select<
   forcePlacement,
   required = false,
   selectorClassName,
-  "aria-label": ariaLabel,
+  ariaLabel,
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,

@@ -456,7 +456,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           <IconButton
             size="sm"
             clicked={() => handleSyncAll(itemKey, index)}
-            aria-label="Apply to all months"
+            ariaLabel="Apply to all months"
             tooltip="Apply base amount to all 12 months"
           >
             <HiDocumentDuplicate />
@@ -473,7 +473,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           <IconButton
             size="sm"
             clicked={() => toggleExpanded(itemKey)}
-            aria-label="Toggle monthly breakdown"
+            ariaLabel="Toggle monthly breakdown"
             tooltip="Toggle monthly breakdown"
             className={cn(
               overrideCount > 0 ? "text-primary" : "text-text-muted hover:text-text"
@@ -498,7 +498,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
               );
               remove(index);
             }}
-            aria-label={`Remove ${tagName}`}
+            ariaLabel={`Remove ${tagName}`}
             tooltip={`Remove ${tagName}`}
             className="text-danger"
             disabled={tagId === null}>
@@ -613,7 +613,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
             );
             remove(index);
           }}
-          aria-label={`Remove ${tagName}`}
+          ariaLabel={`Remove ${tagName}`}
           disabled={tagId === null}
           tooltip={`Remove ${tagName}`}
           className="text-danger"

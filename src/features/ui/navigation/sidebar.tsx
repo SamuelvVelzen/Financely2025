@@ -153,7 +153,7 @@ export function Sidebar() {
             )}>
             <IconButton
               clicked={toggleSidebar}
-              aria-label="Toggle sidebar"
+              ariaLabel="Toggle sidebar"
               size="sm">
               <HiChevronRight
                 className={cn(

@@ -145,7 +145,7 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
           <div className="flex items-center gap-2">
             <IconButton
               clicked={handleBack}
-              aria-label="Back to budgets">
+              ariaLabel="Back to budgets">
               <HiArrowLeft className="size-4" />
             </IconButton>
             <Title>{budget.name}</Title>

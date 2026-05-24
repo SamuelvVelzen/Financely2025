@@ -149,7 +149,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
                   className="self-center justify-self-end"
                   clicked={() => handleRemoveFile(index)}
                   disabled={disabled}
-                  aria-label={`Remove ${file.name}`}>
+                  ariaLabel={`Remove ${file.name}`}>
                   <HiX className="size-5" />
                 </IconButton>
               )}

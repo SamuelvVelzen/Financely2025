@@ -92,7 +92,7 @@ export function BudgetListItem({
               <IconButton
                 clicked={() => onView(budget)}
                 size="sm"
-                aria-label="View budget">
+                ariaLabel="View budget">
                 <HiEye className="size-4" />
               </IconButton>
             )}
@@ -100,7 +100,7 @@ export function BudgetListItem({
               <IconButton
                 clicked={() => onEdit(budget)}
                 size="sm"
-                aria-label="Edit budget">
+                ariaLabel="Edit budget">
                 <HiPencil className="size-4" />
               </IconButton>
             )}
@@ -109,7 +109,7 @@ export function BudgetListItem({
                 clicked={() => onDelete(budget)}
                 variant="danger"
                 size="sm"
-                aria-label="Delete budget">
+                ariaLabel="Delete budget">
                 <HiTrash className="size-4" />
               </IconButton>
             )}

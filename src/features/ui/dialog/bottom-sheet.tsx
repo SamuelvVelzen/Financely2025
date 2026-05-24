@@ -33,9 +33,9 @@ export interface IBottomSheetProps
   /** Custom style */
   style?: React.CSSProperties;
   /** ARIA label */
-  "aria-label"?: string;
+  ariaLabel?: string;
   /** ARIA labelled by element id */
-  "aria-labelledby"?: string;
+  ariaLabelledBy?: string;
   /** Called when sheet closes */
   onClose?: () => void;
   /** Show drag handle */
@@ -82,8 +82,8 @@ export function BottomSheet({
   dismissible = true,
   title,
   footerButtons,
-  "aria-label": ariaLabel,
-  "aria-labelledby": ariaLabelledBy,
+  ariaLabel,
+  ariaLabelledBy,
   className = "",
   style,
   onClose,

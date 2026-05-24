@@ -84,12 +84,13 @@ export function NavItem({
 
   const activeClasses = "bg-background text-text font-semibold";
   const inactiveClasses = "text-text-muted hover:bg-background hover:text-text";
-  const collapsedAccessibleName = !isExpanded ? { "aria-label": label } : {};
+  const collapsedAriaLabel = !isExpanded ? label : undefined;
 
   if (isAction) {
     return (
       <button
         type="button"
+        aria-label={collapsedAriaLabel}
         className={cn(
           "w-full",
           baseClasses,
@@ -97,8 +98,7 @@ export function NavItem({
           "cursor-pointer",
           className
         )}
-        onClick={clicked}
-        {...collapsedAccessibleName}>
+        onClick={clicked}>
         {content}
       </button>
     );
@@ -113,7 +113,7 @@ export function NavItem({
       className={cn(combinedClasses)}
       inactiveProps={{ className: inactiveClasses }}
       activeProps={{ className: combinedActiveClasses }}
-      {...collapsedAccessibleName}
+      aria-label={collapsedAriaLabel}
       {...props}>
       {content}
     </BaseLink>

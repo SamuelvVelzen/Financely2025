@@ -57,7 +57,7 @@ export function MobileBottomNav() {
             <IconButton
               clicked={handleCreateTransaction}
               variant="primary"
-              aria-label="Add transaction">
+              ariaLabel="Add transaction">
               <HiPlus className="size-10" />
             </IconButton>
           </div>

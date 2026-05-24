@@ -44,9 +44,9 @@ export interface IDialogProps
   /** Dialog status determines the color theme */
   status?: IDialogStatus;
 
-  "aria-label"?: string;
+  ariaLabel?: string;
   /** ARIA labelled by element id */
-  "aria-labelledby"?: string;
+  ariaLabelledBy?: string;
   /** Custom style */
   style?: React.CSSProperties;
   /** Title for header (string or ReactNode) */

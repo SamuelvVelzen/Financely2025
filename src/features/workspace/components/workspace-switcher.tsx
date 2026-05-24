@@ -81,7 +81,7 @@ export function WorkspaceSwitcher({
     <div className={cn(compact ? "min-w-0 max-w-[9rem] sm:max-w-[11rem]" : "w-full", className)}>
       <SelectDropdown
         label={compact ? undefined : "Workspace"}
-        aria-label="Workspace"
+        ariaLabel="Workspace"
         options={options}
         value={currentSegment}
         onChange={handleChange}

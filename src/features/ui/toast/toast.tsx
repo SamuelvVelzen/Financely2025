@@ -210,7 +210,7 @@ export function Toast({ toast, onRemove }: IToastProps) {
                 "shrink-0 transition-colors cursor-pointer"
                 // config.text
               )}
-              aria-label="Close notification">
+              ariaLabel="Close notification">
               <HiX className="size-4" />
             </IconButton>
           )}

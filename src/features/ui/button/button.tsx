@@ -18,13 +18,15 @@ export type IButtonProps = {
   variant?: IVariant;
   disabled?: boolean;
   size?: IButtonSize;
+  /** Accessible name for icon-only buttons */
+  ariaLabel?: string;
   loading?:
     | boolean
     | {
         isLoading?: boolean;
         text?: string;
       };
-} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type" | "onClick"> &
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type" | "onClick" | "aria-label"> &
   (
     | {
         type?: "button";
@@ -46,6 +48,7 @@ export function Button({
   type = "button",
   variant = "default",
   size = "md",
+  ariaLabel,
   ...rest
 }: IButtonProps) {
   const isLoading = typeof loading === "boolean" ? loading : loading.isLoading;
@@ -83,6 +86,7 @@ export function Button({
         disabledClasses
       )}
       disabled={isDisabled}
+      aria-label={ariaLabel}
       aria-busy={isLoading || undefined}
       onClick={(event) => {
         // Prevent default form submission for button-type buttons

@@ -42,7 +42,7 @@ export function ActiveFiltersRow({
                     badge.onRemove();
                   }}
                   size="xs"
-                  aria-label={`Remove ${badge.type} filter`}
+                  ariaLabel={`Remove ${badge.type} filter`}
                   className={cn(`bg-[${badge.color}]`)}>
                   <HiX className="size-3" />
                 </IconButton>
@@ -59,7 +59,7 @@ export function ActiveFiltersRow({
                     badge.onRemove();
                   }}
                   size="xs"
-                  aria-label={`Remove ${badge.type} filter`}>
+                  ariaLabel={`Remove ${badge.type} filter`}>
                   <HiX className="size-3" />
                 </IconButton>
               </Badge>

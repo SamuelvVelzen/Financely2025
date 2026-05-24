@@ -102,7 +102,7 @@ export function ProfileInformation() {
                 ? handleCancelEdit
                 : () => setIsEditingProfile(true)
             }
-            aria-label={isEditingProfile ? "Cancel editing" : "Edit profile"}>
+            ariaLabel={isEditingProfile ? "Cancel editing" : "Edit profile"}>
             {isEditingProfile ? (
               <svg
                 className="size-5"

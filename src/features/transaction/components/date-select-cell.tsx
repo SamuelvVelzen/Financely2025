@@ -80,7 +80,7 @@ export function DateSelectCell({
             ? "Remove time (switch to date only)"
             : "Add time (switch to date and time)"
         }
-        aria-label={
+        ariaLabel={
           timePrecision === "DateTime"
             ? "Remove time (switch to date only)"
             : "Add time (switch to date and time)"

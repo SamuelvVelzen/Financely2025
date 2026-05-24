@@ -627,7 +627,7 @@ export function BudgetCreateOrEditPage({
             <div className="flex items-center gap-2">
               <IconButton
                 clicked={handleBack}
-                aria-label={
+                ariaLabel={
                   isEditMode ? "Back to budget details" : "Back to budgets"
                 }>
                 <HiArrowLeft className="size-4" />
