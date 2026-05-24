@@ -306,7 +306,7 @@ function FormDialog() {
                   required
                 />
               </div>
-              {error && <div className="text-red-500 text-sm">{error}</div>}
+              {error && <div className="text-error text-sm">{error}</div>}
             </div>
           </form>
         }

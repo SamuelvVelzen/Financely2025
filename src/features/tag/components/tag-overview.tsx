@@ -349,7 +349,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
                   <Loading text="Loading tags" />
                 </div>
               ) : error ? (
-                <p className="text-red-500 text-center py-8">
+                <p className="text-danger text-center py-8">
                   Error loading tags: {error.message}
                 </p>
               ) : (
@@ -404,7 +404,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
                   <Loading text="Loading tags" />
                 </div>
               ) : error ? (
-                <p className="text-red-500 text-center py-8">
+                <p className="text-danger text-center py-8">
                   Error loading tags: {error.message}
                 </p>
               ) : (
