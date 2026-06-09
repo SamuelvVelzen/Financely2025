@@ -263,7 +263,7 @@ export function Dropdown({
         }}>
         <div
           className={cn(
-            "bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
+            "w-full min-w-full bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
             showExpanded ? "rounded-l-2xl" : "rounded-2xl",
             "max-h-[calc(100vh-16px)]"
           )}>
