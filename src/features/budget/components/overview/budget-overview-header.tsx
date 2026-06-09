@@ -92,6 +92,7 @@ export function BudgetOverviewHeader({
 
       {/* Filters section - animates height and opacity when sticky */}
       <div
+        inert={isSticky ? true : undefined}
         className={cn(
           "grid transition-[grid-template-rows,opacity] ease-out",
           isSticky ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"

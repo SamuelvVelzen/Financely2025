@@ -231,6 +231,7 @@ export function RangeInput({
 
             {hasValue && (
               <IconButton
+                tabIndex={-1}
                 clicked={handleClear}
                 className="absolute left-1/2 -translate-x-1/2 text-text-muted hover:text-text p-1"
                 ariaLabel="Clear range">

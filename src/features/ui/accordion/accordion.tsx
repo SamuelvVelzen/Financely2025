@@ -53,6 +53,7 @@ export function Accordion({
       </button>
 
       <div
+        inert={!isOpen ? true : undefined}
         className={cn(
           "grid transition-[grid-template-rows] duration-200 ease-out",
           isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"

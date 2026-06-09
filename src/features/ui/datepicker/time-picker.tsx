@@ -203,6 +203,7 @@ export function TimePicker({
         <div className="flex flex-col items-center gap-1">
           <IconButton
             size="sm"
+            tabIndex={-1}
             clicked={(e) => {
               e.stopPropagation();
               incrementHours();
@@ -242,6 +243,7 @@ export function TimePicker({
           />
           <IconButton
             size="sm"
+            tabIndex={-1}
             clicked={(e) => {
               e.stopPropagation();
               decrementHours();
@@ -258,6 +260,7 @@ export function TimePicker({
         <div className="flex flex-col items-center gap-1">
           <IconButton
             size="sm"
+            tabIndex={-1}
             clicked={(e) => {
               e.stopPropagation();
               incrementMinutes();
@@ -297,6 +300,7 @@ export function TimePicker({
           />
           <IconButton
             size="sm"
+            tabIndex={-1}
             clicked={(e) => {
               e.stopPropagation();
               decrementMinutes();
