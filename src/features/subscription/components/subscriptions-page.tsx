@@ -1,8 +1,13 @@
 import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
+import { queryKeys } from "@/features/shared/query/keys";
 import type {
   ISubscription,
   ISubscriptionDismissal,
+  ITransaction,
 } from "@/features/shared/validation/schemas";
+import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
+import { getTransaction } from "@/features/transaction/api/client";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import {
   useDeleteSubscription,
   useSubscriptionDismissals,
@@ -24,6 +29,7 @@ import { Tab } from "@/features/ui/tab/tab";
 import { TabContent } from "@/features/ui/tab/tab-content";
 import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiArrowPath, HiArrowUturnLeft, HiNoSymbol } from "react-icons/hi2";
 import { SubscriptionDetectionDialog } from "./subscription-detection-dialog";
@@ -32,6 +38,8 @@ import { SubscriptionOverviewHeader } from "./subscription-overview-header";
 
 export function SubscriptionsPage() {
   const toast = useToast();
+  const workspaceId = useActiveWorkspaceId();
+  const queryClient = useQueryClient();
   const expandedHeaderRef = useRef<HTMLDivElement>(null);
   const [isSticky, setExpandedHeaderElement] = useScrollPosition();
   const {
@@ -47,7 +55,10 @@ export function SubscriptionsPage() {
   const [deleteTarget, setDeleteTarget] = useState<ISubscription | null>(
     null,
   );
-
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<
+    ITransaction | undefined
+  >(undefined);
   const subscriptions = subscriptionsData?.data ?? [];
 
   useEffect(() => {
@@ -104,6 +115,28 @@ export function SubscriptionsPage() {
     });
   }, [deleteTarget, deleteSub, toast]);
 
+  const handleTransactionClick = useCallback(
+    async (transactionId: string) => {
+      try {
+        const transaction = await queryClient.fetchQuery({
+          queryKey: queryKeys.transaction(workspaceId, transactionId),
+          queryFn: () => getTransaction(workspaceId, transactionId),
+        });
+        setSelectedTransaction(transaction);
+        setIsTransactionDialogOpen(true);
+      } catch {
+        toast.error("Failed to load transaction");
+      }
+    },
+    [queryClient, workspaceId, toast],
+  );
+
+  const handleTransactionDialogSuccess = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["subscriptions", workspaceId],
+    });
+  }, [queryClient, workspaceId]);
+
   return (
     <>
       <div ref={expandedHeaderRef} className="h-0" />
@@ -136,6 +169,7 @@ export function SubscriptionsPage() {
                 onToggleActive={handleToggleActive}
                 onDelete={setDeleteTarget}
                 onDetect={() => setIsDetectDialogOpen(true)}
+                onTransactionClick={handleTransactionClick}
               />
             </TabContent>
 
@@ -149,6 +183,13 @@ export function SubscriptionsPage() {
       <SubscriptionDetectionDialog
         open={isDetectDialogOpen}
         onOpenChange={setIsDetectDialogOpen}
+      />
+
+      <AddOrEditTransactionDialog
+        open={isTransactionDialogOpen}
+        onOpenChange={setIsTransactionDialogOpen}
+        transaction={selectedTransaction}
+        onSuccess={handleTransactionDialogSuccess}
       />
 
       <DeleteDialog
@@ -179,6 +220,7 @@ type ISubscriptionsTabContentProps = {
   onToggleActive: (subscription: ISubscription) => void;
   onDelete: (subscription: ISubscription) => void;
   onDetect: () => void;
+  onTransactionClick: (transactionId: string) => void;
 };
 
 function SubscriptionsTabContent({
@@ -186,6 +228,7 @@ function SubscriptionsTabContent({
   onToggleActive,
   onDelete,
   onDetect,
+  onTransactionClick,
 }: ISubscriptionsTabContentProps) {
   if (subscriptions.length === 0) {
     return (
@@ -210,6 +253,7 @@ function SubscriptionsTabContent({
           subscription={subscription}
           onToggleActive={onToggleActive}
           onDelete={onDelete}
+          onTransactionClick={onTransactionClick}
         />
       )}
     </List>

@@ -19,16 +19,19 @@ import { useMemo, useState } from "react";
 import {
   HiArrowPath,
   HiChevronDown,
+  HiChevronRight,
   HiChevronUp,
   HiMagnifyingGlass,
 } from "react-icons/hi2";
 
 type IBudgetSubscriptionsTabProps = {
   budget: IBudget;
+  onTransactionClick?: (transactionId: string) => void;
 };
 
 export function BudgetSubscriptionsTab({
   budget,
+  onTransactionClick,
 }: IBudgetSubscriptionsTabProps) {
   const { data: subscriptionsData, isLoading } = useSubscriptions({
     active: true,
@@ -89,6 +92,7 @@ export function BudgetSubscriptionsTab({
                 key={sub.id}
                 subscription={sub}
                 transactionsInPeriod={sub.transactionsInPeriod}
+                onTransactionClick={onTransactionClick}
               />
             )}
           </List>
@@ -124,11 +128,13 @@ type ISubscriptionBudgetItemProps = {
     transactionDate: string;
     type: "EXPENSE" | "INCOME";
   }>;
+  onTransactionClick?: (transactionId: string) => void;
 };
 
 function SubscriptionBudgetItem({
   subscription,
   transactionsInPeriod,
+  onTransactionClick,
 }: ISubscriptionBudgetItemProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -199,9 +205,11 @@ function SubscriptionBudgetItem({
           {expanded && (
             <div className="ml-6 space-y-1">
               {transactionsInPeriod.map((tx) => (
-                <div
+                <button
                   key={tx.id}
-                  className="flex items-center justify-between text-sm text-text-muted py-1">
+                  type="button"
+                  className="flex items-center justify-between text-sm text-text-muted py-1 w-full text-left rounded-md hover:bg-surface-hover hover:text-text transition-colors px-2 -mx-2 cursor-pointer"
+                  onClick={() => onTransactionClick?.(tx.id)}>
                   <span className="truncate flex-1">{tx.name}</span>
                   <div className="flex items-center gap-3 shrink-0">
                     <span>
@@ -216,8 +224,9 @@ function SubscriptionBudgetItem({
                       currency={tx.currency}
                       className="text-sm"
                     />
+                    <HiChevronRight className="size-3.5 text-text-muted" />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}

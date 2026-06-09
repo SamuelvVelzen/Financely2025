@@ -12,6 +12,7 @@ import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useState } from "react";
 import {
   HiChevronDown,
+  HiChevronRight,
   HiChevronUp,
   HiPause,
   HiPlay,
@@ -22,12 +23,14 @@ type ISubscriptionListItemProps = {
   subscription: ISubscription;
   onToggleActive: (subscription: ISubscription) => void;
   onDelete: (subscription: ISubscription) => void;
+  onTransactionClick?: (transactionId: string) => void;
 };
 
 export function SubscriptionListItem({
   subscription,
   onToggleActive,
   onDelete,
+  onTransactionClick,
 }: ISubscriptionListItemProps) {
   const [expanded, setExpanded] = useState(false);
   const transactions = subscription.transactions ?? [];
@@ -109,10 +112,12 @@ export function SubscriptionListItem({
       {expanded && transactions.length > 0 && (
         <div className="ml-4 mt-1 space-y-1">
           {transactions.map((tx) => (
-            <div
+            <button
               key={tx.id}
-              className="flex items-center justify-between text-sm text-text-muted py-1">
-              <span className="truncate">{tx.name}</span>
+              type="button"
+              className="flex items-center justify-between text-sm text-text-muted py-1 w-full text-left rounded-md hover:bg-surface-hover hover:text-text transition-colors px-2 -mx-2 cursor-pointer"
+              onClick={() => onTransactionClick?.(tx.id)}>
+              <span className="truncate flex-1">{tx.name}</span>
               <div className="flex items-center gap-3 shrink-0">
                 <span>
                   {DateFormatHelpers.formatIsoStringToString(
@@ -126,8 +131,9 @@ export function SubscriptionListItem({
                   currency={tx.currency}
                   className="text-sm"
                 />
+                <HiChevronRight className="size-3.5 text-text-muted" />
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}
