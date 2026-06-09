@@ -47,6 +47,10 @@ export function BudgetListItem({
       0
     );
 
+  const tagBudgetSummary = `${budget.items.length} ${
+    budget.items.length === 1 ? "tag" : "tags"
+  } · ${formatCurrency(totalExpected.toString(), budget.currency)} budgeted`;
+
   const getStatusColor = (pct: number) => {
     if (pct < 80) return "text-success";
     if (pct <= 100) return "text-warning";
@@ -149,19 +153,13 @@ export function BudgetListItem({
               style={{ width: `${Math.min(percentage, 100)}%` }}
             />
           </div>
-          <div className="text-xs text-text-muted">
-            {budget.items.length} {budget.items.length === 1 ? "tag" : "tags"}{" "}
-            budgeted
-          </div>
+          <div className="text-xs text-text-muted">{tagBudgetSummary}</div>
         </div>
       )}
 
       {/* Show tag count if no comparison */}
       {!totals && (
-        <div className="text-xs text-text-muted">
-          {budget.items.length} {budget.items.length === 1 ? "tag" : "tags"}{" "}
-          budgeted
-        </div>
+        <div className="text-xs text-text-muted">{tagBudgetSummary}</div>
       )}
     </ListItem>
   );
