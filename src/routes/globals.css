@@ -246,9 +246,9 @@ dialog::backdrop {
   position: fixed;
   margin: 0;
   inset: auto;
-  /* Match the width of the anchor element */
-  width: anchor-size(width);
+  /* At least as wide as the anchor; grow when content is wider */
   min-width: anchor-size(width);
+  width: max-content;
 }
 
 /* Dropdown position variants */
