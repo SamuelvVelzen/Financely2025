@@ -54,14 +54,19 @@ export function Button({
   const isLoading = typeof loading === "boolean" ? loading : loading.isLoading;
 
   const variantClasses: { [key in IVariant]: string } = {
-    default: "hover:bg-surface-hover border-border",
-    danger: "bg-danger hover:bg-danger-hover text-white border-danger",
-    info: "bg-info hover:bg-info-hover text-white border-info",
-    warning: "bg-warning hover:bg-warning-hover text-white border-warning",
-    success: "bg-success hover:bg-success-hover text-white border-success",
-    primary: "bg-primary hover:bg-primary-hover text-white border-primary",
+    default:
+      "hover:bg-surface-hover border-border disabled:hover:bg-surface disabled:hover:border-border",
+    danger:
+      "bg-danger hover:bg-danger-hover text-white border-danger disabled:hover:bg-danger disabled:hover:border-danger",
+    info: "bg-info hover:bg-info-hover text-white border-info disabled:hover:bg-info disabled:hover:border-info",
+    warning:
+      "bg-warning hover:bg-warning-hover text-white border-warning disabled:hover:bg-warning disabled:hover:border-warning",
+    success:
+      "bg-success hover:bg-success-hover text-white border-success disabled:hover:bg-success disabled:hover:border-success",
+    primary:
+      "bg-primary hover:bg-primary-hover text-white border-primary disabled:hover:bg-primary disabled:hover:border-primary",
     secondary:
-      "bg-secondary hover:bg-secondary-hover text-white border-secondary",
+      "bg-secondary hover:bg-secondary-hover text-white border-secondary disabled:hover:bg-secondary disabled:hover:border-secondary",
   };
 
   const baseClasses =
