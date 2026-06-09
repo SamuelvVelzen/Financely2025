@@ -1,3 +1,8 @@
+import type {
+  IBudgetComparison,
+  ITransaction,
+} from "@/features/shared/validation/schemas";
+
 /**
  * Budget Overview Helper Functions
  * Utility functions for calculating budget overview metrics
@@ -75,5 +80,26 @@ export function formatRemaining(remaining: number, currency: string): string {
     return `${formatted} over`;
   }
   return `${formatted} left`;
+}
+
+/** Build a lookup of all transactions in a budget comparison (items + alerts). */
+export function buildBudgetTransactionLookup(
+  comparison: IBudgetComparison,
+): Map<string, ITransaction> {
+  const map = new Map<string, ITransaction>();
+
+  for (const item of comparison.items) {
+    for (const tx of item.transactions) {
+      map.set(tx.id, tx);
+    }
+  }
+
+  for (const alert of comparison.alerts) {
+    for (const tx of alert.transactions) {
+      map.set(tx.id, tx);
+    }
+  }
+
+  return map;
 }
 

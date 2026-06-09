@@ -3,10 +3,17 @@ import {
   useBudgetComparison,
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
-import type { IBudgetMonthlyBreakdown } from "@/features/shared/validation/schemas";
+import { buildBudgetTransactionLookup } from "@/features/budget/utils/budget-overview-helpers";
+import { queryKeys } from "@/features/shared/query/keys";
+import type {
+  IBudgetMonthlyBreakdown,
+  ITransaction,
+} from "@/features/shared/validation/schemas";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
+import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
@@ -59,9 +66,14 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
     useBudgetComparison(budgetId);
   const { mutate: deleteBudget } = useDeleteBudget();
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<
+    ITransaction | undefined
+  >(undefined);
 
   const hasMultipleMonths =
     comparison && comparison.monthlyBreakdown.length > 1;
@@ -113,6 +125,37 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
 
   const handleDeleteCancel = () => {
     setIsDeleteDialogOpen(false);
+  };
+
+  const transactionLookup = useMemo(
+    () => (comparison ? buildBudgetTransactionLookup(comparison) : new Map()),
+    [comparison],
+  );
+
+  const handleTransactionClick = (transaction: ITransaction) => {
+    setSelectedTransaction(transaction);
+    setIsTransactionDialogOpen(true);
+  };
+
+  const handleSubscriptionTransactionClick = (transactionId: string) => {
+    const transaction = transactionLookup.get(transactionId);
+    if (!transaction) {
+      toast.error("Transaction not found in this budget period");
+      return;
+    }
+    handleTransactionClick(transaction);
+  };
+
+  const handleTransactionDialogSuccess = () => {
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.budgetComparison(workspaceId, budgetId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.budgetsOverview(workspaceId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["subscriptions", workspaceId],
+    });
   };
 
   if (budgetLoading || comparisonLoading) {
@@ -208,16 +251,25 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
               items={comparison.items}
               budget={comparison.budget}
               monthlyBreakdown={selectedBreakdown}
+              onTransactionClick={handleTransactionClick}
             />
           </TabContent>
 
           <TabContent value="subscriptions">
             <BudgetSubscriptionsTab
               budget={comparison.budget}
+              onTransactionClick={handleSubscriptionTransactionClick}
             />
           </TabContent>
         </Tabs>
       </Container>
+
+      <AddOrEditTransactionDialog
+        open={isTransactionDialogOpen}
+        onOpenChange={setIsTransactionDialogOpen}
+        transaction={selectedTransaction}
+        onSuccess={handleTransactionDialogSuccess}
+      />
 
       <DeleteDialog
         open={isDeleteDialogOpen}

@@ -6,9 +6,11 @@ import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
 import { Badge } from "@/features/ui/badge/badge";
 import { IconButton } from "@/features/ui/button/icon-button";
+import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
+import { useToast } from "@/features/ui/toast";
 import { Label } from "@/features/ui/typography/label";
 import { Text } from "@/features/ui/typography/text";
 import { cn } from "@/features/util/cn";
@@ -47,11 +49,18 @@ type IItemState = {
   overriddenMonths: Set<number>;
 };
 
+type ITagToRemove = {
+  index: number;
+  tagId: string;
+  tagName: string;
+};
+
 export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
   const orderedTags = useOrderedData(tags) as ITag[];
   const form = useFormContext();
+  const toast = useToast();
 
   const preset = form.watch("general.preset") as string;
   const startDateStr = form.watch("general.startDate") as string;
@@ -77,6 +86,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   // --- Per-month master/override state ---
   const [itemStates, setItemStates] = useState<Record<string, IItemState>>({});
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [tagToRemove, setTagToRemove] = useState<ITagToRemove | null>(null);
 
   const getItemKey = (tagId: string | null, categoryType: string | null) =>
     tagId ?? `misc_${categoryType ?? "EXPENSE"}`;
@@ -376,6 +386,45 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     });
   };
 
+  const handleRemoveTagClick = (
+    index: number,
+    tagId: string | null,
+    tagName: string
+  ) => {
+    if (tagId === null) return;
+    setTagToRemove({ index, tagId, tagName });
+  };
+
+  const handleRemoveTagConfirm = () => {
+    if (!tagToRemove) return;
+
+    const currentSelected = (form.getValues("tags.selectedTagIds") ??
+      []) as string[];
+    form.setValue(
+      "tags.selectedTagIds",
+      currentSelected.filter((id) => id !== tagToRemove.tagId),
+      { shouldValidate: true }
+    );
+    remove(tagToRemove.index);
+    toast.success(`Removed ${tagToRemove.tagName}`);
+    setTagToRemove(null);
+  };
+
+  const handleRemoveTagCancel = () => {
+    setTagToRemove(null);
+  };
+
+  const isAllMonthsSynced = (
+    masterAmount: string,
+    monthlyAmounts: Array<{ expectedAmount?: string }>
+  ) => {
+    if (months.length === 0) return true;
+    return months.every((_, mi) => {
+      const monthAmount = monthlyAmounts[mi]?.expectedAmount ?? "";
+      return monthAmount === masterAmount;
+    });
+  };
+
   // --- Tag icon helper ---
   const renderTagIcon = (tagColor: string | null) =>
     tagColor ? (
@@ -414,6 +463,10 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     const showYear =
       months.length > 0 &&
       new Set(months.map((mo) => mo.year)).size > 1;
+
+    const masterAmount =
+      (budgetItems?.[index]?.expectedAmount as string | undefined) ?? "";
+    const allMonthsSynced = isAllMonthsSynced(masterAmount, monthlyAmounts);
 
     return (
       <ListItem className="flex-col ">
@@ -458,6 +511,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
             clicked={() => handleSyncAll(itemKey, index)}
             ariaLabel="Apply to all months"
             tooltip="Apply base amount to all 12 months"
+            disabled={allMonthsSynced}
           >
             <HiDocumentDuplicate />
           </IconButton>
@@ -488,16 +542,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
           <IconButton
             size="sm"
-            clicked={() => {
-              if (tagId === null) return;
-              const currentSelected = (form.getValues("tags.selectedTagIds") ?? []) as string[];
-              form.setValue(
-                "tags.selectedTagIds",
-                currentSelected.filter((id) => id !== tagId),
-                { shouldValidate: true }
-              );
-              remove(index);
-            }}
+            clicked={() => handleRemoveTagClick(index, tagId, tagName)}
             ariaLabel={`Remove ${tagName}`}
             tooltip={`Remove ${tagName}`}
             className="text-danger"
@@ -603,16 +648,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
         </div>
         <IconButton
           size="sm"
-          clicked={() => {
-            if (tagId === null) return;
-            const currentSelected = (form.getValues("tags.selectedTagIds") ?? []) as string[];
-            form.setValue(
-              "tags.selectedTagIds",
-              currentSelected.filter((id) => id !== tagId),
-              { shouldValidate: true }
-            );
-            remove(index);
-          }}
+          clicked={() => handleRemoveTagClick(index, tagId, tagName)}
           ariaLabel={`Remove ${tagName}`}
           disabled={tagId === null}
           tooltip={`Remove ${tagName}`}
@@ -641,6 +677,26 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
   return (
     <div className="space-y-4">
+      <DeleteDialog
+        open={tagToRemove !== null}
+        onOpenChange={(open) => {
+          if (!open) handleRemoveTagCancel();
+        }}
+        title="Remove Tag"
+        content={`Are you sure you want to remove "${tagToRemove?.tagName}" from this budget?`}
+        footerButtons={[
+          {
+            buttonContent: "Cancel",
+            clicked: handleRemoveTagCancel,
+          },
+          {
+            buttonContent: "Remove",
+            clicked: handleRemoveTagConfirm,
+            variant: "danger",
+          },
+        ]}
+      />
+
       <div>
         <Label>
           {isPerMonth

@@ -2,15 +2,17 @@ import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type {
   IBudgetComparison,
   IBudgetMonthlyBreakdown,
+  ITransaction,
 } from "@/features/shared/validation/schemas";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
+import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
 import { formatDate } from "@/features/util/date/date-helpers";
-import { useMemo, useState } from "react";
-import { HiChevronDown } from "react-icons/hi";
+import { useEffect, useMemo, useState } from "react";
+import { HiChevronRight } from "react-icons/hi";
 import { HiSquares2X2 } from "react-icons/hi2";
 import { BudgetStatusBadge, getStatusColor } from "./budget-status-badge";
 
@@ -29,14 +31,18 @@ type IBudgetDetailTagsContainerProps = {
   items: IBudgetComparison["items"];
   budget: IBudgetComparison["budget"];
   monthlyBreakdown?: IBudgetMonthlyBreakdown | null;
+  onTransactionClick?: (transaction: ITransaction) => void;
 };
 
 export function BudgetDetailTagsContainer({
   items,
   budget,
   monthlyBreakdown,
+  onTransactionClick,
 }: IBudgetDetailTagsContainerProps) {
-  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<IDisplayItem | null>(null);
+  const [isTransactionsDialogOpen, setIsTransactionsDialogOpen] =
+    useState(false);
 
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
@@ -125,46 +131,77 @@ export function BudgetDetailTagsContainer({
     return { expenseItems, incomeItems };
   }, [displayItems, tagMap]);
 
-  const toggleItem = (itemId: string) => {
-    setExpandedItemId((prev) => (prev === itemId ? null : itemId));
+  const getDisplayTagName = (item: IDisplayItem) => {
+    if (item.tagId === null) {
+      return item.categoryType === "INCOME"
+        ? "Miscellaneous (Income)"
+        : "Miscellaneous (Expense)";
+    }
+
+    const tagInfo = tagMap.get(item.tagId);
+    if (tagInfo) {
+      return tagInfo.name;
+    }
+
+    const firstTx = item.transactions[0];
+    return firstTx?.primaryTag?.name ?? `Tag ${item.tagId}`;
+  };
+
+  const getTagColor = (item: IDisplayItem) => {
+    if (item.tagId === null) {
+      return null;
+    }
+
+    const tagInfo = tagMap.get(item.tagId);
+    if (tagInfo) {
+      return tagInfo.color;
+    }
+
+    return item.transactions[0]?.primaryTag?.color ?? null;
+  };
+
+  const openTransactionsDialog = (item: IDisplayItem) => {
+    if (item.transactions.length === 0) {
+      return;
+    }
+    setSelectedItem(item);
+    setIsTransactionsDialogOpen(true);
+  };
+
+  const handleTransactionsDialogOpenChange = (open: boolean) => {
+    setIsTransactionsDialogOpen(open);
+    if (!open) {
+      setSelectedItem(null);
+    }
+  };
+
+  // Keep transaction list in sync after edits (comparison refetch)
+  useEffect(() => {
+    if (!selectedItem || !isTransactionsDialogOpen) return;
+    const updated = displayItems.find((item) => item.id === selectedItem.id);
+    if (updated) {
+      setSelectedItem(updated);
+    }
+  }, [displayItems, selectedItem?.id, isTransactionsDialogOpen]);
+
+  const handleTransactionClick = (tx: ITransaction) => {
+    onTransactionClick?.(tx);
   };
 
   const renderBudgetItem = (item: IDisplayItem) => {
-    const isExpanded = expandedItemId === item.id;
     const percentage = item.percentage;
-
-    let tagColor: string | null = null;
-    let displayTagName: string;
-
-    if (item.tagId === null) {
-      displayTagName =
-        item.categoryType === "INCOME"
-          ? "Miscellaneous (Income)"
-          : "Miscellaneous (Expense)";
-    } else {
-      const tagInfo = tagMap.get(item.tagId);
-      if (tagInfo) {
-        displayTagName = tagInfo.name;
-        tagColor = tagInfo.color;
-      } else {
-        const firstTx = item.transactions[0];
-        displayTagName = firstTx?.primaryTag?.name ?? `Tag ${item.tagId}`;
-        tagColor = firstTx?.primaryTag?.color ?? null;
-      }
-    }
-
+    const displayTagName = getDisplayTagName(item);
+    const tagColor = getTagColor(item);
     const hasTransactions = item.transactions.length > 0;
 
     return (
       <div className="border-b border-border last:border-b-0">
         <ListItem
-          className={cn("flex-col overflow-hidden", isExpanded && "p-0")}
-          clicked={hasTransactions ? () => toggleItem(item.id) : undefined}>
-          <div
-            className={cn(
-              "flex items-center justify-between gap-4 w-full",
-              isExpanded && "p-3"
-            )}>
+          className="flex-col overflow-hidden"
+          clicked={
+            hasTransactions ? () => openTransactionsDialog(item) : undefined
+          }>
+          <div className="flex items-center justify-between gap-4 w-full">
             <div className="flex items-center gap-3 flex-1 min-w-0 h-10">
               {tagColor ? (
                 <div className="size-5 flex items-center justify-center">
@@ -177,12 +214,10 @@ export function BudgetDetailTagsContainer({
               )}
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">{displayTagName}</div>
-                {!isExpanded && (
-                  <div className="text-xs text-text-muted">
-                    {item.transactions.length} transaction
-                    {item.transactions.length !== 1 ? "s" : ""}
-                  </div>
-                )}
+                <div className="text-xs text-text-muted">
+                  {item.transactions.length} transaction
+                  {item.transactions.length !== 1 ? "s" : ""}
+                </div>
               </div>
             </div>
             <div className="flex items-stretch gap-6">
@@ -197,7 +232,7 @@ export function BudgetDetailTagsContainer({
                 <div
                   className={cn(
                     "text-sm font-medium",
-                    getStatusColor(percentage)
+                    getStatusColor(percentage),
                   )}>
                   {formatCurrency(item.actual, budget.currency)}
                 </div>
@@ -207,7 +242,7 @@ export function BudgetDetailTagsContainer({
                 <div
                   className={cn(
                     "text-sm font-medium",
-                    getStatusColor(percentage)
+                    getStatusColor(percentage),
                   )}>
                   {formatCurrency(item.difference, budget.currency)}
                 </div>
@@ -221,7 +256,7 @@ export function BudgetDetailTagsContainer({
                         ? "bg-success"
                         : percentage >= 80 && percentage <= 100
                           ? "bg-warning"
-                          : "bg-danger"
+                          : "bg-danger",
                     )}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
@@ -230,48 +265,19 @@ export function BudgetDetailTagsContainer({
               </div>
               <div className="w-4 self-center">
                 {hasTransactions && (
-                  <HiChevronDown
-                    className={cn(
-                      "size-4 text-text-muted transition-transform",
-                      isExpanded && "rotate-180"
-                    )}
-                  />
+                  <HiChevronRight className="size-4 text-text-muted" />
                 )}
               </div>
             </div>
           </div>
-
-          {isExpanded && item.transactions.length > 0 && (
-            <div className="bg-surface-hover w-full">
-              <div className="w-full h-1 border-t border-border"></div>
-              <List
-                data={item.transactions}
-                getItemKey={(tx) => tx.id}
-                className="w-full p-3">
-                {(tx) => (
-                  <ListItem className="p-2">
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">
-                          {tx.name}
-                        </div>
-                        <div className="text-xs text-text-muted">
-                          {formatDate(tx.transactionDate)}
-                        </div>
-                      </div>
-                      <div className="text-right text-sm font-medium">
-                        {formatCurrency(tx.amount, budget.currency)}
-                      </div>
-                    </div>
-                  </ListItem>
-                )}
-              </List>
-            </div>
-          )}
         </ListItem>
       </div>
     );
   };
+
+  const selectedTagName = selectedItem
+    ? getDisplayTagName(selectedItem)
+    : "Transactions";
 
   return (
     <>
@@ -300,6 +306,58 @@ export function BudgetDetailTagsContainer({
           </List>
         </Accordion>
       )}
+
+      <Dialog
+        title={selectedTagName}
+        open={isTransactionsDialogOpen}
+        onOpenChange={handleTransactionsDialogOpenChange}
+        size="lg"
+        footerButtons={[
+          {
+            buttonContent: "Close",
+            clicked: () => handleTransactionsDialogOpenChange(false),
+          },
+        ]}>
+        {selectedItem && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm text-text-muted">
+              <span>
+                {selectedItem.transactions.length} transaction
+                {selectedItem.transactions.length !== 1 ? "s" : ""}
+              </span>
+              <span>
+                {formatCurrency(selectedItem.actual, budget.currency)} actual
+              </span>
+            </div>
+            <List
+              data={selectedItem.transactions}
+              getItemKey={(tx) => tx.id}>
+              {(tx) => (
+                <ListItem
+                  className="p-2"
+                  clicked={() => handleTransactionClick(tx)}>
+                  <div className="flex items-center justify-between w-full gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">
+                        {tx.name}
+                      </div>
+                      <div className="text-xs text-text-muted">
+                        {formatDate(tx.transactionDate)}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="text-right text-sm font-medium">
+                        {formatCurrency(tx.amount, budget.currency)}
+                      </div>
+                      <HiChevronRight className="size-4 text-text-muted" />
+                    </div>
+                  </div>
+                </ListItem>
+              )}
+            </List>
+          </div>
+        )}
+      </Dialog>
     </>
   );
 }
