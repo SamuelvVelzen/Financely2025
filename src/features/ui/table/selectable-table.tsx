@@ -308,6 +308,8 @@ export function SelectableTable<T = unknown>({
               </div>
               <LinkButton
                 size="sm"
+                variant="info"
+                appearance="outlined"
                 clicked={onSelectAllValid}
                 buttonContent={selectAllAlertButtonText}
                 className="whitespace-nowrap"
@@ -333,7 +335,7 @@ export function SelectableTable<T = unknown>({
               (paginatedData.length > 0 &&
                 (currentPageData[0] !== paginatedData[0] ||
                   currentPageData[currentPageData.length - 1] !==
-                    paginatedData[paginatedData.length - 1]))
+                  paginatedData[paginatedData.length - 1]))
             ) {
               setCurrentPageData(paginatedData);
             }

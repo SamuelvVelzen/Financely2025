@@ -103,7 +103,8 @@ function UploadStepContent({ error, file, setFile }: IUploadStepContentProps) {
               </p>
               <LinkButton
                 clicked={handleDownloadTemplate}
-                variant="primary">
+                variant="primary"
+                appearance="outlined">
                 Download CSV Template
               </LinkButton>
             </div>

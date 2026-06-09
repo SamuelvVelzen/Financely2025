@@ -1,10 +1,39 @@
 import { cn } from "@/features/util/cn";
 import { Button, IButtonProps, IVariant } from "./button";
 
+type ILinkButtonAppearance = "filled" | "outlined";
+
 type ILinkButton = {
   clicked: NonNullable<IButtonProps["clicked"]>;
   disabled?: IButtonProps["disabled"];
+  /** Filled text link (default) or outlined action for use on colored Alert backgrounds */
+  appearance?: ILinkButtonAppearance;
 } & Omit<IButtonProps, "clicked" | "type">;
+
+const filledVariantClasses: { [key in IVariant]: string } = {
+  default: "text-text",
+  primary: "text-primary",
+  danger: "text-danger",
+  info: "text-info",
+  warning: "text-warning",
+  success: "text-success",
+  secondary: "text-secondary",
+};
+
+const outlinedVariantClasses: { [key in IVariant]: string } = {
+  default:
+    "text-text border-border/60 hover:bg-surface-hover/60 hover:text-text",
+  primary:
+    "text-primary border-primary/30 hover:bg-primary/15 hover:text-primary",
+  danger: "text-danger border-danger/30 hover:bg-danger/15 hover:text-danger",
+  info: "text-info border-info/30 hover:bg-info/15 hover:text-info",
+  warning:
+    "text-warning border-warning/30 hover:bg-warning/15 hover:text-warning",
+  success:
+    "text-success border-success/30 hover:bg-success/15 hover:text-success",
+  secondary:
+    "text-secondary border-secondary/30 hover:bg-secondary/15 hover:text-secondary",
+};
 
 export function LinkButton({
   children,
@@ -12,23 +41,21 @@ export function LinkButton({
   clicked,
   disabled = false,
   variant = "default",
+  appearance = "filled",
   ...props
 }: ILinkButton) {
-  const variantClasses: { [key in IVariant]: string } = {
-    default: "hover:bg-transparent",
-    primary: "hover:bg-transparent text-primary",
-    danger: "hover:bg-transparent text-danger",
-    info: "hover:bg-transparent text-info",
-    warning: "hover:bg-transparent text-warning",
-    success: "hover:bg-transparent text-success",
-    secondary: "hover:bg-transparent text-secondary",
-  };
+  const isOutlined = appearance === "outlined";
 
   return (
     <Button
       className={cn(
-        "hover:underline p-0 border-none hover:bg-transparent text-sm font-normal",
-        variantClasses[variant],
+        "bg-transparent text-sm disabled:hover:bg-transparent",
+        isOutlined
+          ? "font-medium rounded-lg border px-2 py-0.5 hover:no-underline"
+          : "border-none p-0 font-normal hover:underline hover:bg-transparent",
+        isOutlined
+          ? outlinedVariantClasses[variant]
+          : filledVariantClasses[variant],
         className
       )}
       clicked={clicked}
