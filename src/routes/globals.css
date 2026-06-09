@@ -247,6 +247,7 @@ dialog::backdrop {
   margin: 0;
   inset: auto;
   /* Match the width of the anchor element */
+  width: anchor-size(width);
   min-width: anchor-size(width);
 }
 
