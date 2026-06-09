@@ -35,6 +35,8 @@ export const queryKeys = {
       sort?: string;
     },
   ) => ["transactions", workspaceId, params] as const,
+  transaction: (workspaceId: number, transactionId: string) =>
+    ["transactions", workspaceId, transactionId] as const,
 
   expenses: (
     workspaceId: number,

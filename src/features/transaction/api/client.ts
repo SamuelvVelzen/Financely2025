@@ -47,6 +47,15 @@ export async function getTransactions(
   );
 }
 
+export async function getTransaction(
+  workspaceId: IWorkspaceId,
+  transactionId: string,
+): Promise<ITransaction> {
+  return apiGet<ITransaction>(
+    workspaceApiV1Path(workspaceId, `transactions/${transactionId}`),
+  );
+}
+
 export async function createTransaction(
   workspaceId: IWorkspaceId,
   input: ICreateTransactionInput

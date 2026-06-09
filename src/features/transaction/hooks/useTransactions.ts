@@ -18,6 +18,7 @@ import {
   addTagToTransaction,
   createTransaction,
   deleteTransaction,
+  getTransaction,
   getTransactions,
   removeTagFromTransaction,
   updateTransaction,
@@ -46,6 +47,23 @@ export function useTransactions(query?: ITransactionsQuery) {
     queryFn: () =>
       getTransactions(requireWorkspaceId(workspaceId), query),
     staleTime: 30 * 1000, // 30 seconds
+    enabled,
+  });
+}
+
+/**
+ * Get a single transaction by ID
+ */
+export function useTransaction(transactionId: string | null) {
+  const workspaceId = useNavWorkspaceId();
+  const enabled = workspaceId != null && !!transactionId;
+  return useFinQuery<ITransaction, Error>({
+    queryKey: enabled
+      ? queryKeys.transaction(workspaceId, transactionId!)
+      : (["transactions", "disabled"] as const),
+    queryFn: () =>
+      getTransaction(requireWorkspaceId(workspaceId), transactionId!),
+    staleTime: 30 * 1000,
     enabled,
   });
 }
@@ -366,6 +384,7 @@ export function useUpdateExpense() {
     invalidateQueries: [
       () => queryKeys.expenses(workspaceId!),
       () => queryKeys.transactions(workspaceId!),
+      () => queryKeys.subscriptions(workspaceId!),
     ],
     getOfflineQueuedToast: () => ({
       title: "Expense updated successfully",
@@ -509,6 +528,7 @@ export function useUpdateIncome() {
     invalidateQueries: [
       () => queryKeys.incomes(workspaceId!),
       () => queryKeys.transactions(workspaceId!),
+      () => queryKeys.subscriptions(workspaceId!),
     ],
     getOfflineQueuedToast: () => ({
       title: "Income updated successfully",
