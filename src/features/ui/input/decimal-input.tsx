@@ -159,6 +159,8 @@ export function DecimalInput({
           );
 
           const nativeEvent = event.nativeEvent as InputEvent;
+          const insertData =
+            nativeEvent.inputType === "insertText" ? nativeEvent.data : null;
           const removalInfo =
             nativeEvent.inputType === "deleteContentBackward"
               ? getRemovedCharInfo(formattedValue, target.value)
@@ -169,7 +171,28 @@ export function DecimalInput({
           });
           let caretInfoForNext = caretInfo;
 
-          if (
+          if (insertData && insertData.length === 1 && isDigit(insertData)) {
+            const caretBeforeInsert = Math.max(
+              0,
+              caretPosition - insertData.length
+            );
+            const caretInfoBefore = computeCaretInfo(
+              target.value,
+              caretBeforeInsert,
+              separators
+            );
+            const baseNormalized =
+              previousNormalized || `0.${"0".repeat(FRACTION_DIGITS)}`;
+            effectiveNormalized = replaceDigitAtCaret(
+              baseNormalized,
+              caretInfoBefore,
+              insertData
+            );
+            caretInfoForNext = advanceCaretInfo(
+              caretInfoBefore,
+              effectiveNormalized
+            );
+          } else if (
             removalInfo &&
             !isDigit(removalInfo.char) &&
             removalInfo.index !== null
@@ -394,6 +417,72 @@ function countDigitsUpToIndex(value: string, index: number): number {
     }
   }
   return count;
+}
+
+function replaceDigitAtCaret(
+  normalized: string,
+  caretInfo: CaretInfo,
+  digit: string
+): string {
+  const [integerPartRaw = "0", fractionPartRaw = ""] = normalized.split(".");
+  const integerDigits = integerPartRaw.split("");
+  const fractionDigits = fractionPartRaw
+    .padEnd(FRACTION_DIGITS, "0")
+    .split("")
+    .slice(0, FRACTION_DIGITS);
+
+  if (caretInfo.inFraction) {
+    const idx = Math.min(caretInfo.fractionDigits, FRACTION_DIGITS - 1);
+    fractionDigits[idx] = digit;
+  } else {
+    const idx = caretInfo.integerDigits;
+    if (idx < integerDigits.length) {
+      integerDigits[idx] = digit;
+    } else {
+      integerDigits.push(digit);
+    }
+  }
+
+  const nextInteger = normalizeIntegerDigits(integerDigits);
+  const nextFraction = fractionDigits
+    .join("")
+    .padEnd(FRACTION_DIGITS, "0")
+    .slice(0, FRACTION_DIGITS);
+
+  return `${nextInteger}.${nextFraction}`;
+}
+
+function advanceCaretInfo(
+  caretInfo: CaretInfo,
+  normalized: string
+): CaretInfo {
+  const [integerPartRaw = "0"] = normalized.split(".");
+  const totalIntegerDigits = integerPartRaw.length;
+
+  if (caretInfo.inFraction) {
+    const nextFractionDigits = Math.min(
+      caretInfo.fractionDigits + 1,
+      FRACTION_DIGITS
+    );
+    return {
+      ...caretInfo,
+      fractionDigits: nextFractionDigits,
+    };
+  }
+
+  const nextIntegerDigits = caretInfo.integerDigits + 1;
+  if (nextIntegerDigits >= totalIntegerDigits) {
+    return {
+      integerDigits: totalIntegerDigits,
+      fractionDigits: 0,
+      inFraction: true,
+    };
+  }
+
+  return {
+    ...caretInfo,
+    integerDigits: nextIntegerDigits,
+  };
 }
 
 function removeDigitAtOrdinal(value: string, ordinal: number): string {
