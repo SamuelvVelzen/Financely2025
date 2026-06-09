@@ -484,7 +484,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
             toggleExpanded(itemKey);
           }}
           role="button"
-          tabIndex={0}
+          tabIndex={-1}
           aria-expanded={isExpanded}
           aria-label={`${tagName}, yearly total ${formatDecimal(yearlyTotal)}. Click to ${isExpanded ? "collapse" : "expand"} monthly breakdown`}>
           {renderTagIcon(tagColor)}
@@ -508,6 +508,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
           <IconButton
             size="sm"
+            tabIndex={-1}
             clicked={() => handleSyncAll(itemKey, index)}
             ariaLabel="Apply to all months"
             tooltip="Apply base amount to all 12 months"
@@ -526,6 +527,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
           <IconButton
             size="sm"
+            tabIndex={-1}
             clicked={() => toggleExpanded(itemKey)}
             ariaLabel="Toggle monthly breakdown"
             tooltip="Toggle monthly breakdown"
@@ -542,6 +544,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
           <IconButton
             size="sm"
+            tabIndex={-1}
             clicked={() => handleRemoveTagClick(index, tagId, tagName)}
             ariaLabel={`Remove ${tagName}`}
             tooltip={`Remove ${tagName}`}
@@ -553,6 +556,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
         {/* Monthly overrides accordion (months stacked top to bottom) */}
         <div
+          inert={!isExpanded ? true : undefined}
           className={cn(
             "grid transition-[grid-template-rows] ease-out w-full",
             isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
@@ -598,6 +602,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
                           isOverridden ? (
                             <button
                               type="button"
+                              tabIndex={-1}
                               onClick={() =>
                                 handleRevertMonth(itemKey, index, mi)
                               }
@@ -648,6 +653,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
         </div>
         <IconButton
           size="sm"
+          tabIndex={-1}
           clicked={() => handleRemoveTagClick(index, tagId, tagName)}
           ariaLabel={`Remove ${tagName}`}
           disabled={tagId === null}
