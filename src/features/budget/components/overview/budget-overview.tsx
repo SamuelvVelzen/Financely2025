@@ -1,8 +1,13 @@
+import { getBudgetComparison } from "@/features/budget/api/client";
 import {
   useBudgets,
   useDeleteBudget,
 } from "@/features/budget/hooks/useBudgets";
-import type { IBudget } from "@/features/shared/validation/schemas";
+import { queryKeys } from "@/features/shared/query/keys";
+import type {
+  IBudget,
+  IBudgetComparison,
+} from "@/features/shared/validation/schemas";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
@@ -14,6 +19,7 @@ import { List } from "@/features/ui/list/list";
 import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
+import { useQueries } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineCurrencyEuro } from "react-icons/hi2";
@@ -49,6 +55,25 @@ export function BudgetOverview() {
     error: errorBudgets,
   } = useBudgets(query);
   const budgets = budgetsData?.data ?? [];
+  const comparisonQueries = useQueries({
+    queries: budgets.map((budget) => ({
+      queryKey: queryKeys.budgetComparison(workspaceId, budget.id),
+      queryFn: () => getBudgetComparison(workspaceId, budget.id),
+      staleTime: 30 * 1000,
+    })),
+  });
+
+  const totalsByBudgetId = useMemo(() => {
+    const map = new Map<string, IBudgetComparison["totals"]>();
+    budgets.forEach((budget, index) => {
+      const totals = comparisonQueries[index]?.data?.totals;
+      if (totals) {
+        map.set(budget.id, totals);
+      }
+    });
+    return map;
+  }, [budgets, comparisonQueries]);
+
   const { mutate: deleteBudget } = useDeleteBudget();
   const toast = useToast();
 
@@ -165,6 +190,7 @@ export function BudgetOverview() {
               <BudgetListItem
                 key={budget.id}
                 budget={budget}
+                totals={totalsByBudgetId.get(budget.id)}
                 searchQuery={searchQuery}
                 onView={handleViewBudget}
                 onEdit={handleEditBudget}
