@@ -184,10 +184,8 @@ export function Dropdown({
               variant={variant}
               className={cn(
                 "w-full",
-                // Remove fixed height and padding when content is a div (Select component)
-                // Use min-h-9 to allow growth when chips wrap, box-border to include border in height calculation
+                // Select-style triggers (raw ReactNode): min height for chips/wrapping
                 !isObject && "min-h-9 box-border",
-                isObject && "py-2 h-9",
                 "focus:ring-2 focus:ring-primary",
                 dropdownIsOpen && "ring-2 ring-primary",
                 // Override Button's centering for Select components
