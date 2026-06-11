@@ -16,6 +16,7 @@ import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
+import { LinkButton } from "@/features/ui/button/link-button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
@@ -26,8 +27,9 @@ import { TabContent } from "@/features/ui/tab/tab-content";
 import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
+import { getBudgetPeriodViewLabel } from "@/features/budget/utils/budget-period-context";
 import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   HiArrowLeft,
   HiOutlineCurrencyEuro,
@@ -86,6 +88,20 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
       ) ?? null
     );
   }, [selectedMonthKey, comparison]);
+
+  useEffect(() => {
+    setSelectedMonthKey(null);
+  }, [budgetId]);
+
+  const periodViewLabel = useMemo(() => {
+    if (!comparison) return null;
+
+    return getBudgetPeriodViewLabel(comparison.budget, {
+      selectedBreakdown,
+      monthCount: comparison.monthlyBreakdown.length,
+      monthLabels: MONTH_LABELS,
+    });
+  }, [comparison, selectedBreakdown]);
 
   const handleBack = () => {
     navigate({
@@ -209,24 +225,42 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
           </div>
         </div>
 
-        {hasMultipleMonths && (
-          <div className="mt-3 max-w-xs">
-            <SelectDropdown
-              value={selectedMonthKey ?? "all"}
-              onChange={(val) =>
-                setSelectedMonthKey(
-                  val === "all" ? null : (val as string)
-                )
-              }
-              options={[
-                { value: "all", label: "All Months" },
-                ...comparison.monthlyBreakdown.map((mb) => ({
-                  value: `${mb.year}-${mb.month}`,
-                  label: `${MONTH_LABELS[mb.month - 1]} ${mb.year}`,
-                })),
-              ]}
-              clearable={false}
-            />
+        {(hasMultipleMonths || periodViewLabel) && (
+          <div className="mt-3">
+            {hasMultipleMonths && (
+              <div className="flex items-center gap-3">
+                <div className="max-w-xs flex-1">
+                  <SelectDropdown
+                    value={selectedMonthKey ?? "all"}
+                    onChange={(val) =>
+                      setSelectedMonthKey(
+                        val === "all" ? null : (val as string),
+                      )
+                    }
+                    options={[
+                      { value: "all", label: "All months (total)" },
+                      ...comparison.monthlyBreakdown.map((mb) => ({
+                        value: `${mb.year}-${mb.month}`,
+                        label: `${MONTH_LABELS[mb.month - 1]} ${mb.year}`,
+                      })),
+                    ]}
+                    clearable={false}
+                  />
+                </div>
+                {selectedMonthKey && (
+                  <LinkButton
+                    variant="primary"
+                    clicked={() => setSelectedMonthKey(null)}>
+                    All months
+                  </LinkButton>
+                )}
+              </div>
+            )}
+            {periodViewLabel && (
+              <p className="text-sm text-text-muted mt-1.5">
+                {periodViewLabel}
+              </p>
+            )}
           </div>
         )}
       </Container>
@@ -245,6 +279,7 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
               }
               currency={comparison.budget.currency}
               alerts={selectedBreakdown ? [] : comparison.alerts}
+              periodViewLabel={periodViewLabel}
             />
 
             <BudgetDetailTagsContainer

@@ -12,6 +12,7 @@ type IBudgetSummaryContainerProps = {
   totals: IBudgetComparison["totals"];
   currency: IBudgetComparison["budget"]["currency"];
   alerts: IBudgetAlert[];
+  periodViewLabel?: string | null;
 };
 
 type ISummaryMetricProps = {
@@ -98,6 +99,7 @@ export function BudgetSummaryContainer({
   currency,
   totals,
   alerts,
+  periodViewLabel,
 }: IBudgetSummaryContainerProps) {
   const incomeExpected = parseFloat(totals.income.expected);
   const incomeActual = parseFloat(totals.income.actual);
@@ -117,9 +119,14 @@ export function BudgetSummaryContainer({
   return (
     <>
       <section className="border-b border-border pb-4 mb-4">
-        <div className="flex items-center justify-between gap-2 mb-4">
-          <h3 className="text-base font-semibold">Budget Summary</h3>
-          <Badge variant={netStatus.variant}>{netStatus.label}</Badge>
+        <div className="mb-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-base font-semibold">Budget Summary</h3>
+            <Badge variant={netStatus.variant}>{netStatus.label}</Badge>
+          </div>
+          {periodViewLabel && (
+            <p className="text-xs text-text-muted mt-1">{periodViewLabel}</p>
+          )}
         </div>
 
         <div className="hidden sm:grid sm:grid-cols-3 sm:items-end sm:gap-8 w-full">
