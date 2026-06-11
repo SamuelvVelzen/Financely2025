@@ -15,8 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 import { HiChevronRight } from "react-icons/hi";
 import { HiSquares2X2 } from "react-icons/hi2";
 import {
-  BudgetStatusBadge,
-  getProgressBarColor,
+  BudgetStatusIcon,
   getStatusColor,
   isBudgetViewPeriodEnded,
   type IBudgetCategoryType,
@@ -239,7 +238,7 @@ export function BudgetDetailTagsContainer({
                 </div>
               </div>
             </div>
-            <div className="flex items-stretch gap-6">
+            <div className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto">
               <div className="text-right min-w-[80px]">
                 <div className="text-xs text-text-muted">Expected</div>
                 <div className="text-sm font-medium">
@@ -266,21 +265,8 @@ export function BudgetDetailTagsContainer({
                   {formatCurrency(item.difference, budget.currency)}
                 </div>
               </div>
-              <div className="w-24 justify-between items-center flex flex-col">
-                <div className="w-full bg-surface-hover rounded-full h-2 overflow-hidden">
-                  <div
-                    className={cn(
-                      "h-full transition-all",
-                      getProgressBarColor(
-                        percentage,
-                        categoryType,
-                        statusOptions,
-                      ),
-                    )}
-                    style={{ width: `${Math.min(percentage, 100)}%` }}
-                  />
-                </div>
-                <BudgetStatusBadge
+              <div className="flex w-5 shrink-0 justify-center self-center">
+                <BudgetStatusIcon
                   percentage={percentage}
                   categoryType={categoryType}
                   {...statusOptions}

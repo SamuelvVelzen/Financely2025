@@ -1,6 +1,7 @@
-import { Badge } from "@/features/ui/badge/badge";
-import type { IVariant } from "@/features/ui/button/button";
+import { Tooltip } from "@/features/ui/tooltip/tooltip";
+import { cn } from "@/features/util/cn";
 import { endOfMonth, parseISO } from "date-fns";
+import { HiChevronDown, HiChevronUp } from "react-icons/hi2";
 
 export type IBudgetCategoryType = "EXPENSE" | "INCOME";
 
@@ -12,11 +13,12 @@ export type IBudgetStatusParams = {
   expectedAmount?: number;
 };
 
+type IStatusIcon = "up" | "down" | null;
+
 type IResolvedBudgetStatus = {
   label: string;
-  variant?: IVariant;
   textColor: string;
-  progressBarColor: string;
+  icon: IStatusIcon;
 };
 
 export function isBudgetViewPeriodEnded(
@@ -52,48 +54,44 @@ export function resolveBudgetStatus({
       return {
         label: "No Activity",
         textColor: "text-text-muted",
-        progressBarColor: "bg-transparent",
+        icon: null,
       };
     }
 
     if (categoryType === "INCOME") {
       return {
         label: "Below Target",
-        variant: "warning",
         textColor: "text-warning",
-        progressBarColor: "bg-warning",
+        icon: "down",
       };
     }
 
     return {
       label: "Under Budget",
-      variant: "success",
       textColor: "text-text-muted",
-      progressBarColor: "bg-success",
+      icon: null,
     };
   }
 
   if (categoryType === "INCOME") {
     if (percentage > 100) {
       return {
-        label: "Goal Exceeded",
-        variant: "success",
+        label: "Exceeded",
         textColor: "text-success",
-        progressBarColor: "bg-success",
+        icon: "up",
       };
     }
     if (percentage >= 80) {
       return {
         label: "On Track",
         textColor: "text-text",
-        progressBarColor: "bg-success",
+        icon: null,
       };
     }
     return {
       label: "Below Target",
-      variant: "warning",
       textColor: "text-warning",
-      progressBarColor: "bg-warning",
+      icon: "down",
     };
   }
 
@@ -101,30 +99,42 @@ export function resolveBudgetStatus({
     return {
       label: "On Track",
       textColor: "text-text",
-      progressBarColor: "bg-success",
+      icon: null,
     };
   }
   if (percentage <= 100) {
     return {
       label: "Near Limit",
-      variant: "warning",
       textColor: "text-warning",
-      progressBarColor: "bg-warning",
+      icon: "up",
     };
   }
   return {
     label: "Over Budget",
-    variant: "danger",
     textColor: "text-danger",
-    progressBarColor: "bg-danger",
+    icon: "up",
   };
 }
 
-type IBudgetStatusBadgeProps = IBudgetStatusParams;
-
-export function BudgetStatusBadge(props: IBudgetStatusBadgeProps) {
+export function BudgetStatusIcon(props: IBudgetStatusParams) {
   const status = resolveBudgetStatus(props);
-  return <Badge variant={status.variant}>{status.label}</Badge>;
+
+  if (!status.icon) {
+    return <span className="size-5 shrink-0" aria-hidden />;
+  }
+
+  const Icon = status.icon === "up" ? HiChevronUp : HiChevronDown;
+
+  return (
+    <Tooltip content={status.label}>
+      <span
+        className="inline-flex shrink-0"
+        role="img"
+        aria-label={status.label}>
+        <Icon className={cn("size-5", status.textColor)} />
+      </span>
+    </Tooltip>
+  );
 }
 
 export const getStatusColor = (
@@ -133,10 +143,3 @@ export const getStatusColor = (
   options?: Omit<IBudgetStatusParams, "percentage" | "categoryType">,
 ) =>
   resolveBudgetStatus({ percentage, categoryType, ...options }).textColor;
-
-export const getProgressBarColor = (
-  percentage: number,
-  categoryType: IBudgetCategoryType = "EXPENSE",
-  options?: Omit<IBudgetStatusParams, "percentage" | "categoryType">,
-) =>
-  resolveBudgetStatus({ percentage, categoryType, ...options }).progressBarColor;
