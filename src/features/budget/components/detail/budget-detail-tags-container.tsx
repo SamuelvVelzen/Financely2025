@@ -18,6 +18,7 @@ import {
   BudgetStatusBadge,
   getProgressBarColor,
   getStatusColor,
+  isBudgetViewPeriodEnded,
   type IBudgetCategoryType,
 } from "./budget-status-badge";
 
@@ -193,6 +194,11 @@ export function BudgetDetailTagsContainer({
     onTransactionClick?.(tx);
   };
 
+  const isPeriodEnded = useMemo(
+    () => isBudgetViewPeriodEnded(budget.endDate, monthlyBreakdown),
+    [budget.endDate, monthlyBreakdown],
+  );
+
   const renderBudgetItem = (
     item: IDisplayItem,
     categoryType: IBudgetCategoryType,
@@ -201,6 +207,11 @@ export function BudgetDetailTagsContainer({
     const displayTagName = getDisplayTagName(item);
     const tagColor = getTagColor(item);
     const hasTransactions = item.transactions.length > 0;
+    const statusOptions = {
+      transactionCount: item.transactions.length,
+      isPeriodEnded,
+      expectedAmount: parseFloat(item.expected),
+    };
 
     return (
       <div className="border-b border-border last:border-b-0">
@@ -240,7 +251,7 @@ export function BudgetDetailTagsContainer({
                 <div
                   className={cn(
                     "text-sm font-medium",
-                    getStatusColor(percentage, categoryType),
+                    getStatusColor(percentage, categoryType, statusOptions),
                   )}>
                   {formatCurrency(item.actual, budget.currency)}
                 </div>
@@ -250,7 +261,7 @@ export function BudgetDetailTagsContainer({
                 <div
                   className={cn(
                     "text-sm font-medium",
-                    getStatusColor(percentage, categoryType),
+                    getStatusColor(percentage, categoryType, statusOptions),
                   )}>
                   {formatCurrency(item.difference, budget.currency)}
                 </div>
@@ -260,7 +271,11 @@ export function BudgetDetailTagsContainer({
                   <div
                     className={cn(
                       "h-full transition-all",
-                      getProgressBarColor(percentage, categoryType),
+                      getProgressBarColor(
+                        percentage,
+                        categoryType,
+                        statusOptions,
+                      ),
                     )}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
@@ -268,6 +283,7 @@ export function BudgetDetailTagsContainer({
                 <BudgetStatusBadge
                   percentage={percentage}
                   categoryType={categoryType}
+                  {...statusOptions}
                 />
               </div>
               <div className="w-4 self-center">
