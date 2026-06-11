@@ -5,6 +5,10 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { Badge } from "@/features/ui/badge/badge";
 import { cn } from "@/features/util/cn";
+import {
+  getNetRemainingFromTotals,
+  getNetRemainingStatus,
+} from "@/features/budget/utils/budget-summary-helpers";
 import { BudgetAlerts } from "./budget-alerts";
 import { getStatusColor } from "./budget-status-badge";
 
@@ -60,41 +64,6 @@ function SummaryMetric({
   );
 }
 
-function getNetRemainingStatus(
-  actualRemaining: number,
-  expectedRemaining: number,
-) {
-  if (actualRemaining < 0) {
-    return {
-      label: "Deficit",
-      variant: "danger" as const,
-      colorClass: "text-danger",
-    };
-  }
-
-  if (expectedRemaining > 0 && actualRemaining < expectedRemaining * 0.8) {
-    return {
-      label: "Below Target",
-      variant: "warning" as const,
-      colorClass: "text-warning",
-    };
-  }
-
-  if (expectedRemaining > 0 && actualRemaining >= expectedRemaining) {
-    return {
-      label: "On Track",
-      variant: "success" as const,
-      colorClass: "text-success",
-    };
-  }
-
-  return {
-    label: "On Track",
-    variant: undefined,
-    colorClass: "text-text",
-  };
-}
-
 export function BudgetSummaryContainer({
   currency,
   totals,
@@ -106,8 +75,8 @@ export function BudgetSummaryContainer({
   const expenseExpected = parseFloat(totals.expenses.expected);
   const expenseActual = parseFloat(totals.expenses.actual);
 
-  const expectedRemaining = incomeExpected - expenseExpected;
-  const actualRemaining = incomeActual - expenseActual;
+  const { actualRemaining, expectedRemaining } =
+    getNetRemainingFromTotals(totals);
 
   const incomePercentage =
     incomeExpected > 0 ? (incomeActual / incomeExpected) * 100 : 0;

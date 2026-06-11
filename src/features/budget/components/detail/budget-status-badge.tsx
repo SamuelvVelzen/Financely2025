@@ -143,3 +143,26 @@ export const getStatusColor = (
   options?: Omit<IBudgetStatusParams, "percentage" | "categoryType">,
 ) =>
   resolveBudgetStatus({ percentage, categoryType, ...options }).textColor;
+
+export function getDifferenceColor(
+  difference: number,
+  categoryType: IBudgetCategoryType = "EXPENSE",
+): string {
+  if (difference === 0) {
+    return "text-text";
+  }
+
+  if (categoryType === "INCOME") {
+    return difference > 0 ? "text-success" : "text-warning";
+  }
+
+  return difference > 0 ? "text-danger" : "text-success";
+}
+
+export function getActualColor(
+  actual: number,
+  expected: number,
+  categoryType: IBudgetCategoryType = "EXPENSE",
+): string {
+  return getDifferenceColor(actual - expected, categoryType);
+}

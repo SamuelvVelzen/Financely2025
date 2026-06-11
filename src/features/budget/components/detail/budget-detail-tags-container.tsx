@@ -16,7 +16,8 @@ import { HiChevronRight } from "react-icons/hi";
 import { HiSquares2X2 } from "react-icons/hi2";
 import {
   BudgetStatusIcon,
-  getStatusColor,
+  getActualColor,
+  getDifferenceColor,
   isBudgetViewPeriodEnded,
   type IBudgetCategoryType,
 } from "./budget-status-badge";
@@ -206,10 +207,13 @@ export function BudgetDetailTagsContainer({
     const displayTagName = getDisplayTagName(item);
     const tagColor = getTagColor(item);
     const hasTransactions = item.transactions.length > 0;
+    const expectedAmount = parseFloat(item.expected);
+    const actualAmount = parseFloat(item.actual);
+    const differenceAmount = parseFloat(item.difference);
     const statusOptions = {
       transactionCount: item.transactions.length,
       isPeriodEnded,
-      expectedAmount: parseFloat(item.expected),
+      expectedAmount,
     };
 
     return (
@@ -250,7 +254,11 @@ export function BudgetDetailTagsContainer({
                 <div
                   className={cn(
                     "text-sm font-medium",
-                    getStatusColor(percentage, categoryType, statusOptions),
+                    getActualColor(
+                      actualAmount,
+                      expectedAmount,
+                      categoryType,
+                    ),
                   )}>
                   {formatCurrency(item.actual, budget.currency)}
                 </div>
@@ -260,7 +268,7 @@ export function BudgetDetailTagsContainer({
                 <div
                   className={cn(
                     "text-sm font-medium",
-                    getStatusColor(percentage, categoryType, statusOptions),
+                    getDifferenceColor(differenceAmount, categoryType),
                   )}>
                   {formatCurrency(item.difference, budget.currency)}
                 </div>

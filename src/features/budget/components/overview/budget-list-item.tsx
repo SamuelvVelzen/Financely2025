@@ -1,10 +1,13 @@
+import {
+  getNetRemainingFromTotals,
+  getNetRemainingStatus,
+} from "@/features/budget/utils/budget-summary-helpers";
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type {
   IBudget,
   IBudgetComparison,
 } from "@/features/shared/validation/schemas";
-import { Badge } from "@/features/ui/badge/badge";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
@@ -29,141 +32,93 @@ export function BudgetListItem({
   onDelete,
 }: IBudgetListItemProps) {
   const { highlightText } = useHighlightText();
-  const expenseTotals = totals?.expenses;
-  const percentage =
-    expenseTotals && parseFloat(expenseTotals.expected) > 0
-      ? (parseFloat(expenseTotals.actual) / parseFloat(expenseTotals.expected)) *
-        100
-      : 0;
 
-  const totalExpected = expenseTotals
-    ? parseFloat(expenseTotals.expected)
-    : budget.items.reduce(
-      (sum, item) =>
-        sum +
-        item.monthlyAmounts.reduce(
-          (mSum, ma) => mSum + parseFloat(ma.expectedAmount),
-          0
-        ),
-      0
-    );
+  const netTotals = totals ? getNetRemainingFromTotals(totals) : null;
+  const netStatus = netTotals
+    ? getNetRemainingStatus(
+        netTotals.actualRemaining,
+        netTotals.expectedRemaining,
+      )
+    : null;
 
-  const tagBudgetSummary = `${budget.items.length} ${
+  const tagCountLabel = `${budget.items.length} ${
     budget.items.length === 1 ? "tag" : "tags"
-  } · ${formatCurrency(totalExpected.toString(), budget.currency)} budgeted`;
-
-  const getStatusColor = (pct: number) => {
-    if (pct < 80) return "text-success";
-    if (pct <= 100) return "text-warning";
-    return "text-danger";
-  };
-
-  const getStatusBadge = (pct: number) => {
-    if (pct < 80) return <Badge>On Track</Badge>;
-    if (pct <= 100) return <Badge backgroundColor="#d97706">Approaching</Badge>;
-    return <Badge backgroundColor="#dc2626">Over Budget</Badge>;
-  };
+  }`;
 
   return (
     <ListItem
-      className="group flex-col items-stretch gap-2 py-4"
+      className="group relative py-3"
       clicked={() => {
         if (onView) {
           onView(budget);
         }
       }}>
-      {/* Top row: Name, Date, Status, Actions, Amount */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="text-text font-medium truncate">
-            {highlightText(budget.name, searchQuery)}
-          </span>
-          <span className="text-text-muted">|</span>
-          <span className="text-sm text-text-muted whitespace-nowrap">
-            {formatDateRange(budget.startDate, budget.endDate)}
-          </span>
-          {totals && (
-            <>
-              <span className="text-text-muted">|</span>
-              <div className="shrink-0">{getStatusBadge(percentage)}</div>
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Action buttons - visible on hover */}
-          <div
-            className="flex items-center gap-1 opacity-0 group-hover:opacity-100 motion-safe:transition-opacity"
-            onClick={(e) => e.stopPropagation()}>
-            {onView && (
-              <IconButton
-                clicked={() => onView(budget)}
-                size="sm"
-                ariaLabel="View budget">
-                <HiEye className="size-4" />
-              </IconButton>
-            )}
-            {onEdit && (
-              <IconButton
-                clicked={() => onEdit(budget)}
-                size="sm"
-                ariaLabel="Edit budget">
-                <HiPencil className="size-4" />
-              </IconButton>
-            )}
-            {onDelete && (
-              <IconButton
-                clicked={() => onDelete(budget)}
-                variant="danger"
-                size="sm"
-                ariaLabel="Delete budget">
-                <HiTrash className="size-4" />
-              </IconButton>
-            )}
+      <div className="flex w-full min-w-0 items-center justify-between gap-6">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-medium truncate">
+              {highlightText(budget.name, searchQuery)}
+            </span>
+            <span className="text-text-muted shrink-0">·</span>
+            <span className="text-sm text-text-muted truncate">
+              {formatDateRange(budget.startDate, budget.endDate)}
+            </span>
           </div>
-
-          {/* Budgeted amount */}
-          <span className="text-text font-semibold text-lg">
-            {formatCurrency(totalExpected.toString(), budget.currency)}
-          </span>
+          <div className="text-xs text-text-muted mt-0.5">{tagCountLabel}</div>
         </div>
+
+        {netTotals ? (
+          <div className="shrink-0 text-right">
+            <div
+              className={cn("font-semibold text-lg", netStatus?.colorClass)}>
+              {formatCurrency(
+                netTotals.actualRemaining.toString(),
+                budget.currency,
+              )}
+            </div>
+            <div className="text-xs text-text-muted">
+              of{" "}
+              {formatCurrency(
+                netTotals.expectedRemaining.toString(),
+                budget.currency,
+              )}{" "}
+              expected
+            </div>
+          </div>
+        ) : (
+          <div className="shrink-0 text-sm text-text-muted">—</div>
+        )}
       </div>
 
-      {/* Progress bar and details - only show if comparison exists */}
-      {totals && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-text-muted">
-              Spent:{" "}
-              <span className={cn("font-medium", getStatusColor(percentage))}>
-                {formatCurrency(totals.expenses.actual, budget.currency)}
-              </span>
-            </span>
-            <span className={cn("font-semibold", getStatusColor(percentage))}>
-              {percentage.toFixed(1)}%
-            </span>
-          </div>
-          <div className="w-full bg-surface-hover rounded-full h-2 overflow-hidden">
-            <div
-              className={cn(
-                "h-full transition-all",
-                percentage < 80
-                  ? "bg-success"
-                  : percentage >= 80 && percentage <= 100
-                    ? "bg-warning"
-                    : "bg-danger"
-              )}
-              style={{ width: `${Math.min(percentage, 100)}%` }}
-            />
-          </div>
-          <div className="text-xs text-text-muted">{tagBudgetSummary}</div>
-        </div>
-      )}
-
-      {/* Show tag count if no comparison */}
-      {!totals && (
-        <div className="text-xs text-text-muted">{tagBudgetSummary}</div>
-      )}
+      <div
+        className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-lg bg-surface/95 px-1 opacity-0 shadow-sm group-hover:opacity-100 motion-safe:transition-opacity"
+        onClick={(e) => e.stopPropagation()}>
+        {onView && (
+          <IconButton
+            clicked={() => onView(budget)}
+            size="sm"
+            ariaLabel="View budget">
+            <HiEye className="size-4" />
+          </IconButton>
+        )}
+        {onEdit && (
+          <IconButton
+            clicked={() => onEdit(budget)}
+            size="sm"
+            ariaLabel="Edit budget">
+            <HiPencil className="size-4" />
+          </IconButton>
+        )}
+        {onDelete && (
+          <IconButton
+            clicked={() => onDelete(budget)}
+            variant="danger"
+            size="sm"
+            ariaLabel="Delete budget">
+            <HiTrash className="size-4" />
+          </IconButton>
+        )}
+      </div>
     </ListItem>
   );
 }
