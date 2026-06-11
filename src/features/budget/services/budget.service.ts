@@ -34,7 +34,12 @@ const BUDGET_ITEMS_INCLUDE = {
   items: {
     include: {
       tag: {
-        select: { id: true, name: true, color: true },
+        select: {
+          id: true,
+          name: true,
+          color: true,
+          transactionType: true,
+        },
       },
       monthlyAmounts: true,
     },
@@ -122,6 +127,55 @@ function getTotalExpectedFromItems(items: IBudget["items"]): number {
       ),
     0,
   );
+}
+
+type ITransactionCategory = "EXPENSE" | "INCOME";
+
+type IPrismaBudgetItemWithTag = IPrismaBudgetItem & {
+  tag: { transactionType: string } | null;
+};
+
+function buildItemCategoryMap(
+  items: IPrismaBudgetItemWithTag[],
+): Map<string, ITransactionCategory> {
+  const map = new Map<string, ITransactionCategory>();
+  for (const item of items) {
+    const key = getItemMapKey(item.tagId, item.categoryType);
+    const category: ITransactionCategory =
+      item.tagId === null
+        ? ((item.categoryType as ITransactionCategory) ?? "EXPENSE")
+        : ((item.tag?.transactionType as ITransactionCategory) ?? "EXPENSE");
+    map.set(key, category);
+  }
+  return map;
+}
+
+function buildBudgetTotals(
+  entries: Array<{
+    expected: number;
+    actual: number;
+    category: ITransactionCategory;
+  }>,
+) {
+  const expenses = { expected: 0, actual: 0 };
+  const income = { expected: 0, actual: 0 };
+
+  for (const entry of entries) {
+    const bucket = entry.category === "INCOME" ? income : expenses;
+    bucket.expected += entry.expected;
+    bucket.actual += entry.actual;
+  }
+
+  const toCategoryTotals = (amounts: { expected: number; actual: number }) => ({
+    expected: amounts.expected.toString(),
+    actual: amounts.actual.toString(),
+    difference: (amounts.actual - amounts.expected).toString(),
+  });
+
+  return {
+    expenses: toCategoryTotals(expenses),
+    income: toCategoryTotals(income),
+  };
 }
 
 /**
@@ -386,6 +440,7 @@ export class BudgetService {
     }
 
     const budget = parseBudget(budgetData);
+    const itemCategoryMap = buildItemCategoryMap(budgetData.items);
 
     // Query ALL transactions in the budget date range with matching currency
     const transactions = await prisma.transaction.findMany({
@@ -549,9 +604,6 @@ export class BudgetService {
           }
         }
 
-        let monthTotalExpected = 0;
-        let monthTotalActual = 0;
-
         const items = budget.items.map((item) => {
           const ma = item.monthlyAmounts.find(
             (m) => m.year === year && m.month === month,
@@ -566,9 +618,6 @@ export class BudgetService {
           const difference = actual - expected;
           const percentage = expected > 0 ? (actual / expected) * 100 : 0;
 
-          monthTotalExpected += expected;
-          monthTotalActual += actual;
-
           return {
             tagId: item.tagId,
             categoryType: item.categoryType ?? undefined,
@@ -580,17 +629,22 @@ export class BudgetService {
           };
         });
 
-        const monthTotalDifference = monthTotalActual - monthTotalExpected;
+        const monthTotals = buildBudgetTotals(
+          items.map((item) => ({
+            expected: parseFloat(item.expected),
+            actual: parseFloat(item.actual),
+            category:
+              itemCategoryMap.get(
+                getItemMapKey(item.tagId, item.categoryType ?? null),
+              ) ?? "EXPENSE",
+          })),
+        );
 
         return BudgetMonthlyBreakdownSchema.parse({
           year,
           month,
           items,
-          totals: {
-            totalExpected: monthTotalExpected.toString(),
-            totalActual: monthTotalActual.toString(),
-            totalDifference: monthTotalDifference.toString(),
-          },
+          totals: monthTotals,
         });
       });
 
@@ -617,23 +671,25 @@ export class BudgetService {
       }
     }
 
-    // Calculate totals
-    const totalExpected = getTotalExpectedFromItems(budget.items);
-    const totalActual = parsedTransactions.reduce(
-      (sum, tx) => sum + parseFloat(tx.amount),
-      0,
+    const totals = buildBudgetTotals(
+      itemComparisons.map((comparison) => ({
+        expected: parseFloat(comparison.expected),
+        actual: parseFloat(comparison.actual),
+        category:
+          itemCategoryMap.get(
+            getItemMapKey(
+              comparison.item.tagId,
+              comparison.item.categoryType ?? null,
+            ),
+          ) ?? "EXPENSE",
+      })),
     );
-    const totalDifference = totalActual - totalExpected;
 
     return BudgetComparisonSchema.parse({
       budget,
       items: itemComparisons,
       alerts,
-      totals: {
-        totalExpected: totalExpected.toString(),
-        totalActual: totalActual.toString(),
-        totalDifference: totalDifference.toString(),
-      },
+      totals,
       monthlyBreakdown,
     });
   }

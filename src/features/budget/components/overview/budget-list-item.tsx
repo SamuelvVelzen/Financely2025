@@ -29,14 +29,15 @@ export function BudgetListItem({
   onDelete,
 }: IBudgetListItemProps) {
   const { highlightText } = useHighlightText();
+  const expenseTotals = totals?.expenses;
   const percentage =
-    totals && parseFloat(totals.totalExpected) > 0
-      ? (parseFloat(totals.totalActual) / parseFloat(totals.totalExpected)) *
-      100
+    expenseTotals && parseFloat(expenseTotals.expected) > 0
+      ? (parseFloat(expenseTotals.actual) / parseFloat(expenseTotals.expected)) *
+        100
       : 0;
 
-  const totalExpected = totals?.totalExpected
-    ? parseFloat(totals.totalExpected)
+  const totalExpected = expenseTotals
+    ? parseFloat(expenseTotals.expected)
     : budget.items.reduce(
       (sum, item) =>
         sum +
@@ -133,7 +134,7 @@ export function BudgetListItem({
             <span className="text-text-muted">
               Spent:{" "}
               <span className={cn("font-medium", getStatusColor(percentage))}>
-                {formatCurrency(totals.totalActual, budget.currency)}
+                {formatCurrency(totals.expenses.actual, budget.currency)}
               </span>
             </span>
             <span className={cn("font-semibold", getStatusColor(percentage))}>

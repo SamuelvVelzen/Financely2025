@@ -894,15 +894,22 @@ export const BudgetMonthlyItemComparisonSchema = z.object({
   transactions: z.array(TransactionSchema),
 });
 
+export const BudgetCategoryTotalsSchema = z.object({
+  expected: DecimalStringSchema,
+  actual: DecimalStringSchema,
+  difference: DecimalStringSchema,
+});
+
+export const BudgetTotalsSchema = z.object({
+  expenses: BudgetCategoryTotalsSchema,
+  income: BudgetCategoryTotalsSchema,
+});
+
 export const BudgetMonthlyBreakdownSchema = z.object({
   year: z.number(),
   month: z.number(),
   items: z.array(BudgetMonthlyItemComparisonSchema),
-  totals: z.object({
-    totalExpected: DecimalStringSchema,
-    totalActual: DecimalStringSchema,
-    totalDifference: DecimalStringSchema,
-  }),
+  totals: BudgetTotalsSchema,
 });
 
 export const BudgetAlertSchema = z.object({
@@ -918,11 +925,7 @@ export const BudgetComparisonSchema = z.object({
   budget: BudgetSchema,
   items: z.array(BudgetItemComparisonSchema),
   alerts: z.array(BudgetAlertSchema),
-  totals: z.object({
-    totalExpected: DecimalStringSchema,
-    totalActual: DecimalStringSchema,
-    totalDifference: DecimalStringSchema,
-  }),
+  totals: BudgetTotalsSchema,
   monthlyBreakdown: z.array(BudgetMonthlyBreakdownSchema),
 });
 
@@ -1164,6 +1167,8 @@ export type IBudgetMonthlyItemComparison = z.infer<
 export type IBudgetMonthlyBreakdown = z.infer<
   typeof BudgetMonthlyBreakdownSchema
 >;
+export type IBudgetCategoryTotals = z.infer<typeof BudgetCategoryTotalsSchema>;
+export type IBudgetTotals = z.infer<typeof BudgetTotalsSchema>;
 export type IBudgetAlert = z.infer<typeof BudgetAlertSchema>;
 export type IBudgetComparison = z.infer<typeof BudgetComparisonSchema>;
 export type IBudgetsOverviewResponse = z.infer<
