@@ -14,7 +14,12 @@ import { formatDate } from "@/features/util/date/date-helpers";
 import { useEffect, useMemo, useState } from "react";
 import { HiChevronRight } from "react-icons/hi";
 import { HiSquares2X2 } from "react-icons/hi2";
-import { BudgetStatusBadge, getStatusColor } from "./budget-status-badge";
+import {
+  BudgetStatusBadge,
+  getProgressBarColor,
+  getStatusColor,
+  type IBudgetCategoryType,
+} from "./budget-status-badge";
 
 type IDisplayItem = {
   id: string;
@@ -188,7 +193,10 @@ export function BudgetDetailTagsContainer({
     onTransactionClick?.(tx);
   };
 
-  const renderBudgetItem = (item: IDisplayItem) => {
+  const renderBudgetItem = (
+    item: IDisplayItem,
+    categoryType: IBudgetCategoryType,
+  ) => {
     const percentage = item.percentage;
     const displayTagName = getDisplayTagName(item);
     const tagColor = getTagColor(item);
@@ -232,7 +240,7 @@ export function BudgetDetailTagsContainer({
                 <div
                   className={cn(
                     "text-sm font-medium",
-                    getStatusColor(percentage),
+                    getStatusColor(percentage, categoryType),
                   )}>
                   {formatCurrency(item.actual, budget.currency)}
                 </div>
@@ -242,7 +250,7 @@ export function BudgetDetailTagsContainer({
                 <div
                   className={cn(
                     "text-sm font-medium",
-                    getStatusColor(percentage),
+                    getStatusColor(percentage, categoryType),
                   )}>
                   {formatCurrency(item.difference, budget.currency)}
                 </div>
@@ -252,16 +260,15 @@ export function BudgetDetailTagsContainer({
                   <div
                     className={cn(
                       "h-full transition-all",
-                      percentage < 80
-                        ? "bg-success"
-                        : percentage >= 80 && percentage <= 100
-                          ? "bg-warning"
-                          : "bg-danger",
+                      getProgressBarColor(percentage, categoryType),
                     )}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
                   />
                 </div>
-                <BudgetStatusBadge percentage={percentage} />
+                <BudgetStatusBadge
+                  percentage={percentage}
+                  categoryType={categoryType}
+                />
               </div>
               <div className="w-4 self-center">
                 {hasTransactions && (
@@ -290,7 +297,7 @@ export function BudgetDetailTagsContainer({
           <List
             data={groupedItems.expenseItems}
             getItemKey={(item) => item.id}>
-            {(item) => renderBudgetItem(item)}
+            {(item) => renderBudgetItem(item, "EXPENSE")}
           </List>
         </Accordion>
       )}
@@ -302,7 +309,7 @@ export function BudgetDetailTagsContainer({
           <List
             data={groupedItems.incomeItems}
             getItemKey={(item) => item.id}>
-            {(item) => renderBudgetItem(item)}
+            {(item) => renderBudgetItem(item, "INCOME")}
           </List>
         </Accordion>
       )}

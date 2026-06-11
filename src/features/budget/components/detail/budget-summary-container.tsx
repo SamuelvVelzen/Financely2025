@@ -107,6 +107,8 @@ export function BudgetSummaryContainer({
   const expectedRemaining = incomeExpected - expenseExpected;
   const actualRemaining = incomeActual - expenseActual;
 
+  const incomePercentage =
+    incomeExpected > 0 ? (incomeActual / incomeExpected) * 100 : 0;
   const expensePercentage =
     expenseExpected > 0 ? (expenseActual / expenseExpected) * 100 : 0;
 
@@ -126,7 +128,7 @@ export function BudgetSummaryContainer({
             actual={totals.income.actual}
             expected={totals.income.expected}
             currency={currency}
-            valueClassName="text-success"
+            valueClassName={getStatusColor(incomePercentage, "INCOME")}
             align="left"
           />
           <SummaryMetric
@@ -143,7 +145,7 @@ export function BudgetSummaryContainer({
             actual={totals.expenses.actual}
             expected={totals.expenses.expected}
             currency={currency}
-            valueClassName={getStatusColor(expensePercentage)}
+            valueClassName={getStatusColor(expensePercentage, "EXPENSE")}
             align="right"
           />
         </div>
@@ -164,7 +166,7 @@ export function BudgetSummaryContainer({
               actual={totals.income.actual}
               expected={totals.income.expected}
               currency={currency}
-              valueClassName="text-success"
+              valueClassName={getStatusColor(incomePercentage, "INCOME")}
               align="left"
             />
             <SummaryMetric
@@ -172,7 +174,7 @@ export function BudgetSummaryContainer({
               actual={totals.expenses.actual}
               expected={totals.expenses.expected}
               currency={currency}
-              valueClassName={getStatusColor(expensePercentage)}
+              valueClassName={getStatusColor(expensePercentage, "EXPENSE")}
               align="right"
             />
           </div>
