@@ -1,3 +1,4 @@
+import { resyncBudgetItemMonthlyAmounts } from "@/features/budget/utils/budget-form-transform";
 import {
   formatBudgetName,
   getCurrentMonthPreset,
@@ -83,6 +84,7 @@ export function BudgetPresetSelector({
     form.setValue("general.name", name);
     onNameChange?.(name);
     onPresetChange?.(newPreset, dates);
+    resyncBudgetItemMonthlyAmounts(form);
   };
 
   // Handle preset changes from RadioGroup
@@ -102,6 +104,7 @@ export function BudgetPresetSelector({
     form.setValue("general.name", name);
     onNameChange?.(name);
     onPresetChange?.("monthly", dates);
+    resyncBudgetItemMonthlyAmounts(form);
   };
 
   const handleYearChange = (year: number) => {
@@ -113,6 +116,7 @@ export function BudgetPresetSelector({
     form.setValue("general.name", name);
     onNameChange?.(name);
     onPresetChange?.(presetForName, dates);
+    resyncBudgetItemMonthlyAmounts(form);
   };
 
   // Trigger handlers when year/month changes for monthly/yearly presets
@@ -150,6 +154,7 @@ export function BudgetPresetSelector({
       form.setValue("general.name", name, { shouldValidate: false });
       onNameChange?.(name);
       onPresetChange?.("custom", dates);
+      resyncBudgetItemMonthlyAmounts(form);
     }
   };
 

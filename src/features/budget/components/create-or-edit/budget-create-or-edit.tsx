@@ -5,10 +5,10 @@ import {
   useCreateBudget,
   useUpdateBudget,
 } from "@/features/budget/hooks/useBudgets";
+import { getBudgetMonthsFromDateStrings } from "@/features/budget/utils/budget-form-transform";
 import {
   formatBudgetName,
   getCurrentYearPreset,
-  getMonthsInRange,
   type IBudgetPreset,
 } from "@/features/budget/utils/budget-presets";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
@@ -259,12 +259,6 @@ function formatLocalDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function parseLocalDate(dateStr: string): Date {
-  const datePart = dateStr.split("T")[0];
-  const [year, month, day] = datePart.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
 function extractTagIds(items: IBudgetItem[]): string[] {
   return items
     .map((item) => item.tagId)
@@ -364,9 +358,10 @@ function transformFormDataToApiInput(
 ): ICreateBudgetInput | IUpdateBudgetInput {
   const preset = data.general.preset as IBudgetPreset;
   const periodType: IBudgetPeriodType = preset;
-  const startDate = parseLocalDate(data.general.startDate);
-  const endDate = parseLocalDate(data.general.endDate);
-  const months = getMonthsInRange(startDate, endDate);
+  const months = getBudgetMonthsFromDateStrings(
+    data.general.startDate,
+    data.general.endDate,
+  );
 
   return {
     name: data.general.name,
@@ -378,15 +373,14 @@ function transformFormDataToApiInput(
       const categoryType =
         item.tagId === null ? item.categoryType ?? null : null;
       if (preset === "yearly-per-month") {
-        const monthlyAmounts = (item.monthlyAmounts ?? []).map((ma) => ({
-          year: ma.year,
-          month: ma.month,
-          expectedAmount: ma.expectedAmount,
-        }));
         return {
           tagId: item.tagId,
           categoryType,
-          monthlyAmounts,
+          monthlyAmounts: (item.monthlyAmounts ?? []).map((ma) => ({
+            year: ma.year,
+            month: ma.month,
+            expectedAmount: ma.expectedAmount,
+          })),
         };
       }
 
