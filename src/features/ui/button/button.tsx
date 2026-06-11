@@ -1,6 +1,6 @@
 import { Spinner } from "@/features/ui/loading/spinner";
 import { cn } from "@/features/util/cn";
-import { type ButtonHTMLAttributes, type ReactNode } from "react";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 export type IButtonSize = "xs" | "sm" | "md" | "lg";
 
@@ -38,19 +38,22 @@ export type IButtonProps = {
       }
   );
 
-export function Button({
-  buttonContent,
-  className,
-  clicked,
-  children,
-  disabled = false,
-  loading = false,
-  type = "button",
-  variant = "default",
-  size = "md",
-  ariaLabel,
-  ...rest
-}: IButtonProps) {
+export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Button(
+  {
+    buttonContent,
+    className,
+    clicked,
+    children,
+    disabled = false,
+    loading = false,
+    type = "button",
+    variant = "default",
+    size = "md",
+    ariaLabel,
+    ...rest
+  },
+  ref
+) {
   const isLoading = typeof loading === "boolean" ? loading : loading.isLoading;
 
   const variantClasses: { [key in IVariant]: string } = {
@@ -82,6 +85,7 @@ export function Button({
 
   return (
     <button
+      ref={ref}
       type={type}
       className={cn(
         baseClasses,
@@ -110,4 +114,4 @@ export function Button({
       {buttonContent ?? children}
     </button>
   );
-}
+});

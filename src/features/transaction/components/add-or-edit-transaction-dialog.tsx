@@ -388,6 +388,7 @@ export function AddOrEditTransactionDialog({
     <>
       <Dialog
         title={dialogTitle}
+        disableInitialFocus
         content={
           <Form<FormData>
             form={form}

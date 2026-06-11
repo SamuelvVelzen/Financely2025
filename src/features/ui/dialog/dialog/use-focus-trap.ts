@@ -1,9 +1,66 @@
-import type { KeyboardEvent } from "react";
+import type { IButtonProps } from "../../button/button";
+import type { KeyboardEvent, RefObject } from "react";
 import { useCallback, useEffect } from "react";
+
+const PRIMARY_ACTION_VARIANTS = new Set([
+  "primary",
+  "danger",
+  "success",
+  "warning",
+  "info",
+]);
+
+const FOCUSABLE_SELECTORS = [
+  "a[href]",
+  "button:not([disabled])",
+  "textarea:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(", ");
+
+function getFocusableElements(root: ParentNode): HTMLElement[] {
+  return Array.from(
+    root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS)
+  ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
+}
+
+function focusElementWithIndicator(element: HTMLElement): void {
+  try {
+    // focusVisible is in the FocusOptions spec but not yet in all TS libs
+    element.focus({ focusVisible: true } as FocusOptions);
+  } catch {
+    element.focus();
+  }
+}
+
+export function getPrimaryFooterButtonIndex(
+  footerButtons: IButtonProps[] | undefined
+): number {
+  if (!footerButtons?.length) return -1;
+
+  let lastPrimaryIndex = -1;
+  footerButtons.forEach((btn, index) => {
+    const variant = btn.variant ?? "default";
+    if (PRIMARY_ACTION_VARIANTS.has(variant) && !btn.disabled) {
+      lastPrimaryIndex = index;
+    }
+  });
+
+  if (lastPrimaryIndex >= 0) return lastPrimaryIndex;
+
+  for (let i = footerButtons.length - 1; i >= 0; i--) {
+    if (!footerButtons[i].disabled) return i;
+  }
+
+  return footerButtons.length - 1;
+}
 
 interface IUseFocusTrapOptions {
   enabled: boolean;
-  containerRef: React.RefObject<HTMLElement>;
+  containerRef: RefObject<HTMLElement | null>;
+  initialFocusRef?: RefObject<HTMLElement | null>;
+  disableInitialFocus?: boolean;
   onEscape?: () => void;
 }
 
@@ -14,29 +71,18 @@ interface IUseFocusTrapOptions {
 export function useFocusTrap({
   enabled,
   containerRef,
+  initialFocusRef,
+  disableInitialFocus = false,
   onEscape,
 }: IUseFocusTrapOptions) {
-  // Get all focusable elements within container
-  const getFocusableElements = useCallback(() => {
+  const getContainerFocusableElements = useCallback(() => {
     if (!containerRef.current || typeof window === "undefined") return [];
-
-    const focusableSelectors = [
-      "a[href]",
-      "button:not([disabled])",
-      "textarea:not([disabled])",
-      "input:not([disabled])",
-      "select:not([disabled])",
-      '[tabindex]:not([tabindex="-1"])',
-    ].join(", ");
-
-    return Array.from(
-      containerRef.current.querySelectorAll<HTMLElement>(focusableSelectors)
-    ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
+    return getFocusableElements(containerRef.current);
   }, [containerRef]);
 
   // Focus trap: handle Tab and Shift+Tab
   const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
+    (e: KeyboardEvent<HTMLElement>) => {
       if (e.key === "Escape" && onEscape) {
         e.preventDefault();
         e.stopPropagation();
@@ -46,7 +92,7 @@ export function useFocusTrap({
 
       if (e.key !== "Tab") return;
 
-      const focusableElements = getFocusableElements();
+      const focusableElements = getContainerFocusableElements();
       if (focusableElements.length === 0) {
         // No focusable elements, prevent tabbing out
         e.preventDefault();
@@ -89,39 +135,29 @@ export function useFocusTrap({
         }
       }
     },
-    [onEscape, getFocusableElements, containerRef]
+    [onEscape, getContainerFocusableElements, containerRef]
   );
 
-  // Focus first element when container opens
+  // Set initial focus when container opens via an explicit ref
   useEffect(() => {
-    if (!enabled || !containerRef.current || typeof window === "undefined")
-      return;
-
-    const focusableElements = getFocusableElements();
-
-    if (focusableElements.length === 0) {
-      // Focus container if no focusable elements
-      containerRef.current.focus();
+    if (
+      !enabled ||
+      disableInitialFocus ||
+      !initialFocusRef ||
+      typeof window === "undefined"
+    ) {
       return;
     }
 
-    // Filter out buttons in the header (close button)
-    const header = containerRef.current.querySelector("header");
-    const elementsOutsideHeader = focusableElements.filter((el) => {
-      return !header?.contains(el);
-    });
+    const timeoutId = setTimeout(() => {
+      const target = initialFocusRef.current;
+      if (target) {
+        focusElementWithIndicator(target);
+      }
+    }, 0);
 
-    // Focus first element outside header, or first element if none found
-    const elementToFocus =
-      elementsOutsideHeader.length > 0
-        ? elementsOutsideHeader[0]
-        : focusableElements[0];
-
-    // Small delay to ensure container is visible
-    setTimeout(() => {
-      elementToFocus.focus();
-    }, 100);
-  }, [enabled, getFocusableElements, containerRef]);
+    return () => clearTimeout(timeoutId);
+  }, [enabled, disableInitialFocus, initialFocusRef]);
 
   return { handleKeyDown };
 }

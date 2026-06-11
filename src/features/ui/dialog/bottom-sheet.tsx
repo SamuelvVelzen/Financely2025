@@ -13,13 +13,17 @@ import { HiX } from "react-icons/hi";
 import type { IButtonProps } from "../button/button";
 import { Button } from "../button/button";
 import { IconButton } from "../button/icon-button";
+import type { IDialogFocusProps } from "./dialog/types";
 import { useDialogStack } from "./dialog/use-dialog-stack";
-import { useFocusTrap } from "./dialog/use-focus-trap";
+import {
+  getPrimaryFooterButtonIndex,
+  useFocusTrap,
+} from "./dialog/use-focus-trap";
 
 export type ISnapPoint = "dismiss" | "partial" | "full";
 
 export interface IBottomSheetProps
-  extends PropsWithChildren, IPropsWithClassName {
+  extends PropsWithChildren, IPropsWithClassName, IDialogFocusProps {
   /** Controlled open state */
   open?: boolean;
   /** Callback when open state changes */
@@ -90,11 +94,14 @@ export function BottomSheet({
   showDragHandle = true,
   partialHeight = 50,
   initialSnapPoint = "full",
+  initialFocusRef,
+  disableInitialFocus = false,
 }: IBottomSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const primaryFooterButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
   const sheetIdRef = useRef<string>(
@@ -392,10 +399,22 @@ export function BottomSheet({
     }
   }, [snapPoint, snapPositions, isDragging]);
 
+  const primaryFooterButtonIndex = useMemo(
+    () => getPrimaryFooterButtonIndex(footerButtons),
+    [footerButtons]
+  );
+
+  const resolvedInitialFocusRef =
+    initialFocusRef ??
+    (primaryFooterButtonIndex >= 0 ? primaryFooterButtonRef : undefined);
+
   // Use focus trap hook
   const { handleKeyDown } = useFocusTrap({
     enabled: open,
     containerRef: sheetRef as React.RefObject<HTMLElement>,
+    initialFocusRef: resolvedInitialFocusRef,
+    disableInitialFocus:
+      disableInitialFocus || resolvedInitialFocusRef === undefined,
     onEscape: dismissible ? handleClose : undefined,
   });
 
@@ -551,6 +570,11 @@ export function BottomSheet({
               <Button
                 key={index}
                 {...buttonProps}
+                ref={
+                  index === primaryFooterButtonIndex
+                    ? primaryFooterButtonRef
+                    : undefined
+                }
               />
             ))}
           </footer>

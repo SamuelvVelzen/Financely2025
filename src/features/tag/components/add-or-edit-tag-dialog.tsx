@@ -225,6 +225,7 @@ export function AddOrEditTagDialog({
     <>
       <Dialog
         title={isEditMode ? "Edit Tag" : "Create Tag"}
+        disableInitialFocus
         content={
           <Form<FormData>
             form={form}

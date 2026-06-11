@@ -1,6 +1,13 @@
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, type RefObject } from "react";
 import type { IButtonProps } from "../../button/button";
+
+export interface IDialogFocusProps {
+  /** Element to focus when the dialog opens. Overrides the default primary footer button. */
+  initialFocusRef?: RefObject<HTMLElement | null>;
+  /** Skip auto-focus on open (e.g. form dialogs that call setFocus themselves). */
+  disableInitialFocus?: boolean;
+}
 
 /**
  * Dialog variant determines the layout and behavior
@@ -29,7 +36,7 @@ export interface IDialogEvents {
  * Base props for Dialog component
  */
 export interface IDialogProps
-  extends PropsWithChildren, IPropsWithClassName, IDialogEvents {
+  extends PropsWithChildren, IPropsWithClassName, IDialogEvents, IDialogFocusProps {
   /** Controlled open state */
   open?: boolean;
   /** Callback when open state changes */

@@ -4,6 +4,7 @@ import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
 import type { IDialogProps, IDialogStatus } from "./types";
+import { getPrimaryFooterButtonIndex, useFocusTrap } from "./use-focus-trap";
 
 /**
  * Dialog component provides a fully accessible modal dialog system using native <dialog>
@@ -44,9 +45,12 @@ export function Dialog({
   title,
   content,
   footerButtons,
+  initialFocusRef,
+  disableInitialFocus = false,
 }: IDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const primaryFooterButtonRef = useRef<HTMLButtonElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
   // Determine if controlled or uncontrolled
@@ -160,6 +164,24 @@ export function Dialog({
   // Determine content to display (content prop takes precedence over children)
   const bodyContent = content !== undefined ? content : children;
 
+  const primaryFooterButtonIndex = useMemo(
+    () => getPrimaryFooterButtonIndex(footerButtons),
+    [footerButtons]
+  );
+
+  const resolvedInitialFocusRef =
+    initialFocusRef ??
+    (primaryFooterButtonIndex >= 0 ? primaryFooterButtonRef : undefined);
+
+  const { handleKeyDown } = useFocusTrap({
+    enabled: open,
+    containerRef: dialogRef,
+    initialFocusRef: resolvedInitialFocusRef,
+    disableInitialFocus:
+      disableInitialFocus || resolvedInitialFocusRef === undefined,
+    onEscape: dismissible ? handleClose : undefined,
+  });
+
   const statusClasses: Record<IDialogStatus | "none", string> = {
     none: "",
     danger: "text-danger",
@@ -182,7 +204,8 @@ export function Dialog({
       style={style}
       onClick={handleDialogClick}
       onClose={handleDialogClose}
-      onCancel={handleCancel}>
+      onCancel={handleCancel}
+      onKeyDown={handleKeyDown}>
       {/* Header - Always rendered */}
       <header
         className={cn(
@@ -215,6 +238,11 @@ export function Dialog({
             <Button
               key={index}
               {...buttonProps}
+              ref={
+                index === primaryFooterButtonIndex
+                  ? primaryFooterButtonRef
+                  : undefined
+              }
             />
           ))}
         </footer>
