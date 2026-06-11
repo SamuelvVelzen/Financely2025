@@ -14,28 +14,20 @@ import { AddOrEditTransactionDialog } from "@/features/transaction/components/ad
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/features/ui/button/button";
-import { IconButton } from "@/features/ui/button/icon-button";
-import { LinkButton } from "@/features/ui/button/link-button";
+import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Loading } from "@/features/ui/loading";
-import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Tab } from "@/features/ui/tab/tab";
 import { TabContent } from "@/features/ui/tab/tab-content";
 import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
-import { Title } from "@/features/ui/typography/title";
 import { getBudgetPeriodViewLabel } from "@/features/budget/utils/budget-period-context";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import {
-  HiArrowLeft,
-  HiOutlineCurrencyEuro,
-  HiPencil,
-  HiTrash,
-} from "react-icons/hi2";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { HiOutlineCurrencyEuro } from "react-icons/hi2";
+import { BudgetDetailHeader } from "./budget-detail-header";
 import { BudgetDetailTagsContainer } from "./budget-detail-tags-container";
 import { BudgetSubscriptionsTab } from "./budget-subscriptions-tab";
 import { BudgetSummaryContainer } from "./budget-summary-container";
@@ -76,6 +68,8 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
   const [selectedTransaction, setSelectedTransaction] = useState<
     ITransaction | undefined
   >(undefined);
+  const expandedHeaderRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setExpandedHeaderElement] = useScrollPosition();
 
   const hasMultipleMonths =
     comparison && comparison.monthlyBreakdown.length > 1;
@@ -93,6 +87,12 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
     setSelectedMonthKey(null);
   }, [budgetId]);
 
+  useEffect(() => {
+    if (expandedHeaderRef.current) {
+      setExpandedHeaderElement(expandedHeaderRef.current);
+    }
+  }, [setExpandedHeaderElement]);
+
   const periodViewLabel = useMemo(() => {
     if (!comparison) return null;
 
@@ -102,6 +102,22 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
       monthLabels: MONTH_LABELS,
     });
   }, [comparison, selectedBreakdown]);
+
+  const selectedMonthLabel = useMemo(() => {
+    if (!selectedBreakdown) return null;
+    return `${MONTH_LABELS[selectedBreakdown.month - 1]} ${selectedBreakdown.year}`;
+  }, [selectedBreakdown]);
+
+  const monthOptions = useMemo(() => {
+    if (!comparison) return [];
+    return [
+      { value: "all", label: "All months (total)" },
+      ...comparison.monthlyBreakdown.map((mb) => ({
+        value: `${mb.year}-${mb.month}`,
+        label: `${MONTH_LABELS[mb.month - 1]} ${mb.year}`,
+      })),
+    ];
+  }, [comparison]);
 
   const handleBack = () => {
     navigate({
@@ -199,71 +215,21 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
 
   return (
     <>
-      <Container className="sticky top-0 z-10 bg-surface">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <IconButton
-              clicked={handleBack}
-              ariaLabel="Back to budgets">
-              <HiArrowLeft className="size-4" />
-            </IconButton>
-            <Title>{budget.name}</Title>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              clicked={handleEdit}>
-              <HiPencil className="size-4 mr-2" />
-              Edit
-            </Button>
-            <Button
-              variant="danger"
-              clicked={handleDeleteClick}>
-              <HiTrash className="size-4 mr-2" />
-              Delete
-            </Button>
-          </div>
-        </div>
+      <div ref={expandedHeaderRef} className="h-0" />
 
-        {(hasMultipleMonths || periodViewLabel) && (
-          <div className="mt-3">
-            {hasMultipleMonths && (
-              <div className="flex items-center gap-3">
-                <div className="max-w-xs flex-1">
-                  <SelectDropdown
-                    value={selectedMonthKey ?? "all"}
-                    onChange={(val) =>
-                      setSelectedMonthKey(
-                        val === "all" ? null : (val as string),
-                      )
-                    }
-                    options={[
-                      { value: "all", label: "All months (total)" },
-                      ...comparison.monthlyBreakdown.map((mb) => ({
-                        value: `${mb.year}-${mb.month}`,
-                        label: `${MONTH_LABELS[mb.month - 1]} ${mb.year}`,
-                      })),
-                    ]}
-                    clearable={false}
-                  />
-                </div>
-                {selectedMonthKey && (
-                  <LinkButton
-                    variant="primary"
-                    clicked={() => setSelectedMonthKey(null)}>
-                    All months
-                  </LinkButton>
-                )}
-              </div>
-            )}
-            {periodViewLabel && (
-              <p className="text-sm text-text-muted mt-1.5">
-                {periodViewLabel}
-              </p>
-            )}
-          </div>
-        )}
-      </Container>
+      <BudgetDetailHeader
+        budgetName={budget.name}
+        isSticky={isSticky}
+        onBack={handleBack}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+        hasMultipleMonths={!!hasMultipleMonths}
+        selectedMonthKey={selectedMonthKey}
+        selectedMonthLabel={selectedMonthLabel}
+        periodViewLabel={periodViewLabel}
+        monthOptions={monthOptions}
+        onMonthChange={setSelectedMonthKey}
+      />
 
       <Container>
         <Tabs defaultValue="details">
