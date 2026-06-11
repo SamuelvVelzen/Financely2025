@@ -470,18 +470,15 @@ function advanceCaretInfo(
     };
   }
 
-  const nextIntegerDigits = caretInfo.integerDigits + 1;
-  if (nextIntegerDigits >= totalIntegerDigits) {
-    return {
-      integerDigits: totalIntegerDigits,
-      fractionDigits: 0,
-      inFraction: true,
-    };
-  }
+  const nextIntegerDigits = Math.min(
+    caretInfo.integerDigits + 1,
+    totalIntegerDigits
+  );
 
   return {
-    ...caretInfo,
     integerDigits: nextIntegerDigits,
+    fractionDigits: 0,
+    inFraction: false,
   };
 }
 
