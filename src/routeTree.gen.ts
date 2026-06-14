@@ -27,6 +27,7 @@ import { Route as appWorkspaceIdSubscriptionsIndexRouteImport } from './routes/(
 import { Route as appWorkspaceIdBudgetsIndexRouteImport } from './routes/(app)/$workspaceId/budgets.index'
 import { Route as ApiV1WizardProgressRouteImport } from './routes/api/v1/wizard.progress'
 import { Route as ApiV1MeWorkspacesRouteImport } from './routes/api/v1/me.workspaces'
+import { Route as ApiV1MeSettingsRouteImport } from './routes/api/v1/me.settings'
 import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
 import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
 import { Route as ApiV1WorkspaceIdTransactionsRouteImport } from './routes/api/v1/$workspaceId/transactions'
@@ -62,6 +63,7 @@ import { Route as ApiV1WorkspaceIdMessagesMessageIdRouteImport } from './routes/
 import { Route as ApiV1WorkspaceIdBudgetsOverviewRouteImport } from './routes/api/v1/$workspaceId/budgets.overview'
 import { Route as ApiV1WorkspaceIdBudgetsBudgetIdRouteImport } from './routes/api/v1/$workspaceId/budgets.$budgetId'
 import { Route as appWorkspaceIdBudgetsBudgetIdEditRouteImport } from './routes/(app)/$workspaceId/budgets.$budgetId.edit'
+import { Route as ApiV1MeWorkspacesWorkspaceIdSettingsRouteImport } from './routes/api/v1/me.workspaces.$workspaceId.settings'
 import { Route as ApiV1WorkspaceIdTagsCsvMappingValidateRouteImport } from './routes/api/v1/$workspaceId/tags.csv-mapping.validate'
 import { Route as ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRouteImport } from './routes/api/v1/$workspaceId/subscriptions.dismissals.$dismissalId'
 import { Route as ApiV1WorkspaceIdSubscriptionsDetectDismissRouteImport } from './routes/api/v1/$workspaceId/subscriptions.detect.dismiss'
@@ -158,6 +160,11 @@ const ApiV1WizardProgressRoute = ApiV1WizardProgressRouteImport.update({
 const ApiV1MeWorkspacesRoute = ApiV1MeWorkspacesRouteImport.update({
   id: '/workspaces',
   path: '/workspaces',
+  getParentRoute: () => ApiV1MeRoute,
+} as any)
+const ApiV1MeSettingsRoute = ApiV1MeSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => ApiV1MeRoute,
 } as any)
 const ApiV1MeProfileRoute = ApiV1MeProfileRouteImport.update({
@@ -366,6 +373,12 @@ const appWorkspaceIdBudgetsBudgetIdEditRoute =
     path: '/budgets/$budgetId/edit',
     getParentRoute: () => appWorkspaceIdRouteRoute,
   } as any)
+const ApiV1MeWorkspacesWorkspaceIdSettingsRoute =
+  ApiV1MeWorkspacesWorkspaceIdSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => ApiV1MeWorkspacesWorkspaceIdRoute,
+  } as any)
 const ApiV1WorkspaceIdTagsCsvMappingValidateRoute =
   ApiV1WorkspaceIdTagsCsvMappingValidateRouteImport.update({
     id: '/validate',
@@ -419,6 +432,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
+  '/api/v1/me/settings': typeof ApiV1MeSettingsRoute
   '/api/v1/me/workspaces': typeof ApiV1MeWorkspacesRouteWithChildren
   '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
   '/$workspaceId/budgets': typeof appWorkspaceIdBudgetsIndexRoute
@@ -446,7 +460,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
   '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
-  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRoute
+  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRouteWithChildren
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
   '/$workspaceId/budgets/$budgetId': typeof appWorkspaceIdBudgetsBudgetIdIndexRoute
@@ -454,6 +468,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesByTo {
@@ -477,6 +492,7 @@ export interface FileRoutesByTo {
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
+  '/api/v1/me/settings': typeof ApiV1MeSettingsRoute
   '/api/v1/me/workspaces': typeof ApiV1MeWorkspacesRouteWithChildren
   '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
   '/$workspaceId/budgets': typeof appWorkspaceIdBudgetsIndexRoute
@@ -504,7 +520,7 @@ export interface FileRoutesByTo {
   '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
   '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
-  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRoute
+  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRouteWithChildren
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
   '/$workspaceId/budgets/$budgetId': typeof appWorkspaceIdBudgetsBudgetIdIndexRoute
@@ -512,6 +528,7 @@ export interface FileRoutesByTo {
   '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRoutesById {
@@ -538,6 +555,7 @@ export interface FileRoutesById {
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
+  '/api/v1/me/settings': typeof ApiV1MeSettingsRoute
   '/api/v1/me/workspaces': typeof ApiV1MeWorkspacesRouteWithChildren
   '/api/v1/wizard/progress': typeof ApiV1WizardProgressRoute
   '/(app)/$workspaceId/budgets/': typeof appWorkspaceIdBudgetsIndexRoute
@@ -565,7 +583,7 @@ export interface FileRoutesById {
   '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
   '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
-  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRoute
+  '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRouteWithChildren
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
   '/api/v1/wizard/$wizardId/progress': typeof ApiV1WizardWizardIdProgressRoute
   '/(app)/$workspaceId/budgets/$budgetId/': typeof appWorkspaceIdBudgetsBudgetIdIndexRoute
@@ -573,6 +591,7 @@ export interface FileRoutesById {
   '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
 }
 export interface FileRouteTypes {
@@ -599,6 +618,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
+    | '/api/v1/me/settings'
     | '/api/v1/me/workspaces'
     | '/api/v1/wizard/progress'
     | '/$workspaceId/budgets'
@@ -634,6 +654,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -657,6 +678,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
+    | '/api/v1/me/settings'
     | '/api/v1/me/workspaces'
     | '/api/v1/wizard/progress'
     | '/$workspaceId/budgets'
@@ -692,6 +714,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
   id:
     | '__root__'
@@ -717,6 +740,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
+    | '/api/v1/me/settings'
     | '/api/v1/me/workspaces'
     | '/api/v1/wizard/progress'
     | '/(app)/$workspaceId/budgets/'
@@ -752,6 +776,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
   fileRoutesById: FileRoutesById
 }
@@ -898,6 +923,13 @@ declare module '@tanstack/react-router' {
       path: '/workspaces'
       fullPath: '/api/v1/me/workspaces'
       preLoaderRoute: typeof ApiV1MeWorkspacesRouteImport
+      parentRoute: typeof ApiV1MeRoute
+    }
+    '/api/v1/me/settings': {
+      id: '/api/v1/me/settings'
+      path: '/settings'
+      fullPath: '/api/v1/me/settings'
+      preLoaderRoute: typeof ApiV1MeSettingsRouteImport
       parentRoute: typeof ApiV1MeRoute
     }
     '/api/v1/me/profile': {
@@ -1145,6 +1177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appWorkspaceIdBudgetsBudgetIdEditRouteImport
       parentRoute: typeof appWorkspaceIdRouteRoute
     }
+    '/api/v1/me/workspaces/$workspaceId/settings': {
+      id: '/api/v1/me/workspaces/$workspaceId/settings'
+      path: '/settings'
+      fullPath: '/api/v1/me/workspaces/$workspaceId/settings'
+      preLoaderRoute: typeof ApiV1MeWorkspacesWorkspaceIdSettingsRouteImport
+      parentRoute: typeof ApiV1MeWorkspacesWorkspaceIdRoute
+    }
     '/api/v1/$workspaceId/tags/csv-mapping/validate': {
       id: '/api/v1/$workspaceId/tags/csv-mapping/validate'
       path: '/validate'
@@ -1242,12 +1281,28 @@ const ApiV1MeAccountsRouteWithChildren = ApiV1MeAccountsRoute._addFileChildren(
   ApiV1MeAccountsRouteChildren,
 )
 
+interface ApiV1MeWorkspacesWorkspaceIdRouteChildren {
+  ApiV1MeWorkspacesWorkspaceIdSettingsRoute: typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
+}
+
+const ApiV1MeWorkspacesWorkspaceIdRouteChildren: ApiV1MeWorkspacesWorkspaceIdRouteChildren =
+  {
+    ApiV1MeWorkspacesWorkspaceIdSettingsRoute:
+      ApiV1MeWorkspacesWorkspaceIdSettingsRoute,
+  }
+
+const ApiV1MeWorkspacesWorkspaceIdRouteWithChildren =
+  ApiV1MeWorkspacesWorkspaceIdRoute._addFileChildren(
+    ApiV1MeWorkspacesWorkspaceIdRouteChildren,
+  )
+
 interface ApiV1MeWorkspacesRouteChildren {
-  ApiV1MeWorkspacesWorkspaceIdRoute: typeof ApiV1MeWorkspacesWorkspaceIdRoute
+  ApiV1MeWorkspacesWorkspaceIdRoute: typeof ApiV1MeWorkspacesWorkspaceIdRouteWithChildren
 }
 
 const ApiV1MeWorkspacesRouteChildren: ApiV1MeWorkspacesRouteChildren = {
-  ApiV1MeWorkspacesWorkspaceIdRoute: ApiV1MeWorkspacesWorkspaceIdRoute,
+  ApiV1MeWorkspacesWorkspaceIdRoute:
+    ApiV1MeWorkspacesWorkspaceIdRouteWithChildren,
 }
 
 const ApiV1MeWorkspacesRouteWithChildren =
@@ -1256,12 +1311,14 @@ const ApiV1MeWorkspacesRouteWithChildren =
 interface ApiV1MeRouteChildren {
   ApiV1MeAccountsRoute: typeof ApiV1MeAccountsRouteWithChildren
   ApiV1MeProfileRoute: typeof ApiV1MeProfileRoute
+  ApiV1MeSettingsRoute: typeof ApiV1MeSettingsRoute
   ApiV1MeWorkspacesRoute: typeof ApiV1MeWorkspacesRouteWithChildren
 }
 
 const ApiV1MeRouteChildren: ApiV1MeRouteChildren = {
   ApiV1MeAccountsRoute: ApiV1MeAccountsRouteWithChildren,
   ApiV1MeProfileRoute: ApiV1MeProfileRoute,
+  ApiV1MeSettingsRoute: ApiV1MeSettingsRoute,
   ApiV1MeWorkspacesRoute: ApiV1MeWorkspacesRouteWithChildren,
 }
 

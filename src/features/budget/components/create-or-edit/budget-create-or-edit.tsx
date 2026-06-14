@@ -1,4 +1,5 @@
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import {
   useBudget,
@@ -313,14 +314,14 @@ function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
   };
 }
 
-function getEmptyFormValues(): IBudgetFormData {
+function getEmptyFormValues(currency = DEFAULT_CURRENCY): IBudgetFormData {
   const preset = getCurrentYearPreset();
   return {
     general: {
       name: formatBudgetName("yearly-per-month", preset),
       startDate: formatLocalDate(preset.start),
       endDate: formatLocalDate(preset.end),
-      currency: DEFAULT_CURRENCY,
+      currency,
       preset: "yearly-per-month",
       year: preset.start.getFullYear(),
       month: preset.start.getMonth() + 1,
@@ -403,6 +404,7 @@ export function BudgetCreateOrEditPage({
 }: IBudgetCreateOrEditPageProps) {
   const navigate = useNavigate();
   const workspaceId = useActiveWorkspaceId();
+  const defaultCurrency = useDefaultCurrency(workspaceId);
   const workspaceRouteParam = workspaceIdToRouteParam(workspaceId);
   const isEditMode = !!budgetId;
   const { data: budget, isLoading: budgetLoading } = useBudget(budgetId ?? "");
@@ -415,7 +417,7 @@ export function BudgetCreateOrEditPage({
 
   const form = useFinForm<IBudgetFormData>({
     resolver: zodResolver(BudgetFormSchema),
-    defaultValues: getEmptyFormValues(),
+    defaultValues: getEmptyFormValues(defaultCurrency),
 
   });
 
@@ -450,9 +452,9 @@ export function BudgetCreateOrEditPage({
 
   useEffect(() => {
     if (!isEditMode) {
-      form.reset(getEmptyFormValues());
+      form.reset(getEmptyFormValues(defaultCurrency));
     }
-  }, [isEditMode, form]);
+  }, [isEditMode, form, defaultCurrency]);
 
   useEffect(() => {
     if (isEditMode && budget) {

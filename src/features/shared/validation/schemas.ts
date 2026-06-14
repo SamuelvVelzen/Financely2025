@@ -573,6 +573,34 @@ export const RenameWorkspaceBodySchema = z.object({
   name: z.string().min(1, "Name is required").max(100),
 });
 
+export const ThemeSchema = z.enum(["light", "dark", "system"]);
+
+export const UserSettingSchema = z.object({
+  id: z.string(),
+  defaultLanguage: z.string().nullable(),
+  defaultWorkspaceId: z.number().int().nullable(),
+  theme: ThemeSchema.nullable(),
+  createdAt: ISODateStringSchema,
+  updatedAt: ISODateStringSchema,
+});
+
+export const UpdateUserSettingInputSchema = z.object({
+  defaultLanguage: z.string().nullable().optional(),
+  defaultWorkspaceId: z.number().int().nullable().optional(),
+  theme: ThemeSchema.nullable().optional(),
+});
+
+export const WorkspaceSettingSchema = z.object({
+  workspaceId: z.number().int(),
+  defaultCurrency: CurrencySchema.nullable(),
+  createdAt: ISODateStringSchema,
+  updatedAt: ISODateStringSchema,
+});
+
+export const UpdateWorkspaceSettingInputSchema = z.object({
+  defaultCurrency: CurrencySchema.nullable().optional(),
+});
+
 /**
  * User Response schema (includes email and name from UserInfo)
  */
@@ -1079,6 +1107,16 @@ export type ITag = z.infer<typeof TagSchema>;
 export type ITagMetadata = z.infer<typeof TagMetadataSchema>;
 export type ITransaction = z.infer<typeof TransactionSchema>;
 export type IUser = z.infer<typeof UserSchema>;
+export type ITheme = z.infer<typeof ThemeSchema>;
+export type IUserSetting = z.infer<typeof UserSettingSchema>;
+export type IUpdateUserSettingInput = z.infer<
+  typeof UpdateUserSettingInputSchema
+>;
+export type IWorkspaceSummary = z.infer<typeof WorkspaceSummarySchema>;
+export type IWorkspaceSetting = z.infer<typeof WorkspaceSettingSchema>;
+export type IUpdateWorkspaceSettingInput = z.infer<
+  typeof UpdateWorkspaceSettingInputSchema
+>;
 export type ICreateTagInput = z.infer<typeof CreateTagInputSchema>;
 export type IUpdateTagInput = z.infer<typeof UpdateTagInputSchema>;
 export type IReorderTagsInput = z.infer<typeof ReorderTagsInputSchema>;

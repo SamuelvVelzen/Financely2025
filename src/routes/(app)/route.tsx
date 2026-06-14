@@ -5,6 +5,7 @@ import { MobileTopNav } from "@/features/ui/navigation/mobile-top-nav";
 import { Sidebar } from "@/features/ui/navigation/sidebar";
 import { SidebarProvider } from "@/features/ui/navigation/useSidebar";
 import { ThemeProvider } from "@/features/ui/ThemeProvider";
+import { UserSettingsSync } from "@/features/users/components/user-settings-sync";
 import { checkOnboardingComplete } from "@/features/transaction/components/wizard/onboarding/onboarding.server";
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
@@ -42,6 +43,7 @@ function AppLayout() {
   return (
     <div className="flex h-screen overflow-hidden">
       <ThemeProvider>
+        <UserSettingsSync />
         <SidebarProvider>
           <a
             href={`#${MAIN_CONTENT_ID}`}

@@ -33,16 +33,22 @@ type ICurrencySelectProps = Omit<
   ISelectDropdownProps,
   "options" | "children" | "placeholder"
 > &
-  IPropsWithClassName;
+  IPropsWithClassName & {
+    clearable?: boolean;
+  };
 
-export function CurrencySelect({ className, ...props }: ICurrencySelectProps) {
+export function CurrencySelect({
+  className,
+  clearable = false,
+  ...props
+}: ICurrencySelectProps) {
   return (
     <SelectDropdown
       {...(props as ISelectDropdownProps)}
       className={className}
       options={currencyOptions}
       placeholder="Select currency"
-      clearable={false}>
+      clearable={clearable}>
       {(option) => {
         const Icon =
           CURRENCY_ICONS[option.value as ICurrency] ?? PiCurrencyDollar;

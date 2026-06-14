@@ -9,6 +9,7 @@ import { AddOrEditWorkspaceDialog } from "@/features/workspace/components/add-or
 import { ACTIVE_WORKSPACE_STORAGE_KEY } from "@/features/workspace/constants";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { buildWorkspaceNavigateTarget } from "@/features/workspace/utils/workspace-navigate-target";
+import { markUserWorkspaceNavigation } from "@/features/workspace/utils/workspace-navigation-guard";
 import {
   parseWorkspaceIdParam,
   workspaceIdToUrlSegment,
@@ -58,16 +59,15 @@ export function WorkspaceSwitcher({
   const navigateToWorkspace = useCallback(
     (targetWorkspaceId: number) => {
       const nextSeg = workspaceIdToUrlSegment(targetWorkspaceId);
-      window.localStorage.setItem(ACTIVE_WORKSPACE_STORAGE_KEY, nextSeg);
       const target = buildWorkspaceNavigateTarget(pathname, targetWorkspaceId);
-      // #region agent log
-      fetch('http://127.0.0.1:7777/ingest/e8283802-7016-4e24-aa58-f03056da6757', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '79443d' }, body: JSON.stringify({ sessionId: '79443d', runId: 'post-fix', location: 'workspace-switcher.tsx:navigateToWorkspace', message: 'workspace switch navigate', data: { pathname, currentSegment, nextSeg, target, targetWorkspaceId }, timestamp: Date.now(), hypothesisId: 'B-C' }) }).catch(() => { });
-      // #endregion
       if (target) {
-        navigate({ to: target.to, params: target.params });
+        markUserWorkspaceNavigation();
+        navigate({ to: target.to, params: target.params, replace: true });
+      } else {
+        window.localStorage.setItem(ACTIVE_WORKSPACE_STORAGE_KEY, nextSeg);
       }
     },
-    [navigate, pathname, currentSegment],
+    [navigate, pathname],
   );
 
   const handleSelectWorkspace = useCallback(
@@ -76,6 +76,7 @@ export function WorkspaceSwitcher({
       if (parsed == null || workspaceId == null || parsed === workspaceId) {
         return;
       }
+      setIsOpen(false);
       navigateToWorkspace(parsed);
     },
     [workspaceId, navigateToWorkspace],

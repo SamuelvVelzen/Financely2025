@@ -144,6 +144,7 @@ model User {
   subscriptions   Subscription[]
   subscriptionDismissals SubscriptionDismissal[]
   wizardProgress  WizardProgress[]
+  userSetting     UserSetting?
 }
 
 // Financial workspace ("space"): isolated books per user (solo v1)
@@ -161,8 +162,30 @@ model Workspace {
   budgets                  Budget[]
   subscriptions            Subscription[]
   subscriptionDismissals   SubscriptionDismissal[]
+  settings                 WorkspaceSetting?
+  defaultForUserSettings   UserSetting[]
 
   @@index([userId])
+}
+
+model UserSetting {
+  id                 String     @id @default(cuid())
+  userId             String     @unique
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultLanguage    String?
+  defaultWorkspaceId Int?
+  defaultWorkspace   Workspace? @relation(fields: [defaultWorkspaceId], references: [id], onDelete: SetNull)
+  theme              String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model WorkspaceSetting {
+  workspaceId     Int       @id
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  defaultCurrency String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Transaction {

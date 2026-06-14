@@ -5,6 +5,8 @@ import { ChangeEmail } from "@/features/users/components/change-email";
 import { ChangePassword } from "@/features/users/components/change-password";
 import { ConnectedAccounts } from "@/features/users/components/connected-accounts";
 import { ProfileInformation } from "@/features/users/components/profile-information";
+import { UserPreferences } from "@/features/users/components/user-preferences";
+import { WorkspacePreferences } from "@/features/workspace/components/workspace-preferences";
 import { useConnectedAccounts } from "@/features/users/hooks/useConnectedAccounts";
 import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { createFileRoute } from "@tanstack/react-router";
@@ -72,6 +74,8 @@ function AccountPage() {
         profile && (
           <>
             <ProfileInformation />
+            <UserPreferences />
+            <WorkspacePreferences />
             <ConnectedAccounts />
             <ChangeEmail />
             <ChangePassword />

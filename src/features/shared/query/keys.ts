@@ -14,6 +14,9 @@ export const queryKeys = {
   me: () => ["me"] as const,
   myProfile: () => ["me", "profile"] as const,
   myAccounts: () => ["me", "accounts"] as const,
+  mySettings: () => ["me", "settings"] as const,
+  workspaceSettings: (workspaceId: number) =>
+    ["workspaces", workspaceId, "settings"] as const,
 
   // Tag queries
   tags: (

@@ -17,6 +17,8 @@ import {
   useUpdateExpense,
   useUpdateIncome,
 } from "@/features/transaction/hooks/useTransactions";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -71,7 +73,7 @@ const TransactionFormSchema = CreateTransactionInputSchema.omit({
 });
 
 type FormData = z.infer<typeof TransactionFormSchema>;
-const getEmptyFormValues = (): FormData => {
+const getEmptyFormValues = (currency: string): FormData => {
   // Default to today's date as date-only ISO
   const now = new Date();
   const dateOnly = isoToDateOnly(now.toISOString());
@@ -80,7 +82,7 @@ const getEmptyFormValues = (): FormData => {
   return {
     name: "",
     amount: "",
-    currency: "EUR",
+    currency,
     type: "EXPENSE",
     transactionDate: dateOnlyIso,
     paymentMethod: "OTHER",
@@ -110,11 +112,13 @@ export function AddOrEditTransactionDialog({
   const { mutate: updateExpense } = useUpdateExpense();
   const { mutate: updateIncome } = useUpdateIncome();
   const toast = useToast();
+  const workspaceId = useNavWorkspaceId();
+  const defaultCurrency = useDefaultCurrency(workspaceId);
 
   const formId = useId();
   const form = useFinForm<FormData>({
     resolver: zodResolver(TransactionFormSchema) as Resolver<FormData>,
-    defaultValues: getEmptyFormValues(),
+    defaultValues: getEmptyFormValues(defaultCurrency),
   });
   const hasUnsavedChanges = form.formState.isDirty;
   const transactionType = form.watch("type");
@@ -128,13 +132,13 @@ export function AddOrEditTransactionDialog({
   }, [form]);
 
   const resetFormToClosedState = () => {
-    form.reset(getEmptyFormValues());
+    form.reset(getEmptyFormValues(defaultCurrency));
     setDatePickerOpen(false);
     setShowAdvanced(false);
   };
 
   const resetFormForAnotherTransaction = () => {
-    form.reset(getEmptyFormValues());
+    form.reset(getEmptyFormValues(defaultCurrency));
     setHasTime(false);
     setDatePickerOpen(false);
     setShowAdvanced(false);
@@ -194,7 +198,7 @@ export function AddOrEditTransactionDialog({
         form.reset({
           name: "",
           amount: "",
-          currency: "EUR",
+          currency: defaultCurrency,
           type: "EXPENSE",
           transactionDate: dateOnlyIso,
           paymentMethod: "OTHER",
@@ -209,9 +213,9 @@ export function AddOrEditTransactionDialog({
       setHasTime(false);
       setDatePickerOpen(false);
       setShowAdvanced(false);
-      form.reset(getEmptyFormValues());
+      form.reset(getEmptyFormValues(defaultCurrency));
     }
-  }, [open, transaction?.id, form, focusFirstInput]);
+  }, [open, transaction?.id, form, focusFirstInput, defaultCurrency]);
 
   const handleToggleTime = () => {
     const currentValue = form.getValues("transactionDate");

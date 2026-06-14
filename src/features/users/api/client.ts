@@ -1,8 +1,19 @@
-import { apiDelete, apiGet } from "@/features/shared/api/client";
+import {
+  apiDelete,
+  apiGet,
+  apiPatch,
+  apiPost,
+  apiPut,
+} from "@/features/shared/api/client";
 import type {
   IConnectedAccountsResponse,
+  IUpdateUserSettingInput,
+  IUpdateWorkspaceSettingInput,
   IUserProfile,
   IUserResponse,
+  IUserSetting,
+  IWorkspaceSetting,
+  IWorkspaceSummary,
 } from "@/features/shared/validation/schemas";
 
 /**
@@ -38,4 +49,38 @@ export async function unlinkAccount(
   accountId: string
 ): Promise<{ success: boolean }> {
   return apiDelete<{ success: boolean }>(`/me/accounts/${accountId}`);
+}
+
+export async function getMySettings(): Promise<IUserSetting | null> {
+  return apiGet<IUserSetting | null>("/me/settings");
+}
+
+export async function updateMySettings(
+  data: IUpdateUserSettingInput,
+): Promise<IUserSetting> {
+  return apiPut<IUserSetting>("/me/settings", data);
+}
+
+export async function getWorkspaceSettings(
+  workspaceId: number,
+): Promise<IWorkspaceSetting | null> {
+  return apiGet<IWorkspaceSetting | null>(
+    `/me/workspaces/${workspaceId}/settings`,
+  );
+}
+
+export async function updateWorkspaceSettings(
+  workspaceId: number,
+  data: IUpdateWorkspaceSettingInput,
+): Promise<IWorkspaceSetting> {
+  return apiPatch<IWorkspaceSetting>(
+    `/me/workspaces/${workspaceId}/settings`,
+    data,
+  );
+}
+
+export async function createWorkspace(
+  name: string,
+): Promise<IWorkspaceSummary> {
+  return apiPost<IWorkspaceSummary>("/me/workspaces", { name });
 }

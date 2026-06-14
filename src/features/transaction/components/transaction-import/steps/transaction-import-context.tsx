@@ -23,6 +23,8 @@ import {
   useImportCsvTransactions,
   useTransformCsvRows,
 } from "../../../hooks/useCsvImport";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { BankProfileFactory } from "../../../services/bank.factory";
 import { getDefaultStrategyForBank } from "../../../services/csv-type-detection";
 
@@ -142,6 +144,8 @@ export function TransactionImportProvider({
   onClose,
 }: ITransactionImportProviderProps) {
   const [isPending, setIsPending] = useState(false);
+  const workspaceId = useActiveWorkspaceId();
+  const resolvedDefaultCurrency = useDefaultCurrency(workspaceId);
 
   const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
@@ -160,7 +164,7 @@ export function TransactionImportProvider({
   // Form for mapping step controls
   const mappingForm = useFinForm<MappingFormData>({
     defaultValues: {
-      defaultCurrency: "EUR",
+      defaultCurrency: resolvedDefaultCurrency,
       mappings: {},
     },
   });
@@ -196,10 +200,10 @@ export function TransactionImportProvider({
     setTransformResponse(null);
     setSelectedBank("DEFAULT");
     mappingForm.reset({
-      defaultCurrency: "EUR",
+      defaultCurrency: resolvedDefaultCurrency,
       mappings: {},
     });
-  }, [mappingForm]);
+  }, [mappingForm, resolvedDefaultCurrency]);
 
   const hasUnsavedChanges = useMemo(() => {
     const mappingHasValues = Object.values(mapping).some(Boolean);

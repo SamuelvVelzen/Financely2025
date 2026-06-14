@@ -6,11 +6,11 @@ import {
   useState,
 } from "react";
 
-type Theme = "light" | "dark" | "system";
+export type ITheme = "light" | "dark" | "system";
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: "light" | "dark") => void;
+  theme: ITheme;
+  setTheme: (theme: ITheme) => void;
   resolvedTheme: "light" | "dark";
 }
 
@@ -25,17 +25,17 @@ function getSystemTheme(): "light" | "dark" {
     : "light";
 }
 
-function getInitialTheme(): Theme {
+function getInitialTheme(): ITheme {
   if (typeof window === "undefined") return "system";
   const saved = localStorage.getItem(THEME_STORAGE_KEY);
-  if (saved === "light" || saved === "dark") {
+  if (saved === "light" || saved === "dark" || saved === "system") {
     return saved;
   }
   return "system";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [theme, setThemeState] = useState<ITheme>(getInitialTheme);
   const [mounted, setMounted] = useState(false);
   const [systemTheme, setSystemTheme] = useState<"light" | "dark">(() =>
     typeof window !== "undefined" ? getSystemTheme() : "light"
@@ -77,8 +77,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [theme, systemTheme, mounted]);
 
-  // Set theme and save to localStorage (only accepts light/dark)
-  const setTheme = useCallback((newTheme: "light" | "dark") => {
+  // Set theme and save to localStorage
+  const setTheme = useCallback((newTheme: ITheme) => {
     setThemeState(newTheme);
     if (typeof window !== "undefined") {
       localStorage.setItem(THEME_STORAGE_KEY, newTheme);
