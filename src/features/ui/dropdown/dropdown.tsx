@@ -28,7 +28,7 @@ type IDropdownFooterProps = {} & PropsWithChildren & IPropsWithClassName;
 
 function DropdownFooter({ children, className = "" }: IDropdownFooterProps) {
   return (
-    <div className={cn("flex gap-2 pt-2 border-t border-border", className)}>
+    <div className={cn("flex gap-2 border-t border-border", className)}>
       {children}
     </div>
   );
