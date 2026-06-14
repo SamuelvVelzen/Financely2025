@@ -68,6 +68,24 @@ export function RangeInput({
     return minRange + (percentage / 100) * (maxRange - minRange);
   };
 
+  const thumbSizePx = 16;
+
+  const getThumbLeft = (percentage: number) =>
+    `calc((100% - ${thumbSizePx}px) * ${percentage} / 100)`;
+
+  const getValueFromClientX = (clientX: number) => {
+    if (!sliderRef.current) return minRange;
+
+    const rect = sliderRef.current.getBoundingClientRect();
+    const x = clientX - rect.left - thumbSizePx / 2;
+    const effectiveWidth = rect.width - thumbSizePx;
+    const percentage = Math.max(
+      0,
+      Math.min(100, (x / effectiveWidth) * 100)
+    );
+    return Math.round(getValueFromPercentage(percentage));
+  };
+
   const handleMouseDown = (type: "min" | "max") => {
     setIsDragging(type);
   };
@@ -75,10 +93,7 @@ export function RangeInput({
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging || !sliderRef.current) return;
 
-    const rect = sliderRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    const newValue = Math.round(getValueFromPercentage(percentage));
+    const newValue = getValueFromClientX(e.clientX);
 
     if (isDragging === "min") {
       const clampedValue = Math.min(newValue, sliderMax - 1);
@@ -149,10 +164,7 @@ export function RangeInput({
   const handleSliderClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!sliderRef.current || isDragging) return;
 
-    const rect = sliderRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    const newValue = Math.round(getValueFromPercentage(percentage));
+    const newValue = getValueFromClientX(e.clientX);
 
     // Determine which handle is closer
     const minDist = Math.abs(newValue - sliderMin);
@@ -189,20 +201,25 @@ export function RangeInput({
               className="relative h-8 flex items-center cursor-pointer"
               onClick={handleSliderClick}>
               {/* Track */}
-              <div className="absolute w-full h-2 bg-surface-hover rounded-2xl"></div>
+              <div
+                className="absolute h-2 bg-surface-hover rounded-2xl"
+                style={{
+                  left: `${thumbSizePx / 2}px`,
+                  width: `calc(100% - ${thumbSizePx}px)`,
+                }}></div>
 
               {/* Active range */}
               <div
                 className="absolute h-2 bg-primary rounded-2xl"
                 style={{
-                  left: `${minPercentage}%`,
-                  width: `${maxPercentage - minPercentage}%`,
+                  left: `calc(${thumbSizePx / 2}px + (100% - ${thumbSizePx}px) * ${minPercentage} / 100)`,
+                  width: `calc((100% - ${thumbSizePx}px) * ${maxPercentage - minPercentage} / 100)`,
                 }}></div>
 
               {/* Min handle */}
               <div
                 className="absolute size-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
-                style={{ left: `calc(${minPercentage}% - 8px)` }}
+                style={{ left: getThumbLeft(minPercentage) }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   handleMouseDown("min");
@@ -211,7 +228,7 @@ export function RangeInput({
               {/* Max handle */}
               <div
                 className="absolute size-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
-                style={{ left: `calc(${maxPercentage}% - 8px)` }}
+                style={{ left: getThumbLeft(maxPercentage) }}
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   handleMouseDown("max");
