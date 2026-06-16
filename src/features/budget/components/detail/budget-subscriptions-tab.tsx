@@ -33,9 +33,7 @@ export function BudgetSubscriptionsTab({
   budget,
   onTransactionClick,
 }: IBudgetSubscriptionsTabProps) {
-  const { data: subscriptionsData, isLoading } = useSubscriptions({
-    active: true,
-  });
+  const { data: subscriptionsData, isLoading } = useSubscriptions();
 
   const [isDetectDialogOpen, setIsDetectDialogOpen] = useState(false);
 
@@ -53,7 +51,8 @@ export function BudgetSubscriptionsTab({
           return txDate >= budgetStart && txDate <= budgetEnd;
         });
         return { ...sub, transactionsInPeriod: txInPeriod };
-      });
+      })
+      .filter((sub) => sub.active || sub.transactionsInPeriod.length > 0);
   }, [subscriptionsData, budget.currency, budget.startDate, budget.endDate]);
 
   if (isLoading) {
@@ -164,6 +163,9 @@ function SubscriptionBudgetItem({
               ]
             }
           </Badge>
+          {!subscription.active && (
+            <Badge variant="warning">Paused</Badge>
+          )}
         </div>
 
         <Currency
