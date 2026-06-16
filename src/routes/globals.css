@@ -318,6 +318,12 @@ dialog::backdrop {
   background: transparent;
 }
 
+/* Toast host — full-viewport top-layer container; children handle pointer events */
+.toast-popover-host {
+  max-width: none;
+  max-height: none;
+}
+
 /* Popover backdrop - light dismiss visual feedback (optional) */
 [popover]::backdrop {
   background: transparent;

@@ -1,7 +1,20 @@
 import { cn } from "@/features/util/cn";
+import { useLayoutEffect, useRef } from "react";
 import { Toast } from "./toast";
 import { useToastContext } from "./toast-context";
 import type { IToastPosition } from "./types";
+
+/** Re-open so the host is placed on top of other top-layer elements (e.g. modals). */
+function showPopoverOnTop(element: HTMLElement) {
+  try {
+    if (element.matches(":popover-open")) {
+      element.hidePopover();
+    }
+    element.showPopover();
+  } catch {
+    // Popover API unsupported — fixed positioning + z-index fallback below.
+  }
+}
 
 const positionClasses: Record<IToastPosition, string> = {
   "top-left": "top-4 left-4 items-start flex-col",
@@ -15,6 +28,21 @@ const positionClasses: Record<IToastPosition, string> = {
 
 export function ToastContainer() {
   const { toasts, removeToast } = useToastContext();
+  const hostRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+
+    if (toasts.length === 0) {
+      if (host.matches(":popover-open")) {
+        host.hidePopover();
+      }
+      return;
+    }
+
+    showPopoverOnTop(host);
+  }, [toasts]);
 
   if (toasts.length === 0) {
     return null;
@@ -33,27 +61,40 @@ export function ToastContainer() {
   );
 
   return (
-    <>
+    <div
+      ref={hostRef}
+      popover="manual"
+      className={cn(
+        "toast-popover-host",
+        "fixed inset-0 pointer-events-none",
+        "m-0 p-0 border-0 bg-transparent overflow-visible",
+        "not-[:popover-open]:hidden",
+        // Fallback when Popover API is unavailable (e.g. bottom sheets)
+        "z-[200]"
+      )}
+      aria-live="polite"
+      aria-label="Notifications">
       {(
         Object.entries(toastsByPosition) as [IToastPosition, typeof toasts][]
       ).map(([position, positionToasts]) => (
         <div
           key={position}
           className={cn(
-            "fixed z-50 flex gap-2 max-h-[calc(100vh-2rem)] overflow-y-auto",
+            "fixed flex gap-2 max-h-[calc(100vh-2rem)] overflow-y-auto",
             positionClasses[position]
-          )}
-          aria-live="polite"
-          aria-label="Notifications">
+          )}>
           {positionToasts.map((toast) => (
-            <Toast
+            <div
               key={toast.id}
-              toast={toast}
-              onRemove={removeToast}
-            />
+              className="pointer-events-auto">
+              <Toast
+                toast={toast}
+                onRemove={removeToast}
+              />
+            </div>
           ))}
         </div>
       ))}
-    </>
+    </div>
   );
 }
