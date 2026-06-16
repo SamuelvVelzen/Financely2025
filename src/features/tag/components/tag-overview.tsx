@@ -283,7 +283,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
       key={index}
       type="button"
       onClick={() => handleCreateFromRecommended(recommendedTag)}
-      className="p-4 border border-border rounded-lg hover:bg-surface-hover transition-colors text-left group">
+      className="p-4 border cursor-pointer border-border rounded-lg hover:bg-surface-hover transition-colors text-left group">
       <div className="flex items-center gap-3">
         {recommendedTag.emoticon && (
           <span className="text-2xl">{recommendedTag.emoticon}</span>
