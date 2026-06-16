@@ -6,6 +6,7 @@ const LOCALE_CURRENCY_MAP: Record<string, ICurrency> = {
   "en-GB": "GBP",
   "en-CA": "CAD",
   "en-AU": "AUD",
+  "en-NL": "EUR",
   "nl-NL": "EUR",
   "nl-BE": "EUR",
   "de-DE": "EUR",
@@ -37,17 +38,17 @@ export function getBrowserLanguage(): string {
 export function getBrowserCurrency(): ICurrency {
   const locale = getBrowserLanguage();
   const direct = LOCALE_CURRENCY_MAP[locale];
+
   if (direct) {
     return direct;
   }
   const language = locale.split("-")[0] ?? "";
   const byLanguage = LOCALE_CURRENCY_MAP[language];
+
   if (byLanguage) {
     return byLanguage;
   }
-  if (language === "en") {
-    return "USD";
-  }
+
   return DEFAULT_CURRENCY;
 }
 
