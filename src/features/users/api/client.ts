@@ -84,3 +84,16 @@ export async function createWorkspace(
 ): Promise<IWorkspaceSummary> {
   return apiPost<IWorkspaceSummary>("/me/workspaces", { name });
 }
+
+export async function renameWorkspace(
+  workspaceId: number,
+  name: string,
+): Promise<IWorkspaceSummary> {
+  return apiPatch<IWorkspaceSummary>(`/me/workspaces/${workspaceId}`, { name });
+}
+
+export async function deleteWorkspace(
+  workspaceId: number,
+): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`/me/workspaces/${workspaceId}`);
+}

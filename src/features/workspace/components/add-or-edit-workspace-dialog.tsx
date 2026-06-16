@@ -9,7 +9,10 @@ import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { TextInput } from "@/features/ui/input/text-input";
 import { useToast } from "@/features/ui/toast";
-import { useCreateWorkspace } from "@/features/workspace/hooks/useWorkspaces";
+import {
+  useCreateWorkspace,
+  useRenameWorkspace,
+} from "@/features/workspace/hooks/useWorkspaces";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useId, useState } from "react";
 import { z } from "zod";
@@ -17,6 +20,7 @@ import { z } from "zod";
 type IAddOrEditWorkspaceDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  workspace?: IWorkspaceSummary;
   initialName?: string;
   onSuccess?: (created?: IWorkspaceSummary) => void;
 };
@@ -30,12 +34,15 @@ const getEmptyFormValues = (): IFormData => ({
 export function AddOrEditWorkspaceDialog({
   open,
   onOpenChange,
+  workspace,
   initialName,
   onSuccess,
 }: IAddOrEditWorkspaceDialogProps) {
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const isEditMode = workspace != null;
   const { mutate: createWorkspace } = useCreateWorkspace();
+  const { mutate: renameWorkspace } = useRenameWorkspace();
   const toast = useToast();
   const formId = useId();
 
@@ -82,18 +89,44 @@ export function AddOrEditWorkspaceDialog({
   useEffect(() => {
     if (open) {
       form.reset({
-        name: initialName || "",
+        name: workspace?.name || initialName || "",
       });
       focusFirstInput();
     } else {
       form.reset(getEmptyFormValues());
     }
-  }, [open, initialName, form, focusFirstInput]);
+  }, [open, workspace, initialName, form, focusFirstInput]);
 
   const processFormSubmit = async (data: IFormData) => {
     setPending(true);
+    const trimmedName = data.name.trim();
+
+    if (isEditMode && workspace) {
+      renameWorkspace(
+        { workspaceId: workspace.id, name: trimmedName },
+        {
+          onSuccess: (updated) => {
+            resetFormToClosedState();
+            onOpenChange(false);
+            setPending(false);
+            if (!isOfflineMutationPlaceholder(updated)) {
+              toast.success("Workspace updated successfully");
+              onSuccess?.(updated);
+            } else {
+              onSuccess?.();
+            }
+          },
+          onError: () => {
+            setPending(false);
+            toast.error("Failed to update workspace");
+          },
+        },
+      );
+      return;
+    }
+
     createWorkspace(
-      { name: data.name.trim() },
+      { name: trimmedName },
       {
         onSuccess: (created) => {
           resetFormToClosedState();
@@ -117,7 +150,7 @@ export function AddOrEditWorkspaceDialog({
   return (
     <>
       <Dialog
-        title="Create Workspace"
+        title={isEditMode ? "Edit Workspace" : "Create Workspace"}
         disableInitialFocus
         content={
           <Form<IFormData>
@@ -145,9 +178,9 @@ export function AddOrEditWorkspaceDialog({
             disabled: pending,
             loading: {
               isLoading: pending,
-              text: "Creating workspace",
+              text: isEditMode ? "Saving workspace" : "Creating workspace",
             },
-            buttonContent: "Create",
+            buttonContent: isEditMode ? "Save" : "Create",
           },
         ]}
         open={open}
