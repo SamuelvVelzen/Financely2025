@@ -74,6 +74,38 @@ function ReviewStepContent({
     return candidates.some((c) => c.errors.length > 0);
   }, [candidates]);
 
+  const reviewTableSearch = useMemo(
+    () => ({
+      placeholder: "Search by name, amount, status, type, tags...",
+      match: ({
+        item: candidate,
+        query,
+      }: {
+        item: (typeof candidates)[0];
+        query: string;
+      }) => {
+        const { data } = candidate;
+        const searchableValues = [
+          data.name,
+          data.amount,
+          data.currency,
+          data.type,
+          candidate.status,
+          candidate.primaryTagMetadata?.name,
+          ...candidate.tagsMetadata.map((tag) => tag.name),
+          ...candidate.errors.map((error) => error.message),
+        ];
+
+        return searchableValues.some((value) =>
+          String(value ?? "")
+            .toLowerCase()
+            .includes(query)
+        );
+      },
+    }),
+    []
+  );
+
   if (transformMutation.isPending) {
     return <div className="text-center py-8">Processing CSV...</div>;
   }
@@ -132,6 +164,7 @@ function ReviewStepContent({
         data={candidates}
         enablePagination={true}
         pageSize={20}
+        search={reviewTableSearch}
         onSelectAllValid={handleSelectAllValid}
         getItemValidity={(candidate) => candidate.status === "valid"}
         selectAllAlertText={(visibleCount, totalCount) => (

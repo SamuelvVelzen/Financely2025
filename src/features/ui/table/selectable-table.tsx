@@ -5,18 +5,20 @@ import { Alert } from "../alert/alert";
 import { LinkButton } from "../button/link-button";
 import { BodyCell } from "./body-cell";
 import { HeaderCell } from "./header-cell";
+import { TableSearchConfig } from "./hooks/use-table-search";
 import { ITableProps, Table } from "./table";
 
-export type ISelectableTableProps<T = unknown> = {
+export type ISelectableTableProps<T = unknown, TSearchContext = unknown> = {
   selectedRows: Set<number>;
   onSelectionChange: (selectedRows: Set<number>) => void;
   rowCount?: number;
   getRowIndex: ((row: React.ReactElement) => number) | ((item: T) => number);
-  headerCells: ITableProps<T>["headerCells"];
+  headerCells: ITableProps<T, TSearchContext>["headerCells"];
   data?: T[];
   enablePagination?: boolean;
   pageSize?: number;
   initialPage?: number;
+  search?: TableSearchConfig<T, TSearchContext>;
   children?: React.ReactNode | ((paginatedData: T[]) => React.ReactNode);
   // Gmail-style alert props
   onSelectAllValid?: () => void;
@@ -29,7 +31,7 @@ export type ISelectableTableProps<T = unknown> = {
   showSelectAllAlert?: boolean;
 } & IPropsWithClassName;
 
-export function SelectableTable<T = unknown>({
+export function SelectableTable<T = unknown, TSearchContext = unknown>({
   selectedRows,
   onSelectionChange,
   rowCount,
@@ -41,6 +43,7 @@ export function SelectableTable<T = unknown>({
   enablePagination,
   pageSize,
   initialPage,
+  search,
   onSelectAllValid,
   getItemValidity,
   selectAllAlertText,
@@ -324,7 +327,8 @@ export function SelectableTable<T = unknown>({
           data={data}
           enablePagination={enablePagination}
           pageSize={pageSize}
-          initialPage={initialPage}>
+          initialPage={initialPage}
+          search={search}>
           {(paginatedData: T[]) => {
             // Update both ref and state with current page data
             currentPageDataRef.current = paginatedData;
@@ -469,7 +473,8 @@ export function SelectableTable<T = unknown>({
       data={data}
       enablePagination={enablePagination}
       pageSize={pageSize}
-      initialPage={initialPage}>
+      initialPage={initialPage}
+      search={search}>
       {rowsWithCheckboxes}
     </Table>
   );

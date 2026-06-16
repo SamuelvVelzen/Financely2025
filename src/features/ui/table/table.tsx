@@ -1,11 +1,17 @@
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
+import {
+  TableSearchProvider,
+  useTableSearchContext,
+  useTableSearchFilteredData,
+} from "./context/table-search-context";
 import {
   TableSortProvider,
   useTableSortContext,
 } from "./context/table-sort-context";
 import { SortConfig } from "./hooks/use-table-sort";
+import { TableSearchConfig } from "./hooks/use-table-search";
 import { Pagination } from "./pagination/pagination";
 import {
   TablePaginationProvider,
@@ -14,6 +20,7 @@ import {
 import { TableBody } from "./table-body";
 import { TableHeader } from "./table-header";
 import { TableRow } from "./table-row";
+import { TableSearchBar } from "./table-search-bar";
 
 export type IBaseCellProps = {
   sticky?: boolean;
@@ -21,13 +28,14 @@ export type IBaseCellProps = {
   size?: "sm" | "md" | "lg";
 };
 
-export type ITableProps<T = unknown> = {
+export type ITableProps<T = unknown, TSearchContext = unknown> = {
   headerCells: React.ReactNode[];
   data?: T[];
   defaultSort?: SortConfig<T>;
   enablePagination?: boolean;
   pageSize?: number;
   initialPage?: number;
+  search?: TableSearchConfig<T, TSearchContext>;
   children?: React.ReactNode | ((sortedData: T[]) => React.ReactNode);
 } & IPropsWithClassName;
 
@@ -99,6 +107,23 @@ function TableContent<T>({
   );
 }
 
+function ResetPageOnSearchChange() {
+  const searchContext = useTableSearchContext();
+  const paginationContext = useTablePaginationContext();
+  const goToPage = paginationContext?.goToPage;
+  const debouncedQuery = searchContext?.debouncedQuery;
+
+  useEffect(() => {
+    if (!goToPage) {
+      return;
+    }
+
+    goToPage(1);
+  }, [debouncedQuery, goToPage]);
+
+  return null;
+}
+
 // Wrapper component that provides pagination based on sorted data length
 function TableWithPagination<T>({
   className,
@@ -121,6 +146,7 @@ function TableWithPagination<T>({
       totalItems={sortedDataLength}
       pageSize={pageSize}
       initialPage={initialPage}>
+      <ResetPageOnSearchChange />
       <TableContent
         className={className}
         headerCells={headerCells}>
@@ -130,7 +156,46 @@ function TableWithPagination<T>({
   );
 }
 
-export function Table<T = unknown>({
+function TableWithData<T, TSearchContext = unknown>({
+  className,
+  children,
+  headerCells,
+  data,
+  defaultSort,
+  enablePagination,
+  pageSize,
+  initialPage,
+}: Required<Pick<ITableProps<T, TSearchContext>, "data">> &
+  Omit<ITableProps<T, TSearchContext>, "data" | "search">) {
+  const filteredData = useTableSearchFilteredData<T>();
+  const dataForSort = filteredData ?? data;
+
+  const tableContent = enablePagination ? (
+    <TableWithPagination
+      className={className}
+      headerCells={headerCells}
+      pageSize={pageSize ?? 20}
+      initialPage={initialPage ?? 1}>
+      {children}
+    </TableWithPagination>
+  ) : (
+    <TableContent
+      className={className}
+      headerCells={headerCells}>
+      {children}
+    </TableContent>
+  );
+
+  return (
+    <TableSortProvider
+      data={dataForSort}
+      defaultSort={defaultSort}>
+      {tableContent}
+    </TableSortProvider>
+  );
+}
+
+export function Table<T = unknown, TSearchContext = unknown>({
   className,
   children,
   headerCells,
@@ -139,38 +204,37 @@ export function Table<T = unknown>({
   enablePagination = false,
   pageSize = 20,
   initialPage = 1,
-}: ITableProps<T>) {
+  search,
+}: ITableProps<T, TSearchContext>) {
   // If data is provided, wrap in providers
   if (data !== undefined) {
-    // If pagination is enabled, wrap with both sort and pagination providers
-    if (enablePagination) {
+    const table = (
+      <TableWithData
+        className={className}
+        headerCells={headerCells}
+        data={data}
+        defaultSort={defaultSort}
+        enablePagination={enablePagination}
+        pageSize={pageSize}
+        initialPage={initialPage}>
+        {children}
+      </TableWithData>
+    );
+
+    if (search) {
       return (
-        <TableSortProvider
-          data={data}
-          defaultSort={defaultSort}>
-          <TableWithPagination
-            className={className}
-            headerCells={headerCells}
-            pageSize={pageSize}
-            initialPage={initialPage}>
-            {children}
-          </TableWithPagination>
-        </TableSortProvider>
+        <div className="space-y-3">
+          <TableSearchProvider
+            data={data}
+            search={search}>
+            <TableSearchBar placeholder={search.placeholder} />
+            {table}
+          </TableSearchProvider>
+        </div>
       );
     }
 
-    // Otherwise, just wrap with sort provider
-    return (
-      <TableSortProvider
-        data={data}
-        defaultSort={defaultSort}>
-        <TableContent
-          className={className}
-          headerCells={headerCells}>
-          {children}
-        </TableContent>
-      </TableSortProvider>
-    );
+    return table;
   }
 
   // Otherwise, render without sorting/pagination context (backwards compatibility)
