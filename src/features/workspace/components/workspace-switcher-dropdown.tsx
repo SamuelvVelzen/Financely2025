@@ -21,16 +21,16 @@ import { HiChevronDown, HiPlus } from "react-icons/hi2";
 
 const MAX_WORKSPACES_ALLOWED = 5;
 
-type IWorkspaceSwitcherProps = {
+type IWorkspaceSwitcherDropdownProps = {
   className?: string;
   /** Hides visible label; keeps an accessible name for screen readers. */
   compact?: boolean;
 };
 
-export function WorkspaceSwitcher({
+export function WorkspaceSwitcherDropdown({
   className,
   compact = false,
-}: IWorkspaceSwitcherProps) {
+}: IWorkspaceSwitcherDropdownProps) {
   const { data: me } = useMe();
   const workspaceId = useNavWorkspaceId();
   const pathname = useRouterState({

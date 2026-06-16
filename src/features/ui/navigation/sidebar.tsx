@@ -4,7 +4,7 @@ import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
 import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
 import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
 import { cn } from "@/features/util/cn";
-import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
+import { WorkspaceSwitcherDropdown } from "@/features/workspace/components/workspace-switcher-dropdown";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { signOutFromApp } from "@/lib/auth-client";
@@ -64,7 +64,7 @@ export function Sidebar() {
       </div>
 
       {isExpanded ? (
-        <WorkspaceSwitcher className="mb-4 px-0.5" />
+        <WorkspaceSwitcherDropdown className="mb-4 px-0.5" />
       ) : null}
 
       {/* Main Navigation */}
