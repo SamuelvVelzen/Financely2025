@@ -5,6 +5,8 @@ import {
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
 import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
+import { TagRulesForTagSection } from "@/features/tag-rule/components/tag-rules-for-tag-section";
+import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -17,6 +19,7 @@ import { RadioItem } from "@/features/ui/radio/radio-item";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useId, useState } from "react";
+import { HiOutlineQueueList } from "react-icons/hi2";
 import { z } from "zod";
 
 type IAddOrEditTagDialog = {
@@ -25,6 +28,7 @@ type IAddOrEditTagDialog = {
   tag?: ITag;
   initialName?: string;
   initialValues?: Partial<FormData>;
+  showTagRules?: boolean;
   onSuccess?: (createdTag?: ITag) => void;
 };
 
@@ -44,12 +48,14 @@ export function AddOrEditTagDialog({
   tag,
   initialName,
   initialValues,
+  showTagRules = false,
   onSuccess,
 }: IAddOrEditTagDialog) {
   const [pendingAction, setPendingAction] = useState<
     null | "close" | "addAnother"
   >(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [isTagRulesVisible, setIsTagRulesVisible] = useState(false);
   const pending = pendingAction !== null;
   const isEditMode = !!tag;
   const { mutate: createTag } = useCreateTag();
@@ -101,6 +107,7 @@ export function AddOrEditTagDialog({
   // Reset form when dialog opens/closes or tag changes
   useEffect(() => {
     if (open) {
+      setIsTagRulesVisible(showTagRules);
       if (tag) {
         // Edit mode: populate form with existing tag data
         form.reset({
@@ -125,8 +132,9 @@ export function AddOrEditTagDialog({
     } else {
       // Reset form when dialog closes to ensure clean state
       form.reset(getEmptyFormValues());
+      setIsTagRulesVisible(false);
     }
-  }, [open, tag, initialName, initialValues, form, focusFirstInput]);
+  }, [open, tag, initialName, initialValues, showTagRules, form, focusFirstInput]);
 
   const processFormSubmit = async (
     data: FormData,
@@ -221,51 +229,90 @@ export function AddOrEditTagDialog({
     }
   };
 
+  const tagFormFields = (
+    <>
+      <RadioGroup
+        name="transactionType"
+        label="Type"
+        required
+        disabled={pending}
+        orientation="horizontal">
+        <RadioItem value="EXPENSE">Expense</RadioItem>
+        <RadioItem value="INCOME">Income</RadioItem>
+      </RadioGroup>
+      <TextInput
+        name="name"
+        label="Name"
+        disabled={pending}
+        required
+      />
+      <EmoticonInput
+        name="emoticon"
+        label="Emoticon"
+        placeholder="e.g., 🍔 or :food:"
+        disabled={pending}
+        hint="Optional emoji to represent this tag. Type :emoji: for autocomplete or click the button to browse."
+      />
+      <ColorInput
+        name="color"
+        label="Color"
+        disabled={pending}
+      />
+      <TextInput
+        name="description"
+        label="Description"
+        disabled={pending}
+      />
+    </>
+  );
+
   return (
     <>
       <Dialog
         title={isEditMode ? "Edit Tag" : "Create Tag"}
+        headerActions={
+          isEditMode ? (
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              disabled={pending}
+              clicked={() => setIsTagRulesVisible((visible) => !visible)}>
+              <HiOutlineQueueList className="size-4" />
+              {isTagRulesVisible ? "Hide tagging rules" : "Tagging rules"}
+            </Button>
+          ) : undefined
+        }
         disableInitialFocus
         content={
-          <Form<FormData>
-            form={form}
-            onSubmit={(data) => processFormSubmit(data, "close")}
-            id={formId}>
-            <div className="space-y-4">
-              <RadioGroup
-                name="transactionType"
-                label="Type"
-                required
-                disabled={pending}
-                orientation="horizontal">
-                <RadioItem value="EXPENSE">Expense</RadioItem>
-                <RadioItem value="INCOME">Income</RadioItem>
-              </RadioGroup>
-              <TextInput
-                name="name"
-                label="Name"
-                disabled={pending}
-                required
-              />
-              <EmoticonInput
-                name="emoticon"
-                label="Emoticon"
-                placeholder="e.g., 🍔 or :food:"
-                disabled={pending}
-                hint="Optional emoji to represent this tag. Type :emoji: for autocomplete or click the button to browse."
-              />
-              <ColorInput
-                name="color"
-                label="Color"
-                disabled={pending}
-              />
-              <TextInput
-                name="description"
-                label="Description"
-                disabled={pending}
-              />
+          isEditMode && tag ? (
+            <div
+              className={
+                isTagRulesVisible
+                  ? "grid grid-cols-1 lg:grid-cols-2 gap-6 items-start"
+                  : undefined
+              }>
+              <Form<FormData>
+                form={form}
+                onSubmit={(data) => processFormSubmit(data, "close")}
+                id={formId}>
+                <div className="space-y-4">{tagFormFields}</div>
+              </Form>
+              {isTagRulesVisible && (
+                <TagRulesForTagSection
+                  tag={tag}
+                  onClose={() => setIsTagRulesVisible(false)}
+                />
+              )}
             </div>
-          </Form>
+          ) : (
+            <Form<FormData>
+              form={form}
+              onSubmit={(data) => processFormSubmit(data, "close")}
+              id={formId}>
+              <div className="space-y-4">{tagFormFields}</div>
+            </Form>
+          )
         }
         footerButtons={[
           {
@@ -307,7 +354,7 @@ export function AddOrEditTagDialog({
         onOpenChange={handleDialogOpenChange}
         dismissible={!pending}
         variant="modal"
-        size="xl"
+        size={isEditMode && isTagRulesVisible ? "3/4" : "xl"}
       />
 
       <UnsavedChangesDialog

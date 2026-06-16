@@ -6,11 +6,14 @@ import {
   CurrencySchema,
   type ITransaction,
   TransactionTypeSchema,
+  type ITagSuggestions,
 } from "@/features/shared/validation/schemas";
 import type { ISubscriptionFrequency } from "@/features/subscription/config/frequencies";
 import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import { useSubscription } from "@/features/subscription/hooks/useSubscriptions";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
+import { matchTagRules } from "@/features/tag-rule/api/client";
+import { TagSuggestionHint } from "@/features/tag-rule/components/tag-suggestion-hint";
 import {
   useCreateExpense,
   useCreateIncome,
@@ -41,10 +44,11 @@ import {
 } from "@/features/util/date/dateisohelpers";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { parseISO } from "date-fns";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { type Resolver } from "react-hook-form";
 import { HiArrowPath, HiChevronDown, HiChevronUp } from "react-icons/hi2";
 import { z } from "zod";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
 
 type IAddOrEditTransactionDialog = {
   open: boolean;
@@ -105,6 +109,8 @@ export function AddOrEditTransactionDialog({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [hasTime, setHasTime] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [tagSuggestion, setTagSuggestion] = useState<ITagSuggestions | null>(null);
+  const userEditedTagsRef = useRef(false);
   const pending = pendingAction !== null;
   const isEditMode = !!transaction;
   const { mutate: createExpense } = useCreateExpense();
@@ -122,6 +128,10 @@ export function AddOrEditTransactionDialog({
   });
   const hasUnsavedChanges = form.formState.isDirty;
   const transactionType = form.watch("type");
+  const watchedName = form.watch("name");
+  const watchedDescription = form.watch("description");
+  const watchedPrimaryTagId = form.watch("primaryTagId");
+  const debouncedName = useDebouncedValue(watchedName, 300);
 
   const focusFirstInput = useCallback(() => {
     requestAnimationFrame(() => {
@@ -135,6 +145,8 @@ export function AddOrEditTransactionDialog({
     form.reset(getEmptyFormValues(defaultCurrency));
     setDatePickerOpen(false);
     setShowAdvanced(false);
+    setTagSuggestion(null);
+    userEditedTagsRef.current = false;
   };
 
   const resetFormForAnotherTransaction = () => {
@@ -142,6 +154,8 @@ export function AddOrEditTransactionDialog({
     setHasTime(false);
     setDatePickerOpen(false);
     setShowAdvanced(false);
+    setTagSuggestion(null);
+    userEditedTagsRef.current = false;
   };
 
   const closeDialog = () => {
@@ -213,9 +227,120 @@ export function AddOrEditTransactionDialog({
       setHasTime(false);
       setDatePickerOpen(false);
       setShowAdvanced(false);
+      setTagSuggestion(null);
+      userEditedTagsRef.current = false;
       form.reset(getEmptyFormValues(defaultCurrency));
     }
   }, [open, transaction?.id, form, focusFirstInput, defaultCurrency]);
+
+  useEffect(() => {
+    if (!open || isEditMode || userEditedTagsRef.current) {
+      return;
+    }
+
+    const trimmedName = debouncedName.trim();
+    if (!trimmedName || workspaceId == null) {
+      setTagSuggestion(null);
+      return;
+    }
+
+    const primaryTagId = form.getValues("primaryTagId");
+    const tagIds = form.getValues("tagIds") ?? [];
+    if (primaryTagId || tagIds.length > 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const result = await matchTagRules(workspaceId, {
+          name: trimmedName,
+          description: watchedDescription || null,
+          type: transactionType,
+        });
+
+        if (cancelled) {
+          return;
+        }
+
+        const { primaryTagId: suggestedPrimary, tagIds: suggestedTagIds } =
+          result.suggestions;
+
+        if (!suggestedPrimary && suggestedTagIds.length === 0) {
+          setTagSuggestion(null);
+          return;
+        }
+
+        const currentPrimary = form.getValues("primaryTagId");
+        const currentTags = form.getValues("tagIds") ?? [];
+        if (currentPrimary || currentTags.length > 0 || userEditedTagsRef.current) {
+          return;
+        }
+
+        const primaryMatch = result.matches.find(
+          (match) =>
+            match.tagId === suggestedPrimary &&
+            (match.applyAs === "PRIMARY" || match.applyAs === "BOTH"),
+        );
+
+        const suggestion: ITagSuggestions = {
+          primaryTagId: suggestedPrimary,
+          tagIds: suggestedTagIds,
+          suggested: true,
+          primaryRule: primaryMatch
+            ? {
+                ruleId: primaryMatch.ruleId,
+                ruleLabel: primaryMatch.ruleLabel,
+                source: primaryMatch.source,
+              }
+            : null,
+        };
+
+        if (suggestedPrimary) {
+          form.setValue("primaryTagId", suggestedPrimary, { shouldDirty: true });
+        }
+        if (suggestedTagIds.length > 0) {
+          form.setValue("tagIds", suggestedTagIds, { shouldDirty: true });
+        }
+        setTagSuggestion(suggestion);
+      } catch {
+        if (!cancelled) {
+          setTagSuggestion(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    debouncedName,
+    watchedDescription,
+    transactionType,
+    open,
+    isEditMode,
+    workspaceId,
+    form,
+  ]);
+
+  const handleTagFieldChange = () => {
+    userEditedTagsRef.current = true;
+  };
+
+  const handleRevertSuggestedTags = () => {
+    if (!tagSuggestion) {
+      return;
+    }
+
+    if (tagSuggestion.primaryTagId) {
+      form.setValue("primaryTagId", tagSuggestion.primaryTagId, {
+        shouldDirty: true,
+      });
+    }
+    form.setValue("tagIds", tagSuggestion.tagIds, { shouldDirty: true });
+    userEditedTagsRef.current = false;
+  };
 
   const handleToggleTime = () => {
     const currentValue = form.getValues("transactionDate");
@@ -452,6 +577,32 @@ export function AddOrEditTransactionDialog({
                 </Button>
               </div>
 
+              <Textarea
+                name="description"
+                label="Description"
+                disabled={pending}
+                rows={3}
+                placeholder="Add details..."
+              />
+
+              <div className="space-y-2">
+                <TagSuggestionHint
+                  tagSuggestions={tagSuggestion}
+                  currentPrimaryTagId={watchedPrimaryTagId}
+                  onRevert={handleRevertSuggestedTags}
+                />
+                <TagSelect
+                  name="primaryTagId"
+                  label="Primary Tag"
+                  multiple={false}
+                  placeholder="Select primary tag..."
+                  disabled={pending}
+                  transactionType={transactionType}
+                  hint="Used for budget, sorting and display"
+                  onValueChange={handleTagFieldChange}
+                />
+              </div>
+
               <button
                 type="button"
                 className="flex items-center gap-1 text-sm text-info hover:underline disabled:opacity-50 disabled:pointer-events-none"
@@ -474,22 +625,6 @@ export function AddOrEditTransactionDialog({
                     placeholder="Select payment method..."
                     disabled={pending}
                   />
-                  <Textarea
-                    name="description"
-                    label="Description"
-                    disabled={pending}
-                    rows={3}
-                    placeholder="Add details..."
-                  />
-                  <TagSelect
-                    name="primaryTagId"
-                    label="Primary Tag"
-                    multiple={false}
-                    placeholder="Select primary tag..."
-                    disabled={pending}
-                    transactionType={transactionType}
-                    hint="Used for budget, sorting and display"
-                  />
                   <TagSelect
                     name="tagIds"
                     label="Tags"
@@ -497,6 +632,7 @@ export function AddOrEditTransactionDialog({
                     placeholder="Select tags..."
                     disabled={pending}
                     transactionType={transactionType}
+                    onValueChange={handleTagFieldChange}
                   />
                 </div>
               )}

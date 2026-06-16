@@ -43,6 +43,7 @@ export function Dialog({
   style,
   onClose,
   title,
+  headerActions,
   content,
   footerButtons,
   initialFocusRef,
@@ -222,9 +223,12 @@ export function Dialog({
           </h2>
         </div>
 
-        <IconButton clicked={handleClose}>
-          <HiX className="size-5" />
-        </IconButton>
+        <div className="flex items-center gap-2 shrink-0">
+          {headerActions}
+          <IconButton clicked={handleClose}>
+            <HiX className="size-5" />
+          </IconButton>
+        </div>
       </header>
 
       <div className={"px-6 py-4 overflow-y-auto"}>{bodyContent}</div>

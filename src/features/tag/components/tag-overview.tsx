@@ -23,7 +23,7 @@ import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineTag, HiPlus } from "react-icons/hi2";
 import { AddOrEditTagDialog } from "./add-or-edit-tag-dialog";
 import { TagCsvImportDialog } from "./tag-csv-import-dialog";
@@ -90,6 +90,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<ITag | undefined>(undefined);
+  const [showTagRulesPanel, setShowTagRulesPanel] = useState(false);
   const [isReorderMode, setIsReorderMode] = useState(false);
 
   // Separate tags into two sections
@@ -149,13 +150,28 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
 
   const handleCreateTag = () => {
     setSelectedTag(undefined);
+    setShowTagRulesPanel(false);
     setIsTagDialogOpen(true);
   };
 
   const handleEditTag = (tag: ITag) => {
     setSelectedTag(tag);
+    setShowTagRulesPanel(false);
     setIsTagDialogOpen(true);
   };
+
+  const handleEditTagRules = (tag: ITag) => {
+    setSelectedTag(tag);
+    setShowTagRulesPanel(true);
+    setIsTagDialogOpen(true);
+  };
+
+  const handleSmartTaggingClick = useCallback(() => {
+    navigate({
+      to: "/$workspaceId/smart-tagging",
+      params: { workspaceId: workspaceRouteParam },
+    });
+  }, [navigate, workspaceRouteParam]);
 
   const handleDeleteClick = (tagId: string) => {
     setSelectedTag(tags.find((tag: ITag) => tag.id === tagId));
@@ -260,8 +276,9 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
       onCreateTag: handleCreateTag,
       onCsvImportClick: () => setIsCsvImportDialogOpen(true),
       onToggleReorder: () => setIsReorderMode((prev) => !prev),
+      onSmartTaggingClick: handleSmartTaggingClick,
     }),
-    [handleCreateTag]
+    [handleCreateTag, handleSmartTaggingClick],
   );
 
   const hasAnyTags = allTags.length > 0;
@@ -364,6 +381,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
                         searchQuery={debouncedSearchQuery}
                         draggable={isReorderMode}
                         onEdit={handleEditTag}
+                        onEditRules={handleEditTagRules}
                         onDelete={handleDeleteClick}
                         onOrderChange={(orderedIds) => {
                           handleSectionReorder(
@@ -419,6 +437,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
                         searchQuery={debouncedSearchQuery}
                         draggable={isReorderMode}
                         onEdit={handleEditTag}
+                        onEditRules={handleEditTagRules}
                         onDelete={handleDeleteClick}
                         onOrderChange={(orderedIds) => {
                           handleSectionReorder(
@@ -462,9 +481,11 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
           setIsTagDialogOpen(open);
           if (!open) {
             setRecommendedTagData(undefined);
+            setShowTagRulesPanel(false);
           }
         }}
         tag={selectedTag}
+        showTagRules={showTagRulesPanel}
         initialValues={
           recommendedTagData
             ? {

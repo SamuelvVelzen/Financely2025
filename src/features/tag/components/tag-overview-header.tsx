@@ -8,6 +8,7 @@ import { cn } from "@/features/util/cn";
 import {
   HiArrowDownTray,
   HiFunnel,
+  HiOutlineRectangleStack,
   HiOutlineTag,
   HiPlus,
 } from "react-icons/hi2";
@@ -19,6 +20,7 @@ export interface IActionHandlers {
   onCreateTag: () => void;
   onCsvImportClick: () => void;
   onToggleReorder: () => void;
+  onSmartTaggingClick: () => void;
 }
 
 export interface ITagOverviewHeaderProps {
@@ -50,6 +52,11 @@ function TagHeaderDropdown({
         icon={<HiArrowDownTray className="size-4" />}
         clicked={actions.onCsvImportClick}>
         Import from CSV
+      </DropdownItem>
+      <DropdownItem
+        icon={<HiOutlineRectangleStack className="size-4" />}
+        clicked={actions.onSmartTaggingClick}>
+        Smart tagging & presets
       </DropdownItem>
     </Dropdown>
   );

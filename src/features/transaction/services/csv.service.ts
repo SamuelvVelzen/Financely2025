@@ -8,6 +8,7 @@ import {
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
 import { TagService } from "@/features/tag/services/tag.service";
+import { TagRuleService } from "@/features/tag-rule/services/tag-rule.service";
 import { prisma } from "@/features/util/prisma";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import type { BankEnum } from "../config/banks";
@@ -1017,7 +1018,7 @@ export async function convertRowsToCandidates(
   );
 
   // Second pass: add tag metadata to candidates
-  return candidates.map((candidate) => {
+  const enrichedCandidates = candidates.map((candidate) => {
     // Populate primary tag metadata
     let primaryTagMetadata: {
       id?: string;
@@ -1091,6 +1092,51 @@ export async function convertRowsToCandidates(
           }
         }
       });
+    }
+
+    return {
+      ...candidate,
+      primaryTagMetadata,
+      tagsMetadata,
+      tagSuggestions: null,
+    };
+  });
+
+  await TagRuleService.attachSuggestionsToCandidates(
+    userId,
+    workspaceId,
+    enrichedCandidates,
+  );
+
+  return enrichedCandidates.map((candidate) => {
+    if (!candidate.tagSuggestions) {
+      return candidate;
+    }
+
+    let primaryTagMetadata = candidate.primaryTagMetadata;
+    const tagsMetadata = [...candidate.tagsMetadata];
+
+    if (
+      candidate.tagSuggestions.primaryTagId &&
+      !primaryTagMetadata
+    ) {
+      primaryTagMetadata = {
+        id: candidate.tagSuggestions.primaryTagId,
+        name: "",
+        color: null,
+        emoticon: null,
+      };
+    }
+
+    for (const tagId of candidate.tagSuggestions.tagIds) {
+      if (!tagsMetadata.some((meta) => meta.id === tagId)) {
+        tagsMetadata.push({
+          id: tagId,
+          name: "",
+          color: null,
+          emoticon: null,
+        });
+      }
     }
 
     return {

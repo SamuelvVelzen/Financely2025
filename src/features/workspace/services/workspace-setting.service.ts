@@ -15,6 +15,8 @@ import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 function mapWorkspaceSetting(row: {
   workspaceId: number;
   defaultCurrency: string | null;
+  smartTaggingEnabled: boolean;
+  historyLearningEnabled: boolean;
   createdAt: Date;
   updatedAt: Date;
 }): IWorkspaceSetting {
@@ -24,6 +26,8 @@ function mapWorkspaceSetting(row: {
       row.defaultCurrency && isSupportedCurrency(row.defaultCurrency)
         ? row.defaultCurrency
         : null,
+    smartTaggingEnabled: row.smartTaggingEnabled,
+    historyLearningEnabled: row.historyLearningEnabled,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   });
@@ -69,10 +73,18 @@ export class WorkspaceSettingService {
       create: {
         workspaceId,
         defaultCurrency: data.defaultCurrency ?? null,
+        smartTaggingEnabled: data.smartTaggingEnabled ?? true,
+        historyLearningEnabled: data.historyLearningEnabled ?? true,
       },
       update: {
         ...(data.defaultCurrency !== undefined && {
           defaultCurrency: data.defaultCurrency,
+        }),
+        ...(data.smartTaggingEnabled !== undefined && {
+          smartTaggingEnabled: data.smartTaggingEnabled,
+        }),
+        ...(data.historyLearningEnabled !== undefined && {
+          historyLearningEnabled: data.historyLearningEnabled,
         }),
       },
     });
@@ -86,6 +98,14 @@ export class WorkspaceSettingService {
   ): Promise<ICurrency> {
     const setting = await this.getWorkspaceSetting(userId, workspaceId);
     return resolveDefaultCurrencyFromSetting(setting);
+  }
+
+  static async resolveSmartTaggingEnabled(
+    userId: string,
+    workspaceId: IWorkspaceId,
+  ): Promise<boolean> {
+    const setting = await this.getWorkspaceSetting(userId, workspaceId);
+    return setting?.smartTaggingEnabled ?? true;
   }
 
   static seedDefaultCurrencyFromBrowser(): ICurrency {

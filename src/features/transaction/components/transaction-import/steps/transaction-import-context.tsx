@@ -109,7 +109,9 @@ export interface ITransactionImportContext {
   handleConfirmImport: () => Promise<void>;
   updateCandidate: (
     rowIndex: number,
-    updates: Partial<ICreateTransactionInput>
+    updates: Partial<ICreateTransactionInput> & {
+      tagSuggestions?: ICsvCandidateTransaction["tagSuggestions"];
+    },
   ) => void;
   resetAllState: () => void;
 
@@ -299,16 +301,26 @@ export function TransactionImportProvider({
   };
 
   const updateCandidate = useCallback(
-    (rowIndex: number, updates: Partial<ICreateTransactionInput>) => {
+    (
+      rowIndex: number,
+      updates: Partial<ICreateTransactionInput> & {
+        tagSuggestions?: ICsvCandidateTransaction["tagSuggestions"];
+      },
+    ) => {
+      const { tagSuggestions, ...dataUpdates } = updates;
       setCandidates((prev) =>
         prev.map((c) =>
           c.rowIndex === rowIndex
-            ? { ...c, data: { ...c.data, ...updates } }
-            : c
-        )
+            ? {
+                ...c,
+                ...(tagSuggestions !== undefined && { tagSuggestions }),
+                data: { ...c.data, ...dataUpdates },
+              }
+            : c,
+        ),
       );
     },
-    []
+    [],
   );
 
   const handleValidateMapping = async (goToStep: (step: IStep) => void) => {

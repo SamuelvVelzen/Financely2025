@@ -24,6 +24,12 @@ export const queryKeys = {
     params?: { q?: string; sort?: "name:asc" | "name:desc" },
   ) => ["tags", workspaceId, params] as const,
 
+  tagRules: (workspaceId: number) => ["tag-rules", workspaceId] as const,
+  tagRulePresets: (workspaceId: number) =>
+    ["tag-rules", workspaceId, "presets"] as const,
+  tagRuleDiscoveries: (workspaceId: number) =>
+    ["tag-rules", workspaceId, "discover"] as const,
+
   // Transaction queries
   transactions: (
     workspaceId: number,

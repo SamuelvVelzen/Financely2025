@@ -8,12 +8,13 @@ import {
   type ISortableListDragProps,
 } from "@/features/ui/list/sortable-list";
 import { SortableListItem } from "@/features/ui/list/sortable-list-item";
-import { HiPencil, HiTrash } from "react-icons/hi2";
+import { HiOutlineQueueList, HiPencil, HiTrash } from "react-icons/hi2";
 
 type ITagListProps = {
   data: ITag[];
   searchQuery?: string;
   onEdit?: (tag: ITag) => void;
+  onEditRules?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
   onOrderChange?: (orderedIds: (string | number)[]) => void;
   /** Whether dragging/reordering is enabled. Defaults to false. */
@@ -51,12 +52,16 @@ function TagListItemMain({
 function TagListItemActions({
   tag,
   onEdit,
+  onEditRules,
   onDelete,
 }: {
   tag: ITag;
   onEdit?: (tag: ITag) => void;
+  onEditRules?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
 }) {
+  const hasDropdownActions = onEditRules || onDelete;
+
   return (
     <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
       {onEdit && (
@@ -64,14 +69,23 @@ function TagListItemActions({
           <HiPencil className="size-4" />
         </IconButton>
       )}
-      {onDelete && (
+      {hasDropdownActions && (
         <Dropdown size="sm">
-          <DropdownItem
-            icon={<HiTrash className="size-4" />}
-            text="Delete"
-            clicked={() => onDelete(tag.id)}
-            className="text-danger hover:bg-danger/10"
-          />
+          {onEditRules && (
+            <DropdownItem
+              icon={<HiOutlineQueueList className="size-4" />}
+              text="Tagging rules"
+              clicked={() => onEditRules(tag)}
+            />
+          )}
+          {onDelete && (
+            <DropdownItem
+              icon={<HiTrash className="size-4" />}
+              text="Delete"
+              clicked={() => onDelete(tag.id)}
+              className="text-danger hover:bg-danger/10"
+            />
+          )}
         </Dropdown>
       )}
     </div>
@@ -82,17 +96,24 @@ function TagListItem({
   tag,
   searchQuery,
   onEdit,
+  onEditRules,
   onDelete,
 }: {
   tag: ITag;
   searchQuery?: string;
   onEdit?: (tag: ITag) => void;
+  onEditRules?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
 }) {
   return (
     <>
       <TagListItemMain tag={tag} searchQuery={searchQuery} />
-      <TagListItemActions tag={tag} onEdit={onEdit} onDelete={onDelete} />
+      <TagListItemActions
+        tag={tag}
+        onEdit={onEdit}
+        onEditRules={onEditRules}
+        onDelete={onDelete}
+      />
     </>
   );
 }
@@ -101,12 +122,14 @@ function DraggableTagListItem({
   tag,
   searchQuery,
   onEdit,
+  onEditRules,
   onDelete,
   dragProps,
 }: {
   tag: ITag;
   searchQuery?: string;
   onEdit?: (tag: ITag) => void;
+  onEditRules?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
   dragProps: ISortableListDragProps;
 }) {
@@ -123,7 +146,12 @@ function DraggableTagListItem({
       onDragEnd={dragProps.onDragEnd}
       onDrop={dragProps.onDrop}>
       <TagListItemMain tag={tag} searchQuery={searchQuery} />
-      <TagListItemActions tag={tag} onEdit={onEdit} onDelete={onDelete} />
+      <TagListItemActions
+        tag={tag}
+        onEdit={onEdit}
+        onEditRules={onEditRules}
+        onDelete={onDelete}
+      />
     </SortableListItem>
   );
 }
@@ -132,6 +160,7 @@ export function TagList({
   data,
   searchQuery,
   onEdit,
+  onEditRules,
   onDelete,
   onOrderChange,
   draggable = false,
@@ -149,6 +178,7 @@ export function TagList({
             tag={tag}
             searchQuery={searchQuery}
             onEdit={onEdit}
+            onEditRules={onEditRules}
             onDelete={onDelete}
             dragProps={dragProps}
           />
@@ -165,6 +195,7 @@ export function TagList({
             tag={tag}
             searchQuery={searchQuery}
             onEdit={onEdit}
+            onEditRules={onEditRules}
             onDelete={onDelete}
           />
         </SortableListItem>

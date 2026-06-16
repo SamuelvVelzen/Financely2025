@@ -1,5 +1,6 @@
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { TagSelectCell } from "@/features/tag/components/tag-select-cell";
+import { TagSuggestionHint } from "@/features/tag-rule/components/tag-suggestion-hint";
 import { DateSelectCell } from "@/features/transaction/components/date-select-cell";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
@@ -247,22 +248,37 @@ function ReviewStepContent({
                   />
                 </BodyCell>
                 <BodyCell>
-                  <TagSelectCell
-                    tagMetadata={
-                      candidate.primaryTagMetadata
-                        ? [candidate.primaryTagMetadata]
-                        : []
-                    }
-                    transactionType={candidate.data.type}
-                    value={candidate.data.primaryTagId ?? ""}
-                    onChange={(value) => {
-                      updateCandidate(candidate.rowIndex, {
-                        primaryTagId: (value as string) || null,
-                      });
-                    }}
-                    multiple={false}
-                    placeholder="Select primary tag..."
-                  />
+                  <div className="flex flex-col gap-1">
+                    <TagSuggestionHint
+                      tagSuggestions={candidate.tagSuggestions}
+                      currentPrimaryTagId={candidate.data.primaryTagId}
+                      onRevert={() => {
+                        if (!candidate.tagSuggestions?.primaryTagId) {
+                          return;
+                        }
+                        updateCandidate(candidate.rowIndex, {
+                          primaryTagId: candidate.tagSuggestions.primaryTagId,
+                          tagIds: candidate.tagSuggestions.tagIds,
+                        });
+                      }}
+                    />
+                    <TagSelectCell
+                      tagMetadata={
+                        candidate.primaryTagMetadata
+                          ? [candidate.primaryTagMetadata]
+                          : []
+                      }
+                      transactionType={candidate.data.type}
+                      value={candidate.data.primaryTagId ?? ""}
+                      onChange={(value) => {
+                        updateCandidate(candidate.rowIndex, {
+                          primaryTagId: (value as string) || null,
+                        });
+                      }}
+                      multiple={false}
+                      placeholder="Select primary tag..."
+                    />
+                  </div>
                 </BodyCell>
                 <BodyCell hidden={isTagsHidden}>
                   {(() => {

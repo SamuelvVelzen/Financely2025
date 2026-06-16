@@ -40,6 +40,29 @@ enum TimePrecision {
   DateOnly
 }
 
+enum TagRulePatternType {
+  KEYWORD
+  REGEX
+}
+
+enum TagRuleMatchField {
+  NAME
+  DESCRIPTION
+  BOTH
+}
+
+enum TagRuleApplyAs {
+  PRIMARY
+  TAG
+  BOTH
+}
+
+enum TagRuleSource {
+  USER
+  SYSTEM
+  LEARNED
+}
+
 // ----------
 // Models
 // ----------
@@ -145,6 +168,7 @@ model User {
   subscriptionDismissals SubscriptionDismissal[]
   wizardProgress  WizardProgress[]
   userSetting     UserSetting?
+  tagRules        TagRule[]
 }
 
 // Financial workspace ("space"): isolated books per user (solo v1)
@@ -164,6 +188,7 @@ model Workspace {
   subscriptionDismissals   SubscriptionDismissal[]
   settings                 WorkspaceSetting?
   defaultForUserSettings   UserSetting[]
+  tagRules                 TagRule[]
 
   @@index([userId])
 }
@@ -181,11 +206,13 @@ model UserSetting {
 }
 
 model WorkspaceSetting {
-  workspaceId     Int       @id
-  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  defaultCurrency String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  workspaceId            Int       @id
+  workspace              Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  defaultCurrency        String?
+  smartTaggingEnabled    Boolean   @default(true)
+  historyLearningEnabled Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 }
 
 model Transaction {
@@ -245,12 +272,38 @@ model Tag {
   transactions  Transaction[]
   primaryTransactions Transaction[] @relation("PrimaryTag")
   budgetItems   BudgetItem[]
+  tagRules      TagRule[]
 
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
   @@unique([workspaceId, name])
   @@index([workspaceId])
+}
+
+model TagRule {
+  id            String             @id @default(cuid())
+  userId        String
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId   Int
+  workspace     Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tagId         String
+  tag           Tag                @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  label         String?
+  keywords      String
+  pattern       String?
+  patternType   TagRulePatternType @default(KEYWORD)
+  matchField    TagRuleMatchField  @default(NAME)
+  applyAs       TagRuleApplyAs     @default(PRIMARY)
+  priority      Int                @default(0)
+  source        TagRuleSource      @default(USER)
+  enabled       Boolean            @default(true)
+
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([workspaceId, enabled])
 }
 
 model Message {

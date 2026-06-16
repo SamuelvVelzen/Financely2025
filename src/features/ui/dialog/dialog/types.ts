@@ -1,5 +1,5 @@
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren, type RefObject } from "react";
+import { PropsWithChildren, type ReactNode, type RefObject } from "react";
 import type { IButtonProps } from "../../button/button";
 
 export interface IDialogFocusProps {
@@ -58,6 +58,8 @@ export interface IDialogProps
   style?: React.CSSProperties;
   /** Title for header (string or ReactNode) */
   title: string;
+  /** Optional actions rendered in the header, before the close button */
+  headerActions?: ReactNode;
   /** Content for body (string or ReactNode). If not provided, children will be used */
   content?: string | React.ReactNode;
   /** Footer buttons (array of button props). Always rendered */

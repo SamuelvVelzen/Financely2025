@@ -22,6 +22,7 @@ import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as appWorkspaceIdTransactionsRouteImport } from './routes/(app)/$workspaceId/transactions'
 import { Route as appWorkspaceIdTagsRouteImport } from './routes/(app)/$workspaceId/tags'
+import { Route as appWorkspaceIdSmartTaggingRouteImport } from './routes/(app)/$workspaceId/smart-tagging'
 import { Route as appWorkspaceIdMessagesRouteImport } from './routes/(app)/$workspaceId/messages'
 import { Route as appWorkspaceIdSubscriptionsIndexRouteImport } from './routes/(app)/$workspaceId/subscriptions.index'
 import { Route as appWorkspaceIdBudgetsIndexRouteImport } from './routes/(app)/$workspaceId/budgets.index'
@@ -32,6 +33,7 @@ import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
 import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
 import { Route as ApiV1WorkspaceIdTransactionsRouteImport } from './routes/api/v1/$workspaceId/transactions'
 import { Route as ApiV1WorkspaceIdTagsRouteImport } from './routes/api/v1/$workspaceId/tags'
+import { Route as ApiV1WorkspaceIdTagRulesRouteImport } from './routes/api/v1/$workspaceId/tag-rules'
 import { Route as ApiV1WorkspaceIdSubscriptionsRouteImport } from './routes/api/v1/$workspaceId/subscriptions'
 import { Route as ApiV1WorkspaceIdMessagesRouteImport } from './routes/api/v1/$workspaceId/messages'
 import { Route as ApiV1WorkspaceIdBudgetsRouteImport } from './routes/api/v1/$workspaceId/budgets'
@@ -54,6 +56,11 @@ import { Route as ApiV1WorkspaceIdTagsCsvMappingRouteImport } from './routes/api
 import { Route as ApiV1WorkspaceIdTagsCsvImportRouteImport } from './routes/api/v1/$workspaceId/tags.csv-import'
 import { Route as ApiV1WorkspaceIdTagsBulkRouteImport } from './routes/api/v1/$workspaceId/tags.bulk'
 import { Route as ApiV1WorkspaceIdTagsTagIdRouteImport } from './routes/api/v1/$workspaceId/tags.$tagId'
+import { Route as ApiV1WorkspaceIdTagRulesPresetsRouteImport } from './routes/api/v1/$workspaceId/tag-rules.presets'
+import { Route as ApiV1WorkspaceIdTagRulesMatchRouteImport } from './routes/api/v1/$workspaceId/tag-rules.match'
+import { Route as ApiV1WorkspaceIdTagRulesEnablePresetsRouteImport } from './routes/api/v1/$workspaceId/tag-rules.enable-presets'
+import { Route as ApiV1WorkspaceIdTagRulesDiscoverRouteImport } from './routes/api/v1/$workspaceId/tag-rules.discover'
+import { Route as ApiV1WorkspaceIdTagRulesRuleIdRouteImport } from './routes/api/v1/$workspaceId/tag-rules.$ruleId'
 import { Route as ApiV1WorkspaceIdSubscriptionsDismissalsRouteImport } from './routes/api/v1/$workspaceId/subscriptions.dismissals'
 import { Route as ApiV1WorkspaceIdSubscriptionsDetectRouteImport } from './routes/api/v1/$workspaceId/subscriptions.detect'
 import { Route as ApiV1WorkspaceIdSubscriptionsSubscriptionIdRouteImport } from './routes/api/v1/$workspaceId/subscriptions.$subscriptionId'
@@ -135,6 +142,12 @@ const appWorkspaceIdTagsRoute = appWorkspaceIdTagsRouteImport.update({
   path: '/tags',
   getParentRoute: () => appWorkspaceIdRouteRoute,
 } as any)
+const appWorkspaceIdSmartTaggingRoute =
+  appWorkspaceIdSmartTaggingRouteImport.update({
+    id: '/smart-tagging',
+    path: '/smart-tagging',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
 const appWorkspaceIdMessagesRoute = appWorkspaceIdMessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
@@ -188,6 +201,12 @@ const ApiV1WorkspaceIdTagsRoute = ApiV1WorkspaceIdTagsRouteImport.update({
   path: '/api/v1/$workspaceId/tags',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1WorkspaceIdTagRulesRoute =
+  ApiV1WorkspaceIdTagRulesRouteImport.update({
+    id: '/api/v1/$workspaceId/tag-rules',
+    path: '/api/v1/$workspaceId/tag-rules',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiV1WorkspaceIdSubscriptionsRoute =
   ApiV1WorkspaceIdSubscriptionsRouteImport.update({
     id: '/api/v1/$workspaceId/subscriptions',
@@ -319,6 +338,36 @@ const ApiV1WorkspaceIdTagsTagIdRoute =
     path: '/$tagId',
     getParentRoute: () => ApiV1WorkspaceIdTagsRoute,
   } as any)
+const ApiV1WorkspaceIdTagRulesPresetsRoute =
+  ApiV1WorkspaceIdTagRulesPresetsRouteImport.update({
+    id: '/presets',
+    path: '/presets',
+    getParentRoute: () => ApiV1WorkspaceIdTagRulesRoute,
+  } as any)
+const ApiV1WorkspaceIdTagRulesMatchRoute =
+  ApiV1WorkspaceIdTagRulesMatchRouteImport.update({
+    id: '/match',
+    path: '/match',
+    getParentRoute: () => ApiV1WorkspaceIdTagRulesRoute,
+  } as any)
+const ApiV1WorkspaceIdTagRulesEnablePresetsRoute =
+  ApiV1WorkspaceIdTagRulesEnablePresetsRouteImport.update({
+    id: '/enable-presets',
+    path: '/enable-presets',
+    getParentRoute: () => ApiV1WorkspaceIdTagRulesRoute,
+  } as any)
+const ApiV1WorkspaceIdTagRulesDiscoverRoute =
+  ApiV1WorkspaceIdTagRulesDiscoverRouteImport.update({
+    id: '/discover',
+    path: '/discover',
+    getParentRoute: () => ApiV1WorkspaceIdTagRulesRoute,
+  } as any)
+const ApiV1WorkspaceIdTagRulesRuleIdRoute =
+  ApiV1WorkspaceIdTagRulesRuleIdRouteImport.update({
+    id: '/$ruleId',
+    path: '/$ruleId',
+    getParentRoute: () => ApiV1WorkspaceIdTagRulesRoute,
+  } as any)
 const ApiV1WorkspaceIdSubscriptionsDismissalsRoute =
   ApiV1WorkspaceIdSubscriptionsDismissalsRouteImport.update({
     id: '/dismissals',
@@ -419,6 +468,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof appOnboardingRoute
   '/': typeof appIndexRoute
   '/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
   '/$workspaceId/tags': typeof appWorkspaceIdTagsRoute
   '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -428,6 +478,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
   '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
+  '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
@@ -446,6 +497,11 @@ export interface FileRoutesByFullPath {
   '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
   '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
   '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
+  '/api/v1/$workspaceId/tag-rules/$ruleId': typeof ApiV1WorkspaceIdTagRulesRuleIdRoute
+  '/api/v1/$workspaceId/tag-rules/discover': typeof ApiV1WorkspaceIdTagRulesDiscoverRoute
+  '/api/v1/$workspaceId/tag-rules/enable-presets': typeof ApiV1WorkspaceIdTagRulesEnablePresetsRoute
+  '/api/v1/$workspaceId/tag-rules/match': typeof ApiV1WorkspaceIdTagRulesMatchRoute
+  '/api/v1/$workspaceId/tag-rules/presets': typeof ApiV1WorkspaceIdTagRulesPresetsRoute
   '/api/v1/$workspaceId/tags/$tagId': typeof ApiV1WorkspaceIdTagsTagIdRoute
   '/api/v1/$workspaceId/tags/bulk': typeof ApiV1WorkspaceIdTagsBulkRoute
   '/api/v1/$workspaceId/tags/csv-import': typeof ApiV1WorkspaceIdTagsCsvImportRoute
@@ -479,6 +535,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof appOnboardingRoute
   '/': typeof appIndexRoute
   '/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
   '/$workspaceId/tags': typeof appWorkspaceIdTagsRoute
   '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -488,6 +545,7 @@ export interface FileRoutesByTo {
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
   '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
+  '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
@@ -506,6 +564,11 @@ export interface FileRoutesByTo {
   '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
   '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
   '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
+  '/api/v1/$workspaceId/tag-rules/$ruleId': typeof ApiV1WorkspaceIdTagRulesRuleIdRoute
+  '/api/v1/$workspaceId/tag-rules/discover': typeof ApiV1WorkspaceIdTagRulesDiscoverRoute
+  '/api/v1/$workspaceId/tag-rules/enable-presets': typeof ApiV1WorkspaceIdTagRulesEnablePresetsRoute
+  '/api/v1/$workspaceId/tag-rules/match': typeof ApiV1WorkspaceIdTagRulesMatchRoute
+  '/api/v1/$workspaceId/tag-rules/presets': typeof ApiV1WorkspaceIdTagRulesPresetsRoute
   '/api/v1/$workspaceId/tags/$tagId': typeof ApiV1WorkspaceIdTagsTagIdRoute
   '/api/v1/$workspaceId/tags/bulk': typeof ApiV1WorkspaceIdTagsBulkRoute
   '/api/v1/$workspaceId/tags/csv-import': typeof ApiV1WorkspaceIdTagsCsvImportRoute
@@ -542,6 +605,7 @@ export interface FileRoutesById {
   '/(app)/onboarding': typeof appOnboardingRoute
   '/(app)/': typeof appIndexRoute
   '/(app)/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/(app)/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
   '/(app)/$workspaceId/tags': typeof appWorkspaceIdTagsRoute
   '/(app)/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -551,6 +615,7 @@ export interface FileRoutesById {
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
   '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
+  '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
@@ -569,6 +634,11 @@ export interface FileRoutesById {
   '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
   '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
   '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
+  '/api/v1/$workspaceId/tag-rules/$ruleId': typeof ApiV1WorkspaceIdTagRulesRuleIdRoute
+  '/api/v1/$workspaceId/tag-rules/discover': typeof ApiV1WorkspaceIdTagRulesDiscoverRoute
+  '/api/v1/$workspaceId/tag-rules/enable-presets': typeof ApiV1WorkspaceIdTagRulesEnablePresetsRoute
+  '/api/v1/$workspaceId/tag-rules/match': typeof ApiV1WorkspaceIdTagRulesMatchRoute
+  '/api/v1/$workspaceId/tag-rules/presets': typeof ApiV1WorkspaceIdTagRulesPresetsRoute
   '/api/v1/$workspaceId/tags/$tagId': typeof ApiV1WorkspaceIdTagsTagIdRoute
   '/api/v1/$workspaceId/tags/bulk': typeof ApiV1WorkspaceIdTagsBulkRoute
   '/api/v1/$workspaceId/tags/csv-import': typeof ApiV1WorkspaceIdTagsCsvImportRoute
@@ -605,6 +675,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/'
     | '/$workspaceId/messages'
+    | '/$workspaceId/smart-tagging'
     | '/$workspaceId/tags'
     | '/$workspaceId/transactions'
     | '/api/auth/$'
@@ -614,6 +685,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/budgets'
     | '/api/v1/$workspaceId/messages'
     | '/api/v1/$workspaceId/subscriptions'
+    | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
     | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
@@ -632,6 +704,11 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
     | '/api/v1/$workspaceId/subscriptions/detect'
     | '/api/v1/$workspaceId/subscriptions/dismissals'
+    | '/api/v1/$workspaceId/tag-rules/$ruleId'
+    | '/api/v1/$workspaceId/tag-rules/discover'
+    | '/api/v1/$workspaceId/tag-rules/enable-presets'
+    | '/api/v1/$workspaceId/tag-rules/match'
+    | '/api/v1/$workspaceId/tag-rules/presets'
     | '/api/v1/$workspaceId/tags/$tagId'
     | '/api/v1/$workspaceId/tags/bulk'
     | '/api/v1/$workspaceId/tags/csv-import'
@@ -665,6 +742,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/'
     | '/$workspaceId/messages'
+    | '/$workspaceId/smart-tagging'
     | '/$workspaceId/tags'
     | '/$workspaceId/transactions'
     | '/api/auth/$'
@@ -674,6 +752,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/budgets'
     | '/api/v1/$workspaceId/messages'
     | '/api/v1/$workspaceId/subscriptions'
+    | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
     | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
@@ -692,6 +771,11 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
     | '/api/v1/$workspaceId/subscriptions/detect'
     | '/api/v1/$workspaceId/subscriptions/dismissals'
+    | '/api/v1/$workspaceId/tag-rules/$ruleId'
+    | '/api/v1/$workspaceId/tag-rules/discover'
+    | '/api/v1/$workspaceId/tag-rules/enable-presets'
+    | '/api/v1/$workspaceId/tag-rules/match'
+    | '/api/v1/$workspaceId/tag-rules/presets'
     | '/api/v1/$workspaceId/tags/$tagId'
     | '/api/v1/$workspaceId/tags/bulk'
     | '/api/v1/$workspaceId/tags/csv-import'
@@ -727,6 +811,7 @@ export interface FileRouteTypes {
     | '/(app)/onboarding'
     | '/(app)/'
     | '/(app)/$workspaceId/messages'
+    | '/(app)/$workspaceId/smart-tagging'
     | '/(app)/$workspaceId/tags'
     | '/(app)/$workspaceId/transactions'
     | '/api/auth/$'
@@ -736,6 +821,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/budgets'
     | '/api/v1/$workspaceId/messages'
     | '/api/v1/$workspaceId/subscriptions'
+    | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
     | '/api/v1/$workspaceId/transactions'
     | '/api/v1/me/accounts'
@@ -754,6 +840,11 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
     | '/api/v1/$workspaceId/subscriptions/detect'
     | '/api/v1/$workspaceId/subscriptions/dismissals'
+    | '/api/v1/$workspaceId/tag-rules/$ruleId'
+    | '/api/v1/$workspaceId/tag-rules/discover'
+    | '/api/v1/$workspaceId/tag-rules/enable-presets'
+    | '/api/v1/$workspaceId/tag-rules/match'
+    | '/api/v1/$workspaceId/tag-rules/presets'
     | '/api/v1/$workspaceId/tags/$tagId'
     | '/api/v1/$workspaceId/tags/bulk'
     | '/api/v1/$workspaceId/tags/csv-import'
@@ -790,6 +881,7 @@ export interface RootRouteChildren {
   ApiV1WorkspaceIdBudgetsRoute: typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
   ApiV1WorkspaceIdMessagesRoute: typeof ApiV1WorkspaceIdMessagesRouteWithChildren
   ApiV1WorkspaceIdSubscriptionsRoute: typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
+  ApiV1WorkspaceIdTagRulesRoute: typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   ApiV1WorkspaceIdTagsRoute: typeof ApiV1WorkspaceIdTagsRouteWithChildren
   ApiV1WorkspaceIdTransactionsRoute: typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
   ApiV1WizardProgressRoute: typeof ApiV1WizardProgressRoute
@@ -890,6 +982,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appWorkspaceIdTagsRouteImport
       parentRoute: typeof appWorkspaceIdRouteRoute
     }
+    '/(app)/$workspaceId/smart-tagging': {
+      id: '/(app)/$workspaceId/smart-tagging'
+      path: '/smart-tagging'
+      fullPath: '/$workspaceId/smart-tagging'
+      preLoaderRoute: typeof appWorkspaceIdSmartTaggingRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
+    }
     '/(app)/$workspaceId/messages': {
       id: '/(app)/$workspaceId/messages'
       path: '/messages'
@@ -958,6 +1057,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/$workspaceId/tags'
       fullPath: '/api/v1/$workspaceId/tags'
       preLoaderRoute: typeof ApiV1WorkspaceIdTagsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/$workspaceId/tag-rules': {
+      id: '/api/v1/$workspaceId/tag-rules'
+      path: '/api/v1/$workspaceId/tag-rules'
+      fullPath: '/api/v1/$workspaceId/tag-rules'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagRulesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/$workspaceId/subscriptions': {
@@ -1114,6 +1220,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1WorkspaceIdTagsTagIdRouteImport
       parentRoute: typeof ApiV1WorkspaceIdTagsRoute
     }
+    '/api/v1/$workspaceId/tag-rules/presets': {
+      id: '/api/v1/$workspaceId/tag-rules/presets'
+      path: '/presets'
+      fullPath: '/api/v1/$workspaceId/tag-rules/presets'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagRulesPresetsRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagRulesRoute
+    }
+    '/api/v1/$workspaceId/tag-rules/match': {
+      id: '/api/v1/$workspaceId/tag-rules/match'
+      path: '/match'
+      fullPath: '/api/v1/$workspaceId/tag-rules/match'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagRulesMatchRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagRulesRoute
+    }
+    '/api/v1/$workspaceId/tag-rules/enable-presets': {
+      id: '/api/v1/$workspaceId/tag-rules/enable-presets'
+      path: '/enable-presets'
+      fullPath: '/api/v1/$workspaceId/tag-rules/enable-presets'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagRulesEnablePresetsRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagRulesRoute
+    }
+    '/api/v1/$workspaceId/tag-rules/discover': {
+      id: '/api/v1/$workspaceId/tag-rules/discover'
+      path: '/discover'
+      fullPath: '/api/v1/$workspaceId/tag-rules/discover'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagRulesDiscoverRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagRulesRoute
+    }
+    '/api/v1/$workspaceId/tag-rules/$ruleId': {
+      id: '/api/v1/$workspaceId/tag-rules/$ruleId'
+      path: '/$ruleId'
+      fullPath: '/api/v1/$workspaceId/tag-rules/$ruleId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTagRulesRuleIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTagRulesRoute
+    }
     '/api/v1/$workspaceId/subscriptions/dismissals': {
       id: '/api/v1/$workspaceId/subscriptions/dismissals'
       path: '/dismissals'
@@ -1224,6 +1365,7 @@ declare module '@tanstack/react-router' {
 
 interface appWorkspaceIdRouteRouteChildren {
   appWorkspaceIdMessagesRoute: typeof appWorkspaceIdMessagesRoute
+  appWorkspaceIdSmartTaggingRoute: typeof appWorkspaceIdSmartTaggingRoute
   appWorkspaceIdTagsRoute: typeof appWorkspaceIdTagsRoute
   appWorkspaceIdTransactionsRoute: typeof appWorkspaceIdTransactionsRoute
   appWorkspaceIdIndexRoute: typeof appWorkspaceIdIndexRoute
@@ -1236,6 +1378,7 @@ interface appWorkspaceIdRouteRouteChildren {
 
 const appWorkspaceIdRouteRouteChildren: appWorkspaceIdRouteRouteChildren = {
   appWorkspaceIdMessagesRoute: appWorkspaceIdMessagesRoute,
+  appWorkspaceIdSmartTaggingRoute: appWorkspaceIdSmartTaggingRoute,
   appWorkspaceIdTagsRoute: appWorkspaceIdTagsRoute,
   appWorkspaceIdTransactionsRoute: appWorkspaceIdTransactionsRoute,
   appWorkspaceIdIndexRoute: appWorkspaceIdIndexRoute,
@@ -1427,6 +1570,30 @@ const ApiV1WorkspaceIdSubscriptionsRouteWithChildren =
     ApiV1WorkspaceIdSubscriptionsRouteChildren,
   )
 
+interface ApiV1WorkspaceIdTagRulesRouteChildren {
+  ApiV1WorkspaceIdTagRulesRuleIdRoute: typeof ApiV1WorkspaceIdTagRulesRuleIdRoute
+  ApiV1WorkspaceIdTagRulesDiscoverRoute: typeof ApiV1WorkspaceIdTagRulesDiscoverRoute
+  ApiV1WorkspaceIdTagRulesEnablePresetsRoute: typeof ApiV1WorkspaceIdTagRulesEnablePresetsRoute
+  ApiV1WorkspaceIdTagRulesMatchRoute: typeof ApiV1WorkspaceIdTagRulesMatchRoute
+  ApiV1WorkspaceIdTagRulesPresetsRoute: typeof ApiV1WorkspaceIdTagRulesPresetsRoute
+}
+
+const ApiV1WorkspaceIdTagRulesRouteChildren: ApiV1WorkspaceIdTagRulesRouteChildren =
+  {
+    ApiV1WorkspaceIdTagRulesRuleIdRoute: ApiV1WorkspaceIdTagRulesRuleIdRoute,
+    ApiV1WorkspaceIdTagRulesDiscoverRoute:
+      ApiV1WorkspaceIdTagRulesDiscoverRoute,
+    ApiV1WorkspaceIdTagRulesEnablePresetsRoute:
+      ApiV1WorkspaceIdTagRulesEnablePresetsRoute,
+    ApiV1WorkspaceIdTagRulesMatchRoute: ApiV1WorkspaceIdTagRulesMatchRoute,
+    ApiV1WorkspaceIdTagRulesPresetsRoute: ApiV1WorkspaceIdTagRulesPresetsRoute,
+  }
+
+const ApiV1WorkspaceIdTagRulesRouteWithChildren =
+  ApiV1WorkspaceIdTagRulesRoute._addFileChildren(
+    ApiV1WorkspaceIdTagRulesRouteChildren,
+  )
+
 interface ApiV1WorkspaceIdTagsCsvMappingRouteChildren {
   ApiV1WorkspaceIdTagsCsvMappingValidateRoute: typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
 }
@@ -1522,6 +1689,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1WorkspaceIdMessagesRoute: ApiV1WorkspaceIdMessagesRouteWithChildren,
   ApiV1WorkspaceIdSubscriptionsRoute:
     ApiV1WorkspaceIdSubscriptionsRouteWithChildren,
+  ApiV1WorkspaceIdTagRulesRoute: ApiV1WorkspaceIdTagRulesRouteWithChildren,
   ApiV1WorkspaceIdTagsRoute: ApiV1WorkspaceIdTagsRouteWithChildren,
   ApiV1WorkspaceIdTransactionsRoute:
     ApiV1WorkspaceIdTransactionsRouteWithChildren,
