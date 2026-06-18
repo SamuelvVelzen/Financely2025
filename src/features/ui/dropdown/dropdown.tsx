@@ -241,7 +241,8 @@ export function Dropdown({
         className={cn(
           "dropdown-popover",
           getPositionClasses(),
-          "flex shadow-lg rounded-2xl",
+          showExpanded && "dropdown-anchor-end",
+          "flex flex-row shadow-lg rounded-2xl",
           // Reset default popover styles
           "m-0 p-0 border-0 bg-transparent",
           // Ensure closed popovers stay hidden (flex overrides browser default)
@@ -261,8 +262,8 @@ export function Dropdown({
         }}>
         <div
           className={cn(
-            "w-full min-w-full bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
-            showExpanded ? "rounded-l-2xl" : "rounded-2xl",
+            "bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
+            showExpanded ? "shrink-0 rounded-l-2xl" : "w-full min-w-full rounded-2xl",
             "max-h-[calc(100vh-16px)]"
           )}>
           <div className="overflow-y-auto flex-1">{regularChildren}</div>
@@ -273,7 +274,7 @@ export function Dropdown({
         {showExpanded && expandedContent && (
           <div
             ref={expandedContentRef}
-            className="bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
+            className="shrink-0 bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
             {expandedContent}
           </div>
         )}

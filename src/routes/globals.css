@@ -258,10 +258,20 @@ dialog::backdrop {
   position-try-fallbacks: flip-block, flip-inline;
 }
 
+.dropdown-position-bottom.dropdown-anchor-end {
+  left: auto;
+  right: anchor(right);
+}
+
 .dropdown-position-top {
   bottom: anchor(top);
   left: anchor(left);
   position-try-fallbacks: flip-block, flip-inline;
+}
+
+.dropdown-position-top.dropdown-anchor-end {
+  left: auto;
+  right: anchor(right);
 }
 
 .dropdown-position-left {
