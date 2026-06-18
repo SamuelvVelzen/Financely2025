@@ -31,3 +31,16 @@ export function useDialogStack(dialogId?: string) {
 
   return zIndex;
 }
+
+export function isTopmostOpenDialog(
+  dialog: HTMLDialogElement | null | undefined,
+): boolean {
+  if (!dialog) return false;
+
+  const openDialogs = document.querySelectorAll<HTMLDialogElement>(
+    "dialog[open]",
+  );
+  if (openDialogs.length === 0) return false;
+
+  return openDialogs[openDialogs.length - 1] === dialog;
+}

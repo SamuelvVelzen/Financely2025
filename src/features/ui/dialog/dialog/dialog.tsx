@@ -4,6 +4,7 @@ import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
 import type { IDialogProps, IDialogStatus } from "./types";
+import { isTopmostOpenDialog } from "./use-dialog-stack";
 import { getPrimaryFooterButtonIndex, useFocusTrap } from "./use-focus-trap";
 
 /**
@@ -92,21 +93,30 @@ export function Dialog({
   }, [open, onClose]);
 
   const handleClose = useCallback(() => {
+    if (!isTopmostOpenDialog(dialogRef.current)) return;
     handleOpenChange(false);
   }, [handleOpenChange]);
 
   // Handle native dialog close event (ESC key, form submission)
   const handleDialogClose = useCallback(() => {
+    // Ignore spurious close events while React state still says open (e.g. stacked
+    // dialogs). Re-show the modal so DOM stays in sync with controlled state.
+    if (open) {
+      dialogRef.current?.showModal();
+      return;
+    }
     handleOpenChange(false);
-  }, [handleOpenChange]);
+  }, [open, handleOpenChange]);
 
-  // Handle backdrop click (only if dismissible)
-  const handleDialogClick = useCallback(
-    (e: React.MouseEvent<HTMLDialogElement>) => {
-      // Check if click is on the backdrop (dialog element itself, not its children)
-      if (e.target === e.currentTarget && dismissible) {
-        handleClose();
-      }
+  // Use pointerdown (not click) for backdrop dismiss so closing a stacked dialog
+  // doesn't let the trailing click land on the dialog underneath.
+  const handleDialogPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDialogElement>) => {
+      if (e.target !== e.currentTarget || !dismissible) return;
+      if (!isTopmostOpenDialog(dialogRef.current)) return;
+
+      e.preventDefault();
+      handleClose();
     },
     [dismissible, handleClose]
   );
@@ -114,6 +124,10 @@ export function Dialog({
   // Handle cancel event (ESC key) - prevent if not dismissible
   const handleCancel = useCallback(
     (e: React.SyntheticEvent<HTMLDialogElement>) => {
+      if (!isTopmostOpenDialog(dialogRef.current)) {
+        e.preventDefault();
+        return;
+      }
       if (!dismissible) {
         e.preventDefault();
       }
@@ -203,7 +217,7 @@ export function Dialog({
       data-status={status}
       className={baseClasses}
       style={style}
-      onClick={handleDialogClick}
+      onPointerDown={handleDialogPointerDown}
       onClose={handleDialogClose}
       onCancel={handleCancel}
       onKeyDown={handleKeyDown}>
