@@ -4,24 +4,22 @@ import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-
 import {
   CreateTransactionInputSchema,
   CurrencySchema,
-  type ITransaction,
   TransactionTypeSchema,
   type ITagSuggestions,
+  type ITransaction,
 } from "@/features/shared/validation/schemas";
 import type { ISubscriptionFrequency } from "@/features/subscription/config/frequencies";
 import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import { useSubscription } from "@/features/subscription/hooks/useSubscriptions";
-import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import { matchTagRules } from "@/features/tag-rule/api/client";
 import { TagSuggestionHint } from "@/features/tag-rule/components/tag-suggestion-hint";
+import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import {
   useCreateExpense,
   useCreateIncome,
   useUpdateExpense,
   useUpdateIncome,
 } from "@/features/transaction/hooks/useTransactions";
-import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
-import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -42,13 +40,15 @@ import {
   dateOnlyToIso,
   isoToDateOnly,
 } from "@/features/util/date/dateisohelpers";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { parseISO } from "date-fns";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { type Resolver } from "react-hook-form";
 import { HiArrowPath, HiChevronDown, HiChevronUp } from "react-icons/hi2";
 import { z } from "zod";
-import { useDebouncedValue } from "@/features/util/use-debounced-value";
 
 type IAddOrEditTransactionDialog = {
   open: boolean;
@@ -290,10 +290,10 @@ export function AddOrEditTransactionDialog({
           suggested: true,
           primaryRule: primaryMatch
             ? {
-                ruleId: primaryMatch.ruleId,
-                ruleLabel: primaryMatch.ruleLabel,
-                source: primaryMatch.source,
-              }
+              ruleId: primaryMatch.ruleId,
+              ruleLabel: primaryMatch.ruleLabel,
+              source: primaryMatch.source,
+            }
             : null,
         };
 
@@ -555,24 +555,24 @@ export function AddOrEditTransactionDialog({
                   disabled={pending}
                 />
               </div>
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <DateInput
-                    name="transactionDate"
-                    label={hasTime ? "Date & Time" : "Date"}
-                    mode={hasTime ? "dateTime" : "dateOnly"}
-                    disabled={pending}
-                    required
-                    open={datePickerOpen}
-                    onOpenChange={setDatePickerOpen}
-                    onAddTime={handleToggleTime}
-                    onRemoveTime={handleToggleTime}
-                  />
-                </div>
+              <div className="flex items-end gap-4">
+
+                <DateInput
+                  name="transactionDate"
+                  label={hasTime ? "Date & Time" : "Date"}
+                  mode={hasTime ? "dateTime" : "dateOnly"}
+                  disabled={pending}
+                  required
+                  open={datePickerOpen}
+                  onOpenChange={setDatePickerOpen}
+                  onAddTime={handleToggleTime}
+                  onRemoveTime={handleToggleTime}
+                  className="flex-1"
+                />
                 <Button
                   clicked={handleToggleTime}
                   disabled={pending}
-                  className="whitespace-nowrap min-w-50">
+                >
                   {hasTime ? "Remove time" : "Add time"}
                 </Button>
               </div>
