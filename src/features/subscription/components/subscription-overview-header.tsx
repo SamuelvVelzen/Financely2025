@@ -10,13 +10,13 @@ export interface IActionHandlers {
 export interface ISubscriptionOverviewHeaderProps {
   actions: IActionHandlers;
   isSticky: boolean;
-  subscriptionCount: number;
+
 }
 
 export function SubscriptionOverviewHeader({
   actions,
   isSticky,
-  subscriptionCount,
+
 }: ISubscriptionOverviewHeaderProps) {
   return (
     <Container className={cn("sticky z-10 top-0 transition-all")}>
@@ -36,11 +36,6 @@ export function SubscriptionOverviewHeader({
               )}>
               Subscriptions
             </span>
-            {!isSticky && subscriptionCount > 0 && (
-              <span className="text-sm text-text-muted font-normal self-end">
-                ({subscriptionCount})
-              </span>
-            )}
           </div>
         </div>
 

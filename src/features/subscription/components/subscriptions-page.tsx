@@ -1,13 +1,11 @@
 import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
   ISubscription,
   ISubscriptionDismissal,
   ITransaction,
 } from "@/features/shared/validation/schemas";
-import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
-import { getTransaction } from "@/features/transaction/api/client";
-import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import {
   useDeleteSubscription,
   useSubscriptionDismissals,
@@ -15,13 +13,14 @@ import {
   useUndismissCandidate,
   useUpdateSubscription,
 } from "@/features/subscription/hooks/useSubscriptions";
-import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
+import { getTransaction } from "@/features/transaction/api/client";
+import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { QueryErrorState } from "@/features/ui/container/query-error-state";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
+import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Loading } from "@/features/ui/loading";
@@ -29,6 +28,7 @@ import { Tab } from "@/features/ui/tab/tab";
 import { TabContent } from "@/features/ui/tab/tab-content";
 import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiArrowPath, HiArrowUturnLeft, HiNoSymbol } from "react-icons/hi2";
@@ -144,7 +144,6 @@ export function SubscriptionsPage() {
       <SubscriptionOverviewHeader
         actions={actions}
         isSticky={isSticky}
-        subscriptionCount={subscriptions.length}
       />
 
       <Container>
