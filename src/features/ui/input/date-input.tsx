@@ -232,11 +232,12 @@ export function DateInput({
       })();
 
     return (
-      <div className={cn(label || hint ? "space-y-1" : "", className)}>
+      <div className={cn(className)}>
         {label && (
           <Label
             htmlFor={name}
-            required={required}>
+            required={required}
+            className="mb-1">
             {label}
           </Label>
         )}
