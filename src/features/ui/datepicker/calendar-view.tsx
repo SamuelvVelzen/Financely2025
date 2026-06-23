@@ -238,61 +238,61 @@ export function CalendarView({
               type="button"
               onClick={() => handleDateClick(day)}
               className={cn(
-                "relative h-10 text-sm transition-colors",
+                "relative size-8 text-sm transition-colors",
                 "hover:bg-surface-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 !isCurrentMonthDay && "text-text-muted opacity-50",
                 isCurrentMonthDay && "text-text",
                 // Weekend background (only when not in range and not selected)
                 isWeekend &&
-                  !inFullRange &&
-                  !isStart &&
-                  !isEnd &&
-                  !onlyStartSelected &&
-                  "bg-surface-hover/50",
+                !inFullRange &&
+                !isStart &&
+                !isEnd &&
+                !onlyStartSelected &&
+                "bg-surface-hover/50",
                 // Today styling - more distinct
                 isToday &&
-                  !inFullRange &&
-                  !isStart &&
-                  !isEnd &&
-                  !onlyStartSelected &&
-                  "font-bold ring-2 ring-primary/50",
+                !inFullRange &&
+                !isStart &&
+                !isEnd &&
+                !onlyStartSelected &&
+                "font-bold ring-2 ring-primary/50",
                 // Today styling when in selected range - add ring on top of selected style
                 isToday &&
-                  (inFullRange || isStart || isEnd || onlyStartSelected) &&
-                  "ring-2 ring-white/80",
+                (inFullRange || isStart || isEnd || onlyStartSelected) &&
+                "ring-2 ring-white/80",
                 // Selected start date (when only start is selected, no end) - same style as range
                 onlyStartSelected &&
-                  "bg-primary text-white hover:bg-primary/90 rounded-2xl",
+                "bg-primary text-white hover:bg-primary/90 rounded-2xl",
                 // Continuous range background
                 rangePosition?.type === "single" &&
-                  "bg-primary text-white hover:bg-primary/90 rounded-2xl",
+                "bg-primary text-white hover:bg-primary/90 rounded-2xl",
                 rangePosition?.type === "start" &&
-                  "bg-primary text-white hover:bg-primary/90",
+                "bg-primary text-white hover:bg-primary/90",
                 rangePosition?.type === "end" &&
-                  "bg-primary text-white hover:bg-primary/90",
+                "bg-primary text-white hover:bg-primary/90",
                 rangePosition?.type === "middle" && "bg-primary/20",
                 // Round left corner only on start date or first day of week in range
                 rangePosition?.type === "start" && "rounded-l-2xl",
                 rangePosition?.type === "middle" &&
-                  "hasPrev" in rangePosition &&
-                  rangePosition.hasPrev === false &&
-                  (day.getDay() === 1 || day.getDay() === 0) &&
-                  "rounded-l-2xl",
+                "hasPrev" in rangePosition &&
+                rangePosition.hasPrev === false &&
+                (day.getDay() === 1 || day.getDay() === 0) &&
+                "rounded-l-2xl",
                 // Round right corner only on end date or last day of week in range
                 rangePosition?.type === "end" && "rounded-r-2xl",
                 rangePosition?.type === "middle" &&
-                  "hasNext" in rangePosition &&
-                  rangePosition.hasNext === false &&
-                  (day.getDay() === 0 || day.getDay() === 6) &&
-                  "rounded-r-2xl",
+                "hasNext" in rangePosition &&
+                rangePosition.hasNext === false &&
+                (day.getDay() === 0 || day.getDay() === 6) &&
+                "rounded-r-2xl",
                 // Fallback for dates in range but not styled above
                 inFullRange && !rangePosition && "bg-primary/20",
                 // Default styling when not in range and not selected
                 !inFullRange &&
-                  !isStart &&
-                  !isEnd &&
-                  !onlyStartSelected &&
-                  "rounded-2xl"
+                !isStart &&
+                !isEnd &&
+                !onlyStartSelected &&
+                "rounded-2xl"
               )}>
               <span className="relative z-10">{format(day, "d")}</span>
             </button>
