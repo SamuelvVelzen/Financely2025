@@ -3,6 +3,8 @@ import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import { calculateFilterCount } from "@/features/transaction/utils/filter-count";
+import type { ITransactionViewControlsProps } from "@/features/transaction/components/transaction-view-controls";
+import { TransactionViewControls } from "@/features/transaction/components/transaction-view-controls";
 import { Button } from "@/features/ui/button/button";
 import { CheckboxGroup, CheckboxItem } from "@/features/ui/checkbox";
 import {
@@ -41,6 +43,7 @@ export interface IFilterBarProps {
   setTransactionTypeFilter?: (types: string[]) => void;
   setPaymentMethodFilter?: (methods: string[]) => void;
   setCurrencyFilter?: (currencies: string[]) => void;
+  viewMode?: ITransactionViewControlsProps;
 }
 
 export function FilterBar({
@@ -58,6 +61,7 @@ export function FilterBar({
   setTransactionTypeFilter,
   setPaymentMethodFilter,
   setCurrencyFilter,
+  viewMode,
 }: IFilterBarProps) {
   const { isMobile } = useResponsive();
 
@@ -125,7 +129,7 @@ export function FilterBar({
   }
 
   return (
-    <div className={cn("flex gap-3 items-end", className)}>
+    <div className={cn("flex gap-3 items-end justify-between", className)}>
       <Form
         form={form}
         onSubmit={() => {}}>
@@ -260,6 +264,7 @@ export function FilterBar({
           </Dropdown>
         </div>
       </Form>
+      {viewMode && <TransactionViewControls {...viewMode} />}
     </div>
   );
 }

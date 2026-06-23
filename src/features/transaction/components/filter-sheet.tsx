@@ -2,6 +2,8 @@ import type { ITag } from "@/features/shared/validation/schemas";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
+import type { ITransactionViewControlsProps } from "@/features/transaction/components/transaction-view-controls";
+import { TransactionViewControls } from "@/features/transaction/components/transaction-view-controls";
 import type { IButtonProps } from "@/features/ui/button/button";
 import { CheckboxGroup, CheckboxItem } from "@/features/ui/checkbox";
 import type { IDateFilter } from "@/features/ui/datepicker/datepicker";
@@ -11,8 +13,22 @@ import { Form } from "@/features/ui/form/form";
 import type { IPriceRange } from "@/features/ui/input/range-input";
 import { RangeInput } from "@/features/ui/input/range-input";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
-import { useMemo } from "react";
+import { Tab } from "@/features/ui/tab/tab";
+import { TabContent } from "@/features/ui/tab/tab-content";
+import { useTabContext } from "@/features/ui/tab/tab-context";
+import { Tabs } from "@/features/ui/tab/tabs";
+import { useEffect, useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
+
+function TabValueReporter({ onChange }: { onChange: (value: string) => void }) {
+  const { value } = useTabContext();
+
+  useEffect(() => {
+    onChange(value);
+  }, [value, onChange]);
+
+  return null;
+}
 
 export interface IFilterSheetProps {
   open: boolean;
@@ -29,6 +45,7 @@ export interface IFilterSheetProps {
   setTransactionTypeFilter?: (types: string[]) => void;
   setPaymentMethodFilter?: (methods: string[]) => void;
   setCurrencyFilter?: (currencies: string[]) => void;
+  viewMode?: ITransactionViewControlsProps;
 }
 
 export function FilterSheet({
@@ -46,7 +63,16 @@ export function FilterSheet({
   setTransactionTypeFilter,
   setPaymentMethodFilter,
   setCurrencyFilter,
+  viewMode,
 }: IFilterSheetProps) {
+  const [activeTab, setActiveTab] = useState("filters");
+
+  useEffect(() => {
+    if (open) {
+      setActiveTab("filters");
+    }
+  }, [open]);
+
   const tagOptions = tags.map((tag) => ({
     value: tag.id,
     label: tag.name,
@@ -63,23 +89,135 @@ export function FilterSheet({
     []
   );
 
-  const footerButtons: IButtonProps[] = [
-    {
-      clicked: onClearAll,
-      variant: "default",
-      size: "md",
-      buttonContent: "Clear all",
-    },
-    {
-      clicked: () => {
-        onApply();
-        onOpenChange(false);
+  const footerButtons: IButtonProps[] = useMemo(() => {
+    if (viewMode && activeTab === "view") {
+      return [
+        {
+          clicked: () => onOpenChange(false),
+          variant: "primary",
+          size: "md",
+          buttonContent: "Done",
+        },
+      ];
+    }
+
+    return [
+      {
+        clicked: onClearAll,
+        variant: "default",
+        size: "md",
+        buttonContent: "Clear all",
       },
-      variant: "primary",
-      size: "md",
-      buttonContent: "Apply",
-    },
-  ];
+      {
+        clicked: () => {
+          onApply();
+          onOpenChange(false);
+        },
+        variant: "primary",
+        size: "md",
+        buttonContent: "Apply",
+      },
+    ];
+  }, [activeTab, onApply, onClearAll, onOpenChange, viewMode]);
+
+  const filterForm = (
+    <Form
+      form={form}
+      onSubmit={() => {}}>
+      <div>
+        <CheckboxGroup
+          name="transactionTypeFilter"
+          label="Transaction Type"
+          orientation="horizontal"
+          onValueChange={(value) => {
+            const formValue = (Array.isArray(value) ? value : []).filter(
+              (v): v is string => v !== undefined
+            );
+            setTransactionTypeFilter?.(formValue);
+          }}>
+          {transactionTypeOptions.map((option) => (
+            <CheckboxItem
+              key={option.value}
+              value={option.value}>
+              {option.label}
+            </CheckboxItem>
+          ))}
+        </CheckboxGroup>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-text mb-2">
+          Date Range
+        </label>
+        <Datepicker
+          value={dateFilter}
+          onChange={onDateFilterChange}
+        />
+      </div>
+
+      <RangeInput
+        label="Amount Range"
+        value={priceFilter}
+        onChange={onPriceFilterChange}
+      />
+
+      <SelectDropdown
+        name="paymentMethodFilter"
+        label="Payment Method"
+        options={paymentMethodOptions}
+        multiple
+        placeholder="Filter by payment method"
+        onValueChange={(value) => {
+          const formValue = (Array.isArray(value) ? value : []).filter(
+            (v): v is string => v !== undefined
+          );
+          setPaymentMethodFilter?.(formValue);
+        }}
+      />
+
+      <SelectDropdown
+        name="currencyFilter"
+        label="Currency"
+        options={currencyOptions}
+        multiple
+        placeholder="Filter by currency"
+        onValueChange={(value) => {
+          const formValue = (Array.isArray(value) ? value : []).filter(
+            (v): v is string => v !== undefined
+          );
+          setCurrencyFilter?.(formValue);
+        }}
+      />
+
+      <SelectDropdown
+        name="tagFilter"
+        label="Tags"
+        options={tagOptions}
+        multiple
+        placeholder="Filter by tags"
+        onValueChange={(value) => {
+          const formValue = (Array.isArray(value) ? value : []).filter(
+            (v): v is string => v !== undefined
+          );
+          setTagFilter?.(formValue);
+        }}>
+        {(option) => (
+          <>
+            {option.data?.emoticon && (
+              <span className="text-base shrink-0">{option.data.emoticon}</span>
+            )}
+            {option.data?.color && (
+              <div
+                className="size-3 rounded-full shrink-0"
+                style={{ backgroundColor: option.data.color }}
+              />
+            )}
+            <span>{option.label}</span>
+          </>
+        )}
+      </SelectDropdown>
+    </Form>
+  );
 
   return (
     <BottomSheet
@@ -87,106 +225,32 @@ export function FilterSheet({
       open={open}
       onOpenChange={onOpenChange}
       footerButtons={footerButtons}>
-      <div className="space-y-6">
-        <Form
-          form={form}
-          onSubmit={() => {}}>
-          <div>
-            <CheckboxGroup
-              name="transactionTypeFilter"
-              label="Transaction Type"
-              orientation="horizontal"
-              onValueChange={(value) => {
-                const formValue = (Array.isArray(value) ? value : []).filter(
-                  (v): v is string => v !== undefined
-                );
-                setTransactionTypeFilter?.(formValue);
-              }}>
-              {transactionTypeOptions.map((option) => (
-                <CheckboxItem
-                  key={option.value}
-                  value={option.value}>
-                  {option.label}
-                </CheckboxItem>
-              ))}
-            </CheckboxGroup>
-          </div>
+      {viewMode ? (
+        <Tabs
+          defaultValue="filters"
+          className="-mx-4">
+          <TabValueReporter onChange={setActiveTab} />
+          <Tab value="filters">Filters</Tab>
+          <Tab value="view">View settings</Tab>
 
-          <div>
-            <label className="block text-sm font-medium text-text mb-2">
-              Date Range
-            </label>
-            <Datepicker
-              value={dateFilter}
-              onChange={onDateFilterChange}
+          <TabContent
+            value="filters"
+            className="px-4">
+            {filterForm}
+          </TabContent>
+          <TabContent
+            value="view"
+            className="px-4">
+            <TransactionViewControls
+              {...viewMode}
+              variant="sheet"
+              size="md"
             />
-          </div>
-
-          <RangeInput
-            label="Amount Range"
-            value={priceFilter}
-            onChange={onPriceFilterChange}
-          />
-
-          <SelectDropdown
-            name="paymentMethodFilter"
-            label="Payment Method"
-            options={paymentMethodOptions}
-            multiple
-            placeholder="Filter by payment method"
-            onValueChange={(value) => {
-              const formValue = (Array.isArray(value) ? value : []).filter(
-                (v): v is string => v !== undefined
-              );
-              setPaymentMethodFilter?.(formValue);
-            }}
-          />
-
-          <SelectDropdown
-            name="currencyFilter"
-            label="Currency"
-            options={currencyOptions}
-            multiple
-            placeholder="Filter by currency"
-            onValueChange={(value) => {
-              const formValue = (Array.isArray(value) ? value : []).filter(
-                (v): v is string => v !== undefined
-              );
-              setCurrencyFilter?.(formValue);
-            }}
-          />
-
-          <SelectDropdown
-            name="tagFilter"
-            label="Tags"
-            options={tagOptions}
-            multiple
-            placeholder="Filter by tags"
-            onValueChange={(value) => {
-              const formValue = (Array.isArray(value) ? value : []).filter(
-                (v): v is string => v !== undefined
-              );
-              setTagFilter?.(formValue);
-            }}>
-            {(option) => (
-              <>
-                {option.data?.emoticon && (
-                  <span className="text-base shrink-0">
-                    {option.data.emoticon}
-                  </span>
-                )}
-                {option.data?.color && (
-                  <div
-                    className="size-3 rounded-full shrink-0"
-                    style={{ backgroundColor: option.data.color }}
-                  />
-                )}
-                <span>{option.label}</span>
-              </>
-            )}
-          </SelectDropdown>
-        </Form>
-      </div>
+          </TabContent>
+        </Tabs>
+      ) : (
+        filterForm
+      )}
     </BottomSheet>
   );
 }

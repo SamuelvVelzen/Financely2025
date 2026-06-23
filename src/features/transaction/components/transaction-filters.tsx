@@ -2,6 +2,7 @@ import type { ITag } from "@/features/shared/validation/schemas";
 import { ActiveFiltersRow } from "@/features/transaction/components/active-filters-row";
 import { FilterBar } from "@/features/transaction/components/filter-bar";
 import { FilterSheet } from "@/features/transaction/components/filter-sheet";
+import type { ITransactionViewControlsProps } from "@/features/transaction/components/transaction-view-controls";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import { generateFilterBadges } from "@/features/transaction/utils/filter-badges";
 import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
@@ -35,6 +36,7 @@ export interface ITransactionFiltersProps {
   className?: string;
   filterSheetOpen?: boolean;
   onFilterSheetOpenChange?: (open: boolean) => void;
+  viewMode?: ITransactionViewControlsProps;
 }
 
 export function TransactionFilters({
@@ -55,6 +57,7 @@ export function TransactionFilters({
   className,
   filterSheetOpen: externalFilterSheetOpen,
   onFilterSheetOpenChange: externalOnFilterSheetOpenChange,
+  viewMode,
 }: ITransactionFiltersProps) {
   const [internalFilterSheetOpen, setInternalFilterSheetOpen] = useState(false);
 
@@ -115,6 +118,7 @@ export function TransactionFilters({
           setTransactionTypeFilter={setTransactionTypeFilter}
           setPaymentMethodFilter={setPaymentMethodFilter}
           setCurrencyFilter={setCurrencyFilter}
+          viewMode={viewMode}
         />
         <ActiveFiltersRow
           badges={badges}
@@ -173,6 +177,7 @@ export function TransactionFilters({
         setTransactionTypeFilter={setTransactionTypeFilter}
         setPaymentMethodFilter={setPaymentMethodFilter}
         setCurrencyFilter={setCurrencyFilter}
+        viewMode={viewMode}
       />
     </>
   );

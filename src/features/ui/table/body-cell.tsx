@@ -41,7 +41,7 @@ export function BodyCell({
         sizeClasses[size],
         autoFit ? "w-auto" : "w-full min-w-0",
         !wrap && "whitespace-nowrap",
-        sticky && "sticky left-0 z-10 bg-surface border-r border-border",
+        sticky && "sticky left-0 z-1 bg-surface border-r border-border",
         className
       )}>
       <span

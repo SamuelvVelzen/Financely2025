@@ -13,6 +13,8 @@ export type IHeaderCellProps<T = unknown> = {
   sortKey?: string;
   sortFn?: (a: T, b: T) => number;
   autoFit?: boolean;
+  /** When false, sticky column only pins horizontally (not at viewport top). */
+  stickyVertical?: boolean;
 } & IPropsWithClassName &
   PropsWithChildren &
   IBaseCellProps;
@@ -27,6 +29,7 @@ export function HeaderCell<T = unknown>({
   autoFit = true,
   size = "md",
   sticky = false,
+  stickyVertical = true,
   hidden = false,
 }: IHeaderCellProps<T>) {
   if (hidden) {
@@ -91,7 +94,9 @@ export function HeaderCell<T = unknown>({
           sortContext &&
           "cursor-pointer select-none hover:bg-surface-hover motion-safe:transition-colors",
         sticky &&
-          "sticky left-0 top-0 z-20 bg-surface-hover border-r border-border",
+          (stickyVertical
+            ? "sticky left-0 top-0 z-20 bg-surface-hover border-r border-border"
+            : "sticky left-0 z-1 bg-surface-hover border-r border-border"),
         className
       )}
       onClick={handleClick}

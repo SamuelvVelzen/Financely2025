@@ -11,6 +11,7 @@ import { SubscriptionDetectionDialog } from "@/features/subscription/components/
 import { useTags } from "@/features/tag/hooks/useTags";
 import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
 import { useTransactionFilterProps } from "@/features/transaction/hooks/use-transaction-filter-props";
+import { useTransactionViewMode } from "@/features/transaction/hooks/use-transaction-view-mode";
 import { useTransactionFilters } from "@/features/transaction/hooks/useTransactionFilters";
 import {
   useDeleteTransaction,
@@ -36,6 +37,7 @@ import { exportTransactionsToCsv } from "../utils/export-csv";
 import { AddOrEditTransactionDialog } from "./add-or-edit-transaction-dialog";
 import { TransactionListGrouped } from "./transaction-list-grouped";
 import { TransactionOverviewHeader } from "./transaction-overview-header";
+import { TransactionTable } from "./transaction-table";
 
 const PAGE_SIZE = 20;
 
@@ -53,6 +55,9 @@ export function TransactionOverview({
   const expandedHeaderRef = useRef<HTMLDivElement>(null);
   const [isSticky, setExpandedHeaderElement] = useScrollPosition();
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+
+  const { layout, showDescriptions, setLayout, setShowDescriptions } =
+    useTransactionViewMode(workspaceId);
 
   // Use shared filter state hook (includes form)
   const {
@@ -299,6 +304,12 @@ export function TransactionOverview({
         isSticky={isSticky}
         filterCount={filterCount}
         onFiltersClick={handleStickyFiltersClick}
+        viewMode={{
+          layout,
+          showDescriptions,
+          onLayoutChange: setLayout,
+          onShowDescriptionsChange: setShowDescriptions,
+        }}
       />
 
       <Container>
@@ -341,17 +352,29 @@ export function TransactionOverview({
           />
         )}
 
-        {!isEmpty && !isEmptyWithFilters && (
-          <TransactionListGrouped
-            data={transactions}
-            searchQuery={searchQuery}
-            onDelete={handleDeleteClick}
-            onEdit={handleEditTransaction}
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            fetchNextPage={fetchNextPage}
-          />
-        )}
+        {!isEmpty && !isEmptyWithFilters &&
+          (layout === "list" ? (
+            <TransactionListGrouped
+              data={transactions}
+              searchQuery={searchQuery}
+              showDescription={showDescriptions}
+              onDelete={handleDeleteClick}
+              onEdit={handleEditTransaction}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
+            />
+          ) : (
+            <TransactionTable
+              data={transactions}
+              searchQuery={searchQuery}
+              onDelete={handleDeleteClick}
+              onEdit={handleEditTransaction}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
+            />
+          ))}
       </Container>
 
       <AddOrEditTransactionDialog

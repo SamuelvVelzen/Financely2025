@@ -3,20 +3,20 @@ import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useIntersectionObserver } from "@/features/shared/hooks/useIntersectionObserver";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
+import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
 import { groupTransactionsByDate } from "@/features/transaction/utils/group-transactions-by-date";
 import { Badge } from "@/features/ui/badge/badge";
-import { Dropdown } from "@/features/ui/dropdown/dropdown";
-import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Loading } from "@/features/ui/loading/loading";
 import { cn } from "@/features/util/cn";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
-import { HiArrowPath, HiPencil, HiTrash } from "react-icons/hi2";
+import { HiArrowPath } from "react-icons/hi2";
 
 type ITransactionListGroupedProps = {
   data: ITransaction[];
   searchQuery: string;
+  showDescription?: boolean;
   onDelete?: (transaction: ITransaction) => void;
   onEdit?: (transaction: ITransaction) => void;
   hasNextPage?: boolean;
@@ -27,6 +27,7 @@ type ITransactionListGroupedProps = {
 export function TransactionListGrouped({
   data,
   searchQuery,
+  showDescription = true,
   onDelete,
   onEdit,
   hasNextPage = false,
@@ -108,27 +109,11 @@ export function TransactionListGrouped({
                       />
 
                       {(onEdit || onDelete) && (
-                        <div
-                          className="flex items-center ml-1"
-                          onClick={(e) => e.stopPropagation()}>
-                          <Dropdown size="sm">
-                            {onEdit && (
-                              <DropdownItem
-                                icon={<HiPencil className="size-4" />}
-                                text="Edit"
-                                clicked={() => onEdit(transaction)}
-                              />
-                            )}
-                            {onDelete && (
-                              <DropdownItem
-                                icon={<HiTrash className="size-4" />}
-                                text="Delete"
-                                clicked={() => onDelete(transaction)}
-                                className="text-danger hover:bg-danger/10"
-                              />
-                            )}
-                          </Dropdown>
-                        </div>
+                        <TransactionRowActions
+                          transaction={transaction}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                        />
                       )}
                     </div>
                   </div>
@@ -159,7 +144,7 @@ export function TransactionListGrouped({
                   )}
 
                   {/* Description row */}
-                  {transaction.description && (
+                  {showDescription && transaction.description && (
                     <p className="text-sm text-text-muted truncate">
                       {highlightText(transaction.description, searchQuery)}
                     </p>
