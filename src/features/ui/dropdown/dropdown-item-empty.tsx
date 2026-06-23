@@ -13,7 +13,8 @@ export function DropdownItemEmpty({
       role="status"
       aria-live="polite"
       className={cn(
-        "hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full border-0 rounded-none justify-start focus:ring-0",
+        "hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full rounded-none justify-start focus:ring-0",
+        "border-x-0 border-b-0 border-t-0 not-first:border-t not-first:border-border",
         "text-text-muted cursor-default",
         className
       )}

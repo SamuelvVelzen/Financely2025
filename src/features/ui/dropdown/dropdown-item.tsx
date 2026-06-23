@@ -24,7 +24,8 @@ export function DropdownItem({
   return (
     <Button
       className={cn(
-        "gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full border-0 rounded-none justify-start focus:ring-0",
+        "gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full rounded-none justify-start focus:ring-0",
+        "border-x-0 border-b-0 border-t-0 not-first:border-t not-first:border-border",
         selected &&
           "bg-primary/10 hover:bg-primary/20 text-primary font-medium",
         className
