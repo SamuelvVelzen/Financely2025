@@ -196,9 +196,10 @@ export function TimePicker({
   };
 
   return (
-    <div className={cn("bg-surface p-4 w-48", className)}>
-      <div className="text-sm font-medium text-text mb-3 text-center">Time</div>
-      <div className="flex items-center justify-center gap-4">
+    <div className={cn("bg-surface flex flex-col w-48", className)}>
+      <div className="p-4">
+        <div className="text-sm font-medium text-text mb-3 text-center">Time</div>
+        <div className="flex items-center justify-center gap-4">
         {/* Hours */}
         <div className="flex flex-col items-center gap-1">
           <IconButton
@@ -310,6 +311,7 @@ export function TimePicker({
           </IconButton>
           <div className="text-xs text-text-muted">Minutes</div>
         </div>
+      </div>
       </div>
     </div>
   );

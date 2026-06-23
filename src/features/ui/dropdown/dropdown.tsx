@@ -14,7 +14,11 @@ import {
 import { HiDotsVertical } from "react-icons/hi";
 import { Button, IButtonProps, IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
-import { dropdownFooterBorderClasses, dropdownPanelContentClasses } from "./dropdown-item-classes";
+import {
+  dropdownFooterBorderClasses,
+  dropdownPanelContentClasses,
+  dropdownPanelFooterBorderClasses,
+} from "./dropdown-item-classes";
 
 export type IPlacementOption = "top" | "bottom" | "left" | "right" | "auto";
 
@@ -31,7 +35,8 @@ function DropdownFooter({ children, className = "" }: IDropdownFooterProps) {
   return (
     <div
       className={cn(
-        "flex gap-2 bg-surface",
+        "flex gap-2",
+        dropdownPanelFooterBorderClasses,
         dropdownFooterBorderClasses,
         className
       )}>
@@ -240,6 +245,14 @@ export function Dropdown({
     }
   });
 
+  const hasPanelContent = regularChildren.some(
+    (child) =>
+      isValidElement(child) &&
+      (child.type === DropdownPanel ||
+        (child.type as { displayName?: string })?.displayName ===
+          "DropdownPanel")
+  );
+
   return (
     <>
       <div
@@ -278,11 +291,17 @@ export function Dropdown({
         }}>
         <div
           data-dropdown-panel
+          data-panel-mode={hasPanelContent ? "content" : "items"}
           data-expanded={showExpanded ? "true" : undefined}
           className={cn(
-            "group/dropdown-panel bg-surface text-base font-normal flex flex-col",
+            "group/dropdown-panel text-base font-normal flex flex-col",
             showExpanded ? "shrink-0" : "w-full min-w-full",
-            "max-h-[calc(100vh-16px)]"
+            "max-h-[calc(100vh-16px)]",
+            hasPanelContent &&
+              (showExpanded
+                ? "border border-border overflow-hidden bg-surface rounded-l-2xl"
+                : "border border-border overflow-hidden bg-surface rounded-2xl"),
+            !hasPanelContent && "bg-surface"
           )}>
           <div
             data-dropdown-list

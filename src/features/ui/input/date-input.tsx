@@ -205,13 +205,13 @@ export function DateInput({
           return null;
         }
         return (
-          <div className="flex flex-col justify-between h-full">
+          <div className="flex flex-col justify-between h-full bg-surface">
             <TimePicker
               value={timePickerDate}
               onChange={handleTimeChange}
             />
             {onRemoveTime && (
-              <div className="p-4 pt-0">
+              <div className="border-t border-border p-4">
                 <Button
                   clicked={(e) => {
                     e.stopPropagation();
@@ -250,7 +250,7 @@ export function DateInput({
           showExpanded={!!expandedContent}
           closeOnItemClick={false}
           disabled={disabled}>
-          <Dropdown.Panel className="overflow-hidden">
+          <Dropdown.Panel className="overflow-hidden w-full">
             <CalendarView
               startDate={selectedDate}
               endDate={null}

@@ -145,9 +145,10 @@ export function CalendarView({
   };
 
   return (
-    <div className={cn("bg-surface p-4", className)}>
-      {/* Month/Year Header with Navigation */}
-      <div className="flex items-center justify-between mb-4">
+    <div className={cn("bg-surface flex flex-col", className)}>
+      <div className="p-4">
+        {/* Month/Year Header with Navigation */}
+        <div className="flex items-center justify-between mb-4">
         <button
           type="button"
           onClick={handlePreviousMonth}
@@ -299,10 +300,11 @@ export function CalendarView({
           );
         })}
       </div>
+      </div>
 
       {/* Footer with Add Time button */}
       {timeSupported && onAddTime && (
-        <div className="mt-4 pt-4 border-t border-border">
+        <div className="border-t border-border p-4">
           <Button
             clicked={(e) => {
               e.stopPropagation();
