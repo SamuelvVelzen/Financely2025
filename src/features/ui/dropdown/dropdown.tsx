@@ -14,6 +14,7 @@ import {
 import { HiDotsVertical } from "react-icons/hi";
 import { Button, IButtonProps, IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
+import { dropdownFooterBorderClasses } from "./dropdown-item-classes";
 
 export type IPlacementOption = "top" | "bottom" | "left" | "right" | "auto";
 
@@ -28,7 +29,12 @@ type IDropdownFooterProps = {} & PropsWithChildren & IPropsWithClassName;
 
 function DropdownFooter({ children, className = "" }: IDropdownFooterProps) {
   return (
-    <div className={cn("flex gap-2 border-t border-border", className)}>
+    <div
+      className={cn(
+        "flex gap-2 bg-surface",
+        dropdownFooterBorderClasses,
+        className
+      )}>
       {children}
     </div>
   );
@@ -261,20 +267,31 @@ export function Dropdown({
           }
         }}>
         <div
+          data-dropdown-panel
+          data-expanded={showExpanded ? "true" : undefined}
           className={cn(
-            "bg-surface border border-border text-base font-normal flex flex-col overflow-hidden",
-            showExpanded ? "shrink-0 rounded-l-2xl" : "w-full min-w-full rounded-2xl",
+            "group/dropdown-panel bg-surface text-base font-normal flex flex-col",
+            showExpanded ? "shrink-0" : "w-full min-w-full",
             "max-h-[calc(100vh-16px)]"
           )}>
-          <div className="overflow-y-auto flex-1">{regularChildren}</div>
+          <div
+            data-dropdown-list
+            data-expanded={showExpanded ? "true" : undefined}
+            className="group/dropdown-list overflow-y-auto flex-1 min-h-0">
+            {regularChildren}
+          </div>
           {footerChildren.length > 0 && (
-            <div className="shrink-0">{footerChildren}</div>
+            <div
+              className="shrink-0"
+              data-dropdown-footer>
+              {footerChildren}
+            </div>
           )}
         </div>
         {showExpanded && expandedContent && (
           <div
             ref={expandedContentRef}
-            className="shrink-0 bg-surface border-t overflow-hidden border-r border-b border-l-0 border-border rounded-r-2xl">
+            className="shrink-0 bg-surface border overflow-hidden border-border rounded-r-2xl rounded-l-none -ml-px">
             {expandedContent}
           </div>
         )}

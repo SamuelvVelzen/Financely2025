@@ -2,6 +2,7 @@ import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren, ReactNode } from "react";
 import { Button, IButtonProps } from "../button/button";
+import { dropdownItemBorderClasses } from "./dropdown-item-classes";
 
 type IDropdownItemProps = {
   text?: string;
@@ -24,8 +25,8 @@ export function DropdownItem({
   return (
     <Button
       className={cn(
-        "gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full rounded-none justify-start focus:ring-0",
-        "border-x-0 border-b-0 border-t-0 not-first:border-t not-first:border-border",
+        "gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full justify-start",
+        dropdownItemBorderClasses,
         selected &&
           "bg-primary/10 hover:bg-primary/20 text-primary font-medium",
         className

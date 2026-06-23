@@ -1,6 +1,7 @@
 import { cn } from "@/features/util/cn";
 import { IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { PropsWithChildren } from "react";
+import { dropdownItemBorderClasses } from "./dropdown-item-classes";
 
 type IDropdownItemEmptyProps = {} & IPropsWithClassName & PropsWithChildren;
 
@@ -13,8 +14,8 @@ export function DropdownItemEmpty({
       role="status"
       aria-live="polite"
       className={cn(
-        "hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full rounded-none justify-start focus:ring-0",
-        "border-x-0 border-b-0 border-t-0 not-first:border-t not-first:border-border",
+        "border px-3 py-2 text-nowrap font-normal w-full",
+        dropdownItemBorderClasses,
         "text-text-muted cursor-default",
         className
       )}
