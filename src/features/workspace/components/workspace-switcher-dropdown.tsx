@@ -5,6 +5,7 @@ import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { dropdownRowBorderClasses } from "@/features/ui/dropdown/dropdown-item-classes";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { useToast } from "@/features/ui/toast";
 import { Label } from "@/features/ui/typography/label";
@@ -205,6 +206,7 @@ export function WorkspaceSwitcherDropdown({
               key={option.value}
               className={cn(
                 "group flex items-center gap-0.5 pr-1 hover:bg-surface-hover",
+                dropdownRowBorderClasses,
                 isSelected && "bg-primary/10 hover:bg-primary/20",
               )}>
               <Button

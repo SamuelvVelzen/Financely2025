@@ -278,53 +278,50 @@ export function EmoticonInput({
               onOpenChange={setIsPickerOpen}
               placement="bottom"
               closeOnItemClick={false}>
-              {/* Category Tabs */}
-              <div className="border-b border-border overflow-x-auto scrollbar-hide">
-                <div className="flex min-w-max">
-                  {Object.keys(EMOJI_CATEGORIES).map((category, idx) => {
-                    const isActive = selectedCategory === category;
-                    const isFirst = idx === 0;
-                    const isLast =
-                      idx === Object.keys(EMOJI_CATEGORIES).length - 1;
-                    return (
-                      <button
-                        key={category}
-                        type="button"
-                        onClick={() => setSelectedCategory(category)}
-                        className={cn(
-                          "px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2",
-                          isFirst && "rounded-tl-2xl",
-                          isLast && "rounded-tr-2xl",
-                          isActive
-                            ? "border-primary text-text bg-surface"
-                            : "border-transparent text-text-muted hover:text-text hover:border-border"
-                        )}
-                        aria-selected={isActive}
-                        role="tab">
-                        {category}
-                      </button>
-                    );
-                  })}
+              <Dropdown.Panel className="overflow-hidden min-w-[320px]">
+                {/* Category Tabs */}
+                <div className="border-b border-border overflow-x-auto scrollbar-hide">
+                  <div className="flex min-w-max">
+                    {Object.keys(EMOJI_CATEGORIES).map((category) => {
+                      const isActive = selectedCategory === category;
+                      return (
+                        <button
+                          key={category}
+                          type="button"
+                          onClick={() => setSelectedCategory(category)}
+                          className={cn(
+                            "px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2",
+                            isActive
+                              ? "border-primary text-text bg-surface"
+                              : "border-transparent text-text-muted hover:text-text hover:border-border"
+                          )}
+                          aria-selected={isActive}
+                          role="tab">
+                          {category}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* Selected Category Emojis */}
-              <div className="p-3 max-h-64 overflow-y-auto min-w-[320px]">
-                <div className="grid grid-cols-8 gap-1">
-                  {EMOJI_CATEGORIES[
-                    selectedCategory as keyof typeof EMOJI_CATEGORIES
-                  ].map((emoji, idx) => (
-                    <button
-                      key={`${selectedCategory}-${idx}`}
-                      type="button"
-                      onClick={() => handleEmojiSelect(emoji)}
-                      className="p-2 rounded-lg hover:bg-surface-hover text-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
-                      aria-label={`Select ${emoji}`}>
-                      {emoji}
-                    </button>
-                  ))}
+                {/* Selected Category Emojis */}
+                <div className="p-3 max-h-64 overflow-y-auto">
+                  <div className="grid grid-cols-8 gap-1">
+                    {EMOJI_CATEGORIES[
+                      selectedCategory as keyof typeof EMOJI_CATEGORIES
+                    ].map((emoji, idx) => (
+                      <button
+                        key={`${selectedCategory}-${idx}`}
+                        type="button"
+                        onClick={() => handleEmojiSelect(emoji)}
+                        className="p-2 rounded-lg hover:bg-surface-hover text-xl transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                        aria-label={`Select ${emoji}`}>
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </Dropdown.Panel>
             </Dropdown>
           </div>
 

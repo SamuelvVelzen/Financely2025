@@ -162,7 +162,7 @@ export function FilterBar({
             placement="bottom"
             closeOnItemClick={false}
             allowNested={true}>
-            <div className="p-4 space-y-4 min-w-[300px]">
+            <Dropdown.Panel className="p-4 space-y-4 min-w-[300px]">
               <CheckboxGroup
                 name="transactionTypeFilter"
                 label="Transaction Type"
@@ -246,7 +246,7 @@ export function FilterBar({
                   </>
                 )}
               </SelectDropdown>
-            </div>
+            </Dropdown.Panel>
 
             <Dropdown.Footer className="p-4">
               <Button

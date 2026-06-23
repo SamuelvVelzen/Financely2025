@@ -250,13 +250,15 @@ export function DateInput({
           showExpanded={!!expandedContent}
           closeOnItemClick={false}
           disabled={disabled}>
-          <CalendarView
-            startDate={selectedDate}
-            endDate={null}
-            onDateSelect={(start, _end) => handleDateSelect(start)}
-            timeSupported={mode === "dateOnly" && !!onAddTime}
-            onAddTime={onAddTime}
-          />
+          <Dropdown.Panel className="overflow-hidden">
+            <CalendarView
+              startDate={selectedDate}
+              endDate={null}
+              onDateSelect={(start, _end) => handleDateSelect(start)}
+              timeSupported={mode === "dateOnly" && !!onAddTime}
+              onAddTime={onAddTime}
+            />
+          </Dropdown.Panel>
         </Dropdown>
         {shouldShowError && error?.message && (
           <p className="text-sm text-danger mt-1">{error.message}</p>

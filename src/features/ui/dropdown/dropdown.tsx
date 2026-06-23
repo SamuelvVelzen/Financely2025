@@ -14,7 +14,7 @@ import {
 import { HiDotsVertical } from "react-icons/hi";
 import { Button, IButtonProps, IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
-import { dropdownFooterBorderClasses } from "./dropdown-item-classes";
+import { dropdownFooterBorderClasses, dropdownPanelContentClasses } from "./dropdown-item-classes";
 
 export type IPlacementOption = "top" | "bottom" | "left" | "right" | "auto";
 
@@ -41,6 +41,16 @@ function DropdownFooter({ children, className = "" }: IDropdownFooterProps) {
 }
 
 DropdownFooter.displayName = "DropdownFooter";
+
+type IDropdownPanelProps = {} & PropsWithChildren & IPropsWithClassName;
+
+function DropdownPanel({ children, className = "" }: IDropdownPanelProps) {
+  return (
+    <div className={cn(dropdownPanelContentClasses, className)}>{children}</div>
+  );
+}
+
+DropdownPanel.displayName = "DropdownPanel";
 
 type IDropdownProps = {
   dropdownSelector?:
@@ -301,3 +311,4 @@ export function Dropdown({
 }
 
 Dropdown.Footer = DropdownFooter;
+Dropdown.Panel = DropdownPanel;

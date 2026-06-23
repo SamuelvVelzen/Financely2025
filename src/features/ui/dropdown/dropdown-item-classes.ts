@@ -16,3 +16,16 @@ export const dropdownFooterBorderClasses = cn(
   "relative z-0 -mt-px border border-border rounded-none rounded-b-2xl",
   "group-data-[expanded=true]/dropdown-panel:rounded-br-none group-data-[expanded=true]/dropdown-panel:rounded-bl-2xl"
 );
+
+/** Border and rounding for custom dropdown content panels (forms, calendars, etc.). */
+export const dropdownPanelContentClasses = cn(
+  "bg-surface border border-border rounded-t-2xl",
+  "[&:only-child]:rounded-b-2xl",
+  "group-has-[[data-dropdown-footer]]/dropdown-panel:rounded-b-none group-has-[[data-dropdown-footer]]/dropdown-panel:border-b-0",
+  "group-data-[expanded=true]/dropdown-list:rounded-tr-none group-data-[expanded=true]/dropdown-list:rounded-tl-2xl",
+  "group-data-[expanded=true]/dropdown-list:[&:only-child]:rounded-br-none group-data-[expanded=true]/dropdown-list:[&:only-child]:rounded-bl-2xl",
+  "group-has-[[data-dropdown-footer]]/dropdown-panel:group-data-[expanded=true]/dropdown-list:[&:only-child]:rounded-bl-none"
+);
+
+/** Border and rounding for custom dropdown rows that are not DropdownItem buttons. */
+export const dropdownRowBorderClasses = cn("border", dropdownItemBorderClasses);
