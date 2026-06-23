@@ -23,6 +23,7 @@ type ISubscriptionListItemProps = {
   subscription: ISubscription;
   onToggleActive: (subscription: ISubscription) => void;
   onDelete: (subscription: ISubscription) => void;
+  onEdit?: (subscription: ISubscription) => void;
   onTransactionClick?: (transactionId: string) => void;
 };
 
@@ -30,13 +31,28 @@ export function SubscriptionListItem({
   subscription,
   onToggleActive,
   onDelete,
+  onEdit,
   onTransactionClick,
 }: ISubscriptionListItemProps) {
   const [expanded, setExpanded] = useState(false);
   const transactions = subscription.transactions ?? [];
 
+  const handleRowClick = () => {
+    if (onEdit) {
+      onEdit(subscription);
+      return;
+    }
+    if (transactions.length > 0) {
+      setExpanded((prev) => !prev);
+    }
+  };
+
   return (
-    <ListItem className="flex-col items-stretch gap-2">
+    <ListItem
+      className="flex-col items-stretch gap-2"
+      clicked={
+        onEdit || transactions.length > 0 ? handleRowClick : undefined
+      }>
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="font-medium text-text truncate">
@@ -70,7 +86,9 @@ export function SubscriptionListItem({
 
           />
 
-          <div className="flex items-center ml-1 gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
+          <div
+            className="flex items-center ml-1 gap-1"
+            onClick={(e) => e.stopPropagation()}>
             <Dropdown size="sm">
               <DropdownItem
                 icon={
@@ -98,7 +116,10 @@ export function SubscriptionListItem({
         <button
           type="button"
           className="flex items-center gap-1 text-sm text-text-muted hover:text-text transition-colors self-start"
-          onClick={() => setExpanded(!expanded)}>
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(!expanded);
+          }}>
           {expanded ? (
             <HiChevronUp className="size-4" />
           ) : (
@@ -116,7 +137,10 @@ export function SubscriptionListItem({
               key={tx.id}
               type="button"
               className="flex items-center justify-between text-sm text-text-muted py-1 w-full text-left rounded-md hover:bg-surface-hover hover:text-text transition-colors px-2 -mx-2 cursor-pointer"
-              onClick={() => onTransactionClick?.(tx.id)}>
+              onClick={(e) => {
+                e.stopPropagation();
+                onTransactionClick?.(tx.id);
+              }}>
               <span className="truncate flex-1">{tx.name}</span>
               <div className="flex items-center gap-3 shrink-0">
                 <span>

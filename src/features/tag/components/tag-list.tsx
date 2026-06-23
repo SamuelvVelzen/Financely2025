@@ -1,6 +1,5 @@
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import type { ITag } from "@/features/shared/validation/schemas";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import {
@@ -60,34 +59,40 @@ function TagListItemActions({
   onEditRules?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
 }) {
-  const hasDropdownActions = onEditRules || onDelete;
+  const hasDropdownActions = onEdit || onEditRules || onDelete;
+
+  if (!hasDropdownActions) {
+    return null;
+  }
 
   return (
-    <div className="flex items-center gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
-      {onEdit && (
-        <IconButton clicked={() => onEdit(tag)} size="sm">
-          <HiPencil className="size-4" />
-        </IconButton>
-      )}
-      {hasDropdownActions && (
-        <Dropdown size="sm">
-          {onEditRules && (
-            <DropdownItem
-              icon={<HiOutlineQueueList className="size-4" />}
-              text="Tagging rules"
-              clicked={() => onEditRules(tag)}
-            />
-          )}
-          {onDelete && (
-            <DropdownItem
-              icon={<HiTrash className="size-4" />}
-              text="Delete"
-              clicked={() => onDelete(tag.id)}
-              className="text-danger hover:bg-danger/10"
-            />
-          )}
-        </Dropdown>
-      )}
+    <div
+      className="flex items-center gap-1"
+      onClick={(e) => e.stopPropagation()}>
+      <Dropdown size="sm">
+        {onEdit && (
+          <DropdownItem
+            icon={<HiPencil className="size-4" />}
+            text="Edit"
+            clicked={() => onEdit(tag)}
+          />
+        )}
+        {onEditRules && (
+          <DropdownItem
+            icon={<HiOutlineQueueList className="size-4" />}
+            text="Tagging rules"
+            clicked={() => onEditRules(tag)}
+          />
+        )}
+        {onDelete && (
+          <DropdownItem
+            icon={<HiTrash className="size-4" />}
+            text="Delete"
+            clicked={() => onDelete(tag.id)}
+            className="text-danger hover:bg-danger/10"
+          />
+        )}
+      </Dropdown>
     </div>
   );
 }
@@ -135,8 +140,8 @@ function DraggableTagListItem({
 }) {
   return (
     <SortableListItem
-      className="group"
       draggable
+      clicked={onEdit ? () => onEdit(tag) : undefined}
       isDragging={dragProps.isDragging}
       isDragOver={dragProps.isDragOver}
       isOriginalPosition={dragProps.isOriginalPosition}
@@ -190,7 +195,9 @@ export function TagList({
   return (
     <SortableList {...listProps} draggable={false}>
       {(tag) => (
-        <SortableListItem className="group" draggable={false}>
+        <SortableListItem
+          draggable={false}
+          clicked={onEdit ? () => onEdit(tag) : undefined}>
           <TagListItem
             tag={tag}
             searchQuery={searchQuery}

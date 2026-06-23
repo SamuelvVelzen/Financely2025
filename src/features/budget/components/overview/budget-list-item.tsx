@@ -8,11 +8,12 @@ import type {
   IBudget,
   IBudgetComparison,
 } from "@/features/shared/validation/schemas";
-import { IconButton } from "@/features/ui/button/icon-button";
+import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
 import { formatDateRange } from "@/features/util/date/date-helpers";
-import { HiEye, HiPencil, HiTrash } from "react-icons/hi2";
+import { HiPencil, HiTrash } from "react-icons/hi2";
 
 type IBudgetListItemProps = {
   budget: IBudget;
@@ -47,13 +48,13 @@ export function BudgetListItem({
 
   return (
     <ListItem
-      className="group relative py-3"
+      className="py-3"
       clicked={() => {
         if (onView) {
           onView(budget);
         }
       }}>
-      <div className="flex w-full min-w-0 items-center justify-between gap-6">
+      <div className="flex w-full min-w-0 items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 min-w-0">
             <span className="font-medium truncate">
@@ -67,57 +68,53 @@ export function BudgetListItem({
           <div className="text-xs text-text-muted mt-0.5">{tagCountLabel}</div>
         </div>
 
-        {netTotals ? (
-          <div className="shrink-0 text-right">
-            <div
-              className={cn("font-semibold text-lg", netStatus?.colorClass)}>
-              {formatCurrency(
-                netTotals.actualRemaining.toString(),
-                budget.currency,
-              )}
+        <div className="flex shrink-0 items-center gap-2">
+          {netTotals ? (
+            <div className="text-right">
+              <div
+                className={cn("font-semibold text-lg", netStatus?.colorClass)}>
+                {formatCurrency(
+                  netTotals.actualRemaining.toString(),
+                  budget.currency,
+                )}
+              </div>
+              <div className="text-xs text-text-muted">
+                of{" "}
+                {formatCurrency(
+                  netTotals.expectedRemaining.toString(),
+                  budget.currency,
+                )}{" "}
+                expected
+              </div>
             </div>
-            <div className="text-xs text-text-muted">
-              of{" "}
-              {formatCurrency(
-                netTotals.expectedRemaining.toString(),
-                budget.currency,
-              )}{" "}
-              expected
-            </div>
-          </div>
-        ) : (
-          <div className="shrink-0 text-sm text-text-muted">—</div>
-        )}
-      </div>
+          ) : (
+            <div className="text-sm text-text-muted">—</div>
+          )}
 
-      <div
-        className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-lg bg-surface/95 px-1 opacity-0 shadow-sm group-hover:opacity-100 motion-safe:transition-opacity"
-        onClick={(e) => e.stopPropagation()}>
-        {onView && (
-          <IconButton
-            clicked={() => onView(budget)}
-            size="sm"
-            ariaLabel="View budget">
-            <HiEye className="size-4" />
-          </IconButton>
-        )}
-        {onEdit && (
-          <IconButton
-            clicked={() => onEdit(budget)}
-            size="sm"
-            ariaLabel="Edit budget">
-            <HiPencil className="size-4" />
-          </IconButton>
-        )}
-        {onDelete && (
-          <IconButton
-            clicked={() => onDelete(budget)}
-            variant="danger"
-            size="sm"
-            ariaLabel="Delete budget">
-            <HiTrash className="size-4" />
-          </IconButton>
-        )}
+          {(onEdit || onDelete) && (
+            <div
+              className="flex items-center gap-1"
+              onClick={(e) => e.stopPropagation()}>
+              <Dropdown size="sm">
+                {onEdit && (
+                  <DropdownItem
+                    icon={<HiPencil className="size-4" />}
+                    text="Edit"
+                    clicked={() => onEdit(budget)}
+                  />
+                )}
+                {onDelete && (
+                  <DropdownItem
+                    icon={<HiTrash className="size-4" />}
+                    text="Delete"
+                    clicked={() => onDelete(budget)}
+                    className="text-danger hover:bg-danger/10"
+                  />
+                )}
+              </Dropdown>
+            </div>
+          )}
+        </div>
       </div>
     </ListItem>
   );

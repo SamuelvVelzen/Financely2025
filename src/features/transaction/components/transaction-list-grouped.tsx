@@ -5,7 +5,6 @@ import type { ITransaction } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { groupTransactionsByDate } from "@/features/transaction/utils/group-transactions-by-date";
 import { Badge } from "@/features/ui/badge/badge";
-import { IconButton } from "@/features/ui/button/icon-button";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { List } from "@/features/ui/list/list";
@@ -70,25 +69,28 @@ export function TransactionListGrouped({
           <List
             data={group.transactions}
             getItemKey={(transaction) => transaction.id}>
-            {(transaction) => {
-              const isExpense = transaction.type === "EXPENSE";
-              const isIncome = transaction.type === "INCOME";
-
-              return (
-                <ListItem className={cn("group flex-col items-stretch gap-1")}>
+            {(transaction) => (
+                <ListItem
+                  className="flex-col items-stretch gap-1"
+                  clicked={
+                    onEdit ? () => onEdit(transaction) : undefined
+                  }>
                   {/* Top row: Name, Time, Actions, Amount */}
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <span className="text-text font-medium truncate">
                         {highlightText(transaction.name, searchQuery)}
                       </span>
-                      <span className="text-text-muted">•</span>
-                      <span className="text-sm text-text-muted whitespace-nowrap">
-                        {DateFormatHelpers.formatIsoStringToString(
-                          transaction.transactionDate,
-                          transaction.timePrecision
-                        )}
-                      </span>
+                      {transaction.timePrecision === "DateTime" && (
+                        <>
+                          <span className="text-text-muted">•</span>
+                          <span className="text-sm text-text-muted whitespace-nowrap">
+                            {DateFormatHelpers.formatIsoStringToTimeOnly(
+                              transaction.transactionDate,
+                            )}
+                          </span>
+                        </>
+                      )}
                       <span className="text-text-muted">•</span>
                       <Badge className="text-xs">
                         {PAYMENT_METHOD_LABELS[transaction.paymentMethod]}
@@ -106,25 +108,26 @@ export function TransactionListGrouped({
                       />
 
                       {(onEdit || onDelete) && (
-                        <div className="flex items-center ml-1 gap-1 opacity-20 group-hover:opacity-100 focus-within:opacity-100 motion-safe:transition-opacity">
-                          {onEdit && (
-                            <IconButton
-                              clicked={() => onEdit(transaction)}
-                              size="sm">
-                              <HiPencil className="size-4" />
-                            </IconButton>
-                          )}
-
-                          {onDelete && (
-                            <Dropdown size="sm">
+                        <div
+                          className="flex items-center ml-1"
+                          onClick={(e) => e.stopPropagation()}>
+                          <Dropdown size="sm">
+                            {onEdit && (
+                              <DropdownItem
+                                icon={<HiPencil className="size-4" />}
+                                text="Edit"
+                                clicked={() => onEdit(transaction)}
+                              />
+                            )}
+                            {onDelete && (
                               <DropdownItem
                                 icon={<HiTrash className="size-4" />}
                                 text="Delete"
                                 clicked={() => onDelete(transaction)}
                                 className="text-danger hover:bg-danger/10"
                               />
-                            </Dropdown>
-                          )}
+                            )}
+                          </Dropdown>
                         </div>
                       )}
                     </div>
@@ -162,8 +165,7 @@ export function TransactionListGrouped({
                     </p>
                   )}
                 </ListItem>
-              );
-            }}
+            )}
           </List>
         </div>
       ))}

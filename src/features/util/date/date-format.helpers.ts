@@ -32,4 +32,14 @@ export class DateFormatHelpers {
       minute: "2-digit",
     });
   }
+
+  /** Format ISO datetime string to localized time only (hours + minutes). */
+  public static formatIsoStringToTimeOnly(isoString: string): string {
+    const local = LocaleHelpers.getLocale();
+    const date = new Date(isoString);
+    return date.toLocaleTimeString(local, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
 }
