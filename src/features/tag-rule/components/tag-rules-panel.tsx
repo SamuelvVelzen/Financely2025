@@ -199,22 +199,24 @@ export function TagRulesPanel() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold text-text">Tag rules</h2>
           <p className="text-sm text-text-muted mt-1">
             Suggest tags when transaction names match your keywords.
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+        <div className="flex min-w-0 w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
           <SearchInput
+            alwaysExpanded
             value={searchQuery}
             onChange={(v) => setSearchQuery(v ?? "")}
             placeholder="Search by tag, keyword, or rule"
-            className="sm:w-auto"
+            className="w-full min-w-0"
           />
           <Button
             variant="primary"
+            className="shrink-0"
             clicked={() => {
               setSelectedRule(undefined);
               setIsDialogOpen(true);
