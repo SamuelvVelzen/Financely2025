@@ -11,7 +11,6 @@ import {
 import { DateInput } from "@/features/ui/input/date-input";
 import { RadioGroup, RadioItem } from "@/features/ui/radio";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
-import { Select } from "@/features/ui/select/select";
 import { Label } from "@/features/ui/typography/label";
 import { Text } from "@/features/ui/typography/text";
 import { useEffect, useMemo, useRef } from "react";
@@ -268,29 +267,30 @@ export function BudgetPresetSelector({
 
       {preset === "monthly" && (
         <div className="grid grid-cols-2 gap-4">
-          <Select<number>
+          <SelectDropdown<number>
             name="general.year"
             label="Year"
             options={yearOptions}
             placeholder={`e.g. ${currentYear}`}
-            searchPlaceholder="Type to search year..."
+            clearable={false}
           />
           <SelectDropdown<number>
             name="general.month"
             label="Month"
             options={monthOptions}
             placeholder="Select month"
+            clearable={false}
           />
         </div>
       )}
 
       {(preset === "yearly" || preset === "yearly-per-month") && (
-        <Select<number>
+        <SelectDropdown<number>
           name="general.year"
           label="Year"
           options={yearOptions}
           placeholder={`e.g. ${currentYear}`}
-          searchPlaceholder="Type to search year..."
+          clearable={false}
         />
       )}
 
