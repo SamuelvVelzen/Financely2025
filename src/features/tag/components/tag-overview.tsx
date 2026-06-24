@@ -168,7 +168,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
 
   const handleSmartTaggingClick = useCallback(() => {
     navigate({
-      to: "/$workspaceId/smart-tagging",
+      to: "/$workspaceId/tags/smart-tagging",
       params: { workspaceId: workspaceRouteParam },
     });
   }, [navigate, workspaceRouteParam]);

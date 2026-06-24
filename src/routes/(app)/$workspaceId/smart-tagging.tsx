@@ -1,13 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { SmartTaggingPage } from "@/features/tag-rule/pages/smart-tagging-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)/$workspaceId/smart-tagging")({
-  component: SmartTaggingPage,
-  head: () => ({
-    meta: [
-      {
-        title: "Smart Tagging | Financely",
-      },
-    ],
-  }),
+  beforeLoad: ({ params }) => {
+    throw redirect({
+      to: "/$workspaceId/tags/smart-tagging",
+      params,
+    });
+  },
 });

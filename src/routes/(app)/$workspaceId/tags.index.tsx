@@ -2,7 +2,7 @@ import { tagFilterQuerySchema } from "@/features/tag/utils/tag-filter-query-sche
 import { createFileRoute } from "@tanstack/react-router";
 import { TagsPage } from "@/features/tag/pages/tags-page";
 
-export const Route = createFileRoute("/(app)/$workspaceId/tags")({
+export const Route = createFileRoute("/(app)/$workspaceId/tags/")({
   component: TagsPage,
   validateSearch: (search: Record<string, unknown>) => {
     const validated = tagFilterQuerySchema.parse(search);

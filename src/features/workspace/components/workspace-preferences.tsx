@@ -206,7 +206,7 @@ export function WorkspacePreferences() {
               />
               <p className="text-sm text-text-muted">
                 <Link
-                  to="/$workspaceId/smart-tagging"
+                  to="/$workspaceId/tags/smart-tagging"
                   params={{ workspaceId: workspaceRouteParam }}
                   className="text-primary hover:underline">
                   Manage smart tagging rules
@@ -237,7 +237,7 @@ export function WorkspacePreferences() {
               </div>
               <p className="text-sm text-text-muted">
                 <Link
-                  to="/$workspaceId/smart-tagging"
+                  to="/$workspaceId/tags/smart-tagging"
                   params={{ workspaceId: workspaceRouteParam }}
                   className="text-primary hover:underline">
                   Manage smart tagging rules

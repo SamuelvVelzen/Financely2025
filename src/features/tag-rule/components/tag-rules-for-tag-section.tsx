@@ -273,7 +273,7 @@ export function TagRulesForTagSection({
 
         <LinkButton variant="default" size="xs" clicked={() =>
           navigate({
-            to: "/$workspaceId/smart-tagging",
+            to: "/$workspaceId/tags/smart-tagging",
             params: { workspaceId: workspaceRouteParam },
           })
         }>
