@@ -11,6 +11,8 @@ import {
   useUpdateWizardProgress,
   useWizardProgress,
 } from "@/features/wizard/hooks/useWizardProgress";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo } from "react";
 
@@ -43,6 +45,7 @@ export function OnboardingPage() {
   const { data: progress, isLoading } = useWizardProgress(WIZARD_ID);
   const updateProgress = useUpdateWizardProgress();
   const completeWizard = useCompleteWizard();
+  const workspaceId = useNavWorkspaceId();
 
   const pages = useMemo(() => getOnboardingPages(), []);
 
@@ -95,6 +98,13 @@ export function OnboardingPage() {
 
   const handleComplete = async () => {
     await completeWizard.mutateAsync(WIZARD_ID);
+    if (workspaceId != null) {
+      navigate({
+        to: "/$workspaceId",
+        params: { workspaceId: workspaceIdToRouteParam(workspaceId) },
+      });
+      return;
+    }
     navigate({ to: "/" });
   };
 
