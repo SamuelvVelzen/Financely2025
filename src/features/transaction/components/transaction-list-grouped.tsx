@@ -2,8 +2,8 @@ import { Currency } from "@/features/currency/components/currency";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useIntersectionObserver } from "@/features/shared/hooks/useIntersectionObserver";
 import type { ITransaction } from "@/features/shared/validation/schemas";
-import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
+import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { groupTransactionsByDate } from "@/features/transaction/utils/group-transactions-by-date";
 import { Badge } from "@/features/ui/badge/badge";
 import { List } from "@/features/ui/list/list";
@@ -15,7 +15,7 @@ import { HiArrowPath } from "react-icons/hi2";
 
 type ITransactionListGroupedProps = {
   data: ITransaction[];
-  searchQuery: string;
+  searchQuery?: string;
   showDescription?: boolean;
   onDelete?: (transaction: ITransaction) => void;
   onEdit?: (transaction: ITransaction) => void;
@@ -71,85 +71,85 @@ export function TransactionListGrouped({
             data={group.transactions}
             getItemKey={(transaction) => transaction.id}>
             {(transaction) => (
-                <ListItem
-                  className="flex-col items-stretch gap-1"
-                  clicked={
-                    onEdit ? () => onEdit(transaction) : undefined
-                  }>
-                  {/* Top row: Name, Time, Actions, Amount */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <span className="text-text font-medium truncate">
-                        {highlightText(transaction.name, searchQuery)}
-                      </span>
-                      {transaction.timePrecision === "DateTime" && (
-                        <>
-                          <span className="text-text-muted">•</span>
-                          <span className="text-sm text-text-muted whitespace-nowrap">
-                            {DateFormatHelpers.formatIsoStringToTimeOnly(
-                              transaction.transactionDate,
-                            )}
-                          </span>
-                        </>
-                      )}
-                      <span className="text-text-muted">•</span>
-                      <Badge className="text-xs">
-                        {PAYMENT_METHOD_LABELS[transaction.paymentMethod]}
-                      </Badge>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      {/* Amount */}
-                      <Currency
-                        amount={transaction.amount}
-                        type={transaction.type}
-                        currency={transaction.currency}
-                        searchQuery={searchQuery}
-                        className={cn("font-semibold text-lg")}
-                      />
-
-                      {(onEdit || onDelete) && (
-                        <TransactionRowActions
-                          transaction={transaction}
-                          onEdit={onEdit}
-                          onDelete={onDelete}
-                        />
-                      )}
-                    </div>
+              <ListItem
+                className="flex-col items-stretch gap-1"
+                clicked={
+                  onEdit ? () => onEdit(transaction) : undefined
+                }>
+                {/* Top row: Name, Time, Actions, Amount */}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <span className="text-text font-medium truncate">
+                      {highlightText(transaction.name, searchQuery)}
+                    </span>
+                    {transaction.timePrecision === "DateTime" && (
+                      <>
+                        <span className="text-text-muted">•</span>
+                        <span className="text-sm text-text-muted whitespace-nowrap">
+                          {DateFormatHelpers.formatIsoStringToTimeOnly(
+                            transaction.transactionDate,
+                          )}
+                        </span>
+                      </>
+                    )}
+                    <span className="text-text-muted">•</span>
+                    <Badge className="text-xs">
+                      {PAYMENT_METHOD_LABELS[transaction.paymentMethod]}
+                    </Badge>
                   </div>
 
-                  {/* Primary tag + subscription badges */}
-                  {(transaction.primaryTag || transaction.subscription) && (
-                    <div className="flex gap-1.5 flex-wrap">
-                      {transaction.primaryTag && (
-                        <Badge
-                          backgroundColor={
-                            transaction.primaryTag.color ?? undefined
-                          }>
-                          {highlightText(
-                            transaction.primaryTag.name,
-                            searchQuery
-                          )}
-                        </Badge>
-                      )}
-                      {transaction.subscription && (
-                        <Badge
-                          variant="info"
-                          tooltip={`Part of "${transaction.subscription.name}" subscription`}>
-                          <HiArrowPath className="size-3" />
-                          Recurring
-                        </Badge>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Amount */}
+                    <Currency
+                      amount={transaction.amount}
+                      type={transaction.type}
+                      currency={transaction.currency}
+                      searchQuery={searchQuery}
+                      className={cn("font-semibold text-lg")}
+                    />
 
-                  {/* Description row */}
-                  {showDescription && transaction.description && (
-                    <p className="text-sm text-text-muted truncate">
-                      {highlightText(transaction.description, searchQuery)}
-                    </p>
-                  )}
-                </ListItem>
+                    {(onEdit || onDelete) && (
+                      <TransactionRowActions
+                        transaction={transaction}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Primary tag + subscription badges */}
+                {(transaction.primaryTag || transaction.subscription) && (
+                  <div className="flex gap-1.5 flex-wrap">
+                    {transaction.primaryTag && (
+                      <Badge
+                        backgroundColor={
+                          transaction.primaryTag.color ?? undefined
+                        }>
+                        {highlightText(
+                          transaction.primaryTag.name,
+                          searchQuery
+                        )}
+                      </Badge>
+                    )}
+                    {transaction.subscription && (
+                      <Badge
+                        variant="info"
+                        tooltip={`Part of "${transaction.subscription.name}" subscription`}>
+                        <HiArrowPath className="size-3" />
+                        Recurring
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* Description row */}
+                {showDescription && transaction.description && (
+                  <p className="text-sm text-text-muted truncate">
+                    {highlightText(transaction.description, searchQuery)}
+                  </p>
+                )}
+              </ListItem>
             )}
           </List>
         </div>
