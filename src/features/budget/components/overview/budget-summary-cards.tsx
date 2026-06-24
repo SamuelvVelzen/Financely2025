@@ -4,9 +4,13 @@ import {
 } from "@/features/budget/utils/budget-overview-helpers";
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { IBudgetsOverviewResponse } from "@/features/shared/validation/schemas";
+import { EmptyPage } from "@/features/ui/container/empty-container";
 import { Loading } from "@/features/ui/loading";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { cn } from "@/features/util/cn";
-import { HiExclamationTriangle } from "react-icons/hi2";
+import { useNavigate } from "@tanstack/react-router";
+import { HiExclamationTriangle, HiOutlineCurrencyEuro } from "react-icons/hi2";
 
 type IBudgetSummaryCardsProps = {
   overviewData?: IBudgetsOverviewResponse;
@@ -19,6 +23,17 @@ export function BudgetSummaryCards({
   isLoading,
   error,
 }: IBudgetSummaryCardsProps) {
+  const navigate = useNavigate();
+  const workspaceId = useActiveWorkspaceId();
+  const workspaceRouteParam = workspaceIdToRouteParam(workspaceId);
+
+  const handleCreateBudget = () => {
+    navigate({
+      to: "/$workspaceId/budgets/new",
+      params: { workspaceId: workspaceRouteParam },
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -47,6 +62,19 @@ export function BudgetSummaryCards({
 
   const { overallHealth, riskSummary, timeContext, context, topSpenders } =
     overviewData;
+
+  if (context.totalBudgets === 0) {
+    return (
+      <EmptyPage
+        icon={HiOutlineCurrencyEuro}
+        emptyText="Create your first budget to start tracking your expenses and income."
+        button={{
+          buttonContent: "Create Budget",
+          clicked: handleCreateBudget,
+        }}
+      />
+    );
+  }
 
   const borderClasses =
     "divide-y md:divide-y-0 md:divide-x divide-border [&>:not(:last-child)]:mb-3 [&>:not(:last-child)]:pb-3 md:[&>:not(:last-child)]:mr-3 md:[&>:not(:last-child)]:pr-3 md:[&>:not(:last-child)]:mb-0 md:[&>:not(:last-child)]:pb-0";
