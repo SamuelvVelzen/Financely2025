@@ -1,6 +1,6 @@
 import { transactionFilterQuerySchema } from "@/features/transaction/utils/transaction-filter-query-schema";
 import { createFileRoute } from "@tanstack/react-router";
-import { TransactionsPage } from "./transactions-page";
+import { TransactionsPage } from "@/features/transaction/pages/transactions-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/transactions")({
   component: TransactionsPage,

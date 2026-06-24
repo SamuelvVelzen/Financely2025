@@ -1,6 +1,6 @@
 import { sanitizeAuthRedirect } from "@/features/auth/sanitize-auth-redirect";
 import { createFileRoute } from "@tanstack/react-router";
-import { LoginPage } from "./login-page";
+import { LoginPage } from "@/features/auth/pages/login-page";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,

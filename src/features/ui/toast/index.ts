@@ -1,7 +1,7 @@
 export { Toast } from "./toast";
 export { ToastContainer } from "./toast-container";
+export { ToastContext } from "./toast-context";
 export { ToastProvider } from "./toast-provider";
-export { useToastContext } from "./toast-context";
 export type {
   IToast,
   IToastContext,

@@ -3,7 +3,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import {
   WorkspaceRouteError,
   WorkspaceShellLayout,
-} from "./workspace-shell-layout";
+} from "@/features/workspace/pages/workspace-shell-layout";
 
 export const Route = createFileRoute("/(app)/$workspaceId")({
   beforeLoad: ({ params }) => {

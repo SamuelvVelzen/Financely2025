@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SmartTaggingPage } from "./smart-tagging-page";
+import { SmartTaggingPage } from "@/features/tag-rule/pages/smart-tagging-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/smart-tagging")({
   component: SmartTaggingPage,

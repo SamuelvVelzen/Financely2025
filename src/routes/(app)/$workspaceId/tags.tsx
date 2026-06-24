@@ -1,6 +1,6 @@
 import { tagFilterQuerySchema } from "@/features/tag/utils/tag-filter-query-schema";
 import { createFileRoute } from "@tanstack/react-router";
-import { TagsPage } from "./tags-page";
+import { TagsPage } from "@/features/tag/pages/tags-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/tags")({
   component: TagsPage,
