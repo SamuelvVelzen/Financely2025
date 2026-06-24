@@ -11,6 +11,7 @@ import {
   useUpdateTagRule,
 } from "@/features/tag-rule/hooks/useTagRules";
 import { getRecommendedTagMetadataForPreset } from "@/features/tag/config/default-tag-rules";
+import { TagInline } from "@/features/tag/components/tag-display";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
@@ -256,15 +257,15 @@ export function TagRulesPanel() {
                 </div>
                 <p className="text-sm text-text-muted">
                   Tag:{" "}
-                  <span className="inline-flex items-center gap-1.5">
-                    {rule.tag?.color && (
-                      <span
-                        className="size-2.5 rounded-full inline-block"
-                        style={{ backgroundColor: rule.tag.color }}
-                      />
-                    )}
-                    {rule.tag?.name ?? "Unknown"}
-                  </span>
+                  {rule.tag ? (
+                    <TagInline
+                      tag={rule.tag}
+                      showColorDot
+                      className="inline-flex"
+                    />
+                  ) : (
+                    "Unknown"
+                  )}
                   {" · "}
                   Keywords: {rule.keywords.join(", ")}
                 </p>

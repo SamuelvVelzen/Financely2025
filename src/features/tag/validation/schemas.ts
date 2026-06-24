@@ -7,6 +7,7 @@ export const TransactionTagSchema = z.object({
   id: z.string(),
   name: z.string(),
   color: z.string().nullable(),
+  emoticon: z.string().nullable().optional(),
 });
 
 export const TagSchema = z.object({

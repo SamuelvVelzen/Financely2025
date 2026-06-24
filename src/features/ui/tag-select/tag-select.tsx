@@ -10,6 +10,7 @@ import {
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
 import { AddOrEditTagDialog } from "@/features/tag/components/add-or-edit-tag-dialog";
+import { formatTagLabel } from "@/features/tag/components/tag-display";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
@@ -73,7 +74,7 @@ export function TagSelect({
   const tagOptions = useMemo(() => {
     return filteredTags.map((tag) => ({
       value: tag.id,
-      label: tag.name,
+      label: formatTagLabel(tag),
       data: tag,
     }));
   }, [filteredTags]);
@@ -167,9 +168,6 @@ export function TagSelect({
       <Select {...selectProps}>
         {(option, index, context) => (
           <>
-            {option.data?.emoticon && (
-              <span className="text-base shrink-0">{option.data.emoticon}</span>
-            )}
             {option.data?.color && (
               <div
                 className="size-3 rounded-full shrink-0"

@@ -36,6 +36,9 @@ export function ActiveFiltersRow({
                 <Badge
                   backgroundColor={badge.color}
                   className="max-w-[200px]">
+                  {badge.emoticon && (
+                    <span className="shrink-0">{badge.emoticon}</span>
+                  )}
                   {badge.label}
 
                   <IconButton
@@ -52,6 +55,9 @@ export function ActiveFiltersRow({
                 <Badge
                   variant="default"
                   className="max-w-[200px]">
+                  {badge.emoticon && (
+                    <span className="shrink-0">{badge.emoticon}</span>
+                  )}
                   {badge.label}
 
                   <IconButton

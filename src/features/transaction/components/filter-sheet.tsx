@@ -1,4 +1,5 @@
 import type { ITag } from "@/features/shared/validation/schemas";
+import { formatTagLabel } from "@/features/tag/components/tag-display";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import type { ITransactionViewControlsProps } from "@/features/transaction/components/transaction-view-controls";
 import { TransactionViewControls } from "@/features/transaction/components/transaction-view-controls";
@@ -78,7 +79,7 @@ export function FilterSheet({
 
   const tagOptions = tags.map((tag) => ({
     value: tag.id,
-    label: tag.name,
+    label: formatTagLabel(tag),
     data: tag,
   }));
 
@@ -205,9 +206,6 @@ export function FilterSheet({
           }}>
           {(option) => (
             <>
-              {option.data?.emoticon && (
-                <span className="text-base shrink-0">{option.data.emoticon}</span>
-              )}
               {option.data?.color && (
                 <div
                   className="size-3 rounded-full shrink-0"

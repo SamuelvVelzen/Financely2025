@@ -1,5 +1,6 @@
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type { IBudgetAlert } from "@/features/shared/validation/schemas";
+import { TagInline } from "@/features/tag/components/tag-display";
 import { Alert } from "@/features/ui/alert/alert";
 import { Badge } from "@/features/ui/badge/badge";
 import { cn } from "@/features/util/cn";
@@ -30,13 +31,15 @@ export function BudgetAlerts({ alerts, className = "" }: IBudgetAlertsProps) {
                   key={alert.tagId}
                   className="flex items-center justify-between p-2 bg-warning-bg rounded">
                   <div className="flex items-center gap-2">
-                    {alert.tagColor && (
-                      <div
-                        className="size-3 rounded-full"
-                        style={{ backgroundColor: alert.tagColor }}
-                      />
-                    )}
-                    <span className="font-medium">{alert.tagName}</span>
+                    <TagInline
+                      tag={{
+                        name: alert.tagName,
+                        color: alert.tagColor,
+                        emoticon: alert.tagEmoticon,
+                      }}
+                      showColorDot
+                      nameClassName="font-medium"
+                    />
                     <Badge>
                       {alert.transactionCount} transaction
                       {alert.transactionCount !== 1 ? "s" : ""}

@@ -22,10 +22,10 @@ import { Prisma } from "@prisma/client";
 
 const TRANSACTION_INCLUDE = {
   tags: {
-    select: { id: true, name: true, color: true },
+    select: { id: true, name: true, color: true, emoticon: true },
   },
   primaryTag: {
-    select: { id: true, name: true, color: true },
+    select: { id: true, name: true, color: true, emoticon: true },
   },
   subscription: {
     select: { id: true, name: true, frequency: true, active: true },
@@ -48,8 +48,18 @@ export class TransactionService {
     description: string | null;
     externalId: string | null;
     paymentMethod: string;
-    tags?: Array<{ id: string; name: string; color: string | null }>;
-    primaryTag?: { id: string; name: string; color: string | null } | null;
+    tags?: Array<{
+      id: string;
+      name: string;
+      color: string | null;
+      emoticon: string | null;
+    }>;
+    primaryTag?: {
+      id: string;
+      name: string;
+      color: string | null;
+      emoticon: string | null;
+    } | null;
     subscription?: {
       id: string;
       name: string;
@@ -75,12 +85,14 @@ export class TransactionService {
         id: tag.id,
         name: tag.name,
         color: tag.color,
+        emoticon: tag.emoticon,
       })),
       primaryTag: tx.primaryTag
         ? {
             id: tx.primaryTag.id,
             name: tx.primaryTag.name,
             color: tx.primaryTag.color,
+            emoticon: tx.primaryTag.emoticon,
           }
         : null,
       subscription: tx.subscription

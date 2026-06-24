@@ -2,6 +2,7 @@ import { getMonthsInRange } from "@/features/budget/utils/budget-presets";
 import { formatDecimal } from "@/features/currency/utils/currencyhelpers";
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITag } from "@/features/shared/validation/schemas";
+import { TagInline } from "@/features/tag/components/tag-display";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
 import { Badge } from "@/features/ui/badge/badge";
@@ -427,18 +428,38 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     });
   };
 
+  const getTagEmoticon = (tagId: string | null) => {
+    if (tagId === null) return null;
+    const tag = selectedTags.find((t) => t.id === tagId);
+    return tag?.emoticon ?? null;
+  };
+
   // --- Tag icon helper ---
-  const renderTagIcon = (tagColor: string | null) =>
-    tagColor ? (
-      <div className="size-5 flex items-center justify-center">
-        <span
-          className="size-3 rounded-full block"
-          style={{ backgroundColor: tagColor }}
-        />
-      </div>
-    ) : (
-      <HiSquares2X2 className="size-5 shrink-0 text-text-muted" />
-    );
+  const renderTagLeadingVisual = (
+    tagColor: string | null,
+    tagEmoticon: string | null,
+  ) => {
+    if (tagEmoticon) {
+      return (
+        <div className="size-5 flex items-center justify-center">
+          <span className="text-lg">{tagEmoticon}</span>
+        </div>
+      );
+    }
+
+    if (tagColor) {
+      return (
+        <div className="size-5 flex items-center justify-center">
+          <span
+            className="size-3 rounded-full block"
+            style={{ backgroundColor: tagColor }}
+          />
+        </div>
+      );
+    }
+
+    return <HiSquares2X2 className="size-5 shrink-0 text-text-muted" />;
+  };
 
   // --- Per-month item renderer ---
   const renderPerMonthItem = (field: IBudgetFieldEntry["field"], index: number) => {
@@ -448,6 +469,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     ) as string | null;
     const tagName = getTagName(tagId, categoryType);
     const tagColor = getTagColor(tagId);
+    const tagEmoticon = getTagEmoticon(tagId);
     const itemKey = getItemKey(tagId, categoryType);
     const state = itemStates[itemKey] ?? {
       masterAmount: "",
@@ -489,7 +511,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           tabIndex={-1}
           aria-expanded={isExpanded}
           aria-label={`${tagName}, yearly total ${formatDecimal(yearlyTotal)}. Click to ${isExpanded ? "collapse" : "expand"} monthly breakdown`}>
-          {renderTagIcon(tagColor)}
+          {renderTagLeadingVisual(tagColor, tagEmoticon)}
 
           <div className="flex-1 min-w-0">
             <div className="font-medium truncate">{tagName}</div>
@@ -643,10 +665,11 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     ) as string | null;
     const tagName = getTagName(tagId, categoryType);
     const tagColor = getTagColor(tagId);
+    const tagEmoticon = getTagEmoticon(tagId);
 
     return (
       <ListItem className="flex items-center gap-4 p-3">
-        {renderTagIcon(tagColor)}
+        {renderTagLeadingVisual(tagColor, tagEmoticon)}
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{tagName}</div>
         </div>

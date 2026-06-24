@@ -1,4 +1,5 @@
 import type { ITag } from "@/features/shared/validation/schemas";
+import { formatTagLabel } from "@/features/tag/components/tag-display";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
@@ -87,7 +88,7 @@ export function FilterBar({
 
   const tagOptions = tags.map((tag) => ({
     value: tag.id,
-    label: tag.name,
+    label: formatTagLabel(tag),
     data: tag,
   }));
 
@@ -261,11 +262,6 @@ export function FilterBar({
                 }}>
                 {(option) => (
                   <>
-                    {option.data?.emoticon && (
-                      <span className="text-base shrink-0">
-                        {option.data.emoticon}
-                      </span>
-                    )}
                     {option.data?.color && (
                       <div
                         className="size-3 rounded-full shrink-0"

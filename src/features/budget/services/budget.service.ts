@@ -38,6 +38,7 @@ const BUDGET_ITEMS_INCLUDE = {
           id: true,
           name: true,
           color: true,
+          emoticon: true,
           transactionType: true,
         },
       },
@@ -455,10 +456,10 @@ export class BudgetService {
       },
       include: {
         tags: {
-          select: { id: true, name: true, color: true },
+          select: { id: true, name: true, color: true, emoticon: true },
         },
         primaryTag: {
-          select: { id: true, name: true, color: true },
+          select: { id: true, name: true, color: true, emoticon: true },
         },
         subscription: {
           select: { id: true, name: true, frequency: true, active: true },
@@ -482,12 +483,14 @@ export class BudgetService {
           id: tag.id,
           name: tag.name,
           color: tag.color,
+          emoticon: tag.emoticon,
         })),
         primaryTag: tx.primaryTag
           ? {
               id: tx.primaryTag.id,
               name: tx.primaryTag.name,
               color: tx.primaryTag.color,
+              emoticon: tx.primaryTag.emoticon,
             }
           : null,
         subscription: tx.subscription
@@ -663,6 +666,7 @@ export class BudgetService {
             tagId: tag.id,
             tagName: tag.name,
             tagColor: tag.color,
+            tagEmoticon: tag.emoticon,
             transactionCount: txs.length,
             totalAmount: totalAmount.toString(),
             transactions: txs,
@@ -771,7 +775,7 @@ export class BudgetService {
     const budgetPercentages: number[] = [];
     const tagSpendingMap = new Map<
       string,
-      { name: string; color: string | null; amount: number }
+      { name: string; color: string | null; emoticon: string | null; amount: number }
     >();
 
     for (const budgetData of activeBudgetsPrimaryCurrency) {
@@ -792,7 +796,7 @@ export class BudgetService {
         },
         include: {
           primaryTag: {
-            select: { id: true, name: true, color: true },
+            select: { id: true, name: true, color: true, emoticon: true },
           },
         },
       });
@@ -807,6 +811,7 @@ export class BudgetService {
             tagSpendingMap.set(tx.primaryTag.id, {
               name: tx.primaryTag.name,
               color: tx.primaryTag.color,
+              emoticon: tx.primaryTag.emoticon,
               amount,
             });
           }
@@ -868,6 +873,7 @@ export class BudgetService {
       tagId: string;
       tagName: string;
       tagColor: string | null;
+      tagEmoticon: string | null;
       amount: string;
       percentage: number;
     }[] = [];
@@ -886,6 +892,7 @@ export class BudgetService {
           tagId,
           tagName: tagData.name,
           tagColor: tagData.color,
+          tagEmoticon: tagData.emoticon,
           amount: tagData.amount.toString(),
           percentage: Math.round(percentage * 100) / 100,
         });

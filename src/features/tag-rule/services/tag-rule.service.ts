@@ -54,6 +54,7 @@ type ITagRuleRow = {
     id: string;
     name: string;
     color: string | null;
+    emoticon: string | null;
     transactionType: "EXPENSE" | "INCOME";
   };
 };
@@ -85,6 +86,7 @@ function mapTagRule(row: ITagRuleRow): ITagRule {
       id: row.tag.id,
       name: row.tag.name,
       color: row.tag.color,
+      emoticon: row.tag.emoticon,
     },
     label: row.label,
     keywords: parseKeywords(row.keywords),
@@ -226,6 +228,7 @@ export class TagRuleService {
             id: true,
             name: true,
             color: true,
+            emoticon: true,
             transactionType: true,
           },
         },
@@ -249,6 +252,7 @@ export class TagRuleService {
             id: true,
             name: true,
             color: true,
+            emoticon: true,
             transactionType: true,
           },
         },
@@ -323,6 +327,7 @@ export class TagRuleService {
             id: true,
             name: true,
             color: true,
+            emoticon: true,
             transactionType: true,
           },
         },
@@ -383,6 +388,7 @@ export class TagRuleService {
             id: true,
             name: true,
             color: true,
+            emoticon: true,
             transactionType: true,
           },
         },
@@ -428,6 +434,7 @@ export class TagRuleService {
             id: true,
             name: true,
             color: true,
+            emoticon: true,
             transactionType: true,
           },
         },

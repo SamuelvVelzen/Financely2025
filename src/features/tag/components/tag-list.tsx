@@ -1,4 +1,5 @@
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
+import { TagInline } from "@/features/tag/components/tag-display";
 import type { ITag } from "@/features/shared/validation/schemas";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
@@ -31,14 +32,13 @@ function TagListItemMain({
 
   return (
     <div className="flex items-center gap-3">
-      {tag.emoticon && <span className="text-lg">{tag.emoticon}</span>}
-      {tag.color && (
-        <div
-          className="size-4 rounded"
-          style={{ backgroundColor: tag.color }}
-        />
-      )}
-      <span className="text-text">{highlightText(tag.name, searchQuery)}</span>
+      <TagInline
+        tag={tag}
+        searchQuery={searchQuery}
+        showColorDot
+        colorDotClassName="size-4 rounded"
+        emoticonClassName="text-lg"
+      />
       {tag.description && (
         <span className="text-sm text-text-muted">
           {highlightText(tag.description, searchQuery)}

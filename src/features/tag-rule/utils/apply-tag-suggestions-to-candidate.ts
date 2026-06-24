@@ -52,7 +52,7 @@ function metadataFromRule(rule: ITagRule | undefined) {
     id: rule.tag.id,
     name: rule.tag.name,
     color: rule.tag.color,
-    emoticon: null,
+    emoticon: rule.tag.emoticon ?? null,
   };
 }
 
@@ -77,7 +77,7 @@ function enrichMetadata(
         id: suggestion.primaryTagId,
         name: rule?.tag?.name ?? "",
         color: rule?.tag?.color ?? null,
-        emoticon: null,
+        emoticon: rule?.tag?.emoticon ?? null,
       };
     }
   }
@@ -93,7 +93,7 @@ function enrichMetadata(
         id: tagId,
         name: rule?.tag?.name ?? "",
         color: rule?.tag?.color ?? null,
-        emoticon: null,
+        emoticon: rule?.tag?.emoticon ?? null,
       },
     );
   }

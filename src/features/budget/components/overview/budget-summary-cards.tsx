@@ -4,6 +4,7 @@ import {
 } from "@/features/budget/utils/budget-overview-helpers";
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { type IBudgetsOverviewResponse } from "@/features/shared/validation/schemas";
+import { TagInline } from "@/features/tag/components/tag-display";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { Loading } from "@/features/ui/loading";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
@@ -243,17 +244,16 @@ export function BudgetSummaryCards({
                 <div
                   key={spender.tagId}
                   className="flex items-center gap-2">
-                  {spender.tagColor && (
-                    <div
-                      className="size-3 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: spender.tagColor,
-                      }}
-                    />
-                  )}
-                  <span className="font-semibold text-sm flex-1 min-w-0 truncate">
-                    {spender.tagName}
-                  </span>
+                  <TagInline
+                    tag={{
+                      name: spender.tagName,
+                      color: spender.tagColor,
+                      emoticon: spender.tagEmoticon,
+                    }}
+                    showColorDot
+                    className="flex-1 min-w-0"
+                    nameClassName="font-semibold text-sm"
+                  />
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="font-semibold text-sm">
                       {formatCurrency(spender.amount, overallHealth.currency)}

@@ -14,7 +14,8 @@ export interface IFilterBadge {
   label: string;
   value: string;
   onRemove: () => void;
-  color?: string; // For tag badges
+  color?: string;
+  emoticon?: string;
 }
 
 interface IGenerateBadgesOptions {
@@ -89,6 +90,7 @@ export function generateFilterBadges({
         label: tag.name,
         value: tag.name,
         color: tag.color ?? undefined,
+        emoticon: tag.emoticon ?? undefined,
         onRemove: () => onRemoveTag(tagId),
       });
     }

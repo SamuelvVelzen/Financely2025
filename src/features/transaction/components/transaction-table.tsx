@@ -5,6 +5,7 @@ import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
+import { TagBadge } from "@/features/tag/components/tag-display";
 import { Badge } from "@/features/ui/badge/badge";
 import { Loading } from "@/features/ui/loading/loading";
 import { BodyCell } from "@/features/ui/table/body-cell";
@@ -192,15 +193,10 @@ export function TransactionTable({
                 size={cellSize}
                 hidden={isMobile}>
                 {transaction.primaryTag ? (
-                  <Badge
-                    backgroundColor={
-                      transaction.primaryTag.color ?? undefined
-                    }>
-                    {highlightText(
-                      transaction.primaryTag.name,
-                      searchQuery
-                    )}
-                  </Badge>
+                  <TagBadge
+                    tag={transaction.primaryTag}
+                    searchQuery={searchQuery}
+                  />
                 ) : (
                   <span className="text-text-muted">—</span>
                 )}

@@ -61,6 +61,7 @@ export function BudgetDetailTagsContainer({
       {
         name: string;
         color: string | null;
+        emoticon: string | null;
         transactionType: "EXPENSE" | "INCOME";
       }
     >();
@@ -68,6 +69,7 @@ export function BudgetDetailTagsContainer({
       map.set(tag.id, {
         name: tag.name,
         color: tag.color,
+        emoticon: tag.emoticon,
         transactionType: tag.transactionType,
       });
     });
@@ -139,33 +141,29 @@ export function BudgetDetailTagsContainer({
     return { expenseItems, incomeItems };
   }, [displayItems, tagMap]);
 
-  const getDisplayTagName = (item: IDisplayItem) => {
+  const getTagDisplay = (item: IDisplayItem) => {
     if (item.tagId === null) {
-      return item.categoryType === "INCOME"
-        ? "Miscellaneous (Income)"
-        : "Miscellaneous (Expense)";
+      return {
+        name:
+          item.categoryType === "INCOME"
+            ? "Miscellaneous (Income)"
+            : "Miscellaneous (Expense)",
+        color: null,
+        emoticon: null,
+      };
     }
 
     const tagInfo = tagMap.get(item.tagId);
     if (tagInfo) {
-      return tagInfo.name;
+      return tagInfo;
     }
 
     const firstTx = item.transactions[0];
-    return firstTx?.primaryTag?.name ?? `Tag ${item.tagId}`;
-  };
-
-  const getTagColor = (item: IDisplayItem) => {
-    if (item.tagId === null) {
-      return null;
-    }
-
-    const tagInfo = tagMap.get(item.tagId);
-    if (tagInfo) {
-      return tagInfo.color;
-    }
-
-    return item.transactions[0]?.primaryTag?.color ?? null;
+    return {
+      name: firstTx?.primaryTag?.name ?? `Tag ${item.tagId}`,
+      color: firstTx?.primaryTag?.color ?? null,
+      emoticon: firstTx?.primaryTag?.emoticon ?? null,
+    };
   };
 
   const openTransactionsDialog = (item: IDisplayItem) => {
@@ -204,8 +202,7 @@ export function BudgetDetailTagsContainer({
     categoryType: IBudgetCategoryType,
   ) => {
     const percentage = item.percentage;
-    const displayTagName = getDisplayTagName(item);
-    const tagColor = getTagColor(item);
+    const tagDisplay = getTagDisplay(item);
     const hasTransactions = item.transactions.length > 0;
     const expectedAmount = parseFloat(item.expected);
     const actualAmount = parseFloat(item.actual);
@@ -225,17 +222,22 @@ export function BudgetDetailTagsContainer({
           }>
           <div className="flex items-center justify-between gap-4 w-full">
             <div className="flex items-center gap-3 flex-1 min-w-0 h-10">
-              {tagColor ? (
-                <div className="size-5 flex items-center justify-center">
-                  <span
-                    className="size-3 rounded-full block"
-                    style={{ backgroundColor: tagColor }}></span>
+              {tagDisplay.emoticon || tagDisplay.color ? (
+                <div className="size-5 flex items-center justify-center shrink-0">
+                  {tagDisplay.emoticon ? (
+                    <span className="text-lg">{tagDisplay.emoticon}</span>
+                  ) : (
+                    <span
+                      className="size-3 rounded-full block"
+                      style={{ backgroundColor: tagDisplay.color ?? undefined }}
+                    />
+                  )}
                 </div>
               ) : (
                 <HiSquares2X2 className="size-5 shrink-0 text-text-muted" />
               )}
               <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{displayTagName}</div>
+                <div className="font-medium truncate">{tagDisplay.name}</div>
                 <div className="text-xs text-text-muted">
                   {item.transactions.length} transaction
                   {item.transactions.length !== 1 ? "s" : ""}
@@ -293,7 +295,7 @@ export function BudgetDetailTagsContainer({
   };
 
   const selectedTagName = resolvedSelectedItem
-    ? getDisplayTagName(resolvedSelectedItem)
+    ? getTagDisplay(resolvedSelectedItem).name
     : "Transactions";
 
   return (
