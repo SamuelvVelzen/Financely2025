@@ -164,6 +164,7 @@ export function TagRulesPanel() {
         tagId: discovery.tagId,
         label: discovery.keyword,
         keywords: [discovery.keyword],
+        patternType: "KEYWORD",
         matchField: "NAME",
         applyAs: "PRIMARY",
         priority: 5,
