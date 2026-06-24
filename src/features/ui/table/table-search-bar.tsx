@@ -1,6 +1,6 @@
 import { TextInput } from "@/features/ui/input/text-input";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { HiMagnifyingGlass } from "react-icons/hi2";
 import { useTableSearchContext } from "./context/table-search-context";
 

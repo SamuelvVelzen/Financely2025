@@ -3,7 +3,7 @@
  * Single source of truth for supported currencies in the application
  */
 
-import { ISelectOption } from "@/features/ui/select/select";
+import { type ISelectOption } from "@/features/ui/select/select";
 
 /**
  * Supported currencies array

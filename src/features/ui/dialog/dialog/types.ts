@@ -1,5 +1,5 @@
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren, type ReactNode, type RefObject } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren, type ReactNode, type RefObject } from "react";
 import type { IButtonProps } from "../../button/button";
 
 export interface IDialogFocusProps {

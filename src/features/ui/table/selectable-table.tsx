@@ -1,12 +1,12 @@
 import { Checkbox } from "@/features/ui/checkbox/checkbox";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useMemo, useRef, useState } from "react";
 import { Alert } from "../alert/alert";
 import { LinkButton } from "../button/link-button";
 import { BodyCell } from "./body-cell";
 import { HeaderCell } from "./header-cell";
-import { TableSearchConfig } from "./hooks/use-table-search";
-import { ITableProps, Table } from "./table";
+import { type TableSearchConfig } from "./hooks/use-table-search";
+import { type ITableProps, Table } from "./table";
 
 export type ISelectableTableProps<T = unknown, TSearchContext = unknown> = {
   selectedRows: Set<number>;

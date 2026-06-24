@@ -1,5 +1,5 @@
 import { Dialog } from "./dialog/dialog";
-import { IDialogProps } from "./dialog/types";
+import { type IDialogProps } from "./dialog/types";
 
 type IDeleteDialogProps = {
   content: IDialogProps["content"];

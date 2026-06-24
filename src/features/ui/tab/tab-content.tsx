@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren, useRef } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren, useRef } from "react";
 import { useTabContext } from "./tab-context";
 
 type ITabContentProps = IPropsWithClassName &

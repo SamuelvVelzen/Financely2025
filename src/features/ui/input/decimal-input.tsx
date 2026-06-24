@@ -10,7 +10,7 @@ import { LocaleHelpers } from "@/features/util/locale.helpers";
 import {
   BaseInput,
   type IBaseInputProps,
-  IDistributeOmitInputKey,
+  type IDistributeOmitInputKey,
 } from "./input";
 
 const FRACTION_DIGITS = 2;

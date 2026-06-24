@@ -1,7 +1,7 @@
 import {
   BulkCreateTransactionInputSchema,
   CreateTransactionInputSchema,
-  ITransaction,
+  type ITransaction,
   PaginatedTransactionsResponseSchema,
   TransactionSchema,
   TransactionsQuerySchema,
@@ -632,7 +632,7 @@ export class TransactionService {
     }
 
     // Handle transactionDate and precision updates
-    let updateData: any = {
+    const updateData: any = {
       ...(validated.type && { type: validated.type }),
       ...(validated.amount && { amount: validated.amount }),
       ...(validated.currency && { currency: validated.currency }),

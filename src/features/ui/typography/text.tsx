@@ -1,7 +1,7 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren } from "react";
-import { IButtonSize } from "../button/button";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren } from "react";
+import { type IButtonSize } from "../button/button";
 
 type ITextProps = {
   size?: IButtonSize;

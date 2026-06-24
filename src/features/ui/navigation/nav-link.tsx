@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { BaseLink, IBaseLinkProps } from "./base-link";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { BaseLink, type IBaseLinkProps } from "./base-link";
 
 type ILinkItem = {} & IBaseLinkProps & IPropsWithClassName;
 

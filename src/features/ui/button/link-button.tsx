@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { Button, IButtonProps, IVariant } from "./button";
+import { Button, type IButtonProps, type IVariant } from "./button";
 
 type ILinkButtonAppearance = "filled" | "outlined";
 

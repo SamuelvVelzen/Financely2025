@@ -2,7 +2,7 @@ import { IconButton } from "@/features/ui/button/icon-button";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { HiX } from "react-icons/hi";

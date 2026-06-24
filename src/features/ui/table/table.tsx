@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useEffect, useMemo } from "react";
 import {
   TableSearchProvider,
@@ -10,8 +10,8 @@ import {
   TableSortProvider,
   useTableSortContext,
 } from "./context/table-sort-context";
-import { SortConfig } from "./hooks/use-table-sort";
-import { TableSearchConfig } from "./hooks/use-table-search";
+import { type SortConfig } from "./hooks/use-table-sort";
+import { type TableSearchConfig } from "./hooks/use-table-search";
 import { Pagination } from "./pagination/pagination";
 import {
   TablePaginationProvider,

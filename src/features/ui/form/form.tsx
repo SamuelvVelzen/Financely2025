@@ -1,11 +1,11 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useState } from "react";
 import {
-  FieldValues,
+  type FieldValues,
   FormProvider,
-  SubmitHandler,
-  UseFormReturn,
+  type SubmitHandler,
+  type UseFormReturn,
 } from "react-hook-form";
 
 export type IFormProps<T extends FieldValues> = IPropsWithClassName & {

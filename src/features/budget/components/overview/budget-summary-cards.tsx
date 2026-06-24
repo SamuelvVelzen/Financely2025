@@ -3,7 +3,7 @@ import {
   getStatusColor,
 } from "@/features/budget/utils/budget-overview-helpers";
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
-import { IBudgetsOverviewResponse } from "@/features/shared/validation/schemas";
+import { type IBudgetsOverviewResponse } from "@/features/shared/validation/schemas";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { Loading } from "@/features/ui/loading";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";

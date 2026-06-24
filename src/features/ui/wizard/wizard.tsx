@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { HiArrowLeft, HiArrowRight, HiCheck } from "react-icons/hi";
 import { Button } from "../button/button";
 import { Container } from "../container/container";

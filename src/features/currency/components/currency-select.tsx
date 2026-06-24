@@ -6,8 +6,8 @@ import {
   SelectDropdown,
   type ISelectDropdownProps,
 } from "@/features/ui/select-dropdown/select-dropdown";
-import { ISelectOption } from "@/features/ui/select/select";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type ISelectOption } from "@/features/ui/select/select";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type IconType } from "react-icons";
 import {
   PiCurrencyCircleDollar,

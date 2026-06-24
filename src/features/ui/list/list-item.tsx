@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { forwardRef, PropsWithChildren } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { forwardRef, type PropsWithChildren } from "react";
 
 type IListItemProps = {
   clicked?: () => void;

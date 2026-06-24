@@ -5,7 +5,7 @@ import {
   dateOnlyToIso,
   isoToDateOnly,
 } from "@/features/util/date/dateisohelpers";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { HiClock } from "react-icons/hi";
 
 interface IDateSelectCellProps extends IPropsWithClassName {

@@ -1,4 +1,4 @@
-import { ICreateTransactionInput } from "@/features/shared/validation/schemas";
+import { type ICreateTransactionInput } from "@/features/shared/validation/schemas";
 import type {
   IStepConfig,
   IStepNavigation,

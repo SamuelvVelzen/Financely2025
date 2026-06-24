@@ -1,7 +1,7 @@
 import { SUPPORTED_CURRENCIES } from "@/features/currency/config/currencies";
 import {
   CreateTransactionInputSchema,
-  ICreateTransactionInput,
+  type ICreateTransactionInput,
   type ICsvCandidateTransaction,
   type ICsvFieldMapping,
   type ICurrency,

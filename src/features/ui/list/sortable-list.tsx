@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useSortableList } from "./hooks/use-sortable-list";
-import { IListProps, List } from "./list";
+import { type IListProps, List } from "./list";
 
 export type ISortableListDragProps = {
   onDragStart: (e: React.DragEvent) => void;

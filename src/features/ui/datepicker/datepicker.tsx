@@ -6,7 +6,7 @@ import {
   getLastMonthEnd,
   getLastMonthStart,
 } from "@/features/util/date/date-helpers";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { parseISO } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { HiCalendar, HiChevronDown } from "react-icons/hi";

@@ -1,7 +1,7 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren } from "react";
-import { IBaseCellProps } from "./table";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren } from "react";
+import { type IBaseCellProps } from "./table";
 
 export type IBodyCellProps = {
   autoFit?: boolean;

@@ -1,4 +1,4 @@
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { HiExclamationTriangle } from "react-icons/hi2";
 import { Button } from "../button/button";
 

@@ -1,5 +1,5 @@
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
-import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
+import { type IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { Button } from "@/features/ui/button/button";
 import { CalendarView } from "@/features/ui/datepicker/calendar-view";
 import { TimePicker } from "@/features/ui/datepicker/time-picker";
@@ -11,7 +11,7 @@ import {
   dateOnlyToIso,
   isoToDateOnly,
 } from "@/features/util/date/dateisohelpers";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { parseISO } from "date-fns";
 import { useState } from "react";
 import { HiChevronDown, HiClock } from "react-icons/hi";

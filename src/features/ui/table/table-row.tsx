@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { MouseEvent, PropsWithChildren } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type MouseEvent, type PropsWithChildren } from "react";
 
 export type ITableRowProps = {
   rowIndex?: number;

@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { Children, ReactNode } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { Children, type ReactNode } from "react";
 
 // Data-driven mode: pass data array and render function
 type IListPropsWithData<T> = {

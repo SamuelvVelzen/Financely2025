@@ -1,7 +1,7 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import React, { PropsWithChildren, ReactNode } from "react";
-import { IVariant } from "../button/button";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import React, { type PropsWithChildren, type ReactNode } from "react";
+import { type IVariant } from "../button/button";
 import { Tooltip } from "../tooltip/tooltip";
 
 type IBadgeColorProps =

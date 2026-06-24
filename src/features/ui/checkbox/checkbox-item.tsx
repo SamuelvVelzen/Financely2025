@@ -1,7 +1,7 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useCallback, useContext, useId, useRef } from "react";
-import { IconType } from "react-icons";
+import { type IconType } from "react-icons";
 
 export type ICheckboxGroupContext = {
   name: string;

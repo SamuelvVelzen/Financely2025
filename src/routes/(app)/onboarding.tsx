@@ -5,7 +5,7 @@ import {
   WelcomePage,
 } from "@/features/transaction/components/wizard/onboarding";
 import { Loading } from "@/features/ui/loading";
-import { IWizardPage, Wizard } from "@/features/ui/wizard/wizard";
+import { type IWizardPage, Wizard } from "@/features/ui/wizard/wizard";
 import {
   useCompleteWizard,
   useUpdateWizardProgress,

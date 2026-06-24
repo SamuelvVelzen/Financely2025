@@ -15,7 +15,7 @@ import {
 } from "@/features/workspace/hooks/useWorkspaces";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useId, useState } from "react";
-import { z } from "zod";
+import { type z } from "zod";
 
 type IAddOrEditWorkspaceDialogProps = {
   open: boolean;

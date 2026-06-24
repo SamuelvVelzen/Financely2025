@@ -70,7 +70,7 @@ export function TimePicker({
   };
 
   const incrementHours = () => {
-    let newHours = (hours + 1) % 24;
+    const newHours = (hours + 1) % 24;
     let dayOffset = 0;
     // If hours wrapped to 0, increment day
     if (newHours === 0 && hours === 23) {
@@ -80,7 +80,7 @@ export function TimePicker({
   };
 
   const decrementHours = () => {
-    let newHours = (hours - 1 + 24) % 24;
+    const newHours = (hours - 1 + 24) % 24;
     let dayOffset = 0;
     // If hours wrapped to 23, decrement day
     if (newHours === 23 && hours === 0) {
@@ -90,7 +90,7 @@ export function TimePicker({
   };
 
   const incrementMinutes = () => {
-    let newMinutes = (minutes + 1) % 60;
+    const newMinutes = (minutes + 1) % 60;
     let newHours = hours;
     let dayOffset = 0;
     // If minutes wrapped to 0, increment hours
@@ -105,7 +105,7 @@ export function TimePicker({
   };
 
   const decrementMinutes = () => {
-    let newMinutes = (minutes - 1 + 60) % 60;
+    const newMinutes = (minutes - 1 + 60) % 60;
     let newHours = hours;
     let dayOffset = 0;
     // If minutes wrapped to 59, decrement hours

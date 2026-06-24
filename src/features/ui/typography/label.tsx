@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { LabelHTMLAttributes, forwardRef } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type LabelHTMLAttributes, forwardRef } from "react";
 
 type ILabelProps = {
   htmlFor?: string;

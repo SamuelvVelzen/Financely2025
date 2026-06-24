@@ -1,9 +1,9 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
   Children,
-  PropsWithChildren,
-  ReactNode,
+  type PropsWithChildren,
+  type ReactNode,
   isValidElement,
   useCallback,
   useEffect,
@@ -12,7 +12,7 @@ import {
   useState,
 } from "react";
 import { HiDotsVertical } from "react-icons/hi";
-import { Button, IButtonProps, IButtonSize } from "../button/button";
+import { Button, type IButtonProps, type IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
 import {
   dropdownFooterBorderClasses,

@@ -1,4 +1,4 @@
-import { ITransactionFieldName } from "../../config/transaction-fields";
+import { type ITransactionFieldName } from "../../config/transaction-fields";
 import type { BankProfile } from "../bank.factory";
 
 const VALIDATED_COLUMN_HINTS: Record<ITransactionFieldName, string[]> = {

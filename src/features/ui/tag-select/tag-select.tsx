@@ -1,6 +1,6 @@
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import {
-  IFormOrControlledMode,
+  type IFormOrControlledMode,
 } from "@/features/shared/hooks/use-form-context-optional";
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
@@ -12,7 +12,7 @@ import {
 import { AddOrEditTagDialog } from "@/features/tag/components/add-or-edit-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { IPlacementOption } from "../dropdown/dropdown";

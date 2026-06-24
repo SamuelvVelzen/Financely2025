@@ -1,9 +1,9 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren, useEffect, useRef } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren, useEffect, useRef } from "react";
 import { HiArrowDown, HiArrowUp, HiArrowsUpDown } from "react-icons/hi2";
 import { useTableSortContext } from "./context/table-sort-context";
-import { IBaseCellProps } from "./table";
+import { type IBaseCellProps } from "./table";
 
 export type SortDirection = "asc" | "desc" | null;
 

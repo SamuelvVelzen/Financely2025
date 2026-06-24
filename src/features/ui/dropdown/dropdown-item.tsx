@@ -1,7 +1,7 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren, ReactNode } from "react";
-import { Button, IButtonProps } from "../button/button";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren, type ReactNode } from "react";
+import { Button, type IButtonProps } from "../button/button";
 import { dropdownItemBorderClasses } from "./dropdown-item-classes";
 
 type IDropdownItemProps = {

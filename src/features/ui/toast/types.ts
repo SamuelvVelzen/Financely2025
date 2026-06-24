@@ -1,4 +1,4 @@
-import { IVariant } from "../button/button";
+import { type IVariant } from "../button/button";
 
 export type IToastPosition =
   | "top-left"

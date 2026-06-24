@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren } from "react";
 import { Spinner, type ISpinnerSize } from "./spinner";
 
 export type ILoadingSize = ISpinnerSize;

@@ -20,7 +20,7 @@ import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useId, useState } from "react";
 import { HiOutlineQueueList } from "react-icons/hi2";
-import { z } from "zod";
+import { type z } from "zod";
 
 type IAddOrEditTagDialog = {
   open: boolean;

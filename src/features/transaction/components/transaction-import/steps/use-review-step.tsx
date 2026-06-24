@@ -6,8 +6,8 @@ import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import {
-  IStepConfig,
-  IStepNavigation,
+  type IStepConfig,
+  type IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
@@ -22,7 +22,7 @@ import { HiExclamationCircle } from "react-icons/hi";
 import { BankProfileFactory } from "../../../services/bank.factory";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
 import {
-  IStep,
+  type IStep,
   useTransactionImportContext,
 } from "./transaction-import-context";
 

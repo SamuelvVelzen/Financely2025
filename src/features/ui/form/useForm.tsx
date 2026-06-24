@@ -1,4 +1,4 @@
-import { FieldValues, useForm, UseFormProps } from "react-hook-form";
+import { type FieldValues, useForm, type UseFormProps } from "react-hook-form";
 
 export function useFinForm<TFieldValues extends FieldValues>(
   props?: UseFormProps<TFieldValues>

@@ -1,7 +1,7 @@
 import { useScrollToElement } from "@/features/users/hooks/useScrollToElement";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren } from "react";
 
 type IScrollableHeaderProps = {
   id: string;

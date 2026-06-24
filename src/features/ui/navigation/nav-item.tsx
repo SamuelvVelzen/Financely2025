@@ -1,8 +1,8 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName, Never } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName, type Never } from "@/features/util/type-helpers/props";
 import React from "react";
 import { Badge } from "../badge/badge";
-import { BaseLink, IBaseLinkProps } from "./base-link";
+import { BaseLink, type IBaseLinkProps } from "./base-link";
 import { useSidebar } from "./useSidebar";
 
 type INavItemProps = {

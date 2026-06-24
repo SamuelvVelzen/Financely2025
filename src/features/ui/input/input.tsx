@@ -5,7 +5,7 @@ import {
 } from "@/features/ui/form/field-aria";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { forwardRef, useId } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 

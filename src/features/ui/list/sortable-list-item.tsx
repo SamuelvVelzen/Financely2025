@@ -1,8 +1,8 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
   Children,
-  PropsWithChildren,
+  type PropsWithChildren,
   useEffect,
   useRef,
   useState,

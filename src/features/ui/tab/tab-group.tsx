@@ -1,10 +1,10 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
   Children,
   forwardRef,
   isValidElement,
-  PropsWithChildren,
+  type PropsWithChildren,
   useEffect,
   useId,
   useImperativeHandle,

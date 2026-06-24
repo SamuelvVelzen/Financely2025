@@ -1,10 +1,10 @@
 import {
-  IFormOrControlledMode,
+  type IFormOrControlledMode,
 } from "@/features/shared/hooks/use-form-context-optional";
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
 import { HiX } from "react-icons/hi";
 import { HiMagnifyingGlass } from "react-icons/hi2";

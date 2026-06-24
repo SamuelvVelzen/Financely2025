@@ -3,7 +3,7 @@ import type { IBudgetAlert } from "@/features/shared/validation/schemas";
 import { Alert } from "@/features/ui/alert/alert";
 import { Badge } from "@/features/ui/badge/badge";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 
 type IBudgetAlertsProps = {
   alerts: IBudgetAlert[];

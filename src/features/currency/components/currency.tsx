@@ -1,7 +1,7 @@
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 
 type ICurrencyProps = {
   amount: string;

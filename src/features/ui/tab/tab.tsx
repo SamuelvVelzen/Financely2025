@@ -1,7 +1,7 @@
 import { Button } from "@/features/ui/button/button";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { PropsWithChildren, useEffect, type KeyboardEvent } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type PropsWithChildren, useEffect, type KeyboardEvent } from "react";
 import { HiExclamationTriangle } from "react-icons/hi2";
 import { useTabContext } from "./tab-context";
 

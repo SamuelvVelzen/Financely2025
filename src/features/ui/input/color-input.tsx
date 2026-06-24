@@ -1,7 +1,7 @@
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
-import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
+import { type IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useId, useState } from "react";
 
 /**

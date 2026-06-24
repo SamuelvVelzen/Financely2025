@@ -1,11 +1,11 @@
 import {
-  IFormOrControlledMode,
+  type IFormOrControlledMode,
 } from "@/features/shared/hooks/use-form-context-optional";
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { HiEmojiHappy } from "react-icons/hi";

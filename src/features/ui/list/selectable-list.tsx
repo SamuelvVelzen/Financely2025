@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
-import { ReactElement, ReactNode, cloneElement, isValidElement } from "react";
-import { IListProps } from "./list";
+import { type ReactElement, type ReactNode, cloneElement, isValidElement } from "react";
+import { type IListProps } from "./list";
 import { SelectableListItem } from "./selectable-list-item";
 
 type ISelectableListProps<T> = Omit<IListProps<T>, "data" | "children"> & {

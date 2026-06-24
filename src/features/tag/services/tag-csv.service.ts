@@ -1,7 +1,7 @@
 import {
   CreateTagInputSchema,
-  ICreateTagInput,
-  ITagCsvCandidate,
+  type ICreateTagInput,
+  type ITagCsvCandidate,
   type ITagCsvFieldMapping,
 } from "@/features/shared/validation/schemas";
 import {

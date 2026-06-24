@@ -7,7 +7,7 @@ import {
   HiExclamationTriangle,
   HiInformationCircle,
 } from "react-icons/hi2";
-import { IVariant } from "../button/button";
+import { type IVariant } from "../button/button";
 import { IconButton } from "../button/icon-button";
 import type { IToast, IToastPosition } from "./types";
 

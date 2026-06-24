@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import type { ReactNode } from "react";
 import React, { useId, useRef, useState } from "react";
 

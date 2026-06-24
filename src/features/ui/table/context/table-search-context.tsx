@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
 import {
-  TableSearchConfig,
+  type TableSearchConfig,
   useTableSearch,
 } from "../hooks/use-table-search";
 

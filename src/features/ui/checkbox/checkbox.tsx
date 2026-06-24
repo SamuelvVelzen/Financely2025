@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useEffect, useId, useRef } from "react";
 
 export type ICheckboxProps = Omit<

@@ -1,6 +1,6 @@
 import { MultiStepDialog } from "@/features/ui/dialog/multi-step-dialog";
 import {
-  IStep,
+  type IStep,
   TransactionImportProvider,
   useTransactionImportContext,
 } from "./steps/transaction-import-context";

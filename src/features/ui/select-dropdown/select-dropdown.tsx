@@ -1,18 +1,18 @@
 import {
-  IFormOrControlledMode,
+  type IFormOrControlledMode,
 } from "@/features/shared/hooks/use-form-context-optional";
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import { NativeSelect } from "../select/native-select";
-import { ISelectOption } from "../select/select";
+import { type ISelectOption } from "../select/select";
 import { type IValueSerialization } from "../select/select-helpers";
 import { Label } from "../typography/label";
 

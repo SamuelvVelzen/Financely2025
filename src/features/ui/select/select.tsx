@@ -1,10 +1,10 @@
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
-import { IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
+import { type IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Controller } from "react-hook-form";
 import { HiChevronDown, HiInformationCircle, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";

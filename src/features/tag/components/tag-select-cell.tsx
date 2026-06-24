@@ -8,7 +8,7 @@ import { AddOrEditTagDialog } from "@/features/tag/components/add-or-edit-tag-di
 import { useTags } from "@/features/tag/hooks/useTags";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
-import { IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 

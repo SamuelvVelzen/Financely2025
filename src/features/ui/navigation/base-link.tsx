@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { createLink, LinkComponentProps } from "@tanstack/react-router";
+import { createLink, type LinkComponentProps } from "@tanstack/react-router";
 import * as React from "react";
 
 interface IBasicLinkProps
