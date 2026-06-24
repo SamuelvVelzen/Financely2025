@@ -101,13 +101,13 @@ export function SearchInput({
         }
         className={cn(
           "relative transition-all ease-in-out min-w-0",
-          alwaysExpanded
-            ? "w-full"
+          ...(alwaysExpanded
+            ? ["w-full"]
             : [
                 "w-28 hover:w-(--expanded-width) focus-within:w-(--expanded-width)",
                 "has-[input:not(:placeholder-shown)]:w-(--expanded-width)",
                 "data-[open=true]:w-(--expanded-width)",
-              ],
+              ]),
           !alwaysExpanded && "data-[collapsed=true]:[&_input]:pr-2!",
           (alwaysExpanded || isOpen) && "[&_input]:pl-9!",
           (alwaysExpanded || isOpen) && "[&_input]:pr-9!",
