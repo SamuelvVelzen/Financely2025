@@ -8,6 +8,7 @@ import {
   useCreateTagRule,
   useUpdateTagRule,
 } from "@/features/tag-rule/hooks/useTagRules";
+import { TAG_RULE_MATCH_FIELD_OPTIONS } from "@/features/tag-rule/utils/match-fields";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -18,13 +19,16 @@ import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useId, useState } from "react";
+import type { Resolver } from "react-hook-form";
 import { z } from "zod";
 
 type IAddOrEditTagRuleDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rule?: ITagRule;
-  initialValues?: Partial<FormData>;
+  initialValues?: Partial<FormData> & {
+    keywords?: string[];
+  };
   lockTagId?: string;
   transactionType?: ITransactionType;
   onSuccess?: () => void;
@@ -39,12 +43,6 @@ const TagRuleFormSchema = CreateTagRuleInputSchema.omit({
 
 type FormData = z.infer<typeof TagRuleFormSchema>;
 
-const MATCH_FIELD_OPTIONS = [
-  { value: "NAME", label: "Transaction name" },
-  { value: "DESCRIPTION", label: "Description" },
-  { value: "BOTH", label: "Name and description" },
-] as const;
-
 const APPLY_AS_OPTIONS = [
   { value: "PRIMARY", label: "Primary tag" },
   { value: "TAG", label: "Other tags" },
@@ -58,7 +56,7 @@ function getEmptyFormValues(): FormData {
     keywordsText: "",
     pattern: null,
     patternType: "KEYWORD",
-    matchField: "NAME",
+    matchFields: ["NAME"],
     applyAs: "PRIMARY",
     priority: 0,
     enabled: true,
@@ -94,7 +92,7 @@ export function AddOrEditTagRuleDialog({
   const formId = useId();
 
   const form = useFinForm<FormData>({
-    resolver: zodResolver(TagRuleFormSchema),
+    resolver: zodResolver(TagRuleFormSchema) as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
   });
   const hasUnsavedChanges = form.formState.isDirty;
@@ -132,7 +130,7 @@ export function AddOrEditTagRuleDialog({
         keywordsText: keywordsToText(rule.keywords),
         pattern: rule.pattern,
         patternType: rule.patternType,
-        matchField: rule.matchField,
+        matchFields: rule.matchFields,
         applyAs: rule.applyAs,
         priority: rule.priority,
         enabled: rule.enabled,
@@ -144,11 +142,7 @@ export function AddOrEditTagRuleDialog({
         tagId: lockTagId ?? initialValues.tagId ?? "",
         keywordsText:
           initialValues.keywordsText ??
-          keywordsToText(
-            "keywords" in initialValues && initialValues.keywords
-              ? initialValues.keywords
-              : [],
-          ),
+          keywordsToText(initialValues.keywords ?? []),
       });
     } else {
       form.reset({
@@ -169,7 +163,7 @@ export function AddOrEditTagRuleDialog({
       keywords,
       pattern: data.pattern ?? null,
       patternType: data.patternType,
-      matchField: data.matchField,
+      matchFields: data.matchFields,
       applyAs: data.applyAs,
       priority: data.priority,
       enabled: data.enabled,
@@ -230,11 +224,13 @@ export function AddOrEditTagRuleDialog({
               disabled={pending}
             />
             <SelectDropdown
-              name="matchField"
-              label="Match field"
-              options={[...MATCH_FIELD_OPTIONS]}
-              disabled={pending}
+              name="matchFields"
+              label="Match fields"
+              placeholder="Select fields..."
+              options={[...TAG_RULE_MATCH_FIELD_OPTIONS]}
+              multiple
               clearable={false}
+              disabled={pending}
             />
             <SelectDropdown
               name="applyAs"

@@ -7,12 +7,6 @@ enum TagRulePatternType {
   REGEX
 }
 
-enum TagRuleMatchField {
-  NAME
-  DESCRIPTION
-  BOTH
-}
-
 enum TagRuleApplyAs {
   PRIMARY
   TAG
@@ -37,7 +31,7 @@ model TagRule {
   keywords    String
   pattern     String?
   patternType TagRulePatternType @default(KEYWORD)
-  matchField  TagRuleMatchField  @default(NAME)
+  matchFields String             @default("[\"NAME\"]")
   applyAs     TagRuleApplyAs     @default(PRIMARY)
   priority    Int                @default(0)
   source      TagRuleSource      @default(USER)

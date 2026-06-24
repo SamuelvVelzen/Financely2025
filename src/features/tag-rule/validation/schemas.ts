@@ -1,10 +1,19 @@
 import { z } from "zod";
-import { TransactionTypeSchema } from "@/features/shared/validation/enums";
+import {
+  PaymentMethodSchema,
+  TransactionTypeSchema,
+} from "@/features/shared/validation/enums";
 import { ISODateStringSchema } from "@/features/shared/validation/primitives";
 import { TransactionTagSchema } from "@/features/tag/validation/schemas";
 
 export const TagRulePatternTypeSchema = z.enum(["KEYWORD", "REGEX"]);
-export const TagRuleMatchFieldSchema = z.enum(["NAME", "DESCRIPTION", "BOTH"]);
+export const TagRuleMatchFieldSchema = z.enum([
+  "NAME",
+  "DESCRIPTION",
+  "NOTES",
+  "PAYMENT_METHOD",
+  "TRANSACTION_TYPE",
+]);
 export const TagRuleApplyAsSchema = z.enum(["PRIMARY", "TAG", "BOTH"]);
 export const TagRuleSourceSchema = z.enum(["USER", "SYSTEM", "LEARNED"]);
 
@@ -16,7 +25,7 @@ export const TagRuleSchema = z.object({
   keywords: z.array(z.string()),
   pattern: z.string().nullable(),
   patternType: TagRulePatternTypeSchema,
-  matchField: TagRuleMatchFieldSchema,
+  matchFields: z.array(TagRuleMatchFieldSchema).min(1),
   applyAs: TagRuleApplyAsSchema,
   priority: z.number().int(),
   source: TagRuleSourceSchema,
@@ -31,7 +40,11 @@ export const CreateTagRuleInputSchema = z.object({
   keywords: z.array(z.string().min(1).max(100)).min(1).max(50),
   pattern: z.string().max(500).nullable().optional(),
   patternType: TagRulePatternTypeSchema.default("KEYWORD"),
-  matchField: TagRuleMatchFieldSchema.default("NAME"),
+  matchFields: z
+    .array(TagRuleMatchFieldSchema)
+    .min(1)
+    .max(5)
+    .default(["NAME"]),
   applyAs: TagRuleApplyAsSchema.default("PRIMARY"),
   priority: z.number().int().min(0).max(1000).default(0),
   enabled: z.boolean().default(true),
@@ -47,6 +60,8 @@ export const TagRulesResponseSchema = z.object({
 export const TagMatchRequestSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(1000).nullable().optional(),
+  notes: z.string().max(2000).nullable().optional(),
+  paymentMethod: PaymentMethodSchema.optional(),
   type: TransactionTypeSchema,
 });
 
