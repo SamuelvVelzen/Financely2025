@@ -533,7 +533,10 @@ export class TransactionService {
 
     // Run subscription detection for the batch (fire-and-forget)
     if (created.length > 0) {
-      SubscriptionDetectionService.detectSubscriptions(userId, workspaceId)
+      const createdIds = created.map((transaction) => transaction.id);
+      SubscriptionDetectionService.detectSubscriptions(userId, workspaceId, {
+        transactionIds: createdIds,
+      })
         .then(async (candidates) => {
           if (candidates.length > 0) {
             await MessageService.createMessage(userId, workspaceId, {
