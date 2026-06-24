@@ -6,7 +6,8 @@ import { defineConfig } from "vitest/config";
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  // Vitest bundles its own Vite types; cast avoids duplicate-plugin type conflicts.
+  plugins: [tsconfigPaths() as never],
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "prisma/**/*.test.ts"],

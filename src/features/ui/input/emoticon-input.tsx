@@ -236,7 +236,7 @@ export function EmoticonInput({
       // Delay closing autocomplete to allow for clicks
       setTimeout(() => {
         if (document.activeElement !== inputRef.current) {
-          setIsAutocompleteOpen(false);
+          setAutocompleteDismissed(true);
         }
       }, 200);
     };
@@ -345,7 +345,7 @@ export function EmoticonInput({
                     .slice(0, 8)
                     .map(([shortcode, emoji]) => ({ shortcode, emoji }));
                   if (matches.length > 0) {
-                    setIsAutocompleteOpen(true);
+                    setAutocompleteDismissed(false);
                   }
                 }
               }}

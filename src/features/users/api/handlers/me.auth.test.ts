@@ -17,9 +17,7 @@ describe("GET /api/v1/me auth", () => {
   it("returns 401 when not authenticated", async () => {
     vi.mocked(authContext.withAuth).mockRejectedValue(new UnauthorizedError());
 
-    const response = await GET({
-      request: new Request("http://localhost/api/v1/me"),
-    });
+    const response = await GET();
 
     expect(response.status).toBe(401);
     const body = await response.json();

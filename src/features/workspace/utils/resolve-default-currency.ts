@@ -8,7 +8,7 @@ export function resolveDefaultCurrencyFromSetting(
   setting: IWorkspaceSetting | null | undefined,
 ): ICurrency {
   if (setting?.defaultCurrency) {
-    return setting.defaultCurrency;
+    return setting.defaultCurrency as ICurrency;
   }
   return getBrowserCurrency() ?? APP_FALLBACK_CURRENCY;
 }

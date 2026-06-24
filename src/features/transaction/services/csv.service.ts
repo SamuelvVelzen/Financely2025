@@ -1010,7 +1010,8 @@ export async function convertRowsToCandidates(
   );
 
   // Second pass: add tag metadata to candidates
-  const enrichedCandidates = candidates.map((candidate) => {
+  const enrichedCandidates: ICsvCandidateTransaction[] = candidates.map(
+    (candidate) => {
     // Populate primary tag metadata
     let primaryTagMetadata: {
       id?: string;
@@ -1092,7 +1093,8 @@ export async function convertRowsToCandidates(
       tagsMetadata,
       tagSuggestions: null,
     };
-  });
+  },
+  );
 
   await TagRuleService.attachSuggestionsToCandidates(
     userId,

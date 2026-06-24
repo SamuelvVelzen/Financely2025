@@ -193,7 +193,7 @@ export function UserPreferences() {
           onSubmit={isEditing ? handleSubmit : () => {}}
           className="space-y-4">
           {isEditing ? (
-            <SelectDropdown<number>
+            <SelectDropdown<number | null>
               name="defaultWorkspaceId"
               label="Default workspace"
               options={workspaceOptions}

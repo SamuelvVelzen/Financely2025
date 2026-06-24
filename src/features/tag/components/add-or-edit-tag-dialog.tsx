@@ -72,7 +72,20 @@ function buildTagSubmitData(data: FormData) {
   };
 }
 
-export function AddOrEditTagDialog({
+export function AddOrEditTagDialog(props: IAddOrEditTagDialog) {
+  const sessionKey = props.open
+    ? (props.tag?.id ?? props.initialName ?? "create")
+    : "closed";
+
+  return (
+    <AddOrEditTagDialogContent
+      key={sessionKey}
+      {...props}
+    />
+  );
+}
+
+function AddOrEditTagDialogContent({
   open,
   onOpenChange,
   tag,
@@ -149,32 +162,27 @@ export function AddOrEditTagDialog({
   };
 
   useEffect(() => {
-    if (open) {
-      if (tag) {
-        form.reset({
-          name: tag.name,
-          color: tag.color ?? "",
-          description: tag.description ?? "",
-          emoticon: tag.emoticon ?? "",
-          transactionType: tag.transactionType,
-        });
-      } else {
-        form.reset({
-          name: initialValues?.name || initialName || "",
-          color: initialValues?.color || "",
-          description: initialValues?.description || "",
-          emoticon: initialValues?.emoticon || "",
-          transactionType: (initialValues?.transactionType ||
-            "EXPENSE") as ITransactionType,
-        });
-      }
-      focusFirstInput();
+    if (!open) return;
+
+    if (tag) {
+      form.reset({
+        name: tag.name,
+        color: tag.color ?? "",
+        description: tag.description ?? "",
+        emoticon: tag.emoticon ?? "",
+        transactionType: tag.transactionType,
+      });
     } else {
-      form.reset(getEmptyFormValues());
-      setTagRulesPanelOverride(null);
-      setPersistedTag(undefined);
-      setPendingRules([]);
+      form.reset({
+        name: initialValues?.name || initialName || "",
+        color: initialValues?.color || "",
+        description: initialValues?.description || "",
+        emoticon: initialValues?.emoticon || "",
+        transactionType: (initialValues?.transactionType ||
+          "EXPENSE") as ITransactionType,
+      });
     }
+    focusFirstInput();
   }, [open, tag, initialName, initialValues, form, focusFirstInput]);
 
   const resetFormFromTag = useCallback((tagData: ITag) => {

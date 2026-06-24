@@ -220,8 +220,8 @@ export const TabGroup = forwardRef<
       if (!isValidElement(a) || !isValidElement(b)) return 0;
       const aValue = (a.props as { value?: string })?.value;
       const bValue = (b.props as { value?: string })?.value;
-      const aIndex = tabs.indexOf(aValue);
-      const bIndex = tabs.indexOf(bValue);
+      const aIndex = aValue ? tabs.indexOf(aValue) : -1;
+      const bIndex = bValue ? tabs.indexOf(bValue) : -1;
       // If tab not found in array, keep original order
       if (aIndex === -1 && bIndex === -1) return 0;
       if (aIndex === -1) return 1;

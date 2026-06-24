@@ -17,7 +17,7 @@ import { Tab } from "@/features/ui/tab/tab";
 import { TabContent } from "@/features/ui/tab/tab-content";
 import { useTabContext } from "@/features/ui/tab/tab-context";
 import { Tabs } from "@/features/ui/tab/tabs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 function TabValueReporter({ onChange }: { onChange: (value: string) => void }) {

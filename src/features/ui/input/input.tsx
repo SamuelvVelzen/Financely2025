@@ -194,12 +194,7 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
                   } else if (ref) {
                     ref.current = node;
                   }
-                  const fieldRef = currentField.ref;
-                  if (typeof fieldRef === "function") {
-                    fieldRef(node);
-                  } else if (fieldRef) {
-                    fieldRef.current = node;
-                  }
+                  currentField.ref(node);
                 }}
                 {...(mode === "controlled" ? props : formModeProps)}
                 value={String(currentField.value ?? "")}

@@ -147,7 +147,7 @@ export function validateCandidateTag(
     CreateTagInputSchema.parse(candidate);
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      for (const err of error.errors) {
+      for (const err of error.issues) {
         const field = err.path.join(".");
         errors.push({
           field,

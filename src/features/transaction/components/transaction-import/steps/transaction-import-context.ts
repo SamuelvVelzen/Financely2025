@@ -13,6 +13,8 @@ import type {
   useTransformCsvRows,
 } from "../../../hooks/useCsvImport";
 
+export type IStep = "upload" | "mapping" | "review" | "confirm";
+
 export type MappingFormData = {
   defaultCurrency: ICurrency;
   mappings: Record<string, string>;

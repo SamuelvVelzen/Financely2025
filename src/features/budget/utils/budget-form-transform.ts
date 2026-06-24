@@ -66,12 +66,17 @@ export function resyncBudgetItemMonthlyAmounts(
   const currentMonths = getBudgetMonthsFromDateStrings(start, end);
   if (currentMonths.length === 0) return;
 
-  const items = (form.getValues("budget.items") as unknown[]) ?? [];
+  const items = (form.getValues("budget.items") as Array<Record<string, unknown>>) ?? [];
   if (items.length === 0) return;
 
   let changed = false;
-  const updatedItems = items.map((item: Record<string, unknown>) => {
-    if (monthlyAmountsMatchMonths(currentMonths, item.monthlyAmounts)) {
+  const updatedItems = items.map((item) => {
+    const monthlyAmounts = item.monthlyAmounts as
+      | Array<{ year?: number; month?: number; expectedAmount?: string }>
+      | undefined;
+    const expectedAmount = item.expectedAmount as string | undefined;
+
+    if (monthlyAmountsMatchMonths(currentMonths, monthlyAmounts)) {
       return item;
     }
     changed = true;
@@ -79,8 +84,8 @@ export function resyncBudgetItemMonthlyAmounts(
       ...item,
       monthlyAmounts: alignMonthlyAmountsToMonths(
         currentMonths,
-        item.monthlyAmounts,
-        item.expectedAmount,
+        monthlyAmounts,
+        expectedAmount,
       ),
     };
   });
