@@ -31,6 +31,8 @@ export function TabContent({
       data-state={isActive ? "active" : "inactive"}
       className={cn(
         "absolute inset-x-0 top-0 pt-4 transition-opacity duration-300 ease-in-out",
+        // Collapse inactive panels so taller tabs don't extend the page scroll area.
+        !isActive && "h-0 overflow-hidden pt-0",
         className
       )}
       style={{

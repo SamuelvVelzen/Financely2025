@@ -155,7 +155,7 @@ export function Tabs({
         {tabContentChildren.length > 0 && (
           <div
             ref={panelsContainerRef}
-            className="relative w-full overflow-hidden transition-[height] duration-300 ease-in-out"
+            className="relative w-full transition-[height] duration-300 ease-in-out"
             style={{ minHeight: "1px" }}>
             {tabContentChildren}
           </div>

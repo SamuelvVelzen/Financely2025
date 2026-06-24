@@ -56,11 +56,20 @@ export const TabGroup = forwardRef<
       setIsTransitioning(true);
       isTransitioningRef.current = true;
 
-      // Disable transition after animation completes
+      // Disable transition after animation completes and remeasure in case layout shifted
       setTimeout(() => {
         setIsTransitioning(false);
         isTransitioningRef.current = false;
-      }, 200);
+
+        if (panelsContainerRef.current) {
+          const activePanel = panelsContainerRef.current.querySelector(
+            `[data-state="active"]`
+          ) as HTMLElement | null;
+          if (activePanel) {
+            panelsContainerRef.current.style.height = `${activePanel.scrollHeight}px`;
+          }
+        }
+      }, 300);
     }
   };
 
