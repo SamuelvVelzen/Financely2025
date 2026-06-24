@@ -9,7 +9,6 @@ export const ROUTES = {
   REGISTER: "/register",
   ACCOUNT: "/account",
   ONBOARDING: "/onboarding",
-  LOGOUT: "/logout",
 } as const;
 
 export type Route = (typeof ROUTES)[keyof typeof ROUTES];
