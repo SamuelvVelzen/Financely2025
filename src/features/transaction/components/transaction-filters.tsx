@@ -7,6 +7,7 @@ import { useTransactionFilterBadges } from "@/features/transaction/hooks/use-tra
 import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
 import { Button } from "@/features/ui/button/button";
+import { type IDateFilter } from "@/features/ui/datepicker/datepicker";
 import { Form } from "@/features/ui/form/form";
 import type { IPriceRange } from "@/features/ui/input/range-input";
 import { SearchInput } from "@/features/ui/input/search-input";
@@ -121,7 +122,7 @@ export function TransactionFilters({
       <div className="flex min-w-0 flex-col gap-3 md:hidden">
         <Form
           form={form}
-          onSubmit={() => {}}>
+          onSubmit={() => { }}>
           <div className="flex gap-2 items-center w-full min-w-0">
             <SearchInput
               name="searchQuery"
