@@ -7,6 +7,7 @@ import {
 import { TagRulesForTagSection } from "@/features/tag-rule/components/tag-rules-for-tag-section";
 import { useCreateTagRule } from "@/features/tag-rule/hooks/useTagRules";
 import type { IPendingTagRule } from "@/features/tag-rule/types/pending-tag-rule";
+import { TagNameWithIconInput } from "@/features/tag/components/tag-name-with-icon-input";
 import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -14,8 +15,7 @@ import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialo
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { ColorInput } from "@/features/ui/input/color-input";
-import { EmoticonInput } from "@/features/ui/input/emoticon-input";
-import { TextInput } from "@/features/ui/input/text-input";
+import { Textarea } from "@/features/ui/input/textarea";
 import { RadioGroup } from "@/features/ui/radio/radio-group";
 import { RadioItem } from "@/features/ui/radio/radio-item";
 import { useToast } from "@/features/ui/toast";
@@ -366,25 +366,17 @@ function AddOrEditTagDialogContent({
         <RadioItem value="EXPENSE">Expense</RadioItem>
         <RadioItem value="INCOME">Income</RadioItem>
       </RadioGroup>
-      <TextInput
-        name="name"
-        label="Name"
+      <TagNameWithIconInput
         disabled={pending}
         required
-      />
-      <EmoticonInput
-        name="emoticon"
-        label="Emoticon"
-        placeholder="e.g., 🍔 or :food:"
-        disabled={pending}
-        hint="Optional emoji to represent this tag. Type :emoji: for autocomplete or click the button to browse."
+        transactionType={watchedTransactionType}
       />
       <ColorInput
         name="color"
         label="Color"
         disabled={pending}
       />
-      <TextInput
+      <Textarea
         name="description"
         label="Description"
         disabled={pending}
