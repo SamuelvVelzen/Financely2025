@@ -1,0 +1,34 @@
+// ----------
+// Workspaces (financial "books")
+// ----------
+
+model Workspace {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions           Transaction[]
+  tags                   Tag[]
+  messages               Message[]
+  budgets                Budget[]
+  subscriptions          Subscription[]
+  subscriptionDismissals SubscriptionDismissal[]
+  settings               WorkspaceSetting?
+  defaultForUserSettings UserSetting[]
+  tagRules               TagRule[]
+
+  @@index([userId])
+}
+
+model WorkspaceSetting {
+  workspaceId            Int       @id
+  workspace              Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  defaultCurrency        String?
+  smartTaggingEnabled    Boolean   @default(true)
+  historyLearningEnabled Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+}

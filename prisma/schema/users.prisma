@@ -1,0 +1,35 @@
+// ----------
+// App user + preferences
+// ----------
+
+model User {
+  id         String   @id @default(cuid())
+  userInfoId String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userInfo UserInfo @relation(fields: [userInfoId], references: [id], onDelete: Cascade)
+
+  workspaces             Workspace[]
+  transactions           Transaction[]
+  tags                   Tag[]
+  messages               Message[]
+  budgets                Budget[]
+  subscriptions          Subscription[]
+  subscriptionDismissals SubscriptionDismissal[]
+  wizardProgress         WizardProgress[]
+  userSetting            UserSetting?
+  tagRules               TagRule[]
+}
+
+model UserSetting {
+  id                 String     @id @default(cuid())
+  userId             String     @unique
+  user               User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  defaultLanguage    String?
+  defaultWorkspaceId Int?
+  defaultWorkspace   Workspace? @relation(fields: [defaultWorkspaceId], references: [id], onDelete: SetNull)
+  theme              String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}

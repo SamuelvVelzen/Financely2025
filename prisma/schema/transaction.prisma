@@ -1,0 +1,44 @@
+// ----------
+// Transactions
+// ----------
+
+enum TransactionType {
+  EXPENSE
+  INCOME
+}
+
+enum TimePrecision {
+  DateTime
+  DateOnly
+}
+
+model Transaction {
+  id              String          @id @default(cuid())
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  workspaceId     Int
+  workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  type            TransactionType
+  amount          Decimal
+  currency        String
+  transactionDate DateTime
+  timePrecision   TimePrecision   @default(DateTime)
+  name            String
+  description     String?
+  notes           String?
+  externalId      String?
+  paymentMethod   String
+  tags            Tag[]
+  primaryTagId    String?
+  primaryTag      Tag?            @relation("PrimaryTag", fields: [primaryTagId], references: [id])
+  subscriptionId  String?
+  subscription    Subscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([userId, transactionDate])
+  @@index([userId, type, transactionDate])
+  @@index([workspaceId, transactionDate])
+  @@index([workspaceId, type, transactionDate])
+  @@index([subscriptionId])
+}

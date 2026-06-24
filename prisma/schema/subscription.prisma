@@ -1,0 +1,40 @@
+// ----------
+// Subscriptions
+// ----------
+
+model Subscription {
+  id           String          @id @default(cuid())
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  workspaceId  Int
+  workspace    Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name         String
+  type         TransactionType
+  amount       Decimal
+  currency     String
+  frequency    String          @default("monthly")
+  active       Boolean         @default(true)
+  transactions Transaction[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([userId, active])
+  @@index([workspaceId])
+  @@index([workspaceId, active])
+}
+
+model SubscriptionDismissal {
+  id             String          @id @default(cuid())
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  workspaceId    Int
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  normalizedName String
+  type           TransactionType
+  createdAt      DateTime        @default(now())
+
+  @@unique([workspaceId, normalizedName, type])
+  @@index([userId])
+  @@index([workspaceId])
+}

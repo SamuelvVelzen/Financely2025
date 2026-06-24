@@ -1,0 +1,49 @@
+// ----------
+// Tag rules (smart tagging)
+// ----------
+
+enum TagRulePatternType {
+  KEYWORD
+  REGEX
+}
+
+enum TagRuleMatchField {
+  NAME
+  DESCRIPTION
+  BOTH
+}
+
+enum TagRuleApplyAs {
+  PRIMARY
+  TAG
+  BOTH
+}
+
+enum TagRuleSource {
+  USER
+  SYSTEM
+  LEARNED
+}
+
+model TagRule {
+  id          String             @id @default(cuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId Int
+  workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tagId       String
+  tag         Tag                @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  label       String?
+  keywords    String
+  pattern     String?
+  patternType TagRulePatternType @default(KEYWORD)
+  matchField  TagRuleMatchField  @default(NAME)
+  applyAs     TagRuleApplyAs     @default(PRIMARY)
+  priority    Int                @default(0)
+  source      TagRuleSource      @default(USER)
+  enabled     Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([workspaceId, enabled])
+}

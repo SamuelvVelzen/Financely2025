@@ -1,0 +1,19 @@
+// ----------
+// Onboarding / wizard progress
+// ----------
+
+model WizardProgress {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wizardId         String
+  currentStepIndex Int       @default(0)
+  totalSteps       Int
+  completed        Boolean   @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([userId, wizardId])
+  @@index([userId])
+}

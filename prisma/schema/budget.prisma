@@ -1,0 +1,49 @@
+// ----------
+// Budgets
+// ----------
+
+model Budget {
+  id          String       @id @default(cuid())
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  workspaceId Int
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  periodType  String       @default("monthly")
+  startDate   DateTime
+  endDate     DateTime
+  currency    String
+  items       BudgetItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId, startDate, endDate])
+  @@index([workspaceId, startDate, endDate])
+}
+
+model BudgetItem {
+  id             String                    @id @default(cuid())
+  budget         Budget                    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  budgetId       String
+  tagId          String?
+  tag            Tag?                      @relation(fields: [tagId], references: [id], onDelete: SetNull)
+  categoryType   TransactionType?
+  monthlyAmounts BudgetItemMonthlyAmount[]
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@unique([budgetId, tagId, categoryType])
+}
+
+model BudgetItemMonthlyAmount {
+  id             String     @id @default(cuid())
+  budgetItem     BudgetItem @relation(fields: [budgetItemId], references: [id], onDelete: Cascade)
+  budgetItemId   String
+  year           Int
+  month          Int
+  expectedAmount Decimal
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@unique([budgetItemId, year, month])
+}

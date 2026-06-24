@@ -1,0 +1,35 @@
+// ----------
+// In-app messages
+// ----------
+
+enum MessageType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+model Message {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId Int
+  workspace   Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  title       String
+  content     String
+  type        MessageType @default(INFO)
+  actions     String?
+  read        Boolean     @default(false)
+  readAt      DateTime?
+  relatedId   String?
+  relatedType String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@index([userId, type])
+  @@index([workspaceId, read])
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, type])
+}
