@@ -24,13 +24,13 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
-import { HiChevronDown, HiPencil, HiPlus, HiTrash } from "react-icons/hi2";
+import { HiBuildingOffice2, HiChevronDown, HiPencil, HiPlus, HiTrash } from "react-icons/hi2";
 
 const MAX_WORKSPACES_ALLOWED = 5;
 
 type IWorkspaceSwitcherDropdownProps = {
   className?: string;
-  /** Hides visible label; keeps an accessible name for screen readers. */
+  /** Icon-only trigger for tight layouts (e.g. mobile top nav). */
   compact?: boolean;
 };
 
@@ -167,7 +167,11 @@ export function WorkspaceSwitcherDropdown({
     return null;
   }
 
-  const selectorButton = (
+  const selectorButton = compact ? (
+    <div className="size-8 rounded-full flex items-center justify-center shrink-0 border border-border bg-surface text-text-muted">
+      <HiBuildingOffice2 className="size-4" aria-hidden="true" />
+    </div>
+  ) : (
     <>
       <span className="flex-1 text-left whitespace-nowrap truncate">
         {selectedLabel}
@@ -183,13 +187,9 @@ export function WorkspaceSwitcherDropdown({
   );
 
   return (
-    <div
-      className={cn(
-        compact ? "min-w-0 max-w-[9rem] sm:max-w-[11rem]" : "w-full",
-        className,
-      )}>
+    <div className={cn(compact ? "shrink-0" : "w-full", className)}>
       {compact ? (
-        <Label className="sr-only">Workspace</Label>
+        <Label className="sr-only">Switch workspace: {selectedLabel}</Label>
       ) : (
         <Label className="mb-1">Workspace</Label>
       )}
@@ -197,7 +197,13 @@ export function WorkspaceSwitcherDropdown({
         dropdownSelector={selectorButton}
         open={isOpen}
         onOpenChange={setIsOpen}
-        selectorClassName={cn("text-sm", compact && "text-xs")}>
+        size={compact ? "sm" : "md"}
+        selectorClassName={cn(
+          "text-sm",
+          compact &&
+            "size-8 min-h-0 w-auto shrink-0 p-0 border-0 bg-transparent hover:bg-surface-hover rounded-full justify-center focus:ring-1 focus:ring-border",
+          compact && isOpen && "ring-1 ring-border",
+        )}>
         {options.map((option) => {
           const isSelected = option.value === currentSegment;
 
