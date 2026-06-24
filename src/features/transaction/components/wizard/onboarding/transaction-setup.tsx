@@ -1,6 +1,7 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
+import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
 import { TransactionListGrouped } from "@/features/transaction/components/transaction-list-grouped";
 import { TransactionTable } from "@/features/transaction/components/transaction-table";
 import { TransactionViewControls } from "@/features/transaction/components/transaction-view-controls";
@@ -17,7 +18,7 @@ import { Text } from "@/features/ui/typography/text";
 import { Title } from "@/features/ui/typography/title";
 import { useMemo, useState } from "react";
 import { HiCheck, HiPlus } from "react-icons/hi";
-import { HiArrowsRightLeft } from "react-icons/hi2";
+import { HiArrowsRightLeft, HiArrowDownTray } from "react-icons/hi2";
 
 export function TransactionSetup() {
   const {
@@ -30,6 +31,7 @@ export function TransactionSetup() {
   const { mutate: deleteTransaction } = useDeleteTransaction();
   const toast = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [layout, setLayout] = useState<ITransactionLayoutMode>("list");
   const [showDescriptions, setShowDescriptions] = useState(true);
@@ -102,8 +104,8 @@ export function TransactionSetup() {
         <Text
           isMuted
           className="max-w-md mx-auto">
-          Track your spending by adding transactions. Start with a recent
-          expense or income to see how it works.
+          Track your spending by adding transactions manually or import a CSV
+          export from your bank to get started quickly.
         </Text>
       </div>
 
@@ -120,26 +122,61 @@ export function TransactionSetup() {
       )}
 
       {!hasTransactions ? (
-        <div className="flex justify-center mb-8">
-          <Button
-            clicked={handleCreateTransaction}
-            variant="primary"
-            size="lg"
-            className="gap-2">
-            <HiPlus className="size-5" />
-            Add Transaction
-          </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mx-auto mb-8">
+          <button
+            type="button"
+            onClick={handleCreateTransaction}
+            className="group flex flex-col items-center gap-4 p-6 rounded-2xl border border-border bg-surface hover:border-primary/50 hover:bg-primary/5 transition-all text-center cursor-pointer">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <HiPlus className="size-6 text-primary" />
+            </div>
+            <div>
+              <Text className="font-semibold mb-1">Add Manually</Text>
+              <Text
+                isMuted
+                size="sm">
+                Enter a recent expense or income
+              </Text>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsCsvImportDialogOpen(true)}
+            className="group flex flex-col items-center gap-4 p-6 rounded-2xl border border-border bg-surface hover:border-primary/50 hover:bg-primary/5 transition-all text-center cursor-pointer">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+              <HiArrowDownTray className="size-6 text-primary" />
+            </div>
+            <div>
+              <Text className="font-semibold mb-1">Import from CSV</Text>
+              <Text
+                isMuted
+                size="sm">
+                Upload a bank statement export
+              </Text>
+            </div>
+          </button>
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          <Button
-            clicked={handleCreateTransaction}
-            variant="primary"
-            size="md"
-            className="gap-2">
-            <HiPlus className="size-4" />
-            Add Transaction
-          </Button>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              clicked={handleCreateTransaction}
+              variant="primary"
+              size="md"
+              className="gap-2">
+              <HiPlus className="size-4" />
+              Add Transaction
+            </Button>
+            <Button
+              clicked={() => setIsCsvImportDialogOpen(true)}
+              variant="default"
+              size="md"
+              className="gap-2">
+              <HiArrowDownTray className="size-4" />
+              Import from CSV
+            </Button>
+          </div>
           <TransactionViewControls
             layout={layout}
             showDescriptions={showDescriptions}
@@ -177,6 +214,13 @@ export function TransactionSetup() {
         onOpenChange={setIsDialogOpen}
         transaction={selectedTransaction}
       />
+
+      {isCsvImportDialogOpen && (
+        <TransactionCsvImportDialog
+          open={isCsvImportDialogOpen}
+          onOpenChange={setIsCsvImportDialogOpen}
+        />
+      )}
 
       <DeleteDialog
         title={`Delete ${selectedTransaction?.type === "EXPENSE" ? "Expense" : "Income"}`}

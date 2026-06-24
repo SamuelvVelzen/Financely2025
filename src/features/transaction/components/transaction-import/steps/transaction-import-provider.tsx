@@ -5,7 +5,7 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { useToast } from "@/features/ui/toast";
-import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import {
   useCallback,
@@ -55,7 +55,7 @@ export function TransactionImportProvider({
   onClose,
 }: ITransactionImportProviderProps) {
   const [isPending, setIsPending] = useState(false);
-  const workspaceId = useActiveWorkspaceId();
+  const workspaceId = useNavWorkspaceId();
   const resolvedDefaultCurrency = useDefaultCurrency(workspaceId);
 
   const [rows, setRows] = useState<Record<string, string>[]>([]);
