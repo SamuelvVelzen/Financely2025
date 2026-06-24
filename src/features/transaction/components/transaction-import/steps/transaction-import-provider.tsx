@@ -130,6 +130,7 @@ export function TransactionImportProvider({
     setCurrentPage(1);
     setTransformResponse(null);
     setSelectedBank("DEFAULT");
+    setCurrentStep("upload");
     setLastAppliedSuggestedKey(null);
     setUploadResetCounter((counter) => counter + 1);
     mappingForm.reset({
