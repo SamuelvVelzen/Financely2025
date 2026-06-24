@@ -82,7 +82,8 @@ export function MobileTopNav() {
         <Dropdown
           dropdownSelector={avatarContent}
           placement="bottom"
-          size="sm">
+          size="sm"
+          selectorClassName="size-8 min-h-0 w-auto shrink-0 p-0 border-0 bg-transparent hover:bg-transparent rounded-full justify-center">
           <DropdownItem
             text="Account"
             icon={<HiOutlineUserCircle className="size-5" />}
