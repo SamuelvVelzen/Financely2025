@@ -1,4 +1,4 @@
-import { useTheme } from "@/features/ui/ThemeProvider";
+import { useTheme } from "@/features/ui/theme-context";
 import { LocaleHelpers } from "@/features/util/locale.helpers";
 import { useUserSettings } from "@/features/users/hooks/useUserSettings";
 import { resolveUserTheme } from "@/features/users/utils/resolve-user-theme";

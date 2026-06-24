@@ -3,9 +3,11 @@ import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type PropsWithChildren,
 } from "react";
 import { createPortal } from "react-dom";
@@ -79,6 +81,8 @@ export interface IBottomSheetProps
  * </BottomSheet>
  * ```
  */
+const subscribeToClient = () => () => {};
+
 export function BottomSheet({
   children,
   open: controlledOpen,
@@ -98,15 +102,18 @@ export function BottomSheet({
   disableInitialFocus = false,
 }: IBottomSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useSyncExternalStore(
+    subscribeToClient,
+    () => true,
+    () => false
+  );
+  const sheetId = useId();
+  const generatedTitleId = useId();
   const sheetRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const primaryFooterButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
-  const sheetIdRef = useRef<string>(
-    `bottom-sheet-${Math.random().toString(36).substr(2, 9)}`
-  );
 
   // Drag state
   const [isDragging, setIsDragging] = useState(false);
@@ -114,24 +121,24 @@ export function BottomSheet({
   const [currentTranslateY, setCurrentTranslateY] = useState(0);
   const [snapPoint, setSnapPoint] = useState<ISnapPoint>(initialSnapPoint);
   const [sheetHeight, setSheetHeight] = useState(0);
-  const [windowHeight, setWindowHeight] = useState(0);
+  const [windowHeight, setWindowHeight] = useState(() =>
+    typeof window !== "undefined" ? window.innerHeight : 0
+  );
 
   // Determine if controlled or uncontrolled
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
   // Get z-index for sheet stacking
-  const sheetZIndex = useDialogStack(open ? sheetIdRef.current : undefined);
+  const sheetZIndex = useDialogStack(open ? sheetId : undefined);
 
-  // Set mounted state for SSR safety
+  // Track window height for snap calculations
   useEffect(() => {
-    setIsMounted(true);
-    if (typeof window !== "undefined") {
-      setWindowHeight(window.innerHeight);
-      const handleResize = () => setWindowHeight(window.innerHeight);
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }
+    if (typeof window === "undefined") return;
+
+    const handleResize = () => setWindowHeight(window.innerHeight);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Measure sheet height when opened and set initial position
@@ -157,16 +164,16 @@ export function BottomSheet({
           sheetRef.current.style.transform = `translateY(${initialPosition}px)`;
         }
       }, 50);
-    } else if (!open) {
-      // Reset on close
-      setCurrentTranslateY(0);
-      setIsDragging(false);
     }
   }, [open, initialSnapPoint, windowHeight, partialHeight]);
 
   // Handle open state changes
   const handleOpenChange = useCallback(
     (newOpen: boolean) => {
+      if (!newOpen) {
+        setCurrentTranslateY(0);
+        setIsDragging(false);
+      }
       if (!isControlled) {
         setInternalOpen(newOpen);
       }
@@ -226,11 +233,6 @@ export function BottomSheet({
       full: fullPosition,
     };
   }, [sheetHeight, windowHeight, partialHeight]);
-
-  // Get current position based on snap point
-  const getCurrentPosition = useCallback(() => {
-    return snapPositions[snapPoint] || 0;
-  }, [snapPoint, snapPositions]);
 
   // Handle drag start
   const handleDragStart = useCallback(
@@ -418,14 +420,20 @@ export function BottomSheet({
     onEscape: dismissible ? handleClose : undefined,
   });
 
+  useEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet || !open) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      handleKeyDown(event as unknown as React.KeyboardEvent<HTMLElement>);
+    };
+
+    sheet.addEventListener("keydown", onKeyDown);
+    return () => sheet.removeEventListener("keydown", onKeyDown);
+  }, [open, handleKeyDown]);
+
   // Generate title ID for aria-labelledby if title is provided
-  const titleId = useMemo(
-    () =>
-      title
-        ? `bottom-sheet-title-${Math.random().toString(36).substr(2, 9)}`
-        : undefined,
-    [title]
-  );
+  const titleId = title ? generatedTitleId : undefined;
   const finalAriaLabelledBy = ariaLabelledBy || titleId;
 
   // Calculate overlay opacity based on drag position (must be before early returns)
@@ -474,11 +482,19 @@ export function BottomSheet({
   const dragHandle = showDragHandle ? (
     <div
       data-drag-handle
+      role="button"
+      tabIndex={0}
+      aria-label="Drag to resize sheet"
       className="flex items-center justify-center py-2 cursor-grab active:cursor-grabbing touch-none select-none"
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}>
+      onTouchEnd={handleTouchEnd}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+        }
+      }}>
       <div className="w-12 h-1.5 bg-text-muted/30 rounded-full" />
     </div>
   ) : null;
@@ -521,22 +537,28 @@ export function BottomSheet({
           ...style,
           zIndex: sheetZIndex,
           transform: `translateY(${currentTranslateY}px)`,
-        }}
-        onKeyDown={handleKeyDown}
-        tabIndex={-1}>
+        }}>
         {/* Drag Handle */}
         {dragHandle}
 
         {/* Header - Always rendered */}
-        <header
+        <div
           className={cn(
             "flex items-center justify-between gap-4 px-6 py-4 border-b border-border",
             showDragHandle && "pt-0",
             "cursor-grab active:cursor-grabbing touch-none select-none"
           )}
           id={titleId}
+          role="button"
+          tabIndex={0}
+          aria-label="Drag sheet header"
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+            }
+          }}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}>
           <div className="flex-1">
@@ -546,7 +568,7 @@ export function BottomSheet({
           <IconButton clicked={handleClose}>
             <HiX className="size-5" />
           </IconButton>
-        </header>
+        </div>
 
         <div
           ref={contentRef}

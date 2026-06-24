@@ -11,7 +11,7 @@ import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialo
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
-import { useTheme } from "@/features/ui/ThemeProvider";
+import { useTheme } from "@/features/ui/theme-context";
 import { useToast } from "@/features/ui/toast";
 import { Label } from "@/features/ui/typography/label";
 import { ScrollableHeader } from "@/features/ui/typography/scrollable-header";

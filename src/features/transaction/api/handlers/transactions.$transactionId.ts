@@ -12,7 +12,7 @@ import { TransactionService } from "../../services/transaction.service";
  * Get a single transaction
  */
 export async function GET({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;
@@ -88,7 +88,7 @@ export async function PATCH({
  * Delete a transaction
  */
 export async function DELETE({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;

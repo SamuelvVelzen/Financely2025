@@ -18,7 +18,7 @@ interface IDateSelectCellProps extends IPropsWithClassName {
 }
 
 export function DateSelectCell({
-  className = "",
+  className: _className = "",
   value,
   timePrecision = "DateOnly",
   onChange,
@@ -57,7 +57,9 @@ export function DateSelectCell({
   return (
     <div
       className="flex items-center gap-2"
-      onClick={(e) => e.stopPropagation()}>
+      role="presentation"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}>
       <DateInput
         value={value}
         mode={timePrecision === "DateTime" ? "dateTime" : "dateOnly"}

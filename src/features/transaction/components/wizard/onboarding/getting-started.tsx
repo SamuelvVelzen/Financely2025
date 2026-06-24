@@ -12,12 +12,12 @@ export function GettingStarted() {
         <div className="w-16 h-16 mx-auto bg-success/10 rounded-full flex items-center justify-center mb-6">
           <HiSparkles className="size-8 text-success" />
         </div>
-        <Title className="text-3xl mb-4">You're All Set!</Title>
+        <Title className="text-3xl mb-4">You&apos;re All Set!</Title>
         <Text
           size="lg"
           isMuted
           className="max-w-md mx-auto">
-          Great job! You've completed the setup. Here's what you can do next.
+          Great job! You&apos;ve completed the setup. Here&apos;s what you can do next.
         </Text>
       </div>
 
@@ -66,7 +66,7 @@ export function GettingStarted() {
         <Text
           isMuted
           size="sm">
-          Click "Complete" below to go to your dashboard!
+          Click &quot;Complete&quot; below to go to your dashboard!
         </Text>
       </div>
     </div>

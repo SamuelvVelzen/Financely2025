@@ -19,6 +19,11 @@ type ISelectableListProps<T> = Omit<IListProps<T>, "data" | "children"> & {
   ) => ReactNode;
 };
 
+type ElementTypeWithDisplayName = {
+  displayName?: string;
+  name?: string;
+};
+
 function injectSelectableListItemProps(
   element: ReactNode,
   isSelected: boolean
@@ -27,7 +32,7 @@ function injectSelectableListItemProps(
     return element;
   }
 
-  const elementType = element.type as any;
+  const elementType = element.type as ElementTypeWithDisplayName;
   const displayName = elementType?.displayName || elementType?.name;
 
   // Check if it's a SelectableListItem
@@ -35,7 +40,7 @@ function injectSelectableListItemProps(
     displayName === "SelectableListItem" || element.type === SelectableListItem;
 
   if (isSelectableListItem) {
-    return cloneElement(element as ReactElement<any>, {
+    return cloneElement(element as ReactElement<{ isSelected?: boolean }>, {
       isSelected,
     });
   }
@@ -49,7 +54,9 @@ function injectSelectableListItemProps(
         )
       : injectSelectableListItemProps(props.children, isSelected);
 
-    return cloneElement(element as ReactElement<any>, { children });
+    return cloneElement(element as ReactElement<{ children?: ReactNode }>, {
+      children,
+    });
   }
 
   return element;
@@ -80,9 +87,7 @@ export function SelectableList<T>({
   };
 
   return (
-    <ul
-      className={cn("overflow-hidden list-none", className)}
-      role="list">
+    <ul className={cn("overflow-hidden list-none", className)}>
       {data.map((item, index) => {
         const itemId = getItemId(item);
         const checked = selectedIds.includes(itemId);

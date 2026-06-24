@@ -37,8 +37,14 @@ export function BudgetSubscriptionsTab({
 
   const [isDetectDialogOpen, setIsDetectDialogOpen] = useState(false);
 
-  const budgetStart = new Date(budget.startDate);
-  const budgetEnd = new Date(budget.endDate);
+  const budgetStart = useMemo(
+    () => new Date(budget.startDate),
+    [budget.startDate],
+  );
+  const budgetEnd = useMemo(
+    () => new Date(budget.endDate),
+    [budget.endDate],
+  );
 
   const relevantSubscriptions = useMemo(() => {
     if (!subscriptionsData?.data) return [];
@@ -53,7 +59,7 @@ export function BudgetSubscriptionsTab({
         return { ...sub, transactionsInPeriod: txInPeriod };
       })
       .filter((sub) => sub.active || sub.transactionsInPeriod.length > 0);
-  }, [subscriptionsData, budget.currency, budget.startDate, budget.endDate]);
+  }, [subscriptionsData, budget.currency, budgetStart, budgetEnd]);
 
   if (isLoading) {
     return (

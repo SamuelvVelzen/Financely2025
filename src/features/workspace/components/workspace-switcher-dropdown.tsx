@@ -57,7 +57,7 @@ export function WorkspaceSwitcherDropdown({
   >();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const workspaces = me?.workspaces ?? [];
+  const workspaces = useMemo(() => me?.workspaces ?? [], [me?.workspaces]);
 
   const options = useMemo(
     () =>

@@ -15,6 +15,8 @@ export default tseslint.config(
       "out/**",
       "build/**",
       "dist/**",
+      "next-env.d.ts",
+      "src/features/shared/validation/generated.ts/**",
     ],
   },
   eslint.configs.recommended,

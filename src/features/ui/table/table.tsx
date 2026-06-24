@@ -2,21 +2,21 @@ import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useEffect, useMemo } from "react";
 import {
-  TableSearchProvider,
   useTableSearchContext,
   useTableSearchFilteredData,
 } from "./context/table-search-context";
+import { TableSearchProvider } from "./context/table-search-provider";
 import {
-  TableSortProvider,
   useTableSortContext,
 } from "./context/table-sort-context";
+import { TableSortProvider } from "./context/table-sort-provider";
 import { type SortConfig } from "./hooks/use-table-sort";
 import { type TableSearchConfig } from "./hooks/use-table-search";
 import { Pagination } from "./pagination/pagination";
 import {
-  TablePaginationProvider,
   useTablePaginationContext,
 } from "./pagination/table-pagination-context";
+import { TablePaginationProvider } from "./pagination/table-pagination-provider";
 import { TableBody } from "./table-body";
 import { TableHeader } from "./table-header";
 import { TableRow } from "./table-row";

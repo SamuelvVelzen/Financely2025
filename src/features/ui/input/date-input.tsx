@@ -14,6 +14,7 @@ import {
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { parseISO } from "date-fns";
 import { useState } from "react";
+import type { ControllerRenderProps } from "react-hook-form";
 import { HiChevronDown, HiClock } from "react-icons/hi";
 
 export type IDateInputProps = IPropsWithClassName & {
@@ -49,8 +50,6 @@ export function DateInput({
   onValueChange,
 }: IDateInputProps) {
   const {
-    field,
-    borderClass,
     shouldShowError,
     error,
     mode: adapterMode,
@@ -120,7 +119,9 @@ export function DateInput({
   };
 
   // Shared rendering logic
-  const renderDateInput = (currentField: typeof field) => {
+  const renderDateInput = (
+    currentField: ControllerRenderProps<Record<string, unknown>, string>
+  ) => {
     const value = currentField.value as string | undefined;
     // Convert form value to ISO for internal use (calendar/time picker)
     const isoValue =

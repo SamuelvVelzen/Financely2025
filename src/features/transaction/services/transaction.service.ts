@@ -311,8 +311,6 @@ export class TransactionService {
       const timeStr = transactionDate.toISOString().split("T")[1];
       // Check if time is not noon UTC (12:00:00.000Z)
       if (timeStr !== "12:00:00.000Z") {
-        // Normalize to noon UTC for date-only
-        const dateOnly = transactionDate.toISOString().split("T")[0];
         transactionDate.setUTCHours(12, 0, 0, 0);
       }
     }
@@ -483,7 +481,6 @@ export class TransactionService {
         if (timePrecision === "DateOnly") {
           const timeStr = transactionDate.toISOString().split("T")[1];
           if (timeStr !== "12:00:00.000Z") {
-            const dateOnly = transactionDate.toISOString().split("T")[0];
             transactionDate.setUTCHours(12, 0, 0, 0);
           }
         }
@@ -632,7 +629,7 @@ export class TransactionService {
     }
 
     // Handle transactionDate and precision updates
-    const updateData: any = {
+    const updateData: Prisma.TransactionUpdateInput = {
       ...(validated.type && { type: validated.type }),
       ...(validated.amount && { amount: validated.amount }),
       ...(validated.currency && { currency: validated.currency }),
@@ -662,7 +659,6 @@ export class TransactionService {
     // Handle transactionDate and precision updates
     if (validated.transactionDate !== undefined) {
       const transactionDate = new Date(validated.transactionDate);
-      const dateOnly = transactionDate.toISOString().split("T")[0];
       const timeStr = transactionDate.toISOString().split("T")[1];
 
       // Detect if time was set or removed

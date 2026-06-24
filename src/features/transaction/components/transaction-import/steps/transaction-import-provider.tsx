@@ -2,20 +2,18 @@ import type {
   ICreateTransactionInput,
   ICsvCandidateTransaction,
   ICsvFieldMapping,
-  ICurrency,
 } from "@/features/shared/validation/schemas";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { useToast } from "@/features/ui/toast";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import { type UseFormReturn } from "react-hook-form";
 import type { BankEnum } from "../../../config/banks";
 import type { ITransactionFieldName } from "../../../config/transaction-fields";
 import {
@@ -23,117 +21,28 @@ import {
   useImportCsvTransactions,
   useTransformCsvRows,
 } from "../../../hooks/useCsvImport";
-import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
-import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { BankProfileFactory } from "../../../services/bank.factory";
 import { getDefaultStrategyForBank } from "../../../services/csv-type-detection";
+import {
+  TransactionImportContext,
+  type IStep,
+  type ITransactionImportContext,
+  type ITransformResponse,
+  type MappingFormData,
+} from "./transaction-import-context";
 
-/**
- * Compute required mapping fields based on bank and whether default currency is set.
- * Base required fields: amount, transactionDate, name
- * Additional fields based on bank profile (e.g., ING requires "type")
- * Currency is required if no default currency is set
- */
 function getRequiredMappingFields(
   bank: BankEnum,
   hasDefaultCurrency: boolean
 ): ITransactionFieldName[] {
-  // Base required fields (always needed in mapping)
   const base: ITransactionFieldName[] = ["amount", "transactionDate", "name"];
-
-  // Add bank-specific required fields (e.g., ING requires "type")
   const bankRequired = BankProfileFactory.getRequiredFields(bank);
 
-  // Add currency if no default currency is set
   if (!hasDefaultCurrency) {
     base.push("currency");
   }
 
   return [...base, ...bankRequired];
-}
-
-export type IStep = "upload" | "mapping" | "review" | "confirm";
-
-export type MappingFormData = {
-  defaultCurrency: ICurrency;
-  mappings: Record<string, string>;
-};
-
-export interface ITransformResponse {
-  total: number;
-  totalValid: number;
-  totalInvalid: number;
-}
-
-export interface ITransactionImportContext {
-  // State
-  rows: Record<string, string>[];
-  columns: string[];
-  mapping: ICsvFieldMapping;
-  candidates: ICsvCandidateTransaction[];
-  selectedRows: Set<number>;
-  currentPage: number;
-  transformResponse: ITransformResponse | null;
-  selectedBank: BankEnum;
-  currentStep: IStep;
-  defaultCurrency: ICurrency;
-  suggestedMapping: ICsvFieldMapping | undefined;
-  typeDetectionStrategy: string;
-  mappingForm: UseFormReturn<MappingFormData>;
-  requiredMappingFields: ITransactionFieldName[];
-
-  // Computed
-  hasUnsavedChanges: boolean;
-  isBusy: boolean;
-
-  // Setters
-  setRows: (rows: Record<string, string>[]) => void;
-  setColumns: (columns: string[]) => void;
-  setMapping: React.Dispatch<React.SetStateAction<ICsvFieldMapping>>;
-  setCandidates: (candidates: ICsvCandidateTransaction[]) => void;
-  setSelectedRows: (rows: Set<number>) => void;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
-  setTransformResponse: (response: ITransformResponse | null) => void;
-  setSelectedBank: (bank: BankEnum) => void;
-  setCurrentStep: (step: IStep) => void;
-
-  setIsPending: (isPending: boolean) => void;
-
-  // Handlers
-  handleMappingChange: (field: string, column: string | null) => void;
-  handleMappingFieldChange: (field: string, column: string | null) => void;
-  handleResetToSuggested: (fieldName: string) => void;
-  handleSelectAllValid: () => void;
-  handleExcludeAllInvalid: () => void;
-  handleValidateMapping: (goToStep: (step: IStep) => void) => Promise<void>;
-  handleConfirmImport: () => Promise<void>;
-  updateCandidate: (
-    rowIndex: number,
-    updates: Partial<ICreateTransactionInput> & {
-      tagSuggestions?: ICsvCandidateTransaction["tagSuggestions"];
-    },
-  ) => void;
-  resetAllState: () => void;
-
-  // Mutations
-  transformMutation: ReturnType<typeof useTransformCsvRows>;
-  importMutation: ReturnType<typeof useImportCsvTransactions>;
-
-  // Other
-  onCloseSuccessful: () => void;
-}
-
-const TransactionImportContext =
-  createContext<ITransactionImportContext | null>(null);
-
-export function useTransactionImportContext() {
-  const context = useContext(TransactionImportContext);
-  if (!context) {
-    throw new Error(
-      "useTransactionImportContext must be used within TransactionImportProvider"
-    );
-  }
-  return context;
 }
 
 interface ITransactionImportProviderProps {
@@ -159,11 +68,13 @@ export function TransactionImportProvider({
     useState<ITransformResponse | null>(null);
   const [selectedBank, setSelectedBank] = useState<BankEnum>("DEFAULT");
   const [currentStep, setCurrentStep] = useState<IStep>("upload");
+  const [uploadResetCounter, setUploadResetCounter] = useState(0);
+  const [lastAppliedSuggestedKey, setLastAppliedSuggestedKey] = useState<
+    string | null
+  >(null);
 
-  // Derive strategy from bank selection
   const typeDetectionStrategy = getDefaultStrategyForBank(selectedBank);
 
-  // Form for mapping step controls
   const mappingForm = useFinForm<MappingFormData>({
     defaultValues: {
       defaultCurrency: resolvedDefaultCurrency,
@@ -184,13 +95,31 @@ export function TransactionImportProvider({
   const isBusy =
     isPending || transformMutation.isPending || importMutation.isPending;
 
-  // Compute required mapping fields based on bank and default currency
   const requiredMappingFields = useMemo(
     () => getRequiredMappingFields(selectedBank, !!defaultCurrency),
     [selectedBank, defaultCurrency]
   );
 
   const suggestedMapping = mappingQuery.data?.mapping;
+
+  const suggestedMappingKey =
+    columns.length > 0 && suggestedMapping
+      ? `${selectedBank}:${columns.join("\0")}`
+      : null;
+
+  if (
+    suggestedMappingKey &&
+    suggestedMappingKey !== lastAppliedSuggestedKey &&
+    suggestedMapping
+  ) {
+    const formMappings: Record<string, string> = {};
+    Object.entries(suggestedMapping).forEach(([field, column]) => {
+      if (column) formMappings[field] = column;
+    });
+    mappingForm.setValue("mappings", formMappings);
+    setMapping(suggestedMapping);
+    setLastAppliedSuggestedKey(suggestedMappingKey);
+  }
 
   const resetAllState = useCallback(() => {
     setRows([]);
@@ -201,6 +130,8 @@ export function TransactionImportProvider({
     setCurrentPage(1);
     setTransformResponse(null);
     setSelectedBank("DEFAULT");
+    setLastAppliedSuggestedKey(null);
+    setUploadResetCounter((counter) => counter + 1);
     mappingForm.reset({
       defaultCurrency: resolvedDefaultCurrency,
       mappings: {},
@@ -230,19 +161,6 @@ export function TransactionImportProvider({
     mappingFormDirty,
   ]);
 
-  // Auto-detect mapping when columns are available or bank changes
-  useEffect(() => {
-    if (columns.length > 0 && suggestedMapping) {
-      setMapping(suggestedMapping);
-      const formMappings: Record<string, string> = {};
-      Object.entries(suggestedMapping).forEach(([field, column]) => {
-        if (column) formMappings[field] = column;
-      });
-      mappingForm.setValue("mappings", formMappings);
-    }
-  }, [columns, suggestedMapping, mappingForm, selectedBank]);
-
-  // Handler for mapping field changes
   const handleMappingFieldChange = useCallback((field: string, column: string | null) => {
     if (mapping[field] !== column) {
       setMapping((prev) => ({
@@ -252,12 +170,9 @@ export function TransactionImportProvider({
     }
   }, [mapping]);
 
-  // Register form validation rules for required mapping fields
   useEffect(() => {
-    // Clear previous validation rules
     mappingForm.clearErrors();
 
-    // Register validation rules for each required field
     requiredMappingFields.forEach((field) => {
       mappingForm.register(`mappings.${field}`, {
         required: `${field} mapping is required`,
@@ -324,8 +239,6 @@ export function TransactionImportProvider({
   );
 
   const handleValidateMapping = async (goToStep: (step: IStep) => void) => {
-    // Form validation already passed (triggered by handleSubmit in mapping step)
-    // Only call transform API
     try {
       const transformResult = await transformMutation.mutateAsync({
         rows,
@@ -335,7 +248,6 @@ export function TransactionImportProvider({
         bank: selectedBank || undefined,
       });
 
-      // Apply default currency to candidates
       const candidatesWithDefaults = transformResult.candidates.map((c) => {
         const updatedData = { ...c.data };
         if (defaultCurrency && !c.data.currency) {
@@ -354,7 +266,6 @@ export function TransactionImportProvider({
         totalInvalid: transformResult.totalInvalid,
       });
 
-      // Start with no rows selected by default
       setSelectedRows(new Set());
 
       goToStep("review");
@@ -406,7 +317,6 @@ export function TransactionImportProvider({
   };
 
   const contextValue: ITransactionImportContext = {
-    // State
     rows,
     columns,
     mapping,
@@ -421,12 +331,9 @@ export function TransactionImportProvider({
     typeDetectionStrategy,
     mappingForm,
     requiredMappingFields,
-
-    // Computed
     hasUnsavedChanges,
     isBusy,
-
-    // Setters
+    uploadResetCounter,
     setRows,
     setColumns,
     setMapping,
@@ -437,8 +344,6 @@ export function TransactionImportProvider({
     setSelectedBank,
     setCurrentStep,
     setIsPending,
-
-    // Handlers
     handleMappingChange,
     handleMappingFieldChange,
     handleResetToSuggested,
@@ -448,12 +353,8 @@ export function TransactionImportProvider({
     handleConfirmImport,
     updateCandidate,
     resetAllState,
-
-    // Mutations
     transformMutation,
     importMutation,
-
-    // Other
     onCloseSuccessful: onClose,
   };
 

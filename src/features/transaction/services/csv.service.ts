@@ -523,8 +523,6 @@ export async function convertRowToTransaction(
         // 2. Fallback to valueDate (date only)
         // 3. Fallback to mapped date field (existing behavior)
         if (extracted.dateTime) {
-          // Extracted datetime has time component
-          const dateObj = new Date(extracted.dateTime);
           transaction.transactionDate = extracted.dateTime;
           transaction.timePrecision = "DateTime";
         } else if (extracted.valueDate) {
@@ -582,17 +580,6 @@ export async function convertRowToTransaction(
   }
 
   return transaction;
-}
-
-/**
- * Parse transaction type
- */
-function parseType(value: string): "EXPENSE" | "INCOME" {
-  const normalized = value.toUpperCase().trim();
-  if (normalized === "INCOME" || normalized === "IN" || normalized === "I") {
-    return "INCOME";
-  }
-  return "EXPENSE"; // Default
 }
 
 /**
@@ -788,7 +775,7 @@ export async function parseTags(
           transactionType,
         });
         tagIds.push(newTag.id);
-      } catch (error) {
+      } catch (_error) {
         // If tag creation fails (e.g., duplicate), try to find it again
         const retryTags = await prisma.tag.findMany({
           where: {
@@ -846,7 +833,7 @@ export async function parsePrimaryTag(
       transactionType,
     });
     return newTag.id;
-  } catch (error) {
+  } catch (_error) {
     // If tag creation fails (e.g., duplicate), try to find it again
     const retryTags = await prisma.tag.findMany({
       where: {
@@ -898,9 +885,14 @@ export function validateCandidateTransaction(
   // Try to validate with schema
   try {
     CreateTransactionInputSchema.parse(candidate);
-  } catch (error: any) {
-    if (error.errors) {
-      for (const err of error.errors) {
+  } catch (error: unknown) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "errors" in error &&
+      Array.isArray((error as { errors: unknown[] }).errors)
+    ) {
+      for (const err of (error as { errors: Array<{ path: string[]; message?: string }> }).errors) {
         const field = err.path.join(".");
         errors.push({
           field,

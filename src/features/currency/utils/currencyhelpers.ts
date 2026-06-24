@@ -87,7 +87,7 @@ export function formatCurrency(amount: string, currency: string): string {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(numAmount);
-  } catch (err) {
+  } catch (_err) {
     return `${amount} ${currency}`;
   }
 }

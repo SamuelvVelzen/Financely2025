@@ -21,7 +21,7 @@ import { useToast } from "@/features/ui/toast";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useQueries } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineCurrencyEuro } from "react-icons/hi2";
 import { BudgetListItem } from "./budget-list-item";
 import { BudgetOverviewHeader } from "./budget-overview-header";
@@ -54,7 +54,7 @@ export function BudgetOverview() {
     isLoading: isLoadingBudgets,
     error: errorBudgets,
   } = useBudgets(query);
-  const budgets = budgetsData?.data ?? [];
+  const budgets = useMemo(() => budgetsData?.data ?? [], [budgetsData?.data]);
   const comparisonQueries = useQueries({
     queries: budgets.map((budget) => ({
       queryKey: queryKeys.budgetComparison(workspaceId, budget.id),
@@ -92,12 +92,12 @@ export function BudgetOverview() {
     expandedHeaderRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleCreateBudget = () => {
+  const handleCreateBudget = useCallback(() => {
     navigate({
       to: "/$workspaceId/budgets/new",
       params: { workspaceId: workspaceRouteParam },
     });
-  };
+  }, [navigate, workspaceRouteParam]);
 
   const handleEditBudget = (budget: IBudget) => {
     navigate({

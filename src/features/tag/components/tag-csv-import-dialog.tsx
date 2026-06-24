@@ -1,6 +1,5 @@
 import type {
   ICreateTagInput,
-  ITagCsvCandidate,
   ITagCsvFieldMapping,
 } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
@@ -19,7 +18,7 @@ import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
-import { useEffect, useMemo, useState, type ReactElement } from "react";
+import { useMemo, useState, type ReactElement } from "react";
 import {
   useGetTagCsvMapping,
   useImportTagCsv,
@@ -59,11 +58,16 @@ export function TagCsvImportDialog({
 }: TagCsvImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
-  const [mapping, setMapping] = useState<ITagCsvFieldMapping>({});
-  const [candidates, setCandidates] = useState<ITagCsvCandidate[]>([]);
+  const [manualMapping, setManualMapping] =
+    useState<ITagCsvFieldMapping | null>(null);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const [parseResponse, setParseResponse] = useState<any>(null);
+  const [lastAutoSelectKey, setLastAutoSelectKey] = useState<string | null>(
+    null,
+  );
+  const [lastSyncedMappingFormKey, setLastSyncedMappingFormKey] = useState<
+    string | null
+  >(null);
 
   // Form for mapping step controls
   type MappingFormData = {
@@ -80,8 +84,49 @@ export function TagCsvImportDialog({
   const mappingQuery = useGetTagCsvMapping(
     columns.length > 0 ? columns : undefined
   );
+  const detectedMapping = mappingQuery.data;
+  const mapping = useMemo(
+    () => manualMapping ?? detectedMapping ?? {},
+    [manualMapping, detectedMapping],
+  );
   const validateMutation = useValidateTagCsvMapping();
   const parseQuery = useParseTagCsvRows(file, mapping, currentPage, 50);
+  const parseResponse = parseQuery.data ?? null;
+  const candidates = useMemo(
+    () => parseResponse?.candidates ?? [],
+    [parseResponse?.candidates],
+  );
+  const mappingFormSyncKey =
+    columns.length > 0 && detectedMapping
+      ? `${columns.join("|")}:${JSON.stringify(detectedMapping)}`
+      : null;
+
+  if (
+    mappingFormSyncKey &&
+    mappingFormSyncKey !== lastSyncedMappingFormKey &&
+    manualMapping === null &&
+    detectedMapping
+  ) {
+    setLastSyncedMappingFormKey(mappingFormSyncKey);
+    const formMappings: Record<string, string> = {};
+    Object.entries(detectedMapping).forEach(([field, column]) => {
+      if (column) formMappings[field] = column;
+    });
+    mappingForm.reset({ mappings: formMappings });
+  }
+
+  const parseDataKey = parseResponse
+    ? `${file?.name ?? ""}:${currentPage}:${JSON.stringify(mapping)}:${parseResponse.candidates.length}`
+    : null;
+
+  if (parseDataKey && parseDataKey !== lastAutoSelectKey && parseResponse) {
+    setLastAutoSelectKey(parseDataKey);
+    const validIndices = parseResponse.candidates
+      .filter((c) => c.status === "valid")
+      .map((c) => c.rowIndex);
+    setSelectedRows(new Set(validIndices));
+  }
+
   const importMutation = useImportTagCsv();
   const isBusy =
     uploadMutation.isPending ||
@@ -91,11 +136,11 @@ export function TagCsvImportDialog({
   const resetAllState = () => {
     setFile(null);
     setColumns([]);
-    setMapping({});
-    setCandidates([]);
+    setManualMapping(null);
     setSelectedRows(new Set());
     setCurrentPage(1);
-    setParseResponse(null);
+    setLastAutoSelectKey(null);
+    setLastSyncedMappingFormKey(null);
     mappingForm.reset({ mappings: {} });
   };
 
@@ -120,32 +165,6 @@ export function TagCsvImportDialog({
     mappingFormDirty,
   ]);
 
-  // Auto-detect mapping when columns are available
-  useEffect(() => {
-    if (columns.length > 0 && mappingQuery.data) {
-      setMapping(mappingQuery.data);
-      // Also update form
-      const formMappings: Record<string, string> = {};
-      Object.entries(mappingQuery.data).forEach(([field, column]) => {
-        if (column) formMappings[field] = column;
-      });
-      mappingForm.setValue("mappings", formMappings);
-    }
-  }, [columns, mappingQuery.data]);
-
-  // Load candidates when parse query succeeds
-  useEffect(() => {
-    if (parseQuery.data) {
-      setCandidates(parseQuery.data.candidates);
-      setParseResponse(parseQuery.data);
-      // Auto-select all valid rows
-      const validIndices = parseQuery.data.candidates
-        .filter((c) => c.status === "valid")
-        .map((c) => c.rowIndex);
-      setSelectedRows(new Set(validIndices));
-    }
-  }, [parseQuery.data]);
-
   const handleFileChange = (nextFile: File | null) => {
     if (!nextFile) {
       setFile(null);
@@ -155,20 +174,10 @@ export function TagCsvImportDialog({
     setFile(nextFile);
   };
 
-  const handleMappingChange = (field: string, column: string | null) => {
-    setMapping((prev) => ({
-      ...prev,
-      [field]: column,
-    }));
-    // Also update form for SelectDropdown
-    mappingForm.setValue(`mappings.${field}`, column || "");
-  };
-
-  // Handler for mapping field changes from form
   const handleMappingFieldChange = (field: string, column: string | null) => {
     if (mapping[field] !== column) {
-      setMapping((prev) => ({
-        ...prev,
+      setManualMapping((prev) => ({
+        ...(prev ?? detectedMapping ?? {}),
         [field]: column,
       }));
     }
@@ -228,7 +237,7 @@ export function TagCsvImportDialog({
     }
   };
 
-  const renderUploadStep = (navigation: IStepNavigation<Step>) => (
+  const renderUploadStep = (_navigation: IStepNavigation<Step>) => (
     <div className="space-y-4">
       <div>
         <FileUploadInput
@@ -248,7 +257,7 @@ export function TagCsvImportDialog({
     </div>
   );
 
-  const renderMappingStep = (navigation: IStepNavigation<Step>) => (
+  const renderMappingStep = (_navigation: IStepNavigation<Step>) => (
     <div className="space-y-4">
       <p className="text-sm text-text-muted">
         Map CSV columns to tag fields. Required fields are marked with an
@@ -260,7 +269,6 @@ export function TagCsvImportDialog({
             { value: "", label: "— Not mapped —" },
             ...columns.map((col) => ({ value: col, label: col })),
           ];
-          const currentValue = mapping[field.name] || "";
 
           return (
             <div
@@ -298,7 +306,7 @@ export function TagCsvImportDialog({
     </div>
   );
 
-  const renderReviewStep = (navigation: IStepNavigation<Step>) => {
+  const renderReviewStep = (_navigation: IStepNavigation<Step>) => {
     if (parseQuery.isLoading) {
       return <div className="text-center py-8">Parsing CSV...</div>;
     }
@@ -438,7 +446,7 @@ export function TagCsvImportDialog({
     );
   };
 
-  const renderConfirmStep = (navigation: IStepNavigation<Step>) => {
+  const renderConfirmStep = (_navigation: IStepNavigation<Step>) => {
     const selectedCount = selectedRows.size;
     const totalCount = candidates.length;
 
@@ -478,6 +486,8 @@ export function TagCsvImportDialog({
               .mutateAsync(file)
               .then((result) => {
                 setColumns(result.columns);
+                setManualMapping(null);
+                setLastSyncedMappingFormKey(null);
                 navigation.goToStep("mapping");
               })
               .catch((error) => {

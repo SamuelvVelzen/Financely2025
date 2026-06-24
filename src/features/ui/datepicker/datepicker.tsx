@@ -8,7 +8,7 @@ import {
 } from "@/features/util/date/date-helpers";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { parseISO } from "date-fns";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { HiCalendar, HiChevronDown } from "react-icons/hi";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownDivider } from "../dropdown/dropdown-divider";
@@ -73,7 +73,8 @@ export function Datepicker({
   defaultOptions = getDefaultOptions(),
 }: IDatepickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
+
+  const showCalendar = isOpen && value.type === "custom";
 
   // Parse ISO strings to Date objects for calendar
   const startDate = useMemo(() => {
@@ -121,7 +122,6 @@ export function Datepicker({
     const filter = option.handler();
     onChange(filter);
     setIsOpen(false);
-    setShowCalendar(false);
   };
 
   const handleCustomClick = () => {
@@ -131,7 +131,6 @@ export function Datepicker({
       from: value.type === "custom" ? value.from : undefined,
       to: value.type === "custom" ? value.to : undefined,
     });
-    setShowCalendar(true);
   };
 
   const handleCalendarDateSelect = (start: Date | null, end: Date | null) => {
@@ -166,18 +165,6 @@ export function Datepicker({
       });
     }
   };
-
-  // Open calendar when dropdown opens if custom is selected, close when dropdown closes
-  useEffect(() => {
-    if (isOpen) {
-      // If custom date range is selected, automatically show calendar
-      if (value.type === "custom") {
-        setShowCalendar(true);
-      }
-    } else {
-      setShowCalendar(false);
-    }
-  }, [isOpen, value.type]);
 
   // Use same base classes as Input component for consistency
   const selectorButton = (

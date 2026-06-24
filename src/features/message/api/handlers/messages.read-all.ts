@@ -8,7 +8,7 @@ import { json } from "@tanstack/react-start";
  * Mark all messages as read for the authenticated user
  */
 export async function POST({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;

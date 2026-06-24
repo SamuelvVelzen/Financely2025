@@ -6,7 +6,6 @@ import {
   UpdateTagRuleInputSchema,
   type ICreateTagRuleInput,
   type IEnableTagRulePresetsInput,
-  type ITag,
   type ITagHistoryDiscovery,
   type ITagMatchRequest,
   type ITagMatchResponse,

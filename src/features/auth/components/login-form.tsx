@@ -132,7 +132,7 @@ export function LoginForm() {
         toast.success("Verification email sent! Please check your inbox.");
         setShowResendButton(false);
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to send verification email");
     } finally {
       setResendLoading(false);
@@ -286,7 +286,7 @@ export function LoginForm() {
           </div>
         )}
         <div className="text-center">
-          <span className="text-text-muted">Don't have an account? </span>
+          <span className="text-text-muted">Don&apos;t have an account? </span>
           <NavLink
             href="/register"
             to="/register"

@@ -146,8 +146,7 @@ export function ToggleButton({
           className={cn(
             "text-sm cursor-pointer select-none",
             disabled && "opacity-50 cursor-not-allowed"
-          )}
-          onClick={(e) => !disabled && handleToggle(e)}>
+          )}>
           {label}
         </label>
       )}

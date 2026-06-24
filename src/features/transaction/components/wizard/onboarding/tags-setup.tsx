@@ -17,24 +17,24 @@ import { HiOutlineTag } from "react-icons/hi2";
 
 export function TagsSetup() {
   const { data: tagsResponse, isLoading } = useTags();
-  const { mutate: createTag, isPending: isCreating } = useCreateTag();
-  const { mutate: deleteTag, isPending: isDeleting } = useDeleteTag();
+  const { mutate: createTag } = useCreateTag();
+  const { mutate: deleteTag } = useDeleteTag();
   const toast = useToast();
   const [addingTagName, setAddingTagName] = useState<string | null>(null);
-  const [removingTagId, setRemovingTagId] = useState<string | null>(null);
   const [showCustomDialog, setShowCustomDialog] = useState(false);
 
-  const existingTags = tagsResponse?.data ?? [];
-  // Create a set of existing tags with both name and transaction type as the key
-  // This matches the filtering logic in tag-overview.tsx
-  const existingTagsSet = new Set(
-    existingTags.map(
-      (tag) => `${tag.name.toLowerCase().trim()}:${tag.transactionType}`
-    )
+  const existingTags = useMemo(
+    () => tagsResponse?.data ?? [],
+    [tagsResponse?.data],
   );
-  // Create a map of tag name (lowercase) to tag ID for quick lookup
-  const tagNameToIdMap = new Map(
-    existingTags.map((t) => [t.name.toLowerCase(), t.id])
+  const existingTagsSet = useMemo(
+    () =>
+      new Set(
+        existingTags.map(
+          (tag) => `${tag.name.toLowerCase().trim()}:${tag.transactionType}`,
+        ),
+      ),
+    [existingTags],
   );
 
   const handleToggleRecommendedTag = (tag: IRecommendedTag) => {
@@ -108,13 +108,7 @@ export function TagsSetup() {
     const tag = existingTags.find((t) => t.id === tagId);
     if (!tag) return;
 
-    setRemovingTagId(tagId);
-
-    deleteTag(tagId, {
-      onSettled: () => {
-        setRemovingTagId(null);
-      },
-    });
+    deleteTag(tagId);
   };
 
   return (

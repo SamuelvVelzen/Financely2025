@@ -9,11 +9,10 @@ import { getEmailProvider } from "./email-config";
 import { sendEmailViaConsole } from "./providers/console.provider";
 import { sendEmailViaResend } from "./providers/resend.provider";
 import type {
-  EmailUser,
-  VerificationEmailPayload,
-  ResetPasswordEmailPayload,
-  MagicLinkEmailPayload,
   EmailOptions,
+  MagicLinkEmailPayload,
+  ResetPasswordEmailPayload,
+  VerificationEmailPayload,
 } from "./types";
 
 export class EmailService {

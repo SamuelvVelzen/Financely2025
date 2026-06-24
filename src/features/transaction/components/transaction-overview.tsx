@@ -184,10 +184,10 @@ export function TransactionOverview({
   const tags = tagsData?.data ?? [];
   const orderedTags = useOrderedData(tags);
 
-  const handleCreateTransaction = () => {
+  const handleCreateTransaction = useCallback(() => {
     setSelectedTransaction(undefined);
     setIsTransactionDialogOpen(true);
-  };
+  }, []);
 
   const handleStickyFiltersClick = () => {
     if (isMobile) {

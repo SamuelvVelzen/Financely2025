@@ -31,9 +31,7 @@ export function List<T>(props: IListProps<T>) {
   if (!isDataDriven(props)) {
     const { children } = props;
     return (
-      <ul
-        className={cn("overflow-hidden list-none", className)}
-        role="list">
+      <ul className={cn("overflow-hidden list-none", className)}>
         {Children.map(children, (child, index) => (
           <li key={index}>{child}</li>
         ))}
@@ -67,9 +65,7 @@ export function List<T>(props: IListProps<T>) {
   };
 
   return (
-    <ul
-      className={cn("overflow-hidden list-none", className)}
-      role="list">
+    <ul className={cn("overflow-hidden list-none", className)}>
       {data.map((item, index) => {
         const child = children(item, index);
         return <li key={getKey(item, index)}>{child}</li>;

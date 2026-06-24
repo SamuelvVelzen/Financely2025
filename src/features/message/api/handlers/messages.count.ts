@@ -8,7 +8,7 @@ import { json } from "@tanstack/react-start";
  * Get unread message count for the authenticated user
  */
 export async function GET({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;

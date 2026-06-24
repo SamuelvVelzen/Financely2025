@@ -13,7 +13,7 @@ import { RadioGroup, RadioItem } from "@/features/ui/radio";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Label } from "@/features/ui/typography/label";
 import { Text } from "@/features/ui/typography/text";
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   HiCalendar,
@@ -58,33 +58,36 @@ export function BudgetPresetSelector({
   const watchedYear = form.watch("general.year");
   const watchedMonth = form.watch("general.month");
 
-  const handlePresetChange = (newPreset: IBudgetPreset) => {
-    let dates: IBudgetDateRange;
-    switch (newPreset) {
-      case "monthly":
-        dates = getCurrentMonthPreset();
-        break;
-      case "yearly":
-      case "yearly-per-month":
-        dates = getCurrentYearPreset();
-        break;
-      case "custom":
-        dates =
-          startDate && endDate
-            ? { start: new Date(startDate), end: new Date(endDate) }
-            : getCurrentMonthPreset();
-        break;
-    }
+  const handlePresetChange = useCallback(
+    (newPreset: IBudgetPreset) => {
+      let dates: IBudgetDateRange;
+      switch (newPreset) {
+        case "monthly":
+          dates = getCurrentMonthPreset();
+          break;
+        case "yearly":
+        case "yearly-per-month":
+          dates = getCurrentYearPreset();
+          break;
+        case "custom":
+          dates =
+            startDate && endDate
+              ? { start: new Date(startDate), end: new Date(endDate) }
+              : getCurrentMonthPreset();
+          break;
+      }
 
-    form.setValue("general.startDate", formatLocalDate(dates.start));
-    form.setValue("general.endDate", formatLocalDate(dates.end));
+      form.setValue("general.startDate", formatLocalDate(dates.start));
+      form.setValue("general.endDate", formatLocalDate(dates.end));
 
-    const name = formatBudgetName(newPreset, dates);
-    form.setValue("general.name", name);
-    onNameChange?.(name);
-    onPresetChange?.(newPreset, dates);
-    resyncBudgetItemMonthlyAmounts(form);
-  };
+      const name = formatBudgetName(newPreset, dates);
+      form.setValue("general.name", name);
+      onNameChange?.(name);
+      onPresetChange?.(newPreset, dates);
+      resyncBudgetItemMonthlyAmounts(form);
+    },
+    [form, startDate, endDate, onNameChange, onPresetChange],
+  );
 
   // Handle preset changes from RadioGroup
   const prevPresetRef = useRef<IBudgetPreset | undefined>(preset);
@@ -93,43 +96,50 @@ export function BudgetPresetSelector({
       prevPresetRef.current = preset;
       handlePresetChange(preset);
     }
-  }, [preset, startDate, endDate]);
+  }, [preset, handlePresetChange]);
 
-  const handleMonthChange = (year: number, month: number) => {
-    const dates = getMonthlyPreset(year, month);
-    form.setValue("general.startDate", formatLocalDate(dates.start));
-    form.setValue("general.endDate", formatLocalDate(dates.end));
-    const name = formatBudgetName("monthly", dates);
-    form.setValue("general.name", name);
-    onNameChange?.(name);
-    onPresetChange?.("monthly", dates);
-    resyncBudgetItemMonthlyAmounts(form);
-  };
+  const handleMonthChange = useCallback(
+    (year: number, month: number) => {
+      const dates = getMonthlyPreset(year, month);
+      form.setValue("general.startDate", formatLocalDate(dates.start));
+      form.setValue("general.endDate", formatLocalDate(dates.end));
+      const name = formatBudgetName("monthly", dates);
+      form.setValue("general.name", name);
+      onNameChange?.(name);
+      onPresetChange?.("monthly", dates);
+      resyncBudgetItemMonthlyAmounts(form);
+    },
+    [form, onNameChange, onPresetChange],
+  );
 
-  const handleYearChange = (year: number) => {
-    const dates = getYearlyPreset(year);
-    form.setValue("general.startDate", formatLocalDate(dates.start));
-    form.setValue("general.endDate", formatLocalDate(dates.end));
-    const presetForName = preset === "yearly-per-month" ? "yearly-per-month" : "yearly";
-    const name = formatBudgetName(presetForName, dates);
-    form.setValue("general.name", name);
-    onNameChange?.(name);
-    onPresetChange?.(presetForName, dates);
-    resyncBudgetItemMonthlyAmounts(form);
-  };
+  const handleYearChange = useCallback(
+    (year: number) => {
+      const dates = getYearlyPreset(year);
+      form.setValue("general.startDate", formatLocalDate(dates.start));
+      form.setValue("general.endDate", formatLocalDate(dates.end));
+      const presetForName =
+        preset === "yearly-per-month" ? "yearly-per-month" : "yearly";
+      const name = formatBudgetName(presetForName, dates);
+      form.setValue("general.name", name);
+      onNameChange?.(name);
+      onPresetChange?.(presetForName, dates);
+      resyncBudgetItemMonthlyAmounts(form);
+    },
+    [form, preset, onNameChange, onPresetChange],
+  );
 
   // Trigger handlers when year/month changes for monthly/yearly presets
   useEffect(() => {
     if (preset === "monthly" && watchedYear && watchedMonth) {
       handleMonthChange(watchedYear, watchedMonth);
     }
-  }, [preset, watchedYear, watchedMonth]);
+  }, [preset, watchedYear, watchedMonth, handleMonthChange]);
 
   useEffect(() => {
     if ((preset === "yearly" || preset === "yearly-per-month") && watchedYear) {
       handleYearChange(Number(watchedYear));
     }
-  }, [preset, watchedYear]);
+  }, [preset, watchedYear, handleYearChange]);
 
   const handleCustomDateChange = () => {
     if (preset !== "custom") return;

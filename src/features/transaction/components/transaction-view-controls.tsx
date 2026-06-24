@@ -95,16 +95,16 @@ export function TransactionViewControls({
     return (
       <div className={cn("space-y-4", className)}>
         <div>
-          <label className="block text-sm font-medium text-text mb-2">
+          <span className="block text-sm font-medium text-text mb-2">
             View
-          </label>
+          </span>
           {layoutToggle}
         </div>
         {detailToggle && (
           <div>
-            <label className="block text-sm font-medium text-text mb-2">
+            <span className="block text-sm font-medium text-text mb-2">
               List detail
-            </label>
+            </span>
             {detailToggle}
           </div>
         )}

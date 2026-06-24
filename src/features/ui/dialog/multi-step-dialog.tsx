@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Dialog } from "./dialog/dialog";
 import type { IDialogProps } from "./dialog/types";
 import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
@@ -49,25 +49,6 @@ export function MultiStepDialog<StepType extends string>({
   const [step, setStep] = useState<StepType>(initialStep);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
-  // Reset step when dialog opens
-  useEffect(() => {
-    if (open) {
-      const previousStep = step;
-      setStep(initialStep);
-      // Call onStepChange if step actually changed
-      if (previousStep !== initialStep) {
-        onStepChange?.(previousStep, initialStep);
-      }
-    }
-  }, [open, initialStep]);
-
-  // Close unsaved dialog when main dialog closes
-  useEffect(() => {
-    if (!open) {
-      setShowUnsavedDialog(false);
-    }
-  }, [open]);
-
   const handleDialogClose = () => {
     onReset();
     onOpenChange(false);
@@ -83,6 +64,10 @@ export function MultiStepDialog<StepType extends string>({
 
   const handleDialogOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
+      if (step !== initialStep) {
+        onStepChange?.(step, initialStep);
+      }
+      setStep(initialStep);
       onOpenChange(true);
       return;
     }
@@ -120,7 +105,7 @@ export function MultiStepDialog<StepType extends string>({
         onClose={onReset}
       />
       <UnsavedChangesDialog
-        open={showUnsavedDialog}
+        open={open && showUnsavedDialog}
         onConfirm={() => {
           setShowUnsavedDialog(false);
           handleDialogClose();

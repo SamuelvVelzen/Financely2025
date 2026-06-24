@@ -63,7 +63,15 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
   const queryClient = useQueryClient();
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
+  const [monthSelection, setMonthSelection] = useState<{
+    budgetId: string;
+    key: string | null;
+  }>({ budgetId, key: null });
+  const selectedMonthKey =
+    monthSelection.budgetId === budgetId ? monthSelection.key : null;
+  const setSelectedMonthKey = (key: string | null) => {
+    setMonthSelection({ budgetId, key });
+  };
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<
     ITransaction | undefined
@@ -82,10 +90,6 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
       ) ?? null
     );
   }, [selectedMonthKey, comparison]);
-
-  useEffect(() => {
-    setSelectedMonthKey(null);
-  }, [budgetId]);
 
   useEffect(() => {
     if (expandedHeaderRef.current) {

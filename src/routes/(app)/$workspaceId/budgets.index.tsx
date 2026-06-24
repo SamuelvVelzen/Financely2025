@@ -1,5 +1,5 @@
-import { BudgetOverview } from "@/features/budget/components/overview/budget-overview";
 import { createFileRoute } from "@tanstack/react-router";
+import { BudgetsPage } from "./budgets-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/budgets/")({
   component: BudgetsPage,
@@ -11,7 +11,3 @@ export const Route = createFileRoute("/(app)/$workspaceId/budgets/")({
     ],
   }),
 });
-
-export function BudgetsPage() {
-  return <BudgetOverview />;
-}

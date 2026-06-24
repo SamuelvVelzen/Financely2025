@@ -17,7 +17,7 @@ import { Tab } from "@/features/ui/tab/tab";
 import { TabContent } from "@/features/ui/tab/tab-content";
 import { useTabContext } from "@/features/ui/tab/tab-context";
 import { Tabs } from "@/features/ui/tab/tabs";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 function TabValueReporter({ onChange }: { onChange: (value: string) => void }) {
@@ -65,13 +65,16 @@ export function FilterSheet({
   setCurrencyFilter,
   viewMode,
 }: IFilterSheetProps) {
-  const [activeTab, setActiveTab] = useState("filters");
+  const [tabState, setTabState] = useState({ trackedOpen: false, tab: "filters" });
 
-  useEffect(() => {
-    if (open) {
-      setActiveTab("filters");
-    }
-  }, [open]);
+  if (open !== tabState.trackedOpen) {
+    setTabState({ trackedOpen: open, tab: open ? "filters" : tabState.tab });
+  }
+
+  const activeTab = tabState.tab;
+  const setActiveTab = (tab: string) => {
+    setTabState({ trackedOpen: open, tab });
+  };
 
   const tagOptions = tags.map((tag) => ({
     value: tag.id,
@@ -145,9 +148,9 @@ export function FilterSheet({
         </CheckboxGroup>
 
         <div>
-          <label className="block text-sm font-medium text-text mb-2">
+          <span className="block text-sm font-medium text-text mb-2">
             Date Range
-          </label>
+          </span>
           <Datepicker
             value={dateFilter}
             onChange={onDateFilterChange}

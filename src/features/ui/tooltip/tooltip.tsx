@@ -176,31 +176,29 @@ export function Tooltip({
   }, []);
 
   // Clone the trigger element and add event handlers and ARIA attributes
-  const triggerElement = isValidElement(children)
-    ? cloneElement(children, {
-      ref: (node: HTMLElement | null) => {
-        triggerRef.current = node;
-        // Preserve existing ref if it exists
-        const existingRef = (children as any).ref;
-        if (typeof existingRef === "function") {
-          existingRef(node);
-        } else if (existingRef) {
-          (
-            existingRef as React.MutableRefObject<HTMLElement | null>
-          ).current = node;
-        }
-      },
-      style: {
-        ...((children.props as any)?.style || {}),
-        anchorName,
-      },
-      onMouseEnter: handleMouseEnter,
-      onMouseLeave: handleMouseLeave,
-      onFocus: handleFocus,
-      onBlur: handleBlur,
-      "aria-describedby": tooltipIsOpen ? tooltipId : undefined,
-    } as any)
-    : children;
+  const triggerElement = isValidElement(children) ? (
+    <span
+      ref={triggerRef}
+      style={{ display: "contents" }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
+      onBlur={handleBlur}>
+      {cloneElement(
+        children,
+        {
+          style: {
+            ...((children.props as { style?: React.CSSProperties })?.style ||
+              {}),
+            anchorName,
+          } as React.CSSProperties & { anchorName?: string },
+          "aria-describedby": tooltipIsOpen ? tooltipId : undefined,
+        } as React.HTMLAttributes<HTMLElement>
+      )}
+    </span>
+  ) : (
+    children
+  );
 
   return (
     <>

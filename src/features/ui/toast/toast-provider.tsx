@@ -1,18 +1,6 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
-import type {
-  IToast,
-  IToastContext,
-  IToastOptions,
-  IToastPosition,
-} from "./types";
-
-const ToastContext = createContext<IToastContext | null>(null);
+import { useCallback, useState, type ReactNode } from "react";
+import { ToastContext } from "./toast-context";
+import type { IToast, IToastOptions, IToastPosition } from "./types";
 
 const ANIMATION_DURATION = 300;
 
@@ -59,7 +47,6 @@ export function ToastProvider({
       prev.map((t) => (t.id === id ? { ...t, isExiting: true } : t))
     );
 
-    // Remove after animation completes
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, ANIMATION_DURATION);
@@ -93,12 +80,4 @@ export function ToastProvider({
       {children}
     </ToastContext.Provider>
   );
-}
-
-export function useToastContext() {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error("useToastContext must be used within a ToastProvider");
-  }
-  return context;
 }

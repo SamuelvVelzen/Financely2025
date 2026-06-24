@@ -1,20 +1,8 @@
 import { Button } from "@/features/ui/button/button";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  startOfDay,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
-} from "date-fns";
-import { useEffect, useState } from "react";
+import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, subMonths } from "date-fns";
+import { useState } from "react";
 import { HiChevronLeft, HiChevronRight, HiClock } from "react-icons/hi";
 
 export type ICalendarViewProps = {
@@ -31,7 +19,6 @@ export function CalendarView({
   startDate,
   endDate,
   onDateSelect,
-  onClose,
   mode = "date",
   className = "",
   timeSupported = false,
@@ -44,14 +31,15 @@ export function CalendarView({
     return new Date();
   };
 
-  const [currentMonth, setCurrentMonth] = useState<Date>(getInitialMonth());
+  const [currentMonth, setCurrentMonth] = useState<Date>(getInitialMonth);
+  const [prevStartDate, setPrevStartDate] = useState(startDate);
 
-  // Navigate to start date's month when it changes
-  useEffect(() => {
+  if (startDate !== prevStartDate) {
+    setPrevStartDate(startDate);
     if (startDate && !isSameMonth(currentMonth, startDate)) {
       setCurrentMonth(startDate);
     }
-  }, [startDate]);
+  }
 
   const handleDateClick = (date: Date) => {
     const normalizedDate = startOfDay(date);
@@ -68,7 +56,6 @@ export function CalendarView({
     if (startDate && endDate) {
       // Both dates set
       const normalizedStart = startOfDay(startDate);
-      const normalizedEnd = startOfDay(endDate);
 
       // If clicked date is before start date, reset and make it the new start
       if (normalizedDate < normalizedStart) {

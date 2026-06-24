@@ -53,7 +53,6 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
     const { errorId, hintId } = getFieldDescriptionIds(inputId);
 
     const {
-      field,
       borderClass,
       shouldShowError,
       error,
@@ -81,8 +80,7 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
     );
 
     const renderTextareaContent = (
-      currentField: typeof field,
-      textareaRef?: React.Ref<HTMLTextAreaElement>
+      currentField: ControllerRenderProps<Record<string, unknown>, string>
     ) => {
       const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         currentField.onChange(e);
@@ -148,10 +146,19 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
                   className
                 )}
                 name={currentField.name}
-                ref={
-                  textareaRef ||
-                  (currentField.ref as React.Ref<HTMLTextAreaElement>)
-                }
+                ref={(node) => {
+                  if (typeof ref === "function") {
+                    ref(node);
+                  } else if (ref) {
+                    ref.current = node;
+                  }
+                  const fieldRef = currentField.ref;
+                  if (typeof fieldRef === "function") {
+                    fieldRef(node);
+                  } else if (fieldRef) {
+                    fieldRef.current = node;
+                  }
+                }}
                 {...(mode === "controlled" ? props : formModeProps)}
                 value={String(currentField.value ?? "")}
                 onChange={handleChange}
@@ -184,10 +191,12 @@ export const BaseTextarea = forwardRef<HTMLTextAreaElement, IBaseTextareaProps>(
     };
 
     return renderWithController((currentField) => {
-      return renderTextareaContent(currentField, ref);
+      return renderTextareaContent(currentField);
     });
   }
 );
+
+BaseTextarea.displayName = "BaseTextarea";
 
 export type ITextareaProps = IBaseTextareaProps;
 

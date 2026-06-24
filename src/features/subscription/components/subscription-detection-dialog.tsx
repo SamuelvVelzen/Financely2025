@@ -9,7 +9,7 @@ import {
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { HiArrowPath } from "react-icons/hi2";
 import { SubscriptionCandidateCard } from "./subscription-candidate-card";
 
@@ -17,6 +17,22 @@ type ISubscriptionDetectionDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
+
+type IDetectionState = {
+  candidates: ISubscriptionCandidate[];
+  isDetecting: boolean;
+  hasDetected: boolean;
+  confirmingName: string | null;
+  dismissingName: string | null;
+};
+
+const emptyDetectionState = (): IDetectionState => ({
+  candidates: [],
+  isDetecting: false,
+  hasDetected: false,
+  confirmingName: null,
+  dismissingName: null,
+});
 
 export function SubscriptionDetectionDialog({
   open,
@@ -28,40 +44,63 @@ export function SubscriptionDetectionDialog({
   const { mutate: confirmSub } = useConfirmSubscription();
   const { mutate: dismissCandidate } = useDismissCandidate();
 
-  const [candidates, setCandidates] = useState<ISubscriptionCandidate[]>([]);
-  const [isDetecting, setIsDetecting] = useState(false);
-  const [hasDetected, setHasDetected] = useState(false);
-  const [confirmingName, setConfirmingName] = useState<string | null>(null);
-  const [dismissingName, setDismissingName] = useState<string | null>(null);
+  const [detectionState, setDetectionState] = useState<IDetectionState>(
+    emptyDetectionState,
+  );
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [detectionSession, setDetectionSession] = useState(0);
 
-  const candidatesRef = useRef(candidates);
-  candidatesRef.current = candidates;
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setDetectionState({
+        ...emptyDetectionState(),
+        isDetecting: true,
+      });
+      setDetectionSession((session) => session + 1);
+    }
+  }
+
+  const {
+    candidates,
+    isDetecting,
+    hasDetected,
+    confirmingName,
+    dismissingName,
+  } = detectionState;
 
   useEffect(() => {
     if (!open || !workspaceId) return;
 
-    setCandidates([]);
-    setHasDetected(false);
-    setConfirmingName(null);
-    setDismissingName(null);
+    let cancelled = false;
 
-    setIsDetecting(true);
     detectSubscriptions(workspaceId)
       .then((result) => {
-        setCandidates(result.candidates);
-        setHasDetected(true);
+        if (cancelled) return;
+        setDetectionState((state) => ({
+          ...state,
+          candidates: result.candidates,
+          hasDetected: true,
+          isDetecting: false,
+        }));
       })
       .catch(() => {
+        if (cancelled) return;
         showDetectError("Failed to detect subscriptions");
-      })
-      .finally(() => {
-        setIsDetecting(false);
+        setDetectionState((state) => ({ ...state, isDetecting: false }));
       });
-  }, [open, workspaceId, showDetectError]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, workspaceId, detectionSession, showDetectError]);
 
   const handleConfirm = useCallback(
     (candidate: ISubscriptionCandidate) => {
-      setConfirmingName(candidate.normalizedName);
+      setDetectionState((state) => ({
+        ...state,
+        confirmingName: candidate.normalizedName,
+      }));
       confirmSub(
         {
           name: candidate.displayName,
@@ -73,35 +112,38 @@ export function SubscriptionDetectionDialog({
         },
         {
           onSuccess: (data) => {
-            setConfirmingName(null);
-            const prev = candidatesRef.current;
-            const allConfirmed =
-              prev.filter(
+            setDetectionState((state) => {
+              const remaining = state.candidates.filter(
                 (c) => c.normalizedName !== candidate.normalizedName,
-              ).length === 0;
+              );
+              const allConfirmed = remaining.length === 0;
 
-            setCandidates((p) =>
-              p.filter(
-                (c) => c.normalizedName !== candidate.normalizedName,
-              ),
-            );
-
-            if (allConfirmed) {
-              onOpenChange(false);
-            }
-            if (!isOfflineMutationPlaceholder(data)) {
               if (allConfirmed) {
-                toast.success("All subscriptions confirmed");
-              } else {
-                toast.success(
-                  `"${candidate.displayName}" confirmed as subscription`,
-                );
+                onOpenChange(false);
               }
-            }
+              if (!isOfflineMutationPlaceholder(data)) {
+                if (allConfirmed) {
+                  toast.success("All subscriptions confirmed");
+                } else {
+                  toast.success(
+                    `"${candidate.displayName}" confirmed as subscription`,
+                  );
+                }
+              }
+
+              return {
+                ...state,
+                confirmingName: null,
+                candidates: remaining,
+              };
+            });
           },
           onError: () => {
             toast.error("Failed to confirm subscription");
-            setConfirmingName(null);
+            setDetectionState((state) => ({
+              ...state,
+              confirmingName: null,
+            }));
           },
         },
       );
@@ -111,7 +153,10 @@ export function SubscriptionDetectionDialog({
 
   const handleDismiss = useCallback(
     (candidate: ISubscriptionCandidate) => {
-      setDismissingName(candidate.normalizedName);
+      setDetectionState((state) => ({
+        ...state,
+        dismissingName: candidate.normalizedName,
+      }));
       dismissCandidate(
         {
           normalizedName: candidate.normalizedName,
@@ -119,29 +164,32 @@ export function SubscriptionDetectionDialog({
         },
         {
           onSuccess: (data) => {
-            setDismissingName(null);
-            const prev = candidatesRef.current;
-            const noneLeft =
-              prev.filter(
+            setDetectionState((state) => {
+              const remaining = state.candidates.filter(
                 (c) => c.normalizedName !== candidate.normalizedName,
-              ).length === 0;
+              );
+              const noneLeft = remaining.length === 0;
 
-            setCandidates((p) =>
-              p.filter(
-                (c) => c.normalizedName !== candidate.normalizedName,
-              ),
-            );
+              if (noneLeft) {
+                onOpenChange(false);
+              }
+              if (!isOfflineMutationPlaceholder(data)) {
+                toast.success("Candidate dismissed");
+              }
 
-            if (noneLeft) {
-              onOpenChange(false);
-            }
-            if (!isOfflineMutationPlaceholder(data)) {
-              toast.success("Candidate dismissed");
-            }
+              return {
+                ...state,
+                dismissingName: null,
+                candidates: remaining,
+              };
+            });
           },
           onError: () => {
             toast.error("Failed to dismiss candidate");
-            setDismissingName(null);
+            setDetectionState((state) => ({
+              ...state,
+              dismissingName: null,
+            }));
           },
         },
       );

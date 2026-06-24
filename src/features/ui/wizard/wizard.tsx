@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useDeferredValue } from "react";
 import { HiArrowLeft, HiArrowRight, HiCheck } from "react-icons/hi";
 import { Button } from "../button/button";
 import { Container } from "../container/container";
@@ -31,20 +31,8 @@ export function Wizard({
   onStepChange,
   onComplete,
 }: IWizardProps) {
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [displayedStep, setDisplayedStep] = useState(currentStep);
-
-  // Sync displayed step with current step (with transition)
-  useEffect(() => {
-    if (currentStep !== displayedStep) {
-      setIsTransitioning(true);
-      const timer = setTimeout(() => {
-        setDisplayedStep(currentStep);
-        setIsTransitioning(false);
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [currentStep, displayedStep]);
+  const displayedStep = useDeferredValue(currentStep);
+  const isTransitioning = currentStep !== displayedStep;
 
   const currentPage = pages[displayedStep];
   const isFirstStep = currentStep === 0;

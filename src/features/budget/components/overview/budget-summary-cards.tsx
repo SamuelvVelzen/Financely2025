@@ -239,7 +239,7 @@ export function BudgetSummaryCards({
               Top spend
             </div>
             <div className="space-y-2.5">
-              {topSpenders.map((spender, index) => (
+              {topSpenders.map((spender) => (
                 <div
                   key={spender.tagId}
                   className="flex items-center gap-2">

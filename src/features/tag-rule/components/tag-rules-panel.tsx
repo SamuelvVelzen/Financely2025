@@ -57,9 +57,12 @@ export function TagRulesPanel() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
 
-  const rules = rulesData?.data ?? [];
-  const presets = presetsData?.data ?? [];
-  const discoveries = discoveriesData?.data ?? [];
+  const rules = useMemo(() => rulesData?.data ?? [], [rulesData?.data]);
+  const presets = useMemo(() => presetsData?.data ?? [], [presetsData?.data]);
+  const discoveries = useMemo(
+    () => discoveriesData?.data ?? [],
+    [discoveriesData?.data],
+  );
 
   const enabledPresetIds = useMemo(() => {
     const systemLabels = new Set(

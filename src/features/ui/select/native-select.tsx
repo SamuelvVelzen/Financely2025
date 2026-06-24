@@ -10,6 +10,7 @@ import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type SelectHTMLAttributes, useId } from "react";
+import type { ControllerRenderProps } from "react-hook-form";
 import { type ISelectOption } from "./select";
 import {
   createStringToValueConverter,
@@ -60,7 +61,6 @@ export function NativeSelect<
   const { errorId } = getFieldDescriptionIds(selectId);
 
   const {
-    field,
     error,
     borderClass,
     shouldShowError,
@@ -88,7 +88,7 @@ export function NativeSelect<
 
   // Shared rendering logic
   const renderSelect = (
-    currentField: typeof field,
+    currentField: ControllerRenderProps<Record<string, unknown>, string>,
     selectProps?: {
       name?: string;
       ref?: React.Ref<HTMLSelectElement>;

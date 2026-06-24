@@ -12,7 +12,7 @@ import { json } from "@tanstack/react-start";
  * Get a single budget
  */
 export async function GET({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;
@@ -100,7 +100,7 @@ export async function PATCH({
  * Delete a budget
  */
 export async function DELETE({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;

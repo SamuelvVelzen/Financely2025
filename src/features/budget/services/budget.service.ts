@@ -650,7 +650,7 @@ export class BudgetService {
 
     // Build alerts
     const alerts: IBudgetAlert[] = [];
-    for (const [tagId, txs] of alertMap) {
+    for (const [_tagId, txs] of alertMap) {
       const totalAmount = txs.reduce(
         (sum, tx) => sum + parseFloat(tx.amount),
         0,

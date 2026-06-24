@@ -70,7 +70,7 @@ export function resyncBudgetItemMonthlyAmounts(
   if (items.length === 0) return;
 
   let changed = false;
-  const updatedItems = items.map((item: any) => {
+  const updatedItems = items.map((item: Record<string, unknown>) => {
     if (monthlyAmountsMatchMonths(currentMonths, item.monthlyAmounts)) {
       return item;
     }

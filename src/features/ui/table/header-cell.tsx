@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { type PropsWithChildren, useEffect, useRef } from "react";
+import { type PropsWithChildren, useEffect } from "react";
 import { HiArrowDown, HiArrowUp, HiArrowsUpDown } from "react-icons/hi2";
 import { useTableSortContext } from "./context/table-sort-context";
 import { type IBaseCellProps } from "./table";
@@ -32,11 +32,21 @@ export function HeaderCell<T = unknown>({
   stickyVertical = true,
   hidden = false,
 }: IHeaderCellProps<T>) {
+  const sortContext = useTableSortContext<T>();
+
+  useEffect(() => {
+    if (!sortKey || !sortFn || !sortContext) return;
+
+    sortContext.registerSortFn(sortKey, sortFn);
+    return () => {
+      sortContext.unregisterSortFn(sortKey);
+    };
+  }, [sortKey, sortFn, sortContext]);
+
   if (hidden) {
     return null;
   }
 
-  const sortContext = useTableSortContext<T>();
   const sizeClasses = {
     sm: "px-3 py-1",
     md: "px-3 py-1.5",
@@ -47,22 +57,6 @@ export function HeaderCell<T = unknown>({
     right: "justify-end",
     center: "justify-center",
   };
-
-  // Store context functions in ref to avoid dependency issues
-  const contextRef = useRef(sortContext);
-  contextRef.current = sortContext;
-
-  // Register sort function when component mounts
-  useEffect(() => {
-    if (sortKey && sortFn && contextRef.current) {
-      contextRef.current.registerSortFn(sortKey, sortFn);
-      return () => {
-        if (contextRef.current) {
-          contextRef.current.unregisterSortFn(sortKey);
-        }
-      };
-    }
-  }, [sortKey, sortFn]); // Only depend on sortKey and sortFn
 
   const sortDirection =
     sortKey && sortContext ? sortContext.getSortDirection(sortKey) : null;

@@ -68,7 +68,9 @@ function TagListItemActions({
   return (
     <div
       className="flex items-center gap-1"
-      onClick={(e) => e.stopPropagation()}>
+      role="toolbar"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}>
       <Dropdown size="sm">
         {onEdit && (
           <DropdownItem

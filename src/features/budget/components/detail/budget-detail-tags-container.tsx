@@ -11,16 +11,18 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
 import { formatDate } from "@/features/util/date/date-helpers";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { HiChevronRight } from "react-icons/hi";
 import { HiSquares2X2 } from "react-icons/hi2";
 import {
   BudgetStatusIcon,
+} from "./budget-status-badge";
+import {
   getActualColor,
   getDifferenceColor,
   isBudgetViewPeriodEnded,
   type IBudgetCategoryType,
-} from "./budget-status-badge";
+} from "./budget-status";
 
 type IDisplayItem = {
   id: string;
@@ -51,7 +53,7 @@ export function BudgetDetailTagsContainer({
     useState(false);
 
   const { data: tagsData } = useTags();
-  const tags = tagsData?.data ?? [];
+  const tags = useMemo(() => tagsData?.data ?? [], [tagsData?.data]);
 
   const tagMap = useMemo(() => {
     const map = new Map<
@@ -181,14 +183,12 @@ export function BudgetDetailTagsContainer({
     }
   };
 
-  // Keep transaction list in sync after edits (comparison refetch)
-  useEffect(() => {
-    if (!selectedItem || !isTransactionsDialogOpen) return;
-    const updated = displayItems.find((item) => item.id === selectedItem.id);
-    if (updated) {
-      setSelectedItem(updated);
-    }
-  }, [displayItems, selectedItem?.id, isTransactionsDialogOpen]);
+  const resolvedSelectedItem = useMemo(() => {
+    if (!selectedItem || !isTransactionsDialogOpen) return null;
+    return (
+      displayItems.find((item) => item.id === selectedItem.id) ?? selectedItem
+    );
+  }, [selectedItem, displayItems, isTransactionsDialogOpen]);
 
   const handleTransactionClick = (tx: ITransaction) => {
     onTransactionClick?.(tx);
@@ -292,8 +292,8 @@ export function BudgetDetailTagsContainer({
     );
   };
 
-  const selectedTagName = selectedItem
-    ? getDisplayTagName(selectedItem)
+  const selectedTagName = resolvedSelectedItem
+    ? getDisplayTagName(resolvedSelectedItem)
     : "Transactions";
 
   return (
@@ -335,19 +335,20 @@ export function BudgetDetailTagsContainer({
             clicked: () => handleTransactionsDialogOpenChange(false),
           },
         ]}>
-        {selectedItem && (
+        {resolvedSelectedItem && (
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm text-text-muted">
               <span>
-                {selectedItem.transactions.length} transaction
-                {selectedItem.transactions.length !== 1 ? "s" : ""}
+                {resolvedSelectedItem.transactions.length} transaction
+                {resolvedSelectedItem.transactions.length !== 1 ? "s" : ""}
               </span>
               <span>
-                {formatCurrency(selectedItem.actual, budget.currency)} actual
+                {formatCurrency(resolvedSelectedItem.actual, budget.currency)}{" "}
+                actual
               </span>
             </div>
             <List
-              data={selectedItem.transactions}
+              data={resolvedSelectedItem.transactions}
               getItemKey={(tx) => tx.id}>
               {(tx) => (
                 <ListItem

@@ -9,7 +9,7 @@ export type ITableRowProps = {
   PropsWithChildren;
 
 export function TableRow({
-  rowIndex,
+  rowIndex: _rowIndex,
   className,
   children,
   onClick,

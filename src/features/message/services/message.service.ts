@@ -3,12 +3,10 @@ import {
   MessageSchema,
   MessagesQuerySchema,
   MessagesResponseSchema,
-  UpdateMessageInputSchema,
   type ICreateMessageInput,
   type IMessagesQuery,
   type IMessagesResponse,
   type IMessage,
-  type IUpdateMessageInput,
 } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";

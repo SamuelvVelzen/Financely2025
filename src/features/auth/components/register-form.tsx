@@ -14,7 +14,7 @@ import { NavLink } from "@/features/ui/navigation/nav-link";
 import { useToast } from "@/features/ui/toast";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -40,7 +40,6 @@ export function RegisterForm() {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const toast = useToast();
 
-  const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/register" });
 
   const registerForm = useFinForm<RegisterFormData>({
@@ -111,7 +110,7 @@ export function RegisterForm() {
       } else {
         toast.success("Verification email sent! Please check your inbox.");
       }
-    } catch (err) {
+    } catch (_err) {
       toast.error("Failed to send verification email");
     } finally {
       setResendLoading(false);

@@ -19,6 +19,7 @@ import { RadioItem } from "@/features/ui/radio/radio-item";
 import { useToast } from "@/features/ui/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useId, useState } from "react";
+import type { Resolver } from "react-hook-form";
 import { HiOutlineQueueList } from "react-icons/hi2";
 import { type z } from "zod";
 
@@ -65,7 +66,7 @@ export function AddOrEditTagDialog({
   const formId = useId();
 
   const form = useFinForm<FormData>({
-    resolver: zodResolver(CreateTagInputSchema) as any,
+    resolver: zodResolver(CreateTagInputSchema) as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
   });
   const hasUnsavedChanges = form.formState.isDirty;
@@ -84,6 +85,7 @@ export function AddOrEditTagDialog({
 
   const closeDialog = () => {
     resetFormToClosedState();
+    setIsTagRulesVisible(false);
     onOpenChange(false);
   };
 
@@ -98,6 +100,7 @@ export function AddOrEditTagDialog({
 
   const handleDialogOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
+      setIsTagRulesVisible(showTagRules);
       onOpenChange(true);
       return;
     }
@@ -107,7 +110,6 @@ export function AddOrEditTagDialog({
   // Reset form when dialog opens/closes or tag changes
   useEffect(() => {
     if (open) {
-      setIsTagRulesVisible(showTagRules);
       if (tag) {
         // Edit mode: populate form with existing tag data
         form.reset({
@@ -132,9 +134,8 @@ export function AddOrEditTagDialog({
     } else {
       // Reset form when dialog closes to ensure clean state
       form.reset(getEmptyFormValues());
-      setIsTagRulesVisible(false);
     }
-  }, [open, tag, initialName, initialValues, showTagRules, form, focusFirstInput]);
+  }, [open, tag, initialName, initialValues, form, focusFirstInput]);
 
   const processFormSubmit = async (
     data: FormData,

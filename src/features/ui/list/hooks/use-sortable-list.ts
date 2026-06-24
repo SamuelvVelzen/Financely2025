@@ -11,7 +11,7 @@ type UseSortableListOptions<T> = {
 export function useSortableList<T>({
   data,
   getItemId,
-  storageKey,
+  storageKey: _storageKey,
   onOrderChange,
 }: UseSortableListOptions<T>) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);

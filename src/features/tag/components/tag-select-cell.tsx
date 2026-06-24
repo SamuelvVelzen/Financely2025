@@ -37,20 +37,11 @@ export function TagSelectCell({
 }: ITagSelectCellProps) {
   const workspaceId = useNavWorkspaceId();
   const { data: tagsData } = useTags();
-  const tags = tagsData?.data ?? [];
+  const tags = useMemo(() => tagsData?.data ?? [], [tagsData?.data]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [pendingTagName, setPendingTagName] = useState<string>("");
 
   const queryClient = useQueryClient();
-
-  // Build a map of tag names to tag IDs for quick lookup
-  const tagNameToIdMap = useMemo(() => {
-    const map = new Map<string, string>();
-    tags.forEach((tag) => {
-      map.set(tag.name, tag.id);
-    });
-    return map;
-  }, [tags]);
 
   // Build a map of tag names to metadata for quick lookup
   const tagMetadataMap = useMemo(() => {
@@ -123,7 +114,7 @@ export function TagSelectCell({
       foundTagIds: string | string[] | undefined;
       notFoundTagIds: string[];
     };
-  }, [value, tagMetadataMap, tags, tagNameToIdMap, multiple]);
+  }, [value, tagMetadataMap, tags, multiple]);
 
   // Handle tag creation success
   const handleTagCreated = (createdTag?: ITag) => {

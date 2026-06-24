@@ -45,7 +45,7 @@ import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-
 import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { parseISO } from "date-fns";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
 import { HiArrowPath, HiChevronDown, HiChevronUp } from "react-icons/hi2";
 import { z } from "zod";
@@ -106,11 +106,39 @@ export function AddOrEditTransactionDialog({
     null | "close" | "addAnother"
   >(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [hasTime, setHasTime] = useState(false);
+  const dialogSessionKey = open ? (transaction?.id ?? "create") : "closed";
+  const [uiSession, setUiSession] = useState({
+    sessionKey: "closed" as string,
+    hasTime: false,
+    showAdvanced: false,
+  });
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [tagSuggestion, setTagSuggestion] = useState<ITagSuggestions | null>(null);
-  const userEditedTagsRef = useRef(false);
+  const [userEditedTags, setUserEditedTags] = useState(false);
+  if (open && uiSession.sessionKey !== dialogSessionKey) {
+    setUiSession({
+      sessionKey: dialogSessionKey,
+      hasTime: transaction?.timePrecision === "DateTime",
+      showAdvanced: false,
+    });
+    setUserEditedTags(false);
+    setTagSuggestion(null);
+    setDatePickerOpen(false);
+  }
+  if (!open && uiSession.sessionKey !== "closed") {
+    setUiSession({ sessionKey: "closed", hasTime: false, showAdvanced: false });
+    setTagSuggestion(null);
+    setDatePickerOpen(false);
+    setUserEditedTags(false);
+  }
+  const hasTime = uiSession.hasTime;
+  const showAdvanced = uiSession.showAdvanced;
+  const setHasTime = (value: boolean) => {
+    setUiSession((prev) => ({ ...prev, hasTime: value }));
+  };
+  const setShowAdvanced = (value: boolean) => {
+    setUiSession((prev) => ({ ...prev, showAdvanced: value }));
+  };
   const pending = pendingAction !== null;
   const isEditMode = !!transaction;
   const { mutate: createExpense } = useCreateExpense();
@@ -132,6 +160,16 @@ export function AddOrEditTransactionDialog({
   const watchedDescription = form.watch("description");
   const watchedPrimaryTagId = form.watch("primaryTagId");
   const debouncedName = useDebouncedValue(watchedName, 300);
+  const watchedTagIds = form.watch("tagIds") ?? [];
+  const canFetchTagSuggestions =
+    open &&
+    !isEditMode &&
+    !userEditedTags &&
+    debouncedName.trim().length > 0 &&
+    workspaceId != null &&
+    !watchedPrimaryTagId &&
+    watchedTagIds.length === 0;
+  const displayTagSuggestion = canFetchTagSuggestions ? tagSuggestion : null;
 
   const focusFirstInput = useCallback(() => {
     requestAnimationFrame(() => {
@@ -146,7 +184,7 @@ export function AddOrEditTransactionDialog({
     setDatePickerOpen(false);
     setShowAdvanced(false);
     setTagSuggestion(null);
-    userEditedTagsRef.current = false;
+    setUserEditedTags(false);
   };
 
   const resetFormForAnotherTransaction = () => {
@@ -155,7 +193,7 @@ export function AddOrEditTransactionDialog({
     setDatePickerOpen(false);
     setShowAdvanced(false);
     setTagSuggestion(null);
-    userEditedTagsRef.current = false;
+    setUserEditedTags(false);
   };
 
   const closeDialog = () => {
@@ -182,13 +220,13 @@ export function AddOrEditTransactionDialog({
 
   // Reset form when dialog opens/closes or transaction changes
   useEffect(() => {
-    if (open) {
-      if (transaction) {
-        // Edit mode: populate form with existing transaction data
-        const isDateTime = transaction.timePrecision === "DateTime";
-        setHasTime(isDateTime);
-        setShowAdvanced(false);
+    if (!open) {
+      form.reset(getEmptyFormValues(defaultCurrency));
+      return;
+    }
 
+    if (transaction) {
+        // Edit mode: populate form with existing transaction data
         // DateInput expects ISO strings
         form.reset({
           name: transaction.name,
@@ -204,8 +242,6 @@ export function AddOrEditTransactionDialog({
       } else {
         // Create mode: reset to defaults with current date (no time - DateOnly default)
         const now = new Date();
-        setHasTime(false);
-        setShowAdvanced(false);
         // Convert to ISO with noon UTC for date-only
         const dateOnly = isoToDateOnly(now.toISOString());
         const dateOnlyIso = dateOnlyToIso(dateOnly);
@@ -222,25 +258,15 @@ export function AddOrEditTransactionDialog({
         });
       }
       focusFirstInput();
-    } else {
-      // Reset form when dialog closes to ensure clean state
-      setHasTime(false);
-      setDatePickerOpen(false);
-      setShowAdvanced(false);
-      setTagSuggestion(null);
-      userEditedTagsRef.current = false;
-      form.reset(getEmptyFormValues(defaultCurrency));
-    }
-  }, [open, transaction?.id, form, focusFirstInput, defaultCurrency]);
+  }, [open, transaction?.id, form, focusFirstInput, defaultCurrency, transaction]);
 
   useEffect(() => {
-    if (!open || isEditMode || userEditedTagsRef.current) {
+    if (!open || isEditMode || userEditedTags) {
       return;
     }
 
     const trimmedName = debouncedName.trim();
     if (!trimmedName || workspaceId == null) {
-      setTagSuggestion(null);
       return;
     }
 
@@ -274,7 +300,7 @@ export function AddOrEditTransactionDialog({
 
         const currentPrimary = form.getValues("primaryTagId");
         const currentTags = form.getValues("tagIds") ?? [];
-        if (currentPrimary || currentTags.length > 0 || userEditedTagsRef.current) {
+        if (currentPrimary || currentTags.length > 0 || userEditedTags) {
           return;
         }
 
@@ -321,25 +347,26 @@ export function AddOrEditTransactionDialog({
     open,
     isEditMode,
     workspaceId,
+    userEditedTags,
     form,
   ]);
 
   const handleTagFieldChange = () => {
-    userEditedTagsRef.current = true;
+    setUserEditedTags(true);
   };
 
   const handleRevertSuggestedTags = () => {
-    if (!tagSuggestion) {
+    if (!displayTagSuggestion) {
       return;
     }
 
-    if (tagSuggestion.primaryTagId) {
-      form.setValue("primaryTagId", tagSuggestion.primaryTagId, {
+    if (displayTagSuggestion.primaryTagId) {
+      form.setValue("primaryTagId", displayTagSuggestion.primaryTagId, {
         shouldDirty: true,
       });
     }
-    form.setValue("tagIds", tagSuggestion.tagIds, { shouldDirty: true });
-    userEditedTagsRef.current = false;
+    form.setValue("tagIds", displayTagSuggestion.tagIds, { shouldDirty: true });
+    setUserEditedTags(false);
   };
 
   const handleToggleTime = () => {
@@ -587,7 +614,7 @@ export function AddOrEditTransactionDialog({
 
               <div className="space-y-2">
                 <TagSuggestionHint
-                  tagSuggestions={tagSuggestion}
+                  tagSuggestions={displayTagSuggestion}
                   currentPrimaryTagId={watchedPrimaryTagId}
                   onRevert={handleRevertSuggestedTags}
                 />

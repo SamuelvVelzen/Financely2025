@@ -2,18 +2,7 @@ import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useContext, useId, useRef } from "react";
 import { type IconType } from "react-icons";
-
-export type IRadioGroupContext = {
-  name: string;
-  value: string | number | undefined;
-  onChange: (value: string | number) => void;
-  disabled?: boolean;
-  groupId: string;
-};
-
-export const RadioGroupContext = React.createContext<IRadioGroupContext | null>(
-  null
-);
+import { RadioGroupContext } from "./radio-group-context";
 
 export type IRadioItemProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -62,6 +51,11 @@ export function RadioItem({
         value={String(value)}
         checked={isChecked}
         onChange={handleChange}
+        onMouseDown={(e) => {
+          if (!isDisabled && e.detail > 0) {
+            e.preventDefault();
+          }
+        }}
         disabled={isDisabled}
         className="sr-only peer"
         aria-checked={isChecked}
@@ -76,20 +70,7 @@ export function RadioItem({
           isDisabled && "opacity-50 cursor-not-allowed",
           isChecked && "border-primary bg-primary/5 hover:border-primary",
           className
-        )}
-        onClick={(e) => {
-          if (!isDisabled) {
-            e.preventDefault();
-            handleChange();
-          }
-        }}
-        onMouseDown={(e) => {
-          // Prevent focus on mouse click to maintain keyboard-only focus styles
-          if (!isDisabled && e.detail > 0) {
-            e.preventDefault();
-            handleChange();
-          }
-        }}>
+        )}>
         <div className="flex items-center gap-3 h-full">
           {Icon && (
             <div

@@ -39,7 +39,6 @@ export function SearchInput({
   // Get current value
   const value = String(field.value || "");
 
-  const [isCollapsed, setIsCollapsed] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleClear = () => {
@@ -53,13 +52,7 @@ export function SearchInput({
 
   const isEmpty = !value;
   const isOpen = alwaysExpanded || !isEmpty || isHovered;
-
-  useEffect(() => {
-    if (alwaysExpanded) {
-      return;
-    }
-    setIsCollapsed(isEmpty && !isHovered);
-  }, [alwaysExpanded, isEmpty, isHovered]);
+  const isCollapsed = alwaysExpanded ? false : isEmpty && !isHovered;
 
   const measureRef = useRef<HTMLSpanElement>(null);
   const [expandedWidth, setExpandedWidth] = useState(300);

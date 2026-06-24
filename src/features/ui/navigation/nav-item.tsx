@@ -3,7 +3,7 @@ import { type IPropsWithClassName, type Never } from "@/features/util/type-helpe
 import React from "react";
 import { Badge } from "../badge/badge";
 import { BaseLink, type IBaseLinkProps } from "./base-link";
-import { useSidebar } from "./useSidebar";
+import { useSidebar } from "./sidebar-context";
 
 type INavItemProps = {
   label: string;

@@ -89,11 +89,7 @@ export function SelectDropdown<
   }, []);
 
   // Close dropdown when disabled becomes true
-  useEffect(() => {
-    if (disabled && isOpen) {
-      setIsOpen(false);
-    }
-  }, [disabled, isOpen]);
+  const effectiveIsOpen = disabled ? false : isOpen;
 
   // Get selected labels for display
   const getDisplayText = (val: TValue | TValue[] | undefined): string => {
@@ -249,6 +245,7 @@ export function SelectDropdown<
           {hasSelection && clearable && (
             <span
               role="button"
+              tabIndex={disabled ? -1 : 0}
               onClick={handleClear}
               onKeyDown={(e) => {
                 if (disabled) return;
@@ -272,7 +269,7 @@ export function SelectDropdown<
             className={cn(
               "size-5 transition-transform duration-200 text-text-muted",
               disabled ? "opacity-50" : "hover:text-text",
-              isOpen && "rotate-180"
+              effectiveIsOpen && "rotate-180"
             )}
           />
         </div>
@@ -290,7 +287,7 @@ export function SelectDropdown<
         )}
         <Dropdown
           dropdownSelector={selectorButton}
-          open={isOpen}
+          open={effectiveIsOpen}
           onOpenChange={(open) => {
             if (disabled && open) return;
             setIsOpen(open);

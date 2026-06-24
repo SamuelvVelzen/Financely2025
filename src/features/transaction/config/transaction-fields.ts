@@ -113,5 +113,7 @@ export function getFieldMetadata(
 }
 
 export function isRequiredField(fieldName: ITransactionFieldName): boolean {
-  return SYSTEM_REQUIRED_FIELDS.includes(fieldName as any);
+  return SYSTEM_REQUIRED_FIELDS.includes(
+    fieldName as (typeof SYSTEM_REQUIRED_FIELDS)[number],
+  );
 }

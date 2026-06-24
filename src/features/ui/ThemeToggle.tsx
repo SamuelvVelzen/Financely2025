@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { HiMoon, HiSun } from "react-icons/hi2";
-import { useTheme } from "./ThemeProvider";
+import { useTheme } from "./theme-context";
 import { ToggleButton } from "./button/toggle-button";
+
+const subscribeToClient = () => () => {};
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const isClient = useSyncExternalStore(
+    subscribeToClient,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
+  if (!isClient) {
     // Return a placeholder that matches the expected size to prevent layout shift
     return <div className="w-11 h-6" />;
   }

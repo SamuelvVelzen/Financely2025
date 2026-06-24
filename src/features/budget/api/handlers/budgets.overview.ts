@@ -8,7 +8,7 @@ import { json } from "@tanstack/react-start";
  * Get aggregated overview data for all active budgets
  */
 export async function GET({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;

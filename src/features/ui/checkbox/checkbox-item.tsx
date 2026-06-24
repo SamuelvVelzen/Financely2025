@@ -2,17 +2,7 @@ import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useCallback, useContext, useId, useRef } from "react";
 import { type IconType } from "react-icons";
-
-export type ICheckboxGroupContext = {
-  name: string;
-  value: (string | number)[];
-  onChange: (value: (string | number)[]) => void;
-  disabled?: boolean;
-  groupId: string;
-};
-
-export const CheckboxGroupContext =
-  React.createContext<ICheckboxGroupContext | null>(null);
+import { CheckboxGroupContext } from "./checkbox-group-context";
 
 export type ICheckboxItemProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -44,7 +34,6 @@ export function CheckboxItem({
   const currentValue = context.value || [];
   const isEmpty = currentValue.length === 0;
 
-  // Check if this value is in the array, or if empty array means all selected (always true)
   const isChecked = isEmpty
     ? true
     : currentValue.some((v) => String(v) === String(value));
@@ -54,11 +43,9 @@ export function CheckboxItem({
   const handleChange = useCallback(() => {
     if (isDisabled) return;
 
-    // Read current value from context to avoid stale closures
     const currentValueArray = context.value || [];
     const isEmpty = currentValueArray.length === 0;
 
-    // If empty (all selected), clicking a checkbox should set array to only that value
     if (isEmpty) {
       context.onChange([value]);
       return;
@@ -89,6 +76,12 @@ export function CheckboxItem({
           e.stopPropagation();
           handleChange();
         }}
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => {
+          if (!isDisabled && e.detail > 0) {
+            e.preventDefault();
+          }
+        }}
         disabled={isDisabled}
         className="sr-only peer"
         aria-checked={isChecked}
@@ -103,17 +96,7 @@ export function CheckboxItem({
           isDisabled && "opacity-50 cursor-not-allowed",
           isChecked && "border-primary bg-primary/5 hover:border-primary",
           className
-        )}
-        onClick={(e) => {
-          // Prevent label click from bubbling, but let htmlFor trigger input click
-          e.stopPropagation();
-        }}
-        onMouseDown={(e) => {
-          // Prevent focus on mouse click to maintain keyboard-only focus styles
-          if (!isDisabled && e.detail > 0) {
-            e.preventDefault();
-          }
-        }}>
+        )}>
         <div className="flex items-center gap-3">
           {Icon && (
             <div

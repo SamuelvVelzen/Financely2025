@@ -6,8 +6,7 @@ import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import React, { useEffect, useId, useRef, useState } from "react";
-import { Controller } from "react-hook-form";
+import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import { HiEmojiHappy } from "react-icons/hi";
 
 // Emoji shortcode mapping for autocomplete
@@ -122,8 +121,7 @@ export function EmoticonInput({
 }: IEmoticonInputProps) {
   const generatedId = useId();
   const inputId = id || `${generatedId}-text-input`;
-  const pickerButtonId = `${generatedId}-picker-button`;
-  
+
   const { field, borderClass, shouldShowError, error, renderWithController } = useFieldAdapter({
     name,
     value: controlledValue,
@@ -137,13 +135,10 @@ export function EmoticonInput({
   });
 
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(
     Object.keys(EMOJI_CATEGORIES)[0]
   );
-  const [autocompleteMatches, setAutocompleteMatches] = useState<
-    Array<{ shortcode: string; emoji: string }>
-  >([]);
+  const [autocompleteDismissed, setAutocompleteDismissed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -158,6 +153,29 @@ export function EmoticonInput({
     field.onChange(newValue);
   };
 
+  const autocompleteMatches = useMemo(() => {
+    const match = textValue.match(/:([a-z0-9_]+):?$/i);
+    if (match && !disabled) {
+      const query = match[1].toLowerCase();
+      return Object.entries(EMOJI_SHORTCODES)
+        .filter(([shortcode]) =>
+          shortcode.slice(1, -1).toLowerCase().startsWith(query)
+        )
+        .slice(0, 8)
+        .map(([shortcode, emoji]) => ({ shortcode, emoji }));
+    }
+    return [];
+  }, [textValue, disabled]);
+
+  const [prevTextValue, setPrevTextValue] = useState(textValue);
+  if (textValue !== prevTextValue) {
+    setPrevTextValue(textValue);
+    setAutocompleteDismissed(false);
+  }
+
+  const isAutocompleteOpen =
+    autocompleteMatches.length > 0 && !autocompleteDismissed;
+
   // Close autocomplete when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -166,7 +184,7 @@ export function EmoticonInput({
         !containerRef.current.contains(event.target as Node) &&
         !autocompleteRef.current?.contains(event.target as Node)
       ) {
-        setIsAutocompleteOpen(false);
+        setAutocompleteDismissed(true);
       }
     };
 
@@ -178,32 +196,13 @@ export function EmoticonInput({
     }
   }, [isAutocompleteOpen]);
 
-  // Detect :shortcode: pattern and show autocomplete
-  useEffect(() => {
-    const match = textValue.match(/:([a-z0-9_]+):?$/i);
-    if (match && !disabled) {
-      const query = match[1].toLowerCase();
-      const matches = Object.entries(EMOJI_SHORTCODES)
-        .filter(([shortcode]) =>
-          shortcode.slice(1, -1).toLowerCase().startsWith(query)
-        )
-        .slice(0, 8)
-        .map(([shortcode, emoji]) => ({ shortcode, emoji }));
-      setAutocompleteMatches(matches);
-      setIsAutocompleteOpen(matches.length > 0);
-    } else {
-      setIsAutocompleteOpen(false);
-      setAutocompleteMatches([]);
-    }
-  }, [textValue, disabled]);
-
   // Handle autocomplete selection
   const handleAutocompleteSelect = (shortcode: string, emoji: string) => {
     const match = textValue.match(/(.*):([a-z0-9_]+):?$/i);
     if (match) {
       const newValue = match[1] + emoji;
       updateValue(newValue);
-      setIsAutocompleteOpen(false);
+      setAutocompleteDismissed(true);
       inputRef.current?.focus();
     }
   };
@@ -366,8 +365,15 @@ export function EmoticonInput({
             {isAutocompleteOpen && autocompleteMatches.length > 0 && (
               <div
                 ref={autocompleteRef}
+                role="listbox"
+                tabIndex={0}
                 className="absolute z-50 mt-1 w-full bg-surface border border-border rounded-2xl shadow-lg max-h-64 overflow-y-auto"
-                onMouseDown={(e) => e.preventDefault()}>
+                onMouseDown={(e) => e.preventDefault()}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setAutocompleteDismissed(true);
+                  }
+                }}>
                 {autocompleteMatches.map(({ shortcode, emoji }) => (
                   <button
                     key={shortcode}

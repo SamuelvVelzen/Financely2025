@@ -10,7 +10,7 @@ import {
   getNetRemainingStatus,
 } from "@/features/budget/utils/budget-summary-helpers";
 import { BudgetAlerts } from "./budget-alerts";
-import { getStatusColor } from "./budget-status-badge";
+import { getStatusColor } from "./budget-status";
 
 type IBudgetSummaryContainerProps = {
   totals: IBudgetComparison["totals"];

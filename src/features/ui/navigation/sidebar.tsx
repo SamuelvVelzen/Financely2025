@@ -26,7 +26,7 @@ import { Skeleton } from "../skeleton";
 import { ThemeToggle } from "../ThemeToggle";
 import { BaseLink } from "./base-link";
 import { NavItem } from "./nav-item";
-import { useSidebar } from "./useSidebar";
+import { useSidebar } from "./sidebar-context";
 
 export function Sidebar() {
   const { isExpanded, toggleSidebar } = useSidebar();

@@ -20,10 +20,6 @@ export function Pagination({
   showPageNumbers = true,
   maxVisiblePages = 7,
 }: IPaginationProps) {
-  if (totalPages <= 1) {
-    return null;
-  }
-
   const hasPrevious = currentPage > 1;
   const hasNext = currentPage < totalPages;
 
@@ -66,6 +62,10 @@ export function Pagination({
 
     return pages;
   }, [currentPage, totalPages, maxVisiblePages, showPageNumbers]);
+
+  if (totalPages <= 1) {
+    return null;
+  }
 
   const handlePageClick = (page: number) => {
     if (page >= 1 && page <= totalPages && page !== currentPage) {

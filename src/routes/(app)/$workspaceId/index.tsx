@@ -1,5 +1,5 @@
-import { DashboardOverview } from "@/features/dashboard/components/dashboard-overview";
 import { createFileRoute } from "@tanstack/react-router";
+import { DashboardPage } from "./dashboard-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/")({
   component: DashboardPage,
@@ -11,7 +11,3 @@ export const Route = createFileRoute("/(app)/$workspaceId/")({
     ],
   }),
 });
-
-export function DashboardPage() {
-  return <DashboardOverview />;
-}

@@ -3,7 +3,7 @@ import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { HiX } from "react-icons/hi";
 import { useFinForm } from "../form/useForm";
@@ -64,49 +64,51 @@ export function RangeInput({
     return ((val - minRange) / (maxRange - minRange)) * 100;
   };
 
-  const getValueFromPercentage = (percentage: number) => {
-    return minRange + (percentage / 100) * (maxRange - minRange);
-  };
-
   const thumbSizePx = 16;
 
   const getThumbLeft = (percentage: number) =>
     `calc((100% - ${thumbSizePx}px) * ${percentage} / 100)`;
 
-  const getValueFromClientX = (clientX: number) => {
-    if (!sliderRef.current) return minRange;
+  const getValueFromClientX = useCallback(
+    (clientX: number) => {
+      if (!sliderRef.current) return minRange;
 
-    const rect = sliderRef.current.getBoundingClientRect();
-    const x = clientX - rect.left - thumbSizePx / 2;
-    const effectiveWidth = rect.width - thumbSizePx;
-    const percentage = Math.max(
-      0,
-      Math.min(100, (x / effectiveWidth) * 100)
-    );
-    return Math.round(getValueFromPercentage(percentage));
-  };
+      const rect = sliderRef.current.getBoundingClientRect();
+      const x = clientX - rect.left - thumbSizePx / 2;
+      const effectiveWidth = rect.width - thumbSizePx;
+      const percentage = Math.max(
+        0,
+        Math.min(100, (x / effectiveWidth) * 100),
+      );
+      return Math.round(minRange + (percentage / 100) * (maxRange - minRange));
+    },
+    [minRange, maxRange],
+  );
 
   const handleMouseDown = (type: "min" | "max") => {
     setIsDragging(type);
   };
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging || !sliderRef.current) return;
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging || !sliderRef.current) return;
 
-    const newValue = getValueFromClientX(e.clientX);
+      const newValue = getValueFromClientX(e.clientX);
 
-    if (isDragging === "min") {
-      const clampedValue = Math.min(newValue, sliderMax - 1);
-      onChange({ ...value, min: clampedValue });
-    } else {
-      const clampedValue = Math.max(newValue, sliderMin + 1);
-      onChange({ ...value, max: clampedValue });
-    }
-  };
+      if (isDragging === "min") {
+        const clampedValue = Math.min(newValue, sliderMax - 1);
+        onChange({ ...value, min: clampedValue });
+      } else {
+        const clampedValue = Math.max(newValue, sliderMin + 1);
+        onChange({ ...value, max: clampedValue });
+      }
+    },
+    [isDragging, sliderMin, sliderMax, value, onChange, getValueFromClientX],
+  );
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(null);
-  };
+  }, []);
 
   useEffect(() => {
     if (isDragging) {
@@ -117,7 +119,7 @@ export function RangeInput({
         document.removeEventListener("mouseup", handleMouseUp);
       };
     }
-  }, [isDragging, sliderMin, sliderMax, value]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handleMinDecimalChange = (normalized: string | number | undefined) => {
     const s =
@@ -199,7 +201,15 @@ export function RangeInput({
             ref={sliderRef}>
             <div
               className="relative h-8 flex items-center cursor-pointer"
-              onClick={handleSliderClick}>
+              role="button"
+              tabIndex={0}
+              aria-label="Adjust range"
+              onClick={handleSliderClick}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                }
+              }}>
               {/* Track */}
               <div
                 className="absolute h-2 bg-surface-hover rounded-2xl"
@@ -220,18 +230,34 @@ export function RangeInput({
               <div
                 className="absolute size-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
                 style={{ left: getThumbLeft(minPercentage) }}
+                role="button"
+                tabIndex={0}
+                aria-label="Minimum value"
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   handleMouseDown("min");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                  }
                 }}></div>
 
               {/* Max handle */}
               <div
                 className="absolute size-4 bg-primary rounded-full cursor-grab active:cursor-grabbing shadow-md hover:scale-110 transition-transform z-10"
                 style={{ left: getThumbLeft(maxPercentage) }}
+                role="button"
+                tabIndex={0}
+                aria-label="Maximum value"
                 onMouseDown={(e) => {
                   e.stopPropagation();
                   handleMouseDown("max");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                  }
                 }}></div>
             </div>
           </div>

@@ -10,7 +10,6 @@ import type {
   IMessagesQuery,
   IMessagesResponse,
   IMessage,
-  IUpdateMessageInput,
   IUnreadCountResponse,
 } from "@/features/shared/validation/schemas";
 import { workspaceApiV1Path } from "@/features/workspace/workspace-api-path";

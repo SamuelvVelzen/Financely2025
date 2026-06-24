@@ -94,7 +94,9 @@ export function BudgetListItem({
           {(onEdit || onDelete) && (
             <div
               className="flex items-center gap-1"
-              onClick={(e) => e.stopPropagation()}>
+              role="presentation"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}>
               <Dropdown size="sm">
                 {onEdit && (
                   <DropdownItem

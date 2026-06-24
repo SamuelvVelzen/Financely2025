@@ -55,6 +55,22 @@ type ITagToRemove = {
   tagName: string;
 };
 
+type IBudgetFormItem = {
+  tagId: string | null;
+  categoryType?: "EXPENSE" | "INCOME" | null;
+  expectedAmount: string;
+  monthlyAmounts?: Array<{
+    year: number;
+    month: number;
+    expectedAmount: string;
+  }>;
+};
+
+type IBudgetFieldEntry = {
+  field: { id: string };
+  index: number;
+};
+
 export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   const { data: tagsData } = useTags();
   const tags = tagsData?.data ?? [];
@@ -84,7 +100,9 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   });
 
   // --- Per-month master/override state ---
-  const [itemStates, setItemStates] = useState<Record<string, IItemState>>({});
+  const [itemStateOverrides, setItemStateOverrides] = useState<
+    Record<string, IItemState>
+  >({});
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [tagToRemove, setTagToRemove] = useState<ITagToRemove | null>(null);
 
@@ -93,27 +111,28 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
 
   // Sync fields with selected tags; always ensure both misc items (EXPENSE and INCOME)
   useEffect(() => {
-    const currentItems = form.getValues("budget.items") ?? [];
+    const currentItems = (form.getValues("budget.items") ??
+      []) as IBudgetFormItem[];
     const currentTagIds = currentItems
-      .map((item: any) => item.tagId)
-      .filter((id: string | null): id is string => id !== null);
+      .map((item) => item.tagId)
+      .filter((id): id is string => id !== null);
     const currentMiscExpense = currentItems.find(
-      (item: any) => item.tagId === null && item.categoryType === "EXPENSE"
+      (item) => item.tagId === null && item.categoryType === "EXPENSE",
     );
     const currentMiscIncome = currentItems.find(
-      (item: any) => item.tagId === null && item.categoryType === "INCOME"
+      (item) => item.tagId === null && item.categoryType === "INCOME",
     );
 
-    const itemsToKeep = currentItems.filter((item: any) => {
+    const itemsToKeep = currentItems.filter((item) => {
       if (item.tagId === null) return true;
       return selectedTagIds.includes(item.tagId);
     });
 
     const newTagIds = selectedTagIds.filter(
-      (id) => !currentTagIds.includes(id)
+      (id) => !currentTagIds.includes(id),
     );
     newTagIds.forEach((tagId) => {
-      const newItem: any = { tagId, expectedAmount: "" };
+      const newItem: IBudgetFormItem = { tagId, expectedAmount: "" };
       if (isPerMonth && months.length > 0) {
         newItem.monthlyAmounts = months.map((m) => ({
           year: m.year,
@@ -125,7 +144,11 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     });
 
     const addMiscItem = (categoryType: "EXPENSE" | "INCOME") => {
-      const miscItem: any = { tagId: null, categoryType, expectedAmount: "" };
+      const miscItem: IBudgetFormItem = {
+        tagId: null,
+        categoryType,
+        expectedAmount: "",
+      };
       if (isPerMonth && months.length > 0) {
         miscItem.monthlyAmounts = months.map((m) => ({
           year: m.year,
@@ -157,57 +180,50 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     }
 
     form.setValue("budget.items", itemsToKeep, { shouldValidate: false });
-  }, [selectedTagIds, isPerMonth, months.length]);
+  }, [selectedTagIds, isPerMonth, months, form]);
 
-  // Initialize master/override state from existing form data
-  useEffect(() => {
-    if (!isPerMonth || months.length === 0) return;
+  const budgetItems = form.watch("budget.items") as IBudgetFormItem[] | undefined;
 
-    const items = form.getValues("budget.items") ?? [];
-    setItemStates((prev) => {
-      const next = { ...prev };
-      let changed = false;
+  const formDerivedItemStates = useMemo(() => {
+    if (!isPerMonth || months.length === 0) return {};
 
-      (items as any[]).forEach((item) => {
-        const key = getItemKey(item.tagId, item.categoryType ?? null);
-        if (next[key]) return;
+    const items = budgetItems ?? [];
+    const next: Record<string, IItemState> = {};
 
-        const amounts = item.monthlyAmounts ?? [];
-        if (amounts.length === 0) {
-          next[key] = { masterAmount: "", overriddenMonths: new Set() };
-          changed = true;
-          return;
+    items.forEach((item) => {
+      const key = getItemKey(item.tagId, item.categoryType ?? null);
+      const amounts = item.monthlyAmounts ?? [];
+
+      if (amounts.length === 0) {
+        next[key] = { masterAmount: "", overriddenMonths: new Set() };
+        return;
+      }
+
+      const firstVal = amounts[0]?.expectedAmount ?? "";
+      const overrides = new Set<number>();
+      amounts.forEach((ma, idx) => {
+        if (
+          idx > 0 &&
+          ma.expectedAmount !== "" &&
+          ma.expectedAmount !== firstVal
+        ) {
+          overrides.add(idx);
         }
-
-        const firstVal = amounts[0]?.expectedAmount ?? "";
-        const overrides = new Set<number>();
-        amounts.forEach((ma: any, idx: number) => {
-          if (
-            idx > 0 &&
-            ma.expectedAmount !== "" &&
-            ma.expectedAmount !== firstVal
-          ) {
-            overrides.add(idx);
-          }
-        });
-
-        next[key] = { masterAmount: firstVal, overriddenMonths: overrides };
-        changed = true;
       });
 
-      return changed ? next : prev;
+      next[key] = { masterAmount: firstVal, overriddenMonths: overrides };
     });
-  }, [isPerMonth, months.length, fields.length]);
 
-  // Clear master/override state when leaving per-month mode
-  useEffect(() => {
-    if (!isPerMonth) {
-      setItemStates({});
-      setExpandedItems(new Set());
-    }
-  }, [isPerMonth]);
+    return next;
+  }, [isPerMonth, months.length, budgetItems]);
 
-  // --- Helpers ---
+  const itemStates = useMemo(() => {
+    if (!isPerMonth) return {};
+
+    return { ...formDerivedItemStates, ...itemStateOverrides };
+  }, [isPerMonth, formDerivedItemStates, itemStateOverrides]);
+
+  const activeExpandedItems = isPerMonth ? expandedItems : new Set<string>();
   const getTagName = (
     tagId: string | null,
     categoryType?: string | null
@@ -227,38 +243,24 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     return tag?.color ?? null;
   };
 
-  const getTagTransactionType = (
-    tagId: string | null
-  ): "EXPENSE" | "INCOME" | null => {
-    if (tagId === null) return null;
-    const tag = selectedTags.find((t) => t.id === tagId);
-    return tag?.transactionType ?? null;
-  };
-
-  const budgetItems = form.watch("budget.items") as
-    | Array<{
-        tagId: string | null;
-        categoryType?: string | null;
-        expectedAmount: string;
-        monthlyAmounts?: Array<{
-          year: number;
-          month: number;
-          expectedAmount: string;
-        }>;
-      }>
-    | undefined;
-
   const groupedFields = useMemo(() => {
-    const expenseFields: Array<{ field: any; index: number }> = [];
-    const incomeFields: Array<{ field: any; index: number }> = [];
-    const miscExpenseFields: Array<{ field: any; index: number }> = [];
-    const miscIncomeFields: Array<{ field: any; index: number }> = [];
+    const getTransactionType = (
+      tagId: string
+    ): "EXPENSE" | "INCOME" | null => {
+      const tag = selectedTags.find((t) => t.id === tagId);
+      return tag?.transactionType ?? null;
+    };
+
+    const expenseFields: IBudgetFieldEntry[] = [];
+    const incomeFields: IBudgetFieldEntry[] = [];
+    const miscExpenseFields: IBudgetFieldEntry[] = [];
+    const miscIncomeFields: IBudgetFieldEntry[] = [];
 
     fields.forEach((field, index) => {
       const tagId = budgetItems?.[index]?.tagId ?? null;
       const categoryType = budgetItems?.[index]?.categoryType ?? null;
       if (tagId !== null) {
-        const transactionType = getTagTransactionType(tagId);
+        const transactionType = getTransactionType(tagId);
         if (transactionType === "EXPENSE") {
           expenseFields.push({ field, index });
         } else if (transactionType === "INCOME") {
@@ -301,7 +303,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
       }
     }
 
-    setItemStates((prev) => ({
+    setItemStateOverrides((prev) => ({
       ...prev,
       [itemKey]: { masterAmount: newValue, overriddenMonths: overrides },
     }));
@@ -318,7 +320,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
         master
       );
     }
-    setItemStates((prev) => ({
+    setItemStateOverrides((prev) => ({
       ...prev,
       [itemKey]: { masterAmount: master, overriddenMonths: new Set() },
     }));
@@ -342,10 +344,10 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
       newOverrides.delete(monthIndex);
     }
 
-    setItemStates((prev) => ({
-      ...prev,
+    setItemStateOverrides((prevOverrides) => ({
+      ...prevOverrides,
       [itemKey]: {
-        masterAmount: prev[itemKey]?.masterAmount ?? master,
+        masterAmount: prevOverrides[itemKey]?.masterAmount ?? prev?.masterAmount ?? master,
         overriddenMonths: newOverrides,
       },
     }));
@@ -365,7 +367,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
       master
     );
 
-    setItemStates((prev) => {
+    setItemStateOverrides((prev) => {
       const current = prev[itemKey];
       if (!current) return prev;
       const newOverrides = new Set(current.overriddenMonths);
@@ -439,7 +441,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     );
 
   // --- Per-month item renderer ---
-  const renderPerMonthItem = (field: any, index: number) => {
+  const renderPerMonthItem = (field: IBudgetFieldEntry["field"], index: number) => {
     const tagId = form.watch(`budget.items.${index}.tagId`) as string | null;
     const categoryType = form.watch(
       `budget.items.${index}.categoryType`
@@ -451,7 +453,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
       masterAmount: "",
       overriddenMonths: new Set<number>(),
     };
-    const isExpanded = expandedItems.has(itemKey);
+    const isExpanded = activeExpandedItems.has(itemKey);
     const overrideCount = state.overriddenMonths.size;
 
     const monthlyAmounts = budgetItems?.[index]?.monthlyAmounts ?? [];
@@ -634,7 +636,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   };
 
   // --- Standard (non-per-month) item renderer ---
-  const renderStandardItem = (field: any, index: number) => {
+  const renderStandardItem = (_field: IBudgetFieldEntry["field"], index: number) => {
     const tagId = form.watch(`budget.items.${index}.tagId`) as string | null;
     const categoryType = form.watch(
       `budget.items.${index}.categoryType`
@@ -666,7 +668,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
     );
   };
 
-  const renderBudgetItem = (field: any, index: number) => {
+  const renderBudgetItem = (field: IBudgetFieldEntry["field"], index: number) => {
     if (isPerMonth && months.length > 0) {
       return renderPerMonthItem(field, index);
     }

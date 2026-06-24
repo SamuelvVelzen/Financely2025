@@ -1,5 +1,5 @@
-import { SubscriptionsPage } from "@/features/subscription/components/subscriptions-page";
 import { createFileRoute } from "@tanstack/react-router";
+import { SubscriptionsPageRoute } from "./subscriptions-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/subscriptions/")({
   component: SubscriptionsPageRoute,
@@ -11,7 +11,3 @@ export const Route = createFileRoute("/(app)/$workspaceId/subscriptions/")({
     ],
   }),
 });
-
-export function SubscriptionsPageRoute() {
-  return <SubscriptionsPage />;
-}

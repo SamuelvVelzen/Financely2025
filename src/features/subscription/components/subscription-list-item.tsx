@@ -88,7 +88,9 @@ export function SubscriptionListItem({
 
           <div
             className="flex items-center ml-1 gap-1"
-            onClick={(e) => e.stopPropagation()}>
+            role="toolbar"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}>
             <Dropdown size="sm">
               <DropdownItem
                 icon={

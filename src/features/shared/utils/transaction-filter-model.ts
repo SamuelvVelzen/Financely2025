@@ -437,7 +437,7 @@ export function deserializeFilterStateFromQuery(
   // Version check (for future compatibility)
   const version = getParam("_v");
   if (version) {
-    const versionNum = parseInt(version, 10);
+    parseInt(version, 10);
     // If version mismatch, we could handle migration here
     // For now, we'll just normalize which handles most cases
   }

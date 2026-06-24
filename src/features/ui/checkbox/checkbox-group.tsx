@@ -6,7 +6,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import {
   CheckboxGroupContext,
   type ICheckboxGroupContext,
-} from "./checkbox-item";
+} from "./checkbox-group-context";
 
 export type ICheckboxGroupProps = IPropsWithClassName & {
   name: string;

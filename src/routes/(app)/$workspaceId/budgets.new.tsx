@@ -1,8 +1,8 @@
-import { BudgetCreateOrEditPage } from "@/features/budget/components/create-or-edit/budget-create-or-edit";
 import { createFileRoute } from "@tanstack/react-router";
+import { BudgetCreatePage } from "./budget-create-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/budgets/new")({
-  component: BudgetCreatePageComponent,
+  component: BudgetCreatePage,
   head: () => ({
     meta: [
       {
@@ -11,7 +11,3 @@ export const Route = createFileRoute("/(app)/$workspaceId/budgets/new")({
     ],
   }),
 });
-
-function BudgetCreatePageComponent() {
-  return <BudgetCreateOrEditPage />;
-}

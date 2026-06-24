@@ -41,6 +41,15 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const expandedHeaderRef = useRef<HTMLDivElement>(null);
   const [isSticky, setExpandedHeaderElement] = useScrollPosition();
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  const [prevInitialSearchQuery, setPrevInitialSearchQuery] =
+    useState(initialSearchQuery);
+
+  if (initialSearchQuery !== prevInitialSearchQuery) {
+    setPrevInitialSearchQuery(initialSearchQuery);
+    setSearchQuery(initialSearchQuery);
+  }
+
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
 
   // Set up scroll detection for expanded header
   useEffect(() => {
@@ -48,15 +57,6 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
       setExpandedHeaderElement(expandedHeaderRef.current);
     }
   }, [setExpandedHeaderElement]);
-
-  // Update search query when initialSearchQuery changes (e.g., from URL navigation)
-  useEffect(() => {
-    if (searchQuery !== initialSearchQuery) {
-      setSearchQuery(initialSearchQuery);
-    }
-  }, [initialSearchQuery]);
-
-  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
 
   // Sync search query changes to query params
   useEffect(() => {
@@ -79,8 +79,8 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
 
   const { data, isLoading, error } = useTags(query);
   const { data: allTagsData } = useTags({ sort: "name:asc" });
-  const tags = data?.data ?? [];
-  const allTags = allTagsData?.data ?? [];
+  const tags = useMemo(() => data?.data ?? [], [data?.data]);
+  const allTags = useMemo(() => allTagsData?.data ?? [], [allTagsData?.data]);
   const sortedTags = useOrderedData(tags) as ITag[];
   const { mutate: createTag } = useCreateTag();
   const { mutate: deleteTag } = useDeleteTag();
@@ -148,11 +148,11 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
     expandedHeaderRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleCreateTag = () => {
+  const handleCreateTag = useCallback(() => {
     setSelectedTag(undefined);
     setShowTagRulesPanel(false);
     setIsTagDialogOpen(true);
-  };
+  }, []);
 
   const handleEditTag = (tag: ITag) => {
     setSelectedTag(tag);

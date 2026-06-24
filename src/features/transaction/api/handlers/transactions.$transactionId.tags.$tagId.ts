@@ -11,7 +11,7 @@ import { TransactionService } from "../../services/transaction.service";
  * Add a tag to a transaction
  */
 export async function POST({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;
@@ -49,7 +49,7 @@ export async function POST({
  * Remove a tag from a transaction
  */
 export async function DELETE({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;

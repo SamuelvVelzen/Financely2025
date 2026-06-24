@@ -19,7 +19,7 @@ export function WelcomePage() {
           size="lg"
           isMuted
           className="max-w-md mx-auto">
-          We're excited to help you take control of your finances. Let's take a
+          We&apos;re excited to help you take control of your finances. Let&apos;s take a
           quick tour to get you started.
         </Text>
       </div>

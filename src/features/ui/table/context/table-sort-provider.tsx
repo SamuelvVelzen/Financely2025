@@ -1,30 +1,13 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useMemo,
   useRef,
   useState,
 } from "react";
-import type { SortDirection } from "../header-cell";
 import type { SortConfig } from "../hooks/use-table-sort";
 import { useTableSort } from "../hooks/use-table-sort";
-
-export type TableSortContextValue<T> = {
-  registerSortFn: (sortKey: string, sortFn: (a: T, b: T) => number) => void;
-  unregisterSortFn: (sortKey: string) => void;
-  handleSort: (sortKey: string) => void;
-  getSortDirection: (sortKey: string) => SortDirection;
-  sortedData: T[];
-};
-
-export const TableSortContext =
-  createContext<TableSortContextValue<unknown> | null>(null);
-
-export function useTableSortContext<T>(): TableSortContextValue<T> | null {
-  const context = useContext(TableSortContext);
-  return context as TableSortContextValue<T> | null;
-}
+import { TableSortContext, type TableSortContextValue } from "./table-sort-context";
+import type { SortDirection } from "../header-cell";
 
 export type TableSortProviderProps<T> = {
   data: T[];
@@ -37,7 +20,6 @@ export function TableSortProvider<T>({
   defaultSort,
   children,
 }: TableSortProviderProps<T>) {
-  // Use ref to store sort functions to avoid re-renders when they're registered
   const sortFnsRef = useRef<Record<string, (a: T, b: T) => number>>({});
   const [sortFns, setSortFns] = useState<
     Record<string, (a: T, b: T) => number>
@@ -45,7 +27,6 @@ export function TableSortProvider<T>({
 
   const registerSortFn = useCallback(
     (sortKey: string, sortFn: (a: T, b: T) => number) => {
-      // Only update state if the function reference has actually changed
       if (sortFnsRef.current[sortKey] !== sortFn) {
         sortFnsRef.current[sortKey] = sortFn;
         setSortFns({ ...sortFnsRef.current });
@@ -55,7 +36,6 @@ export function TableSortProvider<T>({
   );
 
   const unregisterSortFn = useCallback((sortKey: string) => {
-    // Only update state if the key actually existed
     if (sortKey in sortFnsRef.current) {
       delete sortFnsRef.current[sortKey];
       setSortFns({ ...sortFnsRef.current });

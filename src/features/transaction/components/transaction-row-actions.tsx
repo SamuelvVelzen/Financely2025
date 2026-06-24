@@ -21,7 +21,9 @@ export function TransactionRowActions({
   return (
     <div
       className="flex items-center ml-1"
-      onClick={(e) => e.stopPropagation()}>
+      role="presentation"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}>
       <Dropdown size="sm">
         {onEdit && (
           <DropdownItem

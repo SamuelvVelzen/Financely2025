@@ -20,7 +20,7 @@ import { useToast } from "@/features/ui/toast";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { HiPencil, HiPlus, HiTrash, HiXMark } from "react-icons/hi2";
 
 const SOURCE_LABELS: Record<ITagRule["source"], string> = {
@@ -68,10 +68,13 @@ export function TagRulesForTagSection({
     [data?.data, tag.id],
   );
 
-  const isPresetEnabled = (presetLabel: string) =>
-    rulesForTag.some(
-      (rule) => rule.source === "SYSTEM" && rule.label === presetLabel,
-    );
+  const isPresetEnabled = useCallback(
+    (presetLabel: string) =>
+      rulesForTag.some(
+        (rule) => rule.source === "SYSTEM" && rule.label === presetLabel,
+      ),
+    [rulesForTag],
+  );
 
   const relatedPresets = useMemo(
     () =>
@@ -84,7 +87,7 @@ export function TagRulesForTagSection({
       sortEnabledFirst(relatedPresets, (preset) =>
         isPresetEnabled(preset.label),
       ),
-    [relatedPresets, rulesForTag],
+    [relatedPresets, isPresetEnabled],
   );
 
   const sortedRules = useMemo(

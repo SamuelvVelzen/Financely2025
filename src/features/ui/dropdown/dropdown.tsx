@@ -97,7 +97,7 @@ export function Dropdown({
   disabled = false,
   size = "md",
   selectorClassName,
-  allowNested = false,
+  allowNested: _allowNested = false,
 }: IDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -237,7 +237,7 @@ export function Dropdown({
     if (
       isValidElement(child) &&
       (child.type === DropdownFooter ||
-        (child.type as any)?.displayName === "DropdownFooter")
+        (child.type as { displayName?: string })?.displayName === "DropdownFooter")
     ) {
       footerChildren.push(child);
     } else {
@@ -283,9 +283,19 @@ export function Dropdown({
           } as React.CSSProperties
         }
         onToggle={handleToggle}
+        role="presentation"
         onClick={(e) => {
           e.stopPropagation();
           if (closeOnItemClick) {
+            setDropdownState(false);
+          }
+        }}
+        onKeyDown={(e) => {
+          if (
+            closeOnItemClick &&
+            (e.key === "Enter" || e.key === " ")
+          ) {
+            e.stopPropagation();
             setDropdownState(false);
           }
         }}>

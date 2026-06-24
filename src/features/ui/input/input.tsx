@@ -87,7 +87,6 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
     const { errorId, hintId } = getFieldDescriptionIds(inputId);
 
     const {
-      field,
       borderClass,
       shouldShowError,
       error,
@@ -119,8 +118,7 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
 
     // Shared rendering logic
     const renderInputContent = (
-      currentField: typeof field,
-      inputRef?: React.Ref<HTMLInputElement>
+      currentField: ControllerRenderProps<Record<string, unknown>, string>
     ) => {
       const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         currentField.onChange(e);
@@ -190,9 +188,19 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
                   className
                 )}
                 name={currentField.name}
-                ref={
-                  inputRef || (currentField.ref as React.Ref<HTMLInputElement>)
-                }
+                ref={(node) => {
+                  if (typeof ref === "function") {
+                    ref(node);
+                  } else if (ref) {
+                    ref.current = node;
+                  }
+                  const fieldRef = currentField.ref;
+                  if (typeof fieldRef === "function") {
+                    fieldRef(node);
+                  } else if (fieldRef) {
+                    fieldRef.current = node;
+                  }
+                }}
                 {...(mode === "controlled" ? props : formModeProps)}
                 value={String(currentField.value ?? "")}
                 onChange={handleChange}
@@ -226,7 +234,9 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
 
     // Render using the adapter
     return renderWithController((currentField) => {
-      return renderInputContent(currentField, ref);
+      return renderInputContent(currentField);
     });
   }
 );
+
+BaseInput.displayName = "BaseInput";

@@ -1,12 +1,9 @@
 import { useMe } from "@/features/users/hooks/useUser";
 import { ACTIVE_WORKSPACE_STORAGE_KEY } from "@/features/workspace/constants";
-import {
-  parseWorkspaceIdParam,
-  type IWorkspaceId,
-} from "@/features/workspace/workspace-id";
+import { resolveNavWorkspaceId } from "@/features/workspace/utils/resolve-nav-workspace-id";
+import { type IWorkspaceId } from "@/features/workspace/workspace-id";
 import { useRouterState } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { resolveNavWorkspaceId } from "@/features/workspace/utils/resolve-nav-workspace-id";
 
 /**
  * Resolves the workspace id for navigation and API calls outside the

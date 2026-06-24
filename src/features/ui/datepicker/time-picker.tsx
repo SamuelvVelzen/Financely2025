@@ -1,6 +1,6 @@
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { HiChevronDown, HiChevronUp } from "react-icons/hi";
 
 export type ITimePickerProps = {
@@ -33,15 +33,16 @@ export function TimePicker({
   const hoursInputRef = useRef<HTMLInputElement>(null);
   const minutesInputRef = useRef<HTMLInputElement>(null);
 
-  // Update local state when value prop changes
-  useEffect(() => {
+  const [prevValueTime, setPrevValueTime] = useState(value.getTime());
+  if (value.getTime() !== prevValueTime) {
     const newHours = value.getHours();
     const newMinutes = value.getMinutes();
+    setPrevValueTime(value.getTime());
     setHours(newHours);
     setMinutes(newMinutes);
     setHoursInput(String(newHours).padStart(2, "0"));
     setMinutesInput(String(newMinutes).padStart(2, "0"));
-  }, [value]);
+  }
 
   const updateTime = (
     newHours: number,
@@ -163,22 +164,20 @@ export function TimePicker({
 
     const numValue = parseInt(inputValue, 10);
     if (!isNaN(numValue)) {
-      let newMinutes = numValue;
-      let newHours = hours;
-      let dayOffset = 0;
-
       // Handle wrapping
       if (numValue < 0) {
-        newMinutes = 59;
-        newHours = (hours - 1 + 24) % 24;
+        const newMinutes = 59;
+        const newHours = (hours - 1 + 24) % 24;
+        let dayOffset = 0;
         if (newHours === 23 && hours === 0) {
           dayOffset = -1;
         }
         setMinutesInput("59");
         updateTime(newHours, newMinutes, dayOffset);
       } else if (numValue > 59) {
-        newMinutes = 0;
-        newHours = (hours + 1) % 24;
+        const newMinutes = 0;
+        const newHours = (hours + 1) % 24;
+        let dayOffset = 0;
         if (newHours === 0 && hours === 23) {
           dayOffset = 1;
         }

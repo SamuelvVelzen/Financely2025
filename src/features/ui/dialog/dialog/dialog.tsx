@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
@@ -54,6 +54,7 @@ export function Dialog({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const primaryFooterButtonRef = useRef<HTMLButtonElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const generatedTitleId = useId();
 
   // Determine if controlled or uncontrolled
   const isControlled = controlledOpen !== undefined;
@@ -136,13 +137,7 @@ export function Dialog({
   );
 
   // Generate title ID for aria-labelledby if title is provided
-  const titleId = useMemo(
-    () =>
-      title
-        ? `dialog-title-${Math.random().toString(36).substr(2, 9)}`
-        : undefined,
-    [title]
-  );
+  const titleId = title ? generatedTitleId : undefined;
   const finalAriaLabelledBy = ariaLabelledBy || titleId;
 
   const sizeClasses = {

@@ -83,21 +83,27 @@ export function useFieldAdapter<TValue>(
       return getFieldErrorByPath(form.formState.errors, name);
     }
     return undefined;
-  }, [isFormMode, form, name, form?.formState.errors]);
+  }, [isFormMode, form, name]);
 
   const shouldShowError = useMemo(() => {
     if (isFormMode && form) {
       return !!error && form.formState.isSubmitted;
     }
     return false;
-  }, [isFormMode, form, error, form?.formState.isSubmitted]);
+  }, [isFormMode, form, error]);
 
   const borderClass = useMemo(() => {
     return shouldShowError ? "border-danger" : "border-border";
   }, [shouldShowError]);
 
-  // Get current value in form mode
-  const formValue = isFormMode && form && name ? useWatch({ control: form.control, name }) : undefined;
+  const formControl = form?.control;
+  const watchedFormValue = useWatch({
+    control: formControl,
+    name: (name ?? "") as never,
+    disabled: !isFormMode || !formControl || !name,
+  });
+  const formValue =
+    isFormMode && form && name ? (watchedFormValue as TValue | undefined) : undefined;
 
   // Create unified field interface
   const field: IUnifiedField<TValue> = useMemo(() => {
@@ -146,7 +152,7 @@ export function useFieldAdapter<TValue>(
         ref: () => { },
       };
     }
-  }, [isControlledMode, controlledValue, controlledOnChange, onValueChange, name, isFormMode, form, formValue]);
+  }, [isControlledMode, controlledValue, controlledOnChange, onValueChange, name, form, formValue]);
 
   // Render function that handles Controller wrapping
   const renderWithController = <TProps extends Record<string, unknown>>(
@@ -169,7 +175,7 @@ export function useFieldAdapter<TValue>(
       <Controller
         name={name}
         control={form.control}
-        render={({ field: controllerField, fieldState }) => {
+        render={({ field: controllerField, fieldState: _fieldState }) => {
           // Merge controller field with our unified interface
           const unifiedField: IUnifiedField<TValue> = {
             value: controllerField.value as TValue | undefined,

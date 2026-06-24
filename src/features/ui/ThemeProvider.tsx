@@ -1,20 +1,10 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useState,
+  useSyncExternalStore,
 } from "react";
-
-export type ITheme = "light" | "dark" | "system";
-
-interface ThemeContextType {
-  theme: ITheme;
-  setTheme: (theme: ITheme) => void;
-  resolvedTheme: "light" | "dark";
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+import { ThemeContext, type ITheme } from "./theme-context";
 
 const THEME_STORAGE_KEY = "theme";
 
@@ -34,38 +24,24 @@ function getInitialTheme(): ITheme {
   return "system";
 }
 
+const subscribeToClient = () => () => {};
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ITheme>(getInitialTheme);
-  const [mounted, setMounted] = useState(false);
+  const isClient = useSyncExternalStore(
+    subscribeToClient,
+    () => true,
+    () => false
+  );
   const [systemTheme, setSystemTheme] = useState<"light" | "dark">(() =>
     typeof window !== "undefined" ? getSystemTheme() : "light"
   );
 
-  // Compute resolved theme - always accurate
   const resolvedTheme: "light" | "dark" =
     theme === "system" ? systemTheme : theme;
 
-  // Initialize on mount
   useEffect(() => {
-    setMounted(true);
-    if (typeof window === "undefined") return;
-
-    // Update systemTheme to ensure it's correct
-    const currentSystemTheme = getSystemTheme();
-    setSystemTheme(currentSystemTheme);
-
-    const resolved = theme === "system" ? currentSystemTheme : theme;
-    const root = document.documentElement;
-    if (resolved === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
-    }
-  }, [theme]);
-
-  // Apply theme to HTML element whenever theme or systemTheme changes
-  useEffect(() => {
-    if (!mounted || typeof window === "undefined") return;
+    if (!isClient || typeof window === "undefined") return;
 
     const root = document.documentElement;
     const resolved = theme === "system" ? systemTheme : theme;
@@ -75,9 +51,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove("dark");
     }
-  }, [theme, systemTheme, mounted]);
+  }, [theme, systemTheme, isClient]);
 
-  // Set theme and save to localStorage
   const setTheme = useCallback((newTheme: ITheme) => {
     setThemeState(newTheme);
     if (typeof window !== "undefined") {
@@ -85,9 +60,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Listen for system preference changes when theme is "system"
   useEffect(() => {
-    if (!mounted || theme !== "system" || typeof window === "undefined") return;
+    if (!isClient || theme !== "system" || typeof window === "undefined") return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
@@ -97,20 +71,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme, mounted]);
+  }, [theme, isClient]);
 
-  // Always provide the context, even during SSR
   return (
     <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
       {children}
     </ThemeContext.Provider>
   );
-}
-
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
 }

@@ -12,7 +12,7 @@ import { json } from "@tanstack/react-start";
  * Get budget comparison (actual vs expected)
  */
 export async function GET({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;

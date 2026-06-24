@@ -14,6 +14,21 @@ import { TabContent } from "./tab-content";
 import { TabContext } from "./tab-context";
 import { TabList } from "./tab-list";
 
+type ComponentWithDisplayName = {
+  displayName?: string;
+};
+
+function isElementOfType(
+  element: React.ReactElement,
+  component: ComponentWithDisplayName
+): boolean {
+  return (
+    element.type === component ||
+    (element.type as ComponentWithDisplayName)?.displayName ===
+      component.displayName
+  );
+}
+
 type ITabsProps = IPropsWithClassName &
   PropsWithChildren & {
     defaultValue: string;
@@ -116,21 +131,11 @@ export function Tabs({
   const otherChildren: React.ReactNode[] = [];
 
   childrenArray.forEach((child) => {
-    if (
-      isValidElement(child) &&
-      (child.type === TabContent ||
-        (child.type as any)?.displayName === "TabContent")
-    ) {
+    if (isValidElement(child) && isElementOfType(child, TabContent)) {
       tabContentChildren.push(child);
-    } else if (
-      isValidElement(child) &&
-      (child.type === Tab || (child.type as any)?.displayName === "Tab")
-    ) {
+    } else if (isValidElement(child) && isElementOfType(child, Tab)) {
       tabChildren.push(child);
-    } else if (
-      isValidElement(child) &&
-      (child.type === TabList || (child.type as any)?.displayName === "TabList")
-    ) {
+    } else if (isValidElement(child) && isElementOfType(child, TabList)) {
       // If TabList is explicitly provided, render it as-is
       otherChildren.push(child);
     } else {

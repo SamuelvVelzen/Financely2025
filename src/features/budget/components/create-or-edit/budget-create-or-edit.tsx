@@ -96,12 +96,10 @@ function budgetAmountIsPositive(
   const compact = trimmed.replace(/\s|\u00A0/g, "");
   const lastComma = compact.lastIndexOf(",");
   const lastDot = compact.lastIndexOf(".");
-  let candidate = compact;
-  if (lastComma !== -1 && lastComma > lastDot) {
-    candidate = compact.replace(/\./g, "").replace(",", ".");
-  } else {
-    candidate = compact.replace(/,/g, "");
-  }
+  const candidate =
+    lastComma !== -1 && lastComma > lastDot
+      ? compact.replace(/\./g, "").replace(",", ".")
+      : compact.replace(/,/g, "");
   const n = Number(candidate);
   return Number.isFinite(n) && n > 0;
 }
@@ -479,7 +477,7 @@ export function BudgetCreateOrEditPage({
         params: { workspaceId: workspaceRouteParam },
       });
     }
-  }, [hasUnsavedChanges, isEditMode, budgetId, navigate, workspaceId]);
+  }, [hasUnsavedChanges, isEditMode, budgetId, navigate, workspaceRouteParam]);
 
   const handleDiscardChanges = useCallback(() => {
     if (isEditMode && budget) {
@@ -503,7 +501,7 @@ export function BudgetCreateOrEditPage({
         ignoreBlocker: true,
       });
     }
-  }, [isEditMode, budget, budgetId, form, navigate, workspaceId]);
+  }, [isEditMode, budget, budgetId, form, navigate, workspaceRouteParam]);
 
   const showBlockerDialog = blocker.status === "blocked";
   const showUnsavedChangesPrompt = showUnsavedDialog || showBlockerDialog;
@@ -586,7 +584,7 @@ export function BudgetCreateOrEditPage({
         toast.error("An unexpected error occurred");
       }
     },
-    [isEditMode, budgetId, createBudget, updateBudget, navigate, toast, workspaceId]
+    [isEditMode, budgetId, createBudget, updateBudget, navigate, toast, workspaceRouteParam]
   );
 
   if (isEditMode && budgetLoading) {

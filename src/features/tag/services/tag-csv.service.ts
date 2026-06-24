@@ -10,6 +10,7 @@ import {
   parseCsvHeaders,
   parseCsvRows,
 } from "@/features/transaction/services/csv.service";
+import { z } from "zod";
 
 /**
  * Tag CSV Import Service
@@ -129,7 +130,7 @@ export function convertRowToTag(
  */
 export function validateCandidateTag(
   candidate: Partial<ICreateTagInput>,
-  rawValues: Record<string, string>
+  _rawValues: Record<string, string>
 ): Array<{ field: string; message: string }> {
   const errors: Array<{ field: string; message: string }> = [];
 
@@ -144,8 +145,8 @@ export function validateCandidateTag(
   // Try to validate with schema
   try {
     CreateTagInputSchema.parse(candidate);
-  } catch (error: any) {
-    if (error.errors) {
+  } catch (error: unknown) {
+    if (error instanceof z.ZodError) {
       for (const err of error.errors) {
         const field = err.path.join(".");
         errors.push({

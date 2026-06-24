@@ -195,7 +195,18 @@ export function Toast({ toast, onRemove }: IToastProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
-      role="alert">
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleClick();
+              }
+            }
+          : undefined
+      }
+      role={onClick ? "button" : "alert"}
+      tabIndex={onClick ? 0 : undefined}>
       <Icon className={cn("size-5 shrink-0 mt-0.5", config.text)} />
 
       <div className="flex-1 min-w-0">

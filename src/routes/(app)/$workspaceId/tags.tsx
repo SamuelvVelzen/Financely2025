@@ -1,6 +1,6 @@
-import { TagOverview } from "@/features/tag/components/tag-overview";
 import { tagFilterQuerySchema } from "@/features/tag/utils/tag-filter-query-schema";
 import { createFileRoute } from "@tanstack/react-router";
+import { TagsPage } from "./tags-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/tags")({
   component: TagsPage,
@@ -16,9 +16,3 @@ export const Route = createFileRoute("/(app)/$workspaceId/tags")({
     ],
   }),
 });
-
-function TagsPage() {
-  const search = Route.useSearch();
-  const initialSearchQuery = search.q ?? "";
-  return <TagOverview initialSearchQuery={initialSearchQuery} />;
-}

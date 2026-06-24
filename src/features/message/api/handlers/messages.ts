@@ -1,9 +1,5 @@
 import { withWorkspaceAuth } from "@/features/auth/workspace-context";
-import {
-  ApiError,
-  createErrorResponse,
-  ErrorCodes,
-} from "@/features/shared/api/errors";
+import { createErrorResponse } from "@/features/shared/api/errors";
 import { MessagesQuerySchema } from "@/features/shared/validation/schemas";
 import { MessageService } from "@/features/message/services/message.service";
 import { json } from "@tanstack/react-start";

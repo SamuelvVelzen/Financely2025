@@ -1,7 +1,6 @@
-import { TransactionOverview } from "@/features/transaction/components/transaction-overview";
 import { transactionFilterQuerySchema } from "@/features/transaction/utils/transaction-filter-query-schema";
-import { deserializeFilterStateFromQuery } from "@/features/transaction/utils/transaction-filter-model";
 import { createFileRoute } from "@tanstack/react-router";
+import { TransactionsPage } from "./transactions-page";
 
 export const Route = createFileRoute("/(app)/$workspaceId/transactions")({
   component: TransactionsPage,
@@ -17,9 +16,3 @@ export const Route = createFileRoute("/(app)/$workspaceId/transactions")({
     ],
   }),
 });
-
-export function TransactionsPage() {
-  const search = Route.useSearch();
-  const initialState = deserializeFilterStateFromQuery(search);
-  return <TransactionOverview initialState={initialState} />;
-}

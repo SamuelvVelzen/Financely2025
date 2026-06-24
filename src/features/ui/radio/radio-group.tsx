@@ -3,7 +3,7 @@ import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useId } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { RadioGroupContext, type IRadioGroupContext } from "./radio-item";
+import { RadioGroupContext, type IRadioGroupContext } from "./radio-group-context";
 
 export type IRadioGroupProps = IPropsWithClassName & {
   name: string;

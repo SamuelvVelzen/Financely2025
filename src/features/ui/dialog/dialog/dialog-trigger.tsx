@@ -1,5 +1,5 @@
 import { cn } from "@/features/util/cn";
-import { cloneElement, isValidElement, useEffect, useRef } from "react";
+import { isValidElement, useEffect, useRef } from "react";
 import type { IDialogTriggerProps } from "./types";
 
 /**
@@ -55,29 +55,32 @@ export function DialogTrigger({
     onOpenChange?.(!open);
   };
 
-  // Clone child element and add props
   if (asChild && isValidElement(children)) {
-    return cloneElement(children, {
-      ref: (node: HTMLElement | null) => {
-        triggerRef.current = node;
-        // Call original ref if it exists
-        const originalRef = (children as any).ref;
-        if (typeof originalRef === "function") {
-          originalRef(node);
-        } else if (originalRef) {
-          originalRef.current = node;
-        }
-      },
-      onClick: (e: React.MouseEvent) => {
-        handleClick();
-        // Call original onClick if it exists
-        const originalOnClick = (children.props as any).onClick;
-        if (originalOnClick) {
-          originalOnClick(e);
-        }
-      },
-      className: cn(className, (children.props as any).className),
-    } as any);
+    const childProps = children.props as {
+      onClick?: (e: React.MouseEvent) => void;
+      className?: string;
+    };
+
+    return (
+      <span
+        ref={triggerRef}
+        style={{ display: "contents" }}
+        className={cn(className, childProps.className)}
+        onClick={(e) => {
+          handleClick();
+          childProps.onClick?.(e);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick();
+            childProps.onClick?.(e as unknown as React.MouseEvent);
+          }
+        }}
+        role="presentation">
+        {children}
+      </span>
+    );
   }
 
   // Wrap in button if not asChild

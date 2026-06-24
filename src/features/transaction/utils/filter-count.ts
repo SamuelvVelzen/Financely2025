@@ -1,4 +1,3 @@
-import type { IPriceRange } from "@/features/ui/input/range-input";
 import {
   DEFAULT_FILTER_STATE,
   type ITransactionFilterState,

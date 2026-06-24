@@ -66,10 +66,24 @@ export function FilterBar({
   const { isMobile } = useResponsive();
 
   // All hooks must be called before any conditional returns
-  const tagFilter = form.watch("tagFilter") ?? [];
-  const transactionTypeFilter = form.watch("transactionTypeFilter") ?? [];
-  const paymentMethodFilter = form.watch("paymentMethodFilter") ?? [];
-  const currencyFilter = form.watch("currencyFilter") ?? [];
+  const watchedTagFilter = form.watch("tagFilter");
+  const watchedTransactionTypeFilter = form.watch("transactionTypeFilter");
+  const watchedPaymentMethodFilter = form.watch("paymentMethodFilter");
+  const watchedCurrencyFilter = form.watch("currencyFilter");
+
+  const tagFilter = useMemo(() => watchedTagFilter ?? [], [watchedTagFilter]);
+  const transactionTypeFilter = useMemo(
+    () => watchedTransactionTypeFilter ?? [],
+    [watchedTransactionTypeFilter],
+  );
+  const paymentMethodFilter = useMemo(
+    () => watchedPaymentMethodFilter ?? [],
+    [watchedPaymentMethodFilter],
+  );
+  const currencyFilter = useMemo(
+    () => watchedCurrencyFilter ?? [],
+    [watchedCurrencyFilter],
+  );
 
   const tagOptions = tags.map((tag) => ({
     value: tag.id,
@@ -78,13 +92,24 @@ export function FilterBar({
   }));
 
   // Use external filter state if provided, otherwise use form values
-  const effectiveFilterState = externalFilterState ?? {
-    tagFilter,
-    transactionTypeFilter,
-    paymentMethodFilter,
-    currencyFilter,
-    priceFilter,
-  };
+  const effectiveFilterState = useMemo(
+    () =>
+      externalFilterState ?? {
+        tagFilter,
+        transactionTypeFilter,
+        paymentMethodFilter,
+        currencyFilter,
+        priceFilter,
+      },
+    [
+      externalFilterState,
+      tagFilter,
+      transactionTypeFilter,
+      paymentMethodFilter,
+      currencyFilter,
+      priceFilter,
+    ],
+  );
 
   const hasSecondaryFilters = useMemo(() => {
     const hasTransactionTypeFilter =

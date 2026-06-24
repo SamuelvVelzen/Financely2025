@@ -1,30 +1,32 @@
-import { createContext, useContext, useMemo } from "react";
+import { useMemo } from "react";
 import {
   type TableSearchConfig,
   useTableSearch,
 } from "../hooks/use-table-search";
-
-export type TableSearchContextValue = {
-  query: string;
-  setQuery: (query: string) => void;
-  debouncedQuery: string;
-  totalCount: number;
-  filteredCount: number;
-  isSearching: boolean;
-};
-
-export const TableSearchContext =
-  createContext<TableSearchContextValue | null>(null);
-
-export function useTableSearchContext(): TableSearchContextValue | null {
-  return useContext(TableSearchContext);
-}
+import {
+  TableSearchContext,
+  TableSearchDataContext,
+} from "./table-search-context";
 
 export type TableSearchProviderProps<T, TContext = unknown> = {
   data: T[];
   search: TableSearchConfig<T, TContext>;
   children: React.ReactNode;
 };
+
+function TableSearchDataBridge<T>({
+  filteredData,
+  children,
+}: {
+  filteredData: T[];
+  children: React.ReactNode;
+}) {
+  return (
+    <TableSearchDataContext.Provider value={filteredData}>
+      {children}
+    </TableSearchDataContext.Provider>
+  );
+}
 
 export function TableSearchProvider<T, TContext = unknown>({
   data,
@@ -71,26 +73,5 @@ export function TableSearchProvider<T, TContext = unknown>({
         {children}
       </TableSearchDataBridge>
     </TableSearchContext.Provider>
-  );
-}
-
-const TableSearchDataContext = createContext<unknown[] | null>(null);
-
-export function useTableSearchFilteredData<T>(): T[] | null {
-  const data = useContext(TableSearchDataContext);
-  return data as T[] | null;
-}
-
-function TableSearchDataBridge<T>({
-  filteredData,
-  children,
-}: {
-  filteredData: T[];
-  children: React.ReactNode;
-}) {
-  return (
-    <TableSearchDataContext.Provider value={filteredData}>
-      {children}
-    </TableSearchDataContext.Provider>
   );
 }

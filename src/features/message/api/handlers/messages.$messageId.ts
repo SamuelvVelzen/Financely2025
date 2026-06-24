@@ -13,7 +13,7 @@ import { json } from "@tanstack/react-start";
  * Get a single message
  */
 export async function GET({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;
@@ -94,7 +94,7 @@ export async function PATCH({
  * Delete a message
  */
 export async function DELETE({
-  request,
+  request: _request,
   params,
 }: {
   request: Request;

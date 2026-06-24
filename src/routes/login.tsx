@@ -1,10 +1,6 @@
-import { LoginForm } from "@/features/auth/components/login-form";
 import { sanitizeAuthRedirect } from "@/features/auth/sanitize-auth-redirect";
-import { Container } from "@/features/ui/container/container";
-import { Title } from "@/features/ui/typography/title";
-import { authClient } from "@/lib/auth-client";
-import { createFileRoute, useSearch } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { LoginPage } from "./login-page";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -14,31 +10,3 @@ export const Route = createFileRoute("/login")({
     };
   },
 });
-
-function LoginPage() {
-  const { redirect } = useSearch({ from: "/login" });
-
-  // Check if already authenticated and redirect
-  useEffect(() => {
-    authClient.getSession().then((session) => {
-      if (session.data) {
-        window.location.assign(redirect);
-      }
-    });
-  }, [redirect]);
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Container className="w-full sm:w-2/5 xl:w-1/4 mx-8 sm:mx-0">
-        <div className="text-center">
-          <Title>Sign In</Title>
-          <p className="text-text-muted mt-2">
-            Sign in to your account to continue.
-          </p>
-        </div>
-
-        <LoginForm />
-      </Container>
-    </div>
-  );
-}

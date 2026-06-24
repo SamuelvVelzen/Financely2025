@@ -11,6 +11,13 @@ type IListItemProps = {
 
 export const ListItem = forwardRef<HTMLDivElement, IListItemProps>(
   ({ children, className = "", clicked, style, ...props }, ref) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (clicked && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        clicked();
+      }
+    };
+
     return (
       <div
         ref={ref}
@@ -28,6 +35,9 @@ export const ListItem = forwardRef<HTMLDivElement, IListItemProps>(
           className
         )}
         onClick={clicked}
+        onKeyDown={clicked ? handleKeyDown : undefined}
+        role={clicked ? "button" : undefined}
+        tabIndex={clicked ? 0 : undefined}
         style={style}
         {...props}>
         {children}
