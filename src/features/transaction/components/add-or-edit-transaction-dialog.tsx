@@ -158,6 +158,7 @@ export function AddOrEditTransactionDialog({
   const transactionType = form.watch("type");
   const watchedName = form.watch("name");
   const watchedDescription = form.watch("description");
+  const watchedPaymentMethod = form.watch("paymentMethod");
   const watchedPrimaryTagId = form.watch("primaryTagId");
   const debouncedName = useDebouncedValue(watchedName, 300);
   const watchedTagIds = form.watch("tagIds") ?? [];
@@ -283,6 +284,7 @@ export function AddOrEditTransactionDialog({
         const result = await matchTagRules(workspaceId, {
           name: trimmedName,
           description: watchedDescription || null,
+          paymentMethod: watchedPaymentMethod,
           type: transactionType,
         });
 
@@ -343,6 +345,7 @@ export function AddOrEditTransactionDialog({
   }, [
     debouncedName,
     watchedDescription,
+    watchedPaymentMethod,
     transactionType,
     open,
     isEditMode,
@@ -634,7 +637,7 @@ export function AddOrEditTransactionDialog({
                 type="button"
                 className="flex items-center gap-1 text-sm text-info hover:underline disabled:opacity-50 disabled:pointer-events-none"
                 disabled={pending}
-                onClick={() => setShowAdvanced((v) => !v)}>
+                onClick={() => setShowAdvanced(!showAdvanced)}>
                 {showAdvanced ? (
                   <HiChevronUp className="size-4 shrink-0" />
                 ) : (

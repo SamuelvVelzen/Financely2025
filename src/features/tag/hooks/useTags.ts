@@ -44,7 +44,10 @@ export function useCreateTag() {
   return useFinMutation<ITag, Error, ICreateTagInput>({
     mutationFn: (input) =>
       createTag(requireWorkspaceId(workspaceId), input),
-    invalidateQueries: [() => queryKeys.tags(workspaceId!)],
+    invalidateQueries: [
+      () => queryKeys.tags(workspaceId!),
+      () => queryKeys.tagRules(workspaceId!),
+    ],
     getOfflineQueuedToast: (input) => ({
       title: `Tag "${input.name}" created successfully`,
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,

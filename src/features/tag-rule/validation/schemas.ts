@@ -5,17 +5,39 @@ import {
 } from "@/features/shared/validation/enums";
 import { ISODateStringSchema } from "@/features/shared/validation/primitives";
 import { TransactionTagSchema } from "@/features/tag/validation/schemas";
+import {
+  CreateTagRuleInputSchema,
+  CreateTagRuleWithTagInputSchema,
+  TagRuleApplyAsSchema,
+  TagRuleMatchFieldSchema,
+  TagRulePatternTypeSchema,
+  TagRuleSourceSchema,
+  UpdateTagRuleInputSchema,
+  type ICreateTagRuleInput,
+  type ICreateTagRuleWithTagInput,
+  type ITagRuleApplyAs,
+  type ITagRuleMatchField,
+  type ITagRulePatternType,
+  type ITagRuleSource,
+  type IUpdateTagRuleInput,
+} from "./rule-input-schemas";
 
-export const TagRulePatternTypeSchema = z.enum(["KEYWORD", "REGEX"]);
-export const TagRuleMatchFieldSchema = z.enum([
-  "NAME",
-  "DESCRIPTION",
-  "NOTES",
-  "PAYMENT_METHOD",
-  "TRANSACTION_TYPE",
-]);
-export const TagRuleApplyAsSchema = z.enum(["PRIMARY", "TAG", "BOTH"]);
-export const TagRuleSourceSchema = z.enum(["USER", "SYSTEM", "LEARNED"]);
+export {
+  CreateTagRuleInputSchema,
+  CreateTagRuleWithTagInputSchema,
+  TagRuleApplyAsSchema,
+  TagRuleMatchFieldSchema,
+  TagRulePatternTypeSchema,
+  TagRuleSourceSchema,
+  UpdateTagRuleInputSchema,
+  type ICreateTagRuleInput,
+  type ICreateTagRuleWithTagInput,
+  type ITagRuleApplyAs,
+  type ITagRuleMatchField,
+  type ITagRulePatternType,
+  type ITagRuleSource,
+  type IUpdateTagRuleInput,
+};
 
 export const TagRuleSchema = z.object({
   id: z.string(),
@@ -33,25 +55,6 @@ export const TagRuleSchema = z.object({
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
 });
-
-export const CreateTagRuleInputSchema = z.object({
-  tagId: z.string().min(1),
-  label: z.string().max(100).nullable().optional(),
-  keywords: z.array(z.string().min(1).max(100)).min(1).max(50),
-  pattern: z.string().max(500).nullable().optional(),
-  patternType: TagRulePatternTypeSchema.default("KEYWORD"),
-  matchFields: z
-    .array(TagRuleMatchFieldSchema)
-    .min(1)
-    .max(5)
-    .default(["NAME"]),
-  applyAs: TagRuleApplyAsSchema.default("PRIMARY"),
-  priority: z.number().int().min(0).max(1000).default(0),
-  enabled: z.boolean().default(true),
-  source: TagRuleSourceSchema.optional(),
-});
-
-export const UpdateTagRuleInputSchema = CreateTagRuleInputSchema.partial();
 
 export const TagRulesResponseSchema = z.object({
   data: z.array(TagRuleSchema),
@@ -114,8 +117,6 @@ export const TagSuggestionsSchema = z.object({
 });
 
 export type ITagRule = z.infer<typeof TagRuleSchema>;
-export type ICreateTagRuleInput = z.infer<typeof CreateTagRuleInputSchema>;
-export type IUpdateTagRuleInput = z.infer<typeof UpdateTagRuleInputSchema>;
 export type ITagRulesResponse = z.infer<typeof TagRulesResponseSchema>;
 export type ITagMatchRequest = z.infer<typeof TagMatchRequestSchema>;
 export type ITagMatchResult = z.infer<typeof TagMatchResultSchema>;
@@ -129,7 +130,3 @@ export type IEnableTagRulePresetsInput = z.infer<
 >;
 export type ITagSuggestions = z.infer<typeof TagSuggestionsSchema>;
 export type ITagSuggestionRule = z.infer<typeof TagSuggestionRuleSchema>;
-export type ITagRulePatternType = z.infer<typeof TagRulePatternTypeSchema>;
-export type ITagRuleMatchField = z.infer<typeof TagRuleMatchFieldSchema>;
-export type ITagRuleApplyAs = z.infer<typeof TagRuleApplyAsSchema>;
-export type ITagRuleSource = z.infer<typeof TagRuleSourceSchema>;

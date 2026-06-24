@@ -1,16 +1,19 @@
 import {
   CreateTagRuleInputSchema,
+  CreateTagRuleWithTagInputSchema,
   TagHistoryDiscoverySchema,
   TagMatchResponseSchema,
   TagRuleSchema,
   UpdateTagRuleInputSchema,
   type ICreateTagRuleInput,
+  type ICreateTagRuleWithTagInput,
   type IEnableTagRulePresetsInput,
   type ITagHistoryDiscovery,
   type ITagMatchRequest,
   type ITagMatchResponse,
   type ITagRule,
   type ITagSuggestions,
+  type IPaymentMethod,
   type ITransactionType,
   type IUpdateTagRuleInput,
 } from "@/features/shared/validation/schemas";
@@ -22,9 +25,16 @@ import {
 } from "@/features/tag/config/default-tag-rules";
 import { TagService } from "@/features/tag/services/tag.service";
 import { prisma } from "@/features/util/prisma";
+import type { Prisma } from "@prisma/client";
 import { WorkspaceSettingService } from "@/features/workspace/services/workspace-setting.service";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import { normalizeMerchantText } from "../utils/normalize-merchant-text";
+import {
+  buildMatchHaystack,
+  parseMatchFields,
+  serializeMatchFields,
+  type ITagRuleMatchContext,
+} from "../utils/match-fields";
 
 type ITagRuleRow = {
   id: string;
@@ -33,7 +43,7 @@ type ITagRuleRow = {
   keywords: string;
   pattern: string | null;
   patternType: "KEYWORD" | "REGEX";
-  matchField: "NAME" | "DESCRIPTION" | "BOTH";
+  matchFields: string;
   applyAs: "PRIMARY" | "TAG" | "BOTH";
   priority: number;
   source: "USER" | "SYSTEM" | "LEARNED";
@@ -80,7 +90,7 @@ function mapTagRule(row: ITagRuleRow): ITagRule {
     keywords: parseKeywords(row.keywords),
     pattern: row.pattern,
     patternType: row.patternType,
-    matchField: row.matchField,
+    matchFields: parseMatchFields(row.matchFields),
     applyAs: row.applyAs,
     priority: row.priority,
     source: row.source,
@@ -90,26 +100,14 @@ function mapTagRule(row: ITagRuleRow): ITagRule {
   });
 }
 
-function getHaystack(
-  matchField: ITagRule["matchField"],
-  name: string,
-  description: string | null | undefined,
-): string {
-  if (matchField === "DESCRIPTION") {
-    return description ?? "";
-  }
-  if (matchField === "BOTH") {
-    return `${name} ${description ?? ""}`;
-  }
-  return name;
-}
-
 function matchesRule(
   rule: ITagRuleRow,
-  name: string,
-  description: string | null | undefined,
+  context: ITagRuleMatchContext,
 ): boolean {
-  const haystack = getHaystack(rule.matchField, name, description);
+  const haystack = buildMatchHaystack(
+    parseMatchFields(rule.matchFields),
+    context,
+  );
 
   if (rule.patternType === "REGEX" && rule.pattern) {
     try {
@@ -260,6 +258,35 @@ export class TagRuleService {
     return rule ? mapTagRule(rule as ITagRuleRow) : null;
   }
 
+  static async createRulesForTag(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    tagId: string,
+    rules: ICreateTagRuleWithTagInput[],
+    tx: Prisma.TransactionClient = prisma,
+  ): Promise<void> {
+    for (const rule of rules) {
+      const validated = CreateTagRuleWithTagInputSchema.parse(rule);
+
+      await tx.tagRule.create({
+        data: {
+          userId,
+          workspaceId,
+          tagId,
+          label: validated.label ?? null,
+          keywords: serializeKeywords(validated.keywords),
+          pattern: validated.pattern ?? null,
+          patternType: validated.patternType,
+          matchFields: serializeMatchFields(validated.matchFields),
+          applyAs: validated.applyAs,
+          priority: validated.priority,
+          source: "USER",
+          enabled: validated.enabled,
+        },
+      });
+    }
+  }
+
   static async createRule(
     userId: string,
     workspaceId: IWorkspaceId,
@@ -284,7 +311,7 @@ export class TagRuleService {
         keywords: serializeKeywords(validated.keywords),
         pattern: validated.pattern ?? null,
         patternType: validated.patternType,
-        matchField: validated.matchField,
+        matchFields: serializeMatchFields(validated.matchFields),
         applyAs: validated.applyAs,
         priority: validated.priority,
         source: validated.source ?? source,
@@ -341,8 +368,8 @@ export class TagRuleService {
         ...(validated.patternType !== undefined && {
           patternType: validated.patternType,
         }),
-        ...(validated.matchField !== undefined && {
-          matchField: validated.matchField,
+        ...(validated.matchFields !== undefined && {
+          matchFields: serializeMatchFields(validated.matchFields),
         }),
         ...(validated.applyAs !== undefined && { applyAs: validated.applyAs }),
         ...(validated.priority !== undefined && {
@@ -411,7 +438,13 @@ export class TagRuleService {
       (rules as ITagRuleRow[]).filter(
         (rule) =>
           rule.tag.transactionType === input.type &&
-          matchesRule(rule, input.name, input.description),
+          matchesRule(rule, {
+            name: input.name,
+            description: input.description,
+            notes: input.notes,
+            paymentMethod: input.paymentMethod,
+            type: input.type,
+          }),
       ),
     );
 
@@ -480,6 +513,8 @@ export class TagRuleService {
       data: {
         name: string;
         description?: string | null;
+        notes?: string | null;
+        paymentMethod?: IPaymentMethod | null;
         type: ITransactionType;
         primaryTagId?: string | null;
         tagIds?: string[];
@@ -504,6 +539,8 @@ export class TagRuleService {
       const suggestions = await this.buildSuggestions(userId, workspaceId, {
         name: candidate.data.name,
         description: candidate.data.description,
+        notes: candidate.data.notes,
+        paymentMethod: candidate.data.paymentMethod ?? undefined,
         type: candidate.data.type,
       });
 
@@ -564,7 +601,7 @@ export class TagRuleService {
           label: preset.label,
           keywords: preset.keywords,
           patternType: "KEYWORD",
-          matchField: "NAME",
+          matchFields: ["NAME"],
           applyAs: "PRIMARY",
           priority: preset.priority,
           enabled: true,

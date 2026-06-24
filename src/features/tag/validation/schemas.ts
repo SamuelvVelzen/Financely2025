@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TransactionTypeSchema } from "@/features/shared/validation/enums";
 import { ISODateStringSchema } from "@/features/shared/validation/primitives";
+import { CreateTagRuleWithTagInputSchema } from "@/features/tag-rule/validation/rule-input-schemas";
 
 export const TransactionTagSchema = z.object({
   id: z.string(),
@@ -63,7 +64,7 @@ export const FORBIDDEN_COLORS = [
 const EMOJI_REGEX =
   /(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base})/u;
 
-export const CreateTagInputSchema = z.object({
+export const CreateTagFieldsSchema = z.object({
   name: z.string().min(1).max(100),
   color: z
     .string()
@@ -101,7 +102,11 @@ export const CreateTagInputSchema = z.object({
   transactionType: TransactionTypeSchema,
 });
 
-export const UpdateTagInputSchema = CreateTagInputSchema.partial();
+export const CreateTagInputSchema = CreateTagFieldsSchema.extend({
+  rules: z.array(CreateTagRuleWithTagInputSchema).max(20).optional(),
+});
+
+export const UpdateTagInputSchema = CreateTagFieldsSchema.partial();
 
 export const TagMetadataSchema = z.object({
   id: z.string().optional(),

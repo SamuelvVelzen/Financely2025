@@ -1,5 +1,6 @@
 import {
   BulkCreateTagInputSchema,
+  CreateTagFieldsSchema,
   CreateTagInputSchema,
   ReorderTagsInputSchema,
   TagSchema,
@@ -13,6 +14,7 @@ import {
   type ITagsQuery,
   type IUpdateTagInput,
 } from "@/features/shared/validation/schemas";
+import { TagRuleService } from "@/features/tag-rule/services/tag-rule.service";
 import { prisma } from "@/features/util/prisma";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 
@@ -129,12 +131,14 @@ export class TagService {
     input: ICreateTagInput
   ): Promise<ITag> {
     const validated = CreateTagInputSchema.parse(input);
+    const { rules = [], ...tagFields } = validated;
+    const parsedTagFields = CreateTagFieldsSchema.parse(tagFields);
 
     const existing = await prisma.tag.findUnique({
       where: {
         workspaceId_name: {
           workspaceId,
-          name: validated.name,
+          name: parsedTagFields.name,
         },
       },
     });
@@ -144,8 +148,8 @@ export class TagService {
     }
 
     let order: number;
-    if (validated.order !== undefined) {
-      order = validated.order;
+    if (parsedTagFields.order !== undefined) {
+      order = parsedTagFields.order;
     } else {
       const maxOrderTag = await prisma.tag.findFirst({
         where: { userId, workspaceId },
@@ -155,17 +159,31 @@ export class TagService {
       order = maxOrderTag ? maxOrderTag.order + 1 : 0;
     }
 
-    const tag = await prisma.tag.create({
-      data: {
-        userId,
-        workspaceId,
-        name: validated.name,
-        color: validated.color ?? null,
-        description: validated.description ?? null,
-        emoticon: validated.emoticon ?? null,
-        order,
-        transactionType: validated.transactionType,
-      },
+    const tag = await prisma.$transaction(async (tx) => {
+      const createdTag = await tx.tag.create({
+        data: {
+          userId,
+          workspaceId,
+          name: parsedTagFields.name,
+          color: parsedTagFields.color ?? null,
+          description: parsedTagFields.description ?? null,
+          emoticon: parsedTagFields.emoticon ?? null,
+          order,
+          transactionType: parsedTagFields.transactionType,
+        },
+      });
+
+      if (rules.length > 0) {
+        await TagRuleService.createRulesForTag(
+          userId,
+          workspaceId,
+          createdTag.id,
+          rules,
+          tx,
+        );
+      }
+
+      return createdTag;
     });
 
     return TagSchema.parse({
@@ -173,6 +191,7 @@ export class TagService {
       name: tag.name,
       color: tag.color,
       description: tag.description,
+      emoticon: tag.emoticon,
       order: tag.order,
       transactionType: tag.transactionType ?? null,
       createdAt: tag.createdAt.toISOString(),

@@ -1,11 +1,13 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import {
-  CreateTagInputSchema,
+  CreateTagFieldsSchema,
   type ITag,
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
-import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { TagRulesForTagSection } from "@/features/tag-rule/components/tag-rules-for-tag-section";
+import { useCreateTagRule } from "@/features/tag-rule/hooks/useTagRules";
+import type { IPendingTagRule } from "@/features/tag-rule/types/pending-tag-rule";
+import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
@@ -33,7 +35,7 @@ type IAddOrEditTagDialog = {
   onSuccess?: (createdTag?: ITag) => void;
 };
 
-type FormData = z.infer<typeof CreateTagInputSchema>;
+type FormData = z.infer<typeof CreateTagFieldsSchema>;
 
 const getEmptyFormValues = (): FormData => ({
   name: "",
@@ -42,6 +44,33 @@ const getEmptyFormValues = (): FormData => ({
   emoticon: "",
   transactionType: "EXPENSE" as ITransactionType,
 });
+
+function buildTagSubmitData(data: FormData) {
+  const transactionType =
+    data.transactionType &&
+      (data.transactionType === "EXPENSE" || data.transactionType === "INCOME")
+      ? data.transactionType
+      : "EXPENSE";
+
+  return {
+    name: data.name,
+    color:
+      data.color &&
+        data.color.trim() !== "" &&
+        /^#[0-9A-Fa-f]{6}$/.test(data.color.trim())
+        ? data.color.trim()
+        : null,
+    description:
+      data.description && data.description.trim() !== ""
+        ? data.description.trim()
+        : null,
+    emoticon:
+      data.emoticon && data.emoticon.trim() !== ""
+        ? data.emoticon.trim()
+        : null,
+    transactionType: transactionType as ITransactionType,
+  };
+}
 
 export function AddOrEditTagDialog({
   open,
@@ -56,20 +85,31 @@ export function AddOrEditTagDialog({
     null | "close" | "addAnother"
   >(null);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const [isTagRulesVisible, setIsTagRulesVisible] = useState(false);
+  const [tagRulesPanelOverride, setTagRulesPanelOverride] = useState<
+    boolean | null
+  >(null);
+  const [persistedTag, setPersistedTag] = useState<ITag | undefined>();
+  const [pendingRules, setPendingRules] = useState<IPendingTagRule[]>([]);
+  const activeTag = tag ?? persistedTag;
+  const isTagRulesVisible = tagRulesPanelOverride ?? showTagRules;
   const pending = pendingAction !== null;
   const isEditMode = !!tag;
-  const { mutate: createTag } = useCreateTag();
-  const { mutate: updateTag } = useUpdateTag();
+  const isEditingPersistedTag = !isEditMode && !!persistedTag;
+  const { mutateAsync: createTag } = useCreateTag();
+  const { mutateAsync: updateTag } = useUpdateTag();
+  const { mutateAsync: createTagRule } = useCreateTagRule();
   const toast = useToast();
 
   const formId = useId();
 
   const form = useFinForm<FormData>({
-    resolver: zodResolver(CreateTagInputSchema) as Resolver<FormData>,
+    resolver: zodResolver(CreateTagFieldsSchema) as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
   });
-  const hasUnsavedChanges = form.formState.isDirty;
+  const watchedName = form.watch("name");
+  const watchedTransactionType = form.watch("transactionType");
+  const hasUnsavedChanges =
+    form.formState.isDirty || (!isEditMode && pendingRules.length > 0);
 
   const focusFirstInput = useCallback(() => {
     requestAnimationFrame(() => {
@@ -85,7 +125,9 @@ export function AddOrEditTagDialog({
 
   const closeDialog = () => {
     resetFormToClosedState();
-    setIsTagRulesVisible(false);
+    setTagRulesPanelOverride(null);
+    setPersistedTag(undefined);
+    setPendingRules([]);
     onOpenChange(false);
   };
 
@@ -100,18 +142,15 @@ export function AddOrEditTagDialog({
 
   const handleDialogOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
-      setIsTagRulesVisible(showTagRules);
       onOpenChange(true);
       return;
     }
     handleAttemptClose();
   };
 
-  // Reset form when dialog opens/closes or tag changes
   useEffect(() => {
     if (open) {
       if (tag) {
-        // Edit mode: populate form with existing tag data
         form.reset({
           name: tag.name,
           color: tag.color ?? "",
@@ -120,7 +159,6 @@ export function AddOrEditTagDialog({
           transactionType: tag.transactionType,
         });
       } else {
-        // Create mode: reset to defaults or use initial name/values
         form.reset({
           name: initialValues?.name || initialName || "",
           color: initialValues?.color || "",
@@ -132,101 +170,180 @@ export function AddOrEditTagDialog({
       }
       focusFirstInput();
     } else {
-      // Reset form when dialog closes to ensure clean state
       form.reset(getEmptyFormValues());
+      setTagRulesPanelOverride(null);
+      setPersistedTag(undefined);
+      setPendingRules([]);
     }
   }, [open, tag, initialName, initialValues, form, focusFirstInput]);
+
+  const resetFormFromTag = useCallback((tagData: ITag) => {
+    form.reset({
+      name: tagData.name,
+      color: tagData.color ?? "",
+      description: tagData.description ?? "",
+      emoticon: tagData.emoticon ?? "",
+      transactionType: tagData.transactionType,
+    });
+  }, [form]);
+
+  const flushPendingRules = useCallback(async (tagId: string) => {
+    for (const { clientId: _clientId, ...rule } of pendingRules) {
+      await createTagRule({
+        tagId,
+        ...rule,
+      });
+    }
+    setPendingRules([]);
+  }, [createTagRule, pendingRules]);
+
+  const ensureTagSaved = useCallback(async (): Promise<ITag> => {
+    const isValid = await form.trigger();
+    if (!isValid) {
+      throw new Error("Enter a tag name before adding rules");
+    }
+
+    const submitData = buildTagSubmitData(form.getValues());
+
+    if (activeTag && !isOfflineMutationPlaceholder(activeTag)) {
+      const updatedTag = await updateTag({
+        tagId: activeTag.id,
+        input: submitData,
+      });
+
+      if (isOfflineMutationPlaceholder(updatedTag)) {
+        return activeTag;
+      }
+
+      if (pendingRules.length > 0) {
+        await flushPendingRules(updatedTag.id);
+      }
+
+      setPersistedTag(updatedTag);
+      resetFormFromTag(updatedTag);
+      return updatedTag;
+    }
+
+    const rulesPayload = pendingRules.map(
+      ({ clientId: _clientId, ...rule }) => rule,
+    );
+    const createdTag = await createTag({
+      ...submitData,
+      ...(rulesPayload.length > 0 ? { rules: rulesPayload } : {}),
+    });
+
+    if (isOfflineMutationPlaceholder(createdTag)) {
+      throw new Error("Tag could not be created");
+    }
+
+    setPendingRules([]);
+    setPersistedTag(createdTag);
+    resetFormFromTag(createdTag);
+    onSuccess?.(createdTag);
+    return createdTag;
+  }, [
+    activeTag,
+    createTag,
+    flushPendingRules,
+    form,
+    onSuccess,
+    pendingRules,
+    resetFormFromTag,
+    updateTag,
+  ]);
 
   const processFormSubmit = async (
     data: FormData,
     afterSuccess: "close" | "addAnother",
   ) => {
-    // Ensure transactionType is valid (default to EXPENSE if not set)
-    const transactionType =
-      data.transactionType &&
-        (data.transactionType === "EXPENSE" || data.transactionType === "INCOME")
-        ? data.transactionType
-        : "EXPENSE";
-
-    // Transform empty strings to null for optional fields
-    const submitData = {
-      name: data.name,
-      color:
-        data.color &&
-          data.color.trim() !== "" &&
-          /^#[0-9A-Fa-f]{6}$/.test(data.color.trim())
-          ? data.color.trim()
-          : null,
-      description:
-        data.description && data.description.trim() !== ""
-          ? data.description.trim()
-          : null,
-      emoticon:
-        data.emoticon && data.emoticon.trim() !== ""
-          ? data.emoticon.trim()
-          : null,
-      transactionType: transactionType as ITransactionType,
-    };
+    const submitData = buildTagSubmitData(data);
 
     try {
-      if (isEditMode && tag) {
+      if ((isEditMode && tag) || isEditingPersistedTag) {
+        const tagId = tag?.id ?? persistedTag?.id;
+        if (!tagId) {
+          return;
+        }
+
         setPendingAction("close");
-        updateTag(
-          { tagId: tag.id, input: submitData },
-          {
-            onSuccess: (data) => {
-              resetFormToClosedState();
-              setPendingAction(null);
-              onOpenChange(false);
-              if (!isOfflineMutationPlaceholder(data)) {
-                toast.success("Tag updated successfully");
-              }
-              onSuccess?.();
-            },
-            onError: (error) => {
-              setPendingAction(null);
-              toast.error("Failed to update tag");
-              throw error;
-            },
-          }
-        );
+        const updatedTag = await updateTag({ tagId, input: submitData });
+        if (pendingRules.length > 0) {
+          await flushPendingRules(tagId);
+        }
+        resetFormToClosedState();
+        setPendingAction(null);
+        onOpenChange(false);
+        if (!isOfflineMutationPlaceholder(updatedTag)) {
+          toast.success("Tag updated successfully");
+        }
+        onSuccess?.();
       } else {
         const resolvedAfterSuccess = afterSuccess;
         setPendingAction(resolvedAfterSuccess);
-        createTag(submitData, {
-          onSuccess: (createdTag) => {
-            if (resolvedAfterSuccess === "addAnother") {
-              resetFormToClosedState();
-              setPendingAction(null);
-              if (!isOfflineMutationPlaceholder(createdTag)) {
-                toast.success("Tag created successfully");
-                onSuccess?.(createdTag);
-              } else {
-                onSuccess?.();
-              }
-              focusFirstInput();
-            } else {
-              resetFormToClosedState();
-              onOpenChange(false);
-              setPendingAction(null);
-              if (!isOfflineMutationPlaceholder(createdTag)) {
-                toast.success("Tag created successfully");
-                onSuccess?.(createdTag);
-              } else {
-                onSuccess?.();
-              }
-            }
-          },
-          onError: (error) => {
+
+        try {
+          const rulesPayload = pendingRules.map(
+            ({ clientId: _clientId, ...rule }) => rule,
+          );
+          const createdTag = await createTag({
+            ...submitData,
+            ...(rulesPayload.length > 0 ? { rules: rulesPayload } : {}),
+          });
+          const hasRealTag = !isOfflineMutationPlaceholder(createdTag);
+          setPendingRules([]);
+          const keepOpenForRules = isTagRulesVisible && hasRealTag;
+
+          if (keepOpenForRules) {
+            setPersistedTag(createdTag);
+            resetFormFromTag(createdTag);
             setPendingAction(null);
-            toast.error("Failed to create tag");
-            throw error;
-          },
-        });
+            toast.success(
+              rulesPayload.length > 0
+                ? "Tag and tagging rules created successfully"
+                : "Tag created successfully",
+            );
+            onSuccess?.(createdTag);
+            return;
+          }
+
+          if (resolvedAfterSuccess === "addAnother") {
+            resetFormToClosedState();
+            setPendingAction(null);
+            if (hasRealTag) {
+              toast.success(
+                rulesPayload.length > 0
+                  ? "Tag and tagging rules created successfully"
+                  : "Tag created successfully",
+              );
+              onSuccess?.(createdTag);
+            } else {
+              onSuccess?.();
+            }
+            focusFirstInput();
+          } else {
+            resetFormToClosedState();
+            onOpenChange(false);
+            setPendingAction(null);
+            if (hasRealTag) {
+              toast.success(
+                rulesPayload.length > 0
+                  ? "Tag and tagging rules created successfully"
+                  : "Tag created successfully",
+              );
+              onSuccess?.(createdTag);
+            } else {
+              onSuccess?.();
+            }
+          }
+        } catch {
+          setPendingAction(null);
+          toast.error("Failed to create tag");
+          throw new Error("Failed to create tag");
+        }
       }
     } catch (err) {
       setPendingAction(null);
-      throw err; // Let Form component handle the error
+      throw err;
     }
   };
 
@@ -267,44 +384,55 @@ export function AddOrEditTagDialog({
     </>
   );
 
+  const dialogTitle =
+    isEditMode || isEditingPersistedTag ? "Edit Tag" : "Create Tag";
+  const showAddAnotherButton = !isEditMode && !isEditingPersistedTag;
+  const submitButtonLabel =
+    isEditMode || isEditingPersistedTag ? "Update" : "Create";
+  const submitButtonLoadingText =
+    isEditMode || isEditingPersistedTag ? "Updating tag" : "Creating tag";
+
   return (
     <>
       <Dialog
-        title={isEditMode ? "Edit Tag" : "Create Tag"}
+        title={dialogTitle}
         headerActions={
-          isEditMode ? (
-            <Button
-              type="button"
-              variant="default"
-              size="sm"
-              disabled={pending}
-              clicked={() => setIsTagRulesVisible((visible) => !visible)}>
-              <HiOutlineQueueList className="size-4" />
-              {isTagRulesVisible ? "Hide tagging rules" : "Tagging rules"}
-            </Button>
-          ) : undefined
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            disabled={pending}
+            clicked={() =>
+              setTagRulesPanelOverride((visible) => !(visible ?? showTagRules))
+            }>
+            <HiOutlineQueueList className="size-4" />
+            {isTagRulesVisible ? "Hide tagging rules" : "Tagging rules"}
+          </Button>
         }
         disableInitialFocus
         content={
-          isEditMode && tag ? (
-            <div
-              className={
-                isTagRulesVisible
-                  ? "grid grid-cols-1 lg:grid-cols-2 gap-6 items-start"
-                  : undefined
-              }>
+          isTagRulesVisible ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               <Form<FormData>
                 form={form}
                 onSubmit={(data) => processFormSubmit(data, "close")}
                 id={formId}>
                 <div className="space-y-4">{tagFormFields}</div>
               </Form>
-              {isTagRulesVisible && (
-                <TagRulesForTagSection
-                  tag={tag}
-                  onClose={() => setIsTagRulesVisible(false)}
-                />
-              )}
+              <TagRulesForTagSection
+                tag={activeTag}
+                tagPreview={{
+                  name: watchedName.trim(),
+                  transactionType: watchedTransactionType,
+                }}
+                pendingRules={activeTag ? undefined : pendingRules}
+                onPendingRulesChange={activeTag ? undefined : setPendingRules}
+                ensureTag={ensureTagSaved}
+                onTagEnsured={(ensuredTag) => {
+                  setPersistedTag(ensuredTag);
+                  resetFormFromTag(ensuredTag);
+                }}
+              />
             </div>
           ) : (
             <Form<FormData>
@@ -321,23 +449,23 @@ export function AddOrEditTagDialog({
             disabled: pending,
             buttonContent: "Cancel",
           },
-          ...(!isEditMode
+          ...(showAddAnotherButton
             ? [
-                {
-                  variant: "default" as const,
-                  clicked: () => {
-                    void form.handleSubmit((data) =>
-                      processFormSubmit(data, "addAnother"),
-                    )();
-                  },
-                  disabled: pending,
-                  loading: {
-                    isLoading: pendingAction === "addAnother",
-                    text: "Creating tag",
-                  },
-                  buttonContent: "Create & add another",
+              {
+                variant: "default" as const,
+                clicked: () => {
+                  void form.handleSubmit((data) =>
+                    processFormSubmit(data, "addAnother"),
+                  )();
                 },
-              ]
+                disabled: pending,
+                loading: {
+                  isLoading: pendingAction === "addAnother",
+                  text: "Creating tag",
+                },
+                buttonContent: "Create & add another",
+              },
+            ]
             : []),
           {
             type: "submit",
@@ -346,16 +474,16 @@ export function AddOrEditTagDialog({
             disabled: pending,
             loading: {
               isLoading: pendingAction === "close",
-              text: isEditMode ? "Updating tag" : "Creating tag",
+              text: submitButtonLoadingText,
             },
-            buttonContent: isEditMode ? "Update" : "Create",
+            buttonContent: submitButtonLabel,
           },
         ]}
         open={open}
         onOpenChange={handleDialogOpenChange}
         dismissible={!pending}
         variant="modal"
-        size={isEditMode && isTagRulesVisible ? "3/4" : "xl"}
+        size={isTagRulesVisible ? "3/4" : "xl"}
       />
 
       <UnsavedChangesDialog

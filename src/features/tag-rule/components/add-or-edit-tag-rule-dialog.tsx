@@ -1,6 +1,7 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import {
   CreateTagRuleInputSchema,
+  type CreateTagRuleWithTagInputSchema,
   type ITagRule,
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
@@ -8,6 +9,7 @@ import {
   useCreateTagRule,
   useUpdateTagRule,
 } from "@/features/tag-rule/hooks/useTagRules";
+import type { IPendingTagRule } from "@/features/tag-rule/types/pending-tag-rule";
 import { TAG_RULE_MATCH_FIELD_OPTIONS } from "@/features/tag-rule/utils/match-fields";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
@@ -26,13 +28,26 @@ type IAddOrEditTagRuleDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   rule?: ITagRule;
+  pendingRule?: IPendingTagRule;
   initialValues?: Partial<FormData> & {
     keywords?: string[];
   };
   lockTagId?: string;
   transactionType?: ITransactionType;
+  onPendingRuleSubmit?: (
+    rule: z.infer<typeof CreateTagRuleWithTagInputSchema>,
+    clientId?: string,
+  ) => void;
   onSuccess?: () => void;
 };
+
+const TagRulePendingFormSchema = CreateTagRuleInputSchema.omit({
+  keywords: true,
+  source: true,
+  tagId: true,
+}).extend({
+  keywordsText: z.string().min(1, "At least one keyword is required"),
+});
 
 const TagRuleFormSchema = CreateTagRuleInputSchema.omit({
   keywords: true,
@@ -78,21 +93,26 @@ export function AddOrEditTagRuleDialog({
   open,
   onOpenChange,
   rule,
+  pendingRule,
   initialValues,
   lockTagId,
   transactionType,
+  onPendingRuleSubmit,
   onSuccess,
 }: IAddOrEditTagRuleDialogProps) {
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const isEditMode = !!rule;
+  const isPendingMode = !!onPendingRuleSubmit && !lockTagId;
+  const isEditMode = !!rule || !!pendingRule;
   const { mutateAsync: createTagRule } = useCreateTagRule();
   const { mutateAsync: updateTagRule } = useUpdateTagRule();
   const toast = useToast();
   const formId = useId();
 
   const form = useFinForm<FormData>({
-    resolver: zodResolver(TagRuleFormSchema) as Resolver<FormData>,
+    resolver: zodResolver(
+      isPendingMode ? TagRulePendingFormSchema : TagRuleFormSchema,
+    ) as unknown as Resolver<FormData>,
     defaultValues: getEmptyFormValues(),
   });
   const hasUnsavedChanges = form.formState.isDirty;
@@ -135,6 +155,18 @@ export function AddOrEditTagRuleDialog({
         priority: rule.priority,
         enabled: rule.enabled,
       });
+    } else if (pendingRule) {
+      form.reset({
+        ...getEmptyFormValues(),
+        label: pendingRule.label ?? "",
+        keywordsText: keywordsToText(pendingRule.keywords),
+        pattern: pendingRule.pattern,
+        patternType: pendingRule.patternType,
+        matchFields: pendingRule.matchFields,
+        applyAs: pendingRule.applyAs,
+        priority: pendingRule.priority,
+        enabled: pendingRule.enabled,
+      });
     } else if (initialValues) {
       form.reset({
         ...getEmptyFormValues(),
@@ -152,7 +184,7 @@ export function AddOrEditTagRuleDialog({
     }
 
     focusFirstInput();
-  }, [open, rule, initialValues, lockTagId, form, focusFirstInput]);
+  }, [open, rule, pendingRule, initialValues, lockTagId, form, focusFirstInput]);
 
   const handleSubmit = async (data: FormData) => {
     setPending(true);
@@ -170,6 +202,25 @@ export function AddOrEditTagRuleDialog({
     };
 
     try {
+      if (isPendingMode && onPendingRuleSubmit) {
+        onPendingRuleSubmit(
+          {
+            label: payload.label,
+            keywords: payload.keywords,
+            pattern: payload.pattern,
+            patternType: payload.patternType,
+            matchFields: payload.matchFields,
+            applyAs: payload.applyAs,
+            priority: payload.priority,
+            enabled: payload.enabled,
+          },
+          pendingRule?.clientId,
+        );
+        onSuccess?.();
+        closeDialog();
+        return;
+      }
+
       if (isEditMode && rule) {
         const result = await updateTagRule({
           ruleId: rule.id,
@@ -207,7 +258,7 @@ export function AddOrEditTagRuleDialog({
               placeholder="e.g. Dutch supermarkets"
               disabled={pending}
             />
-            {!lockTagId && (
+            {!lockTagId && !isPendingMode && (
               <TagSelect
                 name="tagId"
                 label="Target tag"
