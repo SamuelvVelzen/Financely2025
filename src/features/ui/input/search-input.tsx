@@ -53,6 +53,7 @@ export function SearchInput({
   const isEmpty = !value;
   const isOpen = alwaysExpanded || !isEmpty || isHovered;
   const isCollapsed = alwaysExpanded ? false : isEmpty && !isHovered;
+  const showClear = !isEmpty;
 
   const measureRef = useRef<HTMLSpanElement>(null);
   const [expandedWidth, setExpandedWidth] = useState(300);
@@ -103,9 +104,9 @@ export function SearchInput({
             ]),
           !alwaysExpanded && "data-[collapsed=true]:[&_input]:pr-2!",
           (alwaysExpanded || isOpen) && "[&_input]:pl-9!",
-          (alwaysExpanded || isOpen) && "[&_input]:pr-9!",
+          showClear && (alwaysExpanded || isOpen) && "[&_input]:pr-9!",
           !alwaysExpanded && "focus-within:[&_input]:pl-9!",
-          !alwaysExpanded && "focus-within:[&_input]:pr-9!",
+          showClear && !alwaysExpanded && "focus-within:[&_input]:pr-9!",
           !alwaysExpanded && "data-[collapsed=true]:[&>div>div>div:last-child]:hidden",
           className
         )}>
@@ -131,13 +132,15 @@ export function SearchInput({
           className={cn("truncate", inputSizeClass)}
           prefixIcon={<HiMagnifyingGlass className={iconSizeClass} />}
           suffixIcon={
-            <IconButton
-              clicked={handleClear}
-              ariaLabel="Clear search"
-              size="xs"
-              className="p-0">
-              <HiX className={iconSizeClass} />
-            </IconButton>
+            showClear ? (
+              <IconButton
+                clicked={handleClear}
+                ariaLabel="Clear search"
+                size="xs"
+                className="p-0">
+                <HiX className={iconSizeClass} />
+              </IconButton>
+            ) : undefined
           }
         />
       </div>
