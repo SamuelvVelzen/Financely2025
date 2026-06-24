@@ -1,30 +1,39 @@
 import type { IPriceRange } from "@/features/ui/input/range-input";
-import type { ITransactionFilterState } from "./transaction-filter-model";
+import {
+  DEFAULT_FILTER_STATE,
+  type ITransactionFilterState,
+} from "./transaction-filter-model";
 
 /**
- * Calculate the count of active secondary filters
- * Secondary filters are: price, tags, transaction type (when only one selected),
- * payment method, and currency
+ * Count active filters as individual selections (matches active filter badges).
+ * e.g. 3 currencies + 4 tags + amount = 8
  */
 export function calculateFilterCount(
-  filterState: ITransactionFilterState
+  filterState: ITransactionFilterState,
+  defaultFilterState: ITransactionFilterState = DEFAULT_FILTER_STATE
 ): number {
   let count = 0;
 
-  // Price filter
-  if (
-    filterState.priceFilter.min !== undefined ||
-    filterState.priceFilter.max !== undefined
-  ) {
+  if (filterState.dateFilter.type !== defaultFilterState.dateFilter.type) {
     count++;
   }
 
-  // Tag filter
-  if (filterState.tagFilter.length > 0) {
+  if (filterState.searchQuery.trim()) {
     count++;
   }
 
-  // Transaction type filter (only count if exactly one type is selected)
+  const hasMin = filterState.priceFilter.min !== undefined;
+  const hasMax = filterState.priceFilter.max !== undefined;
+  const isDefaultPrice =
+    filterState.priceFilter.min === defaultFilterState.priceFilter.min &&
+    filterState.priceFilter.max === defaultFilterState.priceFilter.max;
+
+  if (!isDefaultPrice && (hasMin || hasMax)) {
+    count++;
+  }
+
+  count += filterState.tagFilter.length;
+
   if (
     filterState.transactionTypeFilter.length > 0 &&
     filterState.transactionTypeFilter.length < 2
@@ -32,17 +41,8 @@ export function calculateFilterCount(
     count++;
   }
 
-  // Payment method filter
-  if (filterState.paymentMethodFilter.length > 0) {
-    count++;
-  }
-
-  // Currency filter
-  if (filterState.currencyFilter.length > 0) {
-    count++;
-  }
+  count += filterState.paymentMethodFilter.length;
+  count += filterState.currencyFilter.length;
 
   return count;
 }
-
-

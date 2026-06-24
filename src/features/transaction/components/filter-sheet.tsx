@@ -1,9 +1,9 @@
 import type { ITag } from "@/features/shared/validation/schemas";
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
-import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
-import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import type { ITransactionViewControlsProps } from "@/features/transaction/components/transaction-view-controls";
 import { TransactionViewControls } from "@/features/transaction/components/transaction-view-controls";
+import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
+import type { IFilterFormValues } from "@/features/transaction/hooks/useTransactionFilters";
 import type { IButtonProps } from "@/features/ui/button/button";
 import { CheckboxGroup, CheckboxItem } from "@/features/ui/checkbox";
 import type { IDateFilter } from "@/features/ui/datepicker/datepicker";
@@ -123,8 +123,8 @@ export function FilterSheet({
   const filterForm = (
     <Form
       form={form}
-      onSubmit={() => {}}>
-      <div>
+      onSubmit={() => { }}>
+      <div className="space-y-4">
         <CheckboxGroup
           name="transactionTypeFilter"
           label="Transaction Type"
@@ -143,79 +143,79 @@ export function FilterSheet({
             </CheckboxItem>
           ))}
         </CheckboxGroup>
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-text mb-2">
-          Date Range
-        </label>
-        <Datepicker
-          value={dateFilter}
-          onChange={onDateFilterChange}
+        <div>
+          <label className="block text-sm font-medium text-text mb-2">
+            Date Range
+          </label>
+          <Datepicker
+            value={dateFilter}
+            onChange={onDateFilterChange}
+          />
+        </div>
+
+        <RangeInput
+          label="Amount Range"
+          value={priceFilter}
+          onChange={onPriceFilterChange}
         />
+
+        <SelectDropdown
+          name="paymentMethodFilter"
+          label="Payment Method"
+          options={paymentMethodOptions}
+          multiple
+          placeholder="Filter by payment method"
+          onValueChange={(value) => {
+            const formValue = (Array.isArray(value) ? value : []).filter(
+              (v): v is string => v !== undefined
+            );
+            setPaymentMethodFilter?.(formValue);
+          }}
+        />
+
+        <SelectDropdown
+          name="currencyFilter"
+          label="Currency"
+          options={currencyOptions}
+          multiple
+          placeholder="Filter by currency"
+          onValueChange={(value) => {
+            const formValue = (Array.isArray(value) ? value : []).filter(
+              (v): v is string => v !== undefined
+            );
+            setCurrencyFilter?.(formValue);
+          }}
+        />
+
+        <SelectDropdown
+          name="tagFilter"
+          label="Tags"
+          options={tagOptions}
+          multiple
+          placeholder="Filter by tags"
+          onValueChange={(value) => {
+            const formValue = (Array.isArray(value) ? value : []).filter(
+              (v): v is string => v !== undefined
+            );
+            setTagFilter?.(formValue);
+          }}>
+          {(option) => (
+            <>
+              {option.data?.emoticon && (
+                <span className="text-base shrink-0">{option.data.emoticon}</span>
+              )}
+              {option.data?.color && (
+                <div
+                  className="size-3 rounded-full shrink-0"
+                  style={{ backgroundColor: option.data.color }}
+                />
+              )}
+              <span>{option.label}</span>
+            </>
+          )}
+        </SelectDropdown>
       </div>
-
-      <RangeInput
-        label="Amount Range"
-        value={priceFilter}
-        onChange={onPriceFilterChange}
-      />
-
-      <SelectDropdown
-        name="paymentMethodFilter"
-        label="Payment Method"
-        options={paymentMethodOptions}
-        multiple
-        placeholder="Filter by payment method"
-        onValueChange={(value) => {
-          const formValue = (Array.isArray(value) ? value : []).filter(
-            (v): v is string => v !== undefined
-          );
-          setPaymentMethodFilter?.(formValue);
-        }}
-      />
-
-      <SelectDropdown
-        name="currencyFilter"
-        label="Currency"
-        options={currencyOptions}
-        multiple
-        placeholder="Filter by currency"
-        onValueChange={(value) => {
-          const formValue = (Array.isArray(value) ? value : []).filter(
-            (v): v is string => v !== undefined
-          );
-          setCurrencyFilter?.(formValue);
-        }}
-      />
-
-      <SelectDropdown
-        name="tagFilter"
-        label="Tags"
-        options={tagOptions}
-        multiple
-        placeholder="Filter by tags"
-        onValueChange={(value) => {
-          const formValue = (Array.isArray(value) ? value : []).filter(
-            (v): v is string => v !== undefined
-          );
-          setTagFilter?.(formValue);
-        }}>
-        {(option) => (
-          <>
-            {option.data?.emoticon && (
-              <span className="text-base shrink-0">{option.data.emoticon}</span>
-            )}
-            {option.data?.color && (
-              <div
-                className="size-3 rounded-full shrink-0"
-                style={{ backgroundColor: option.data.color }}
-              />
-            )}
-            <span>{option.label}</span>
-          </>
-        )}
-      </SelectDropdown>
     </Form>
   );
 
@@ -228,16 +228,11 @@ export function FilterSheet({
       {viewMode ? (
         <Tabs
           defaultValue="filters"
-          className="-mx-4">
+        >
           <TabValueReporter onChange={setActiveTab} />
-          <Tab value="filters">Filters</Tab>
           <Tab value="view">View settings</Tab>
+          <Tab value="filters">Filters</Tab>
 
-          <TabContent
-            value="filters"
-            className="px-4">
-            {filterForm}
-          </TabContent>
           <TabContent
             value="view"
             className="px-4">
@@ -246,6 +241,11 @@ export function FilterSheet({
               variant="sheet"
               size="md"
             />
+          </TabContent>
+          <TabContent
+            value="filters"
+            className="px-4">
+            {filterForm}
           </TabContent>
         </Tabs>
       ) : (

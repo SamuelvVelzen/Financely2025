@@ -1,7 +1,9 @@
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
+import { ActiveFiltersRow } from "@/features/transaction/components/active-filters-row";
+import { useTransactionFilterBadges } from "@/features/transaction/hooks/use-transaction-filter-badges";
 import type { IFilterProps } from "@/features/transaction/hooks/use-transaction-filter-props";
-import type { ITransactionLayoutMode } from "@/features/transaction/hooks/use-transaction-view-mode";
 import { useTransactionHeader } from "@/features/transaction/hooks/use-transaction-header";
+import type { ITransactionLayoutMode } from "@/features/transaction/hooks/use-transaction-view-mode";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
@@ -88,14 +90,26 @@ export function TransactionOverviewHeader({
   const { monthDisplay } = useTransactionHeader(filterProps.filterState);
   const { isMobile } = useResponsive();
 
+  const badges = useTransactionFilterBadges({
+    filterState: filterProps.filterState,
+    tags: filterProps.tags,
+    onDateFilterChange: filterProps.onDateFilterChange,
+    onPriceFilterChange: filterProps.onPriceFilterChange,
+    setSearchQuery: filterProps.setSearchQuery,
+    setTagFilter: filterProps.setTagFilter,
+    setTransactionTypeFilter: filterProps.setTransactionTypeFilter,
+    setPaymentMethodFilter: filterProps.setPaymentMethodFilter,
+    setCurrencyFilter: filterProps.setCurrencyFilter,
+  });
+
   return (
-    <Container className={cn("sticky z-20 top-0 transition-all")}>
+    <Container className={cn("sticky top-0 z-20 min-w-0 overflow-hidden transition-all")}>
       <div
         className={cn(
-          "flex items-center justify-between gap-2 transition-all",
+          "flex min-w-0 items-center gap-2 transition-all justify-between",
           !isSticky && "mb-3"
         )}>
-        <div className="flex gap-2 items-center min-w-0">
+        <div className="flex shrink-0 items-center gap-2 min-w-0">
           <HiArrowsRightLeft
             className={cn(
               "shrink-0 transition-all",
@@ -118,7 +132,15 @@ export function TransactionOverviewHeader({
           </div>
         </div>
 
-        <div className="flex gap-2 items-center shrink-0">
+        {isSticky && badges.length > 0 && (
+          <ActiveFiltersRow
+            badges={badges}
+            onClearAll={filterProps.onClearAll}
+            className="mt-0 min-w-0 flex-1 overflow-hidden"
+          />
+        )}
+
+        <div className="flex shrink-0 items-center gap-2">
           {isSticky ? (
             <>
               {!isMobile && (
@@ -181,10 +203,11 @@ export function TransactionOverviewHeader({
           "grid transition-[grid-template-rows,opacity] ease-out",
           isSticky ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
         )}>
-        <div className={cn(isSticky && "overflow-hidden")}>
+        <div className={cn(isSticky && "overflow-hidden", "min-w-0")}>
           <TransactionFilters
             {...filterProps}
             viewMode={viewMode}
+            hideActiveBadges={isSticky}
           />
         </div>
       </div>

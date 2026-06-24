@@ -13,6 +13,9 @@ import { TextInput } from "./text-input";
 export type ISearchInputProps = IPropsWithClassName & {
   placeholder?: string;
   label?: string;
+  /** Keep search expanded to fill available width (e.g. mobile filter row). */
+  alwaysExpanded?: boolean;
+  size?: "sm" | "md";
 } & IFormOrControlledMode<string>;
 
 export function SearchInput({
@@ -20,6 +23,8 @@ export function SearchInput({
   name,
   placeholder = "Search by name, tag, description...",
   label,
+  alwaysExpanded = false,
+  size = "md",
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,
@@ -47,55 +52,68 @@ export function SearchInput({
   };
 
   const isEmpty = !value;
-  const isOpen = !isEmpty || isHovered;
+  const isOpen = alwaysExpanded || !isEmpty || isHovered;
 
   useEffect(() => {
+    if (alwaysExpanded) {
+      return;
+    }
     setIsCollapsed(isEmpty && !isHovered);
-  }, [isEmpty, isHovered]);
+  }, [alwaysExpanded, isEmpty, isHovered]);
 
   const measureRef = useRef<HTMLSpanElement>(null);
-
   const [expandedWidth, setExpandedWidth] = useState(300);
 
   useEffect(() => {
-    if (measureRef.current) {
-      // Measure the placeholder text width
-      const width = measureRef.current.offsetWidth;
-      // Add padding for icons (pl-9 + pr-9 = 72px) + some extra buffer
-      setExpandedWidth(Math.max(300, width + 80));
+    if (alwaysExpanded || !measureRef.current) {
+      return;
     }
-  }, [placeholder]);
+    const width = measureRef.current.offsetWidth;
+    setExpandedWidth(Math.max(300, width + 80));
+  }, [alwaysExpanded, placeholder]);
+
+  const iconSizeClass = size === "sm" ? "size-4" : "size-5";
+  const inputSizeClass =
+    size === "sm" ? "text-sm min-h-7 h-7 py-1" : undefined;
 
   return (
     <>
-      <span
-        ref={measureRef}
-        className="absolute invisible whitespace-nowrap text-base"
-        style={{ font: "inherit" }}>
-        {placeholder}
-      </span>
+      {!alwaysExpanded && (
+        <span
+          ref={measureRef}
+          className="absolute invisible whitespace-nowrap text-base"
+          style={{ font: "inherit" }}>
+          {placeholder}
+        </span>
+      )}
       <div
-        data-collapsed={isCollapsed}
+        data-collapsed={alwaysExpanded ? false : isCollapsed}
         data-empty={isEmpty}
         data-open={isOpen}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseEnter={() => !alwaysExpanded && setIsHovered(true)}
+        onMouseLeave={() => !alwaysExpanded && setIsHovered(false)}
         style={
-          {
-            "--expanded-width": `${expandedWidth}px`,
-          } as React.CSSProperties
+          alwaysExpanded
+            ? undefined
+            : ({
+                "--expanded-width": `${expandedWidth}px`,
+              } as React.CSSProperties)
         }
         className={cn(
-          "relative transition-all ease-in-out",
-          "w-28 hover:w-(--expanded-width) focus-within:w-(--expanded-width)",
-          "has-[input:not(:placeholder-shown)]:w-(--expanded-width)",
-          "data-[open=true]:w-(--expanded-width)",
-          "data-[collapsed=true]:[&_input]:pr-2!",
-          "data-[open=true]:[&_input]:pl-9!",
-          "data-[open=true]:[&_input]:pr-9!",
-          "focus-within:[&_input]:pl-9!",
-          "focus-within:[&_input]:pr-9!",
-          "data-[collapsed=true]:[&>div>div>div:last-child]:hidden",
+          "relative transition-all ease-in-out min-w-0",
+          alwaysExpanded
+            ? "w-full"
+            : [
+                "w-28 hover:w-(--expanded-width) focus-within:w-(--expanded-width)",
+                "has-[input:not(:placeholder-shown)]:w-(--expanded-width)",
+                "data-[open=true]:w-(--expanded-width)",
+              ],
+          !alwaysExpanded && "data-[collapsed=true]:[&_input]:pr-2!",
+          (alwaysExpanded || isOpen) && "[&_input]:pl-9!",
+          (alwaysExpanded || isOpen) && "[&_input]:pr-9!",
+          !alwaysExpanded && "focus-within:[&_input]:pl-9!",
+          !alwaysExpanded && "focus-within:[&_input]:pr-9!",
+          !alwaysExpanded && "data-[collapsed=true]:[&>div>div>div:last-child]:hidden",
           className
         )}>
         <TextInput
@@ -117,14 +135,15 @@ export function SearchInput({
               }))}
           label={label}
           placeholder={placeholder}
-          className="truncate"
-          prefixIcon={<HiMagnifyingGlass className="size-5" />}
+          className={cn("truncate", inputSizeClass)}
+          prefixIcon={<HiMagnifyingGlass className={iconSizeClass} />}
           suffixIcon={
             <IconButton
               clicked={handleClear}
               ariaLabel="Clear search"
+              size="xs"
               className="p-0">
-              <HiX className="size-5" />
+              <HiX className={iconSizeClass} />
             </IconButton>
           }
         />

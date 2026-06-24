@@ -1,14 +1,16 @@
 import type { ITag } from "@/features/shared/validation/schemas";
+import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import {
   formatDateRange,
   formatMonthYear,
 } from "@/features/util/date/date-helpers";
 import type { IFilterState } from "../hooks/useTransactionFilters";
 import { DEFAULT_FILTER_STATE } from "./transaction-filter-model";
+import { sortFilterBadgesByOrder } from "./filter-badge-order";
 
 export interface IFilterBadge {
   id: string;
-  type: "date" | "tag" | "amount" | "search" | "transactionType";
+  type: "date" | "tag" | "amount" | "search" | "transactionType" | "paymentMethod" | "currency";
   label: string;
   value: string;
   onRemove: () => void;
@@ -23,7 +25,10 @@ interface IGenerateBadgesOptions {
   onRemoveAmount: () => void;
   onRemoveSearch: () => void;
   onRemoveTransactionType?: () => void;
+  onRemovePaymentMethod?: (method: string) => void;
+  onRemoveCurrency?: (currency: string) => void;
   defaultFilterState?: IFilterState;
+  badgeOrder?: string[];
 }
 
 export function generateFilterBadges({
@@ -34,7 +39,10 @@ export function generateFilterBadges({
   onRemoveAmount,
   onRemoveSearch,
   onRemoveTransactionType,
+  onRemovePaymentMethod,
+  onRemoveCurrency,
   defaultFilterState = DEFAULT_FILTER_STATE,
+  badgeOrder,
 }: IGenerateBadgesOptions): IFilterBadge[] {
   const badges: IFilterBadge[] = [];
 
@@ -149,5 +157,32 @@ export function generateFilterBadges({
     });
   }
 
-  return badges;
+  filterState.paymentMethodFilter?.forEach((method) => {
+    if (!onRemovePaymentMethod) return;
+    const label =
+      PAYMENT_METHOD_LABELS[method as keyof typeof PAYMENT_METHOD_LABELS] ??
+      method;
+    badges.push({
+      id: `paymentMethod-${method}`,
+      type: "paymentMethod",
+      label,
+      value: method,
+      onRemove: () => onRemovePaymentMethod(method),
+    });
+  });
+
+  filterState.currencyFilter?.forEach((currency) => {
+    if (!onRemoveCurrency) return;
+    badges.push({
+      id: `currency-${currency}`,
+      type: "currency",
+      label: currency,
+      value: currency,
+      onRemove: () => onRemoveCurrency(currency),
+    });
+  });
+
+  return badgeOrder
+    ? sortFilterBadgesByOrder(badges, badgeOrder)
+    : badges;
 }

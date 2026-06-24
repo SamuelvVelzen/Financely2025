@@ -23,55 +23,57 @@ export function ActiveFiltersRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 mt-2 overflow-x-auto md:overflow-x-visible md:flex-wrap",
+        "mt-2 flex min-w-0 w-full items-center gap-2",
         className
       )}>
-      <div className={cn("flex items-center gap-2 flex-nowrap md:flex-wrap")}>
-        {badges.map((badge) => (
-          <div
-            key={badge.id}
-            className="inline-flex items-center gap-1.5">
-            {badge.color ? (
-              <Badge
-                backgroundColor={badge.color}
-                className="max-w-[200px]">
-                {badge.label}
+      <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hide">
+        <div className="flex w-max flex-nowrap items-center gap-2 pr-1">
+          {badges.map((badge) => (
+            <div
+              key={badge.id}
+              className="inline-flex shrink-0 items-center gap-1.5">
+              {badge.color ? (
+                <Badge
+                  backgroundColor={badge.color}
+                  className="max-w-[200px]">
+                  {badge.label}
 
-                <IconButton
-                  clicked={(e) => {
-                    badge.onRemove();
-                  }}
-                  size="xs"
-                  ariaLabel={`Remove ${badge.type} filter`}
-                  className={cn(`bg-[${badge.color}]`)}>
-                  <HiX className="size-3" />
-                </IconButton>
-              </Badge>
-            ) : (
-              <Badge
-                variant="default"
-                className="max-w-[200px]">
-                {badge.label}
+                  <IconButton
+                    clicked={() => {
+                      badge.onRemove();
+                    }}
+                    size="xs"
+                    ariaLabel={`Remove ${badge.type} filter`}
+                    className={cn(`bg-[${badge.color}]`)}>
+                    <HiX className="size-3" />
+                  </IconButton>
+                </Badge>
+              ) : (
+                <Badge
+                  variant="default"
+                  className="max-w-[200px]">
+                  {badge.label}
 
-                <IconButton
-                  clicked={(e) => {
-                    e.stopPropagation();
-                    badge.onRemove();
-                  }}
-                  size="xs"
-                  ariaLabel={`Remove ${badge.type} filter`}>
-                  <HiX className="size-3" />
-                </IconButton>
-              </Badge>
-            )}
-          </div>
-        ))}
+                  <IconButton
+                    clicked={(e) => {
+                      e.stopPropagation();
+                      badge.onRemove();
+                    }}
+                    size="xs"
+                    ariaLabel={`Remove ${badge.type} filter`}>
+                    <HiX className="size-3" />
+                  </IconButton>
+                </Badge>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
       <Button
         clicked={onClearAll}
         variant="default"
         size="sm"
-        className="shrink-0 ml-auto md:ml-0"
+        className="shrink-0"
         buttonContent="Clear all"
       />
     </div>
