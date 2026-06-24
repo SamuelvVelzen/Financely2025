@@ -49,7 +49,7 @@ export function LinkButton({
   return (
     <Button
       className={cn(
-        "bg-transparent text-sm disabled:hover:bg-transparent",
+        "bg-transparent disabled:hover:bg-transparent",
         isOutlined
           ? "font-medium rounded-lg border px-2 py-0.5 hover:no-underline"
           : "border-none p-0 font-normal hover:underline hover:bg-transparent",
