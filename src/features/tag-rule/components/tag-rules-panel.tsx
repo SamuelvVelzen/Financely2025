@@ -208,8 +208,8 @@ export function TagRulesPanel() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
           <SearchInput
             value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder="Search by tag, keyword, or rule..."
+            onChange={(v) => setSearchQuery(v ?? "")}
+            placeholder="Search by tag, keyword, or rule"
             className="sm:w-auto"
           />
           <Button

@@ -154,7 +154,7 @@ export function TagOverviewHeader({
           <SearchInput
             value={searchQuery}
             onChange={(v) => onSearchChange(v ?? "")}
-            placeholder="Search tags by name, description, or color..."
+            placeholder="Search tags by name, description, or color"
           />
         </div>
       </div>

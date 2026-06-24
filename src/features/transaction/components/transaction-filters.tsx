@@ -127,7 +127,7 @@ export function TransactionFilters({
               name="searchQuery"
               alwaysExpanded
               size="sm"
-              placeholder="Search..."
+              placeholder="Search"
               className="flex-1 min-w-0"
               onValueChange={(value) => {
                 const formValue = (value as string) ?? "";

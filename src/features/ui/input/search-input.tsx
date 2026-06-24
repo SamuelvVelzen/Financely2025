@@ -1,7 +1,7 @@
+import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import {
   type IFormOrControlledMode,
 } from "@/features/shared/hooks/use-form-context-optional";
-import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
@@ -21,7 +21,7 @@ export type ISearchInputProps = IPropsWithClassName & {
 export function SearchInput({
   className = "",
   name,
-  placeholder = "Search by name, tag, description...",
+  placeholder = "Search",
   label,
   alwaysExpanded = false,
   size = "md",
@@ -76,7 +76,7 @@ export function SearchInput({
           ref={measureRef}
           className="absolute invisible whitespace-nowrap text-base"
           style={{ font: "inherit" }}>
-          {placeholder}
+          {placeholder}...
         </span>
       )}
       <div
@@ -89,18 +89,18 @@ export function SearchInput({
           alwaysExpanded
             ? undefined
             : ({
-                "--expanded-width": `${expandedWidth}px`,
-              } as React.CSSProperties)
+              "--expanded-width": `${expandedWidth}px`,
+            } as React.CSSProperties)
         }
         className={cn(
           "relative transition-all ease-in-out min-w-0",
           ...(alwaysExpanded
             ? ["w-full"]
             : [
-                "w-28 hover:w-(--expanded-width) focus-within:w-(--expanded-width)",
-                "has-[input:not(:placeholder-shown)]:w-(--expanded-width)",
-                "data-[open=true]:w-(--expanded-width)",
-              ]),
+              "w-28 hover:w-(--expanded-width) focus-within:w-(--expanded-width)",
+              "has-[input:not(:placeholder-shown)]:w-(--expanded-width)",
+              "data-[open=true]:w-(--expanded-width)",
+            ]),
           !alwaysExpanded && "data-[collapsed=true]:[&_input]:pr-2!",
           (alwaysExpanded || isOpen) && "[&_input]:pl-9!",
           (alwaysExpanded || isOpen) && "[&_input]:pr-9!",
@@ -113,19 +113,19 @@ export function SearchInput({
           {...(mode === "form"
             ? ({ name, onValueChange } as { name: string; onValueChange?: (value: string | number | undefined) => void })
             : ({
-                value: controlledValue,
-                onChange: (value: string | number | undefined) => {
-                  const asString =
-                    value === undefined || value === null
-                      ? undefined
-                      : String(value);
-                  controlledOnChange?.(asString);
-                  onValueChange?.(asString);
-                },
-              } as {
-                value: string;
-                onChange: (value: string | number | undefined) => void;
-              }))}
+              value: controlledValue,
+              onChange: (value: string | number | undefined) => {
+                const asString =
+                  value === undefined || value === null
+                    ? undefined
+                    : String(value);
+                controlledOnChange?.(asString);
+                onValueChange?.(asString);
+              },
+            } as {
+              value: string;
+              onChange: (value: string | number | undefined) => void;
+            }))}
           label={label}
           placeholder={placeholder}
           className={cn("truncate", inputSizeClass)}

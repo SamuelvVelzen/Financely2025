@@ -162,6 +162,7 @@ export function FilterBar({
           {/* Primary filters - always visible */}
           <SearchInput
             name="searchQuery"
+            placeholder = "Search by name, tag, description"
             onValueChange={(value) => {
               const formValue = (value as string) ?? "";
               setSearchQuery?.(formValue);

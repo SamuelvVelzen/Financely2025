@@ -101,7 +101,7 @@ export function BudgetOverviewHeader({
           <SearchInput
             value={searchQuery}
             onChange={(v) => onSearchChange(v ?? "")}
-            placeholder="Search budgets by name..."
+            placeholder="Search budgets by name"
           />
         </div>
       </div>

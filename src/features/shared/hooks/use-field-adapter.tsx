@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import type { FieldError, FieldErrors } from "react-hook-form";
-import { Controller, useWatch } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { useFormContextOptional } from "./use-form-context-optional";
 
 function getFieldErrorByPath(
@@ -96,14 +96,10 @@ export function useFieldAdapter<TValue>(
     return shouldShowError ? "border-danger" : "border-border";
   }, [shouldShowError]);
 
-  const formControl = form?.control;
-  const watchedFormValue = useWatch({
-    control: formControl,
-    name: (name ?? "") as never,
-    disabled: !isFormMode || !formControl || !name,
-  });
   const formValue =
-    isFormMode && form && name ? (watchedFormValue as TValue | undefined) : undefined;
+    isFormMode && form && name
+      ? (form.watch(name) as TValue | undefined)
+      : undefined;
 
   // Create unified field interface
   const field: IUnifiedField<TValue> = useMemo(() => {
