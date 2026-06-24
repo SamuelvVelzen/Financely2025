@@ -57,6 +57,26 @@ export const DetectSubscriptionsResponseSchema = z.object({
   candidates: z.array(SubscriptionCandidateSchema),
 });
 
+export const DetectSubscriptionsOptionsSchema = z
+  .object({
+    transactionIds: z.array(z.string()).min(1).optional(),
+    from: ISODateStringSchema.optional(),
+    to: ISODateStringSchema.optional(),
+  })
+  .refine(
+    (value) => {
+      const hasIds = (value.transactionIds?.length ?? 0) > 0;
+      const hasRange = value.from !== undefined || value.to !== undefined;
+      if (hasIds && hasRange) return false;
+      if (hasRange && (!value.from || !value.to)) return false;
+      return true;
+    },
+    {
+      message:
+        "Provide either transactionIds or both from and to, but not both scopes",
+    },
+  );
+
 export const ConfirmSubscriptionInputSchema = z.object({
   name: z.string().min(1).max(200),
   type: TransactionTypeSchema,
@@ -106,6 +126,9 @@ export type ISubscriptionCandidate = z.infer<
 >;
 export type IDetectSubscriptionsResponse = z.infer<
   typeof DetectSubscriptionsResponseSchema
+>;
+export type IDetectSubscriptionsOptions = z.infer<
+  typeof DetectSubscriptionsOptionsSchema
 >;
 export type IConfirmSubscriptionInput = z.infer<
   typeof ConfirmSubscriptionInputSchema
