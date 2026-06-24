@@ -1,3 +1,4 @@
+import { useUpdateUserSettings } from "@/features/users/hooks/useUserSettings";
 import { useSyncExternalStore } from "react";
 import { HiMoon, HiSun } from "react-icons/hi2";
 import { useTheme } from "./theme-context";
@@ -7,6 +8,7 @@ const subscribeToClient = () => () => {};
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const updateSettings = useUpdateUserSettings();
   const isClient = useSyncExternalStore(
     subscribeToClient,
     () => true,
@@ -19,11 +21,17 @@ export function ThemeToggle() {
   }
 
   const isDark = resolvedTheme === "dark";
+  const handleThemeChange = (checked: boolean) => {
+    const theme = checked ? "dark" : "light";
+    setTheme(theme);
+    updateSettings.mutate({ theme });
+  };
+
   return (
     <ToggleButton
       size="sm"
       checked={isDark}
-      onChange={(checked) => setTheme(checked ? "dark" : "light")}
+      onChange={handleThemeChange}
       icon={{
         on: {
           icon: <HiMoon className="w-full h-full" />,
