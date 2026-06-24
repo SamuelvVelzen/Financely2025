@@ -264,8 +264,9 @@ export function ReviewStepContent({
                   />
                 </BodyCell>
                 <BodyCell>
-                  <div className="flex flex-col gap-1">
+                  <div className="space-y-0.5 min-w-[180px]">
                     <TagSuggestionHint
+                      compact
                       tagSuggestions={candidate.tagSuggestions}
                       currentPrimaryTagId={candidate.data.primaryTagId}
                       onRevert={() => {
@@ -358,6 +359,7 @@ export function ReviewStepContent({
           }
         }}
       />
+
     </div>
   );
 }

@@ -47,7 +47,9 @@ export interface ITransactionImportContext {
   setRows: (rows: Record<string, string>[]) => void;
   setColumns: (columns: string[]) => void;
   setMapping: React.Dispatch<React.SetStateAction<ICsvFieldMapping>>;
-  setCandidates: (candidates: ICsvCandidateTransaction[]) => void;
+  setCandidates: React.Dispatch<
+    React.SetStateAction<ICsvCandidateTransaction[]>
+  >;
   setSelectedRows: (rows: Set<number>) => void;
   setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
   setTransformResponse: (response: ITransformResponse | null) => void;

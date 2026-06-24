@@ -11,6 +11,7 @@ export interface IStepNavigation<StepType extends string> {
 export interface IStepConfig<StepType extends string> {
   title: string;
   size: IDialogProps["size"];
+  headerActions?: IDialogProps["headerActions"];
   content: (navigation: IStepNavigation<StepType>) => React.ReactNode;
   footerButtons: (
     navigation: IStepNavigation<StepType>
@@ -95,6 +96,7 @@ export function MultiStepDialog<StepType extends string>({
     <>
       <Dialog
         title={currentStepConfig.title}
+        headerActions={currentStepConfig.headerActions}
         content={currentStepConfig.content(navigation)}
         footerButtons={currentStepConfig.footerButtons(navigation)}
         open={open}
