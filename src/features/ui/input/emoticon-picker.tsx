@@ -2,8 +2,10 @@ import {
   type IFormOrControlledMode,
 } from "@/features/shared/hooks/use-form-context-optional";
 import type { ITransactionType } from "@/features/shared/validation/schemas";
+import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
+import { NativeEmoticonInput } from "@/features/ui/input/native-emoticon-input";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
@@ -43,6 +45,7 @@ export function EmoticonPicker({
   const generatedId = useId();
   const pickerSearchId = `${generatedId}-emoticon-picker-search`;
   const isCompact = variant === "compact";
+  const { isMobile } = useResponsive();
 
   const { field, borderClass, renderWithController } = useFieldAdapter({
     name,
@@ -185,6 +188,22 @@ export function EmoticonPicker({
   };
 
   const renderPicker = (currentField: typeof field) => {
+    if (isMobile) {
+      return (
+        <NativeEmoticonInput
+          value={String(currentField.value || "")}
+          onChange={currentField.onChange}
+          onBlur={currentField.onBlur}
+          disabled={disabled}
+          isCompact={isCompact}
+          embedded={embedded}
+          borderClass={borderClass}
+          className={className}
+          aria-label={ariaLabel}
+        />
+      );
+    }
+
     const previewEmoji = extractFirstEmoji(String(currentField.value || ""));
 
     const triggerContent = isCompact ? (
@@ -231,7 +250,13 @@ export function EmoticonPicker({
     );
 
     return (
-      <div className={cn("shrink-0", className)}>
+      <div
+        className={cn(
+          "shrink-0",
+          embedded &&
+            "flex self-stretch [&_[data-dropdown-trigger]]:flex [&_[data-dropdown-trigger]]:h-full [&_[data-dropdown-trigger]]:min-h-0",
+          className,
+        )}>
         <Dropdown
           dropdownSelector={triggerContent}
           open={isPickerOpen}
@@ -242,7 +267,12 @@ export function EmoticonPicker({
           selectorClassName={cn(
             "!justify-start bg-surface hover:bg-surface-hover",
             isCompact
-              ? "!w-auto !min-h-9 !h-9 !px-0 border-0 rounded-none rounded-l-2xl"
+              ? cn(
+                  "!w-auto border-0 rounded-none rounded-l-2xl",
+                  embedded
+                    ? "!h-full !min-h-0 !py-0 !px-0"
+                    : "!min-h-9 !h-9 !px-0",
+                )
               : "!justify-start border border-border rounded-2xl",
             !embedded && !isCompact && borderClass,
           )}>
