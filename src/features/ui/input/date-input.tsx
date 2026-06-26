@@ -12,7 +12,12 @@ import {
 } from "@/features/util/date/dateisohelpers";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { parseISO } from "date-fns";
-import { useState, type MouseEvent } from "react";
+import {
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 import { HiChevronDown, HiClock } from "react-icons/hi";
 
@@ -61,6 +66,8 @@ export function DateInput({
     onValueChange,
   });
   const [internalOpen, setInternalOpen] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Use controlled state if provided, otherwise use internal state
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -130,34 +137,98 @@ export function DateInput({
         : value;
     const selectedDate = parseDate(isoValue);
     const displayText = formatDisplayText(isoValue);
+    const hasValue = !!value;
+    const showInput = isOpen || !hasValue;
+    const timePrecision = mode === "dateTime" ? "DateTime" : "DateOnly";
+    const inputPlaceholder =
+      placeholder === "Select date"
+        ? DateFormatHelpers.getDateInputPlaceholder(timePrecision)
+        : placeholder;
 
-    // Handle date selection from calendar
-    const handleDateSelect = (date: Date | null) => {
-      if (!date || isNaN(date.getTime())) return;
+    const applyDate = (
+      date: Date,
+      options: { close?: boolean; syncInput?: boolean } = {},
+    ) => {
+      if (isNaN(date.getTime())) return;
 
       let newIsoValue: string;
       if (mode === "dateOnly") {
-        // For dateOnly mode, convert to ISO with noon UTC
         const dateOnly = isoToDateOnly(date.toISOString());
         newIsoValue = dateOnlyToIso(dateOnly);
-        // Close dropdown after selecting date in dateOnly mode
-        setIsOpen(false);
       } else {
-        // For dateTime mode, preserve the time from selectedDate if it exists, otherwise use current time
         const baseDate = selectedDate || new Date();
         const updatedDate = new Date(date);
         updatedDate.setHours(baseDate.getHours(), baseDate.getMinutes(), 0, 0);
         newIsoValue = updatedDate.toISOString();
-        // Keep dropdown open in dateTime mode so user can set time
       }
 
-      // Convert to form format if needed
       const formValue =
         adapterMode === "form" && mode === "dateOnly"
           ? convertToFormFormat(newIsoValue)
           : newIsoValue;
 
       currentField.onChange(formValue);
+      if (options.syncInput !== false) {
+        setInputText(formatDisplayText(newIsoValue));
+      }
+
+      if (options.close && mode === "dateOnly") {
+        setIsOpen(false);
+      }
+    };
+
+    const commitInputText = (options: { close?: boolean } = {}) => {
+      const trimmed = inputText.trim();
+      if (!trimmed) {
+        currentField.onChange(undefined);
+        setInputText("");
+        if (options.close) {
+          setIsOpen(false);
+        }
+        return true;
+      }
+
+      const parsed = DateFormatHelpers.parseStringToDate(
+        trimmed,
+        timePrecision,
+      );
+      if (!parsed) {
+        return false;
+      }
+
+      applyDate(parsed, options);
+      return true;
+    };
+
+    const handleOpenChange = (open: boolean) => {
+      if (disabled) return;
+
+      if (open) {
+        setIsOpen(true);
+        const nextInputText =
+          isoValue && displayText !== placeholder ? displayText : "";
+        setInputText(nextInputText);
+        setTimeout(() => {
+          const input = inputRef.current;
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }, 0);
+        return;
+      }
+
+      if (inputText.trim()) {
+        commitInputText();
+      }
+      setInputText("");
+      setIsOpen(false);
+    };
+
+    // Handle date selection from calendar
+    const handleDateSelect = (date: Date | null) => {
+      if (!date || isNaN(date.getTime())) return;
+      applyDate(date, { close: mode === "dateOnly" });
     };
 
     // Handle time change from time picker
@@ -180,16 +251,75 @@ export function DateInput({
       }
     };
 
-    // Trigger button for dropdown
+    // Trigger for dropdown — combobox-style like Select
     const triggerButton = (
       <div className="flex w-full min-w-0 flex-1 items-center gap-2 px-2">
-        <span className={cn("min-w-0 flex-1 truncate text-left text-sm", !value && "text-text-muted")}>
-          {displayText}
-        </span>
+        <div className="flex min-w-0 flex-1 items-center">
+          {!showInput && hasValue ? (
+            <span className="min-w-0 flex-1 truncate text-left text-sm text-text">
+              {displayText}
+            </span>
+          ) : (
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputText}
+              onChange={(event) => {
+                const nextText = event.target.value;
+                setInputText(nextText);
+                if (!disabled) {
+                  setIsOpen(true);
+                }
+
+                const parsed = DateFormatHelpers.parseStringToDate(
+                  nextText,
+                  timePrecision,
+                );
+                if (parsed) {
+                  applyDate(parsed, { syncInput: false });
+                }
+              }}
+              onFocus={() => !disabled && setIsOpen(true)}
+              onBlur={() => {
+                if (inputText.trim()) {
+                  commitInputText();
+                }
+              }}
+              onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  if (commitInputText({ close: true })) {
+                    setIsOpen(false);
+                  }
+                  return;
+                }
+
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  setInputText("");
+                  setIsOpen(false);
+                  return;
+                }
+
+                if (event.key !== "Tab" && !disabled) {
+                  setIsOpen(true);
+                }
+              }}
+              placeholder={inputPlaceholder}
+              disabled={disabled}
+              className={cn(
+                "min-w-0 flex-1 bg-transparent border-0 outline-none text-sm text-text",
+                "placeholder:text-text-muted",
+                disabled && "cursor-not-allowed",
+              )}
+              onClick={(event) => event.stopPropagation()}
+            />
+          )}
+        </div>
         <HiChevronDown
           className={cn(
             "size-5 shrink-0 text-text-muted transition-transform",
-            isOpen && "rotate-180"
+            isOpen && "rotate-180",
           )}
         />
       </div>
@@ -237,10 +367,11 @@ export function DateInput({
           showEmbeddedTimeToggle ? embeddedSelectorClassName : selectorClassName
         }
         open={isOpen}
-        onOpenChange={setIsOpen}
+        onOpenChange={handleOpenChange}
         expandedContent={expandedContent || undefined}
         showExpanded={!!expandedContent}
         closeOnItemClick={false}
+        selectorToggles={false}
         disabled={disabled}>
         <Dropdown.Panel className="overflow-hidden w-full">
           <CalendarView
