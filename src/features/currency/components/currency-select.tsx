@@ -73,6 +73,7 @@ export function CurrencySelect({
     className,
     options,
     placeholder: "Select currency",
+    searchPlaceholder: "Search by code or name...",
     getOptionSearchValue: getCurrencySearchValue,
     dropdownPanelClassName:
       "w-max min-w-[max(100%,18rem)] max-w-[min(calc(100vw-2rem),28rem)]",

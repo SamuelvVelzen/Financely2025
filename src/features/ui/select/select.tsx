@@ -347,29 +347,30 @@ export function Select<
       if (!disabled) {
         setIsOpen(open);
 
-        // Pre-fill search query when opening dropdown with unmatched values
-        if (open && onCreateNew) {
-          if (currentUnmatchedValues.length > 0 && !searchQuery.trim()) {
-            const firstUnmatched = String(currentUnmatchedValues[0]);
+        if (open) {
+          // Pre-fill search query when opening dropdown with unmatched values
+          if (onCreateNew) {
+            if (currentUnmatchedValues.length > 0 && !searchQuery.trim()) {
+              const firstUnmatched = String(currentUnmatchedValues[0]);
 
-            // Only initialize if this is a different unmatched value than what we initialized before
-            // If initializedUnmatchedValue matches firstUnmatched, user has already seen/cleared it
-            if (initializedUnmatchedValue !== firstUnmatched) {
-              setSearchQuery(firstUnmatched);
-              setInitializedUnmatchedValue(firstUnmatched);
-              // Focus the input so the user can see the pre-filled value
-              setTimeout(() => {
-                const input = inputRef.current;
-                if (input) {
-                  input.focus();
-                  // Move cursor to end of input
-                  const length = input.value.length;
-                  input.setSelectionRange(length, length);
-                }
-              }, 0);
+              // Only initialize if this is a different unmatched value than what we initialized before
+              // If initializedUnmatchedValue matches firstUnmatched, user has already seen/cleared it
+              if (initializedUnmatchedValue !== firstUnmatched) {
+                setSearchQuery(firstUnmatched);
+                setInitializedUnmatchedValue(firstUnmatched);
+              }
             }
           }
-        } else if (!open) {
+
+          setTimeout(() => {
+            const input = inputRef.current;
+            if (input) {
+              input.focus();
+              const length = input.value.length;
+              input.setSelectionRange(length, length);
+            }
+          }, 0);
+        } else {
           // Reset search query when closing
           setSearchQuery("");
         }
@@ -398,11 +399,11 @@ export function Select<
           {!multiple &&
             hasSelection &&
             selectedOptions.length > 0 &&
-            !searchQuery.trim() && (
+            !searchQuery.trim() &&
+            !isOpen && (
               <span
                 className={cn(
-                  "text-text truncate min-w-0 text-left",
-                  !isOpen && "flex-1"
+                  "text-text truncate min-w-0 text-left flex-1"
                 )}>
                 {selectedOptions[0].label}
               </span>
@@ -427,11 +428,11 @@ export function Select<
             }}
             onFocus={() => !disabled && setIsOpen(true)}
             placeholder={
-              !multiple && hasSelection
-                ? ""
+              isOpen || !hasSelection
+                ? searchPlaceholder || placeholder
                 : hasSelection && multiple
                   ? ""
-                  : searchPlaceholder || placeholder
+                  : ""
             }
             disabled={disabled}
             className={cn(
@@ -485,6 +486,7 @@ export function Select<
           onOpenChange={handleOpenChange}
           placement={forcePlacement}
           closeOnItemClick={!multiple}
+          selectorToggles={false}
           selectorClassName={selectorClassName}
           panelClassName={dropdownPanelClassName}>
           {filteredOptionGroups.map((optionGroup, groupIndex) => (

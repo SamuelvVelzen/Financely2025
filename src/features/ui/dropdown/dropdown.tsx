@@ -114,6 +114,11 @@ type IDropdownProps = {
   allowNested?: boolean;
   /** Optional className for the dropdown panel shell */
   panelClassName?: string;
+  /**
+   * When false, clicking the selector only opens the dropdown (never closes it).
+   * Use for combobox-style triggers where the selector contains a search input.
+   */
+  selectorToggles?: boolean;
 } & PropsWithChildren;
 
 /**
@@ -139,6 +144,7 @@ export function Dropdown({
   selectorClassName,
   allowNested: _allowNested = false,
   panelClassName,
+  selectorToggles = true,
 }: IDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -167,10 +173,16 @@ export function Dropdown({
     [onOpenChange]
   );
 
-  const toggleDropdown = useCallback(() => {
+  const handleSelectorClick = useCallback(() => {
     if (disabled) return;
-    setDropdownState(!dropdownIsOpen);
-  }, [disabled, dropdownIsOpen, setDropdownState]);
+    if (selectorToggles) {
+      setDropdownState(!dropdownIsOpen);
+      return;
+    }
+    if (!dropdownIsOpen) {
+      setDropdownState(true);
+    }
+  }, [disabled, dropdownIsOpen, selectorToggles, setDropdownState]);
 
   // Sync popover state and clamp panel height to available viewport space.
   useEffect(() => {
@@ -269,7 +281,7 @@ export function Dropdown({
           return (
             <Button
               size={size}
-              clicked={toggleDropdown}
+              clicked={handleSelectorClick}
               disabled={disabled}
               variant={variant}
               className={cn(
@@ -289,7 +301,7 @@ export function Dropdown({
       ) : (
         <IconButton
           size={size}
-          clicked={toggleDropdown}
+          clicked={handleSelectorClick}
           disabled={disabled}>
           <HiDotsVertical className={dropdownSizeClasses[size].iconClasses} />
         </IconButton>
