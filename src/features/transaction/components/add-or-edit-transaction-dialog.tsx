@@ -21,7 +21,6 @@ import {
   useUpdateTransaction,
 } from "@/features/transaction/hooks/useTransactions";
 import { Badge } from "@/features/ui/badge/badge";
-import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -614,42 +613,16 @@ export function AddOrEditTransactionDialog({
                   workspaceId={workspaceId}
                 />
               </div>
-              <div className="flex items-end gap-4">
-
-                <DateInput
-                  name="transactionDate"
-                  label={hasTime ? "Date & Time" : "Date"}
-                  mode={hasTime ? "dateTime" : "dateOnly"}
-                  disabled={pending}
-                  required
-                  open={datePickerOpen}
-                  onOpenChange={setDatePickerOpen}
-                  onAddTime={handleToggleTime}
-                  onRemoveTime={handleToggleTime}
-                  className="flex-1"
-                />
-                <Button
-                  clicked={handleToggleTime}
-                  disabled={pending}
-                >
-                  {hasTime ? "Remove time" : "Add time"}
-                </Button>
-              </div>
-
-              <SelectDropdown
-                name="paymentMethod"
-                label="Payment Method"
-                options={PAYMENT_METHOD_OPTIONS}
-                placeholder="Select payment method..."
+              <DateInput
+                name="transactionDate"
+                label={hasTime ? "Date & Time" : "Date"}
+                mode={hasTime ? "dateTime" : "dateOnly"}
                 disabled={pending}
-              />
-
-              <Textarea
-                name="description"
-                label="Description"
-                disabled={pending}
-                rows={3}
-                placeholder="Add details..."
+                required
+                open={datePickerOpen}
+                onOpenChange={setDatePickerOpen}
+                onAddTime={handleToggleTime}
+                onRemoveTime={handleToggleTime}
               />
 
               <div className="space-y-2">
@@ -700,6 +673,22 @@ export function AddOrEditTransactionDialog({
                   />
                 </div>
               )}
+
+              <SelectDropdown
+                name="paymentMethod"
+                label="Payment Method"
+                options={PAYMENT_METHOD_OPTIONS}
+                placeholder="Select payment method..."
+                disabled={pending}
+              />
+
+              <Textarea
+                name="description"
+                label="Description"
+                disabled={pending}
+                rows={3}
+                placeholder="Add details..."
+              />
 
               {isEditMode && transaction?.subscription && (
                 <SubscriptionInfo

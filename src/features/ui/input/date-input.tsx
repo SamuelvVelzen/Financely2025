@@ -1,6 +1,5 @@
 import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { type IFormOrControlledMode } from "@/features/shared/hooks/use-form-context-optional";
-import { Button } from "@/features/ui/button/button";
 import { CalendarView } from "@/features/ui/datepicker/calendar-view";
 import { TimePicker } from "@/features/ui/datepicker/time-picker";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
@@ -13,7 +12,7 @@ import {
 } from "@/features/util/date/dateisohelpers";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { parseISO } from "date-fns";
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 import { HiChevronDown, HiClock } from "react-icons/hi";
 
@@ -50,6 +49,7 @@ export function DateInput({
   onValueChange,
 }: IDateInputProps) {
   const {
+    borderClass,
     shouldShowError,
     error,
     mode: adapterMode,
@@ -182,26 +182,35 @@ export function DateInput({
 
     // Trigger button for dropdown
     const triggerButton = (
-      <div className="flex justify-between w-full">
-        <span className={cn("text-sm", !value && "text-text-muted")}>
+      <div className="flex w-full min-w-0 flex-1 items-center gap-2 px-2">
+        <span className={cn("min-w-0 flex-1 truncate text-left text-sm", !value && "text-text-muted")}>
           {displayText}
         </span>
         <HiChevronDown
           className={cn(
-            "size-5 text-text-muted transition-transform",
+            "size-5 shrink-0 text-text-muted transition-transform",
             isOpen && "rotate-180"
           )}
         />
       </div>
     );
 
-    // Expanded content with time picker (only for dateTime mode)
+    const showEmbeddedTimeToggle = !!(onAddTime || onRemoveTime);
+
+    const handleEmbeddedTimeToggle = (event: MouseEvent) => {
+      event.stopPropagation();
+      if (mode === "dateTime") {
+        onRemoveTime?.();
+      } else {
+        onAddTime?.();
+      }
+    };
+
+    // Expanded content with time picker (dateTime mode)
     const expandedContent =
       mode === "dateTime" &&
       (() => {
-        // Ensure we always pass a valid date to TimePicker
         const timePickerDate = selectedDate || new Date();
-        // Validate the date
         if (isNaN(timePickerDate.getTime())) {
           return null;
         }
@@ -211,26 +220,96 @@ export function DateInput({
               value={timePickerDate}
               onChange={handleTimeChange}
             />
-            {onRemoveTime && (
-              <div className="border-t border-border p-4">
-                <Button
-                  clicked={(e) => {
-                    e.stopPropagation();
-                    onRemoveTime();
-                  }}
-                  variant="default"
-                  size="sm"
-                  className="w-full">
-                  <div className="flex items-center justify-center gap-2">
-                    <HiClock className="size-4" />
-                    <span>Remove time</span>
-                  </div>
-                </Button>
-              </div>
-            )}
           </div>
         );
       })();
+
+    const embeddedSelectorClassName = cn(
+      "min-w-0 flex-1 !justify-start border-0 rounded-none rounded-l-2xl !h-full !min-h-9 bg-transparent px-0 hover:bg-surface-hover !shadow-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
+      isOpen && "ring-2 ring-inset ring-primary",
+      selectorClassName,
+    );
+
+    const dateDropdown = (
+      <Dropdown
+        dropdownSelector={triggerButton}
+        selectorClassName={
+          showEmbeddedTimeToggle ? embeddedSelectorClassName : selectorClassName
+        }
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        expandedContent={expandedContent || undefined}
+        showExpanded={!!expandedContent}
+        closeOnItemClick={false}
+        disabled={disabled}>
+        <Dropdown.Panel className="overflow-hidden w-full">
+          <CalendarView
+            startDate={selectedDate}
+            endDate={null}
+            onDateSelect={(start, _end) => handleDateSelect(start)}
+            timeSupported={
+              !showEmbeddedTimeToggle && mode === "dateOnly" && !!onAddTime
+            }
+            onAddTime={onAddTime}
+          />
+        </Dropdown.Panel>
+      </Dropdown>
+    );
+
+    const fieldErrors = shouldShowError && error?.message && (
+      <p className="text-sm text-danger mt-1">{error.message}</p>
+    );
+
+    const fieldHint = !shouldShowError && hint && (
+      <p className="text-xs text-text-muted mt-1">{hint}</p>
+    );
+
+    if (showEmbeddedTimeToggle) {
+      return (
+        <div className={cn(className)}>
+          {label && (
+            <Label
+              htmlFor={name}
+              required={required}
+              className="mb-1">
+              {label}
+            </Label>
+          )}
+          <div
+            className={cn(
+              "flex w-full items-stretch overflow-hidden rounded-2xl border bg-surface text-base text-text hover:bg-surface-hover",
+              borderClass,
+              disabled && "opacity-50 cursor-not-allowed",
+            )}>
+            <div className="flex min-w-0 flex-1 self-stretch [&_[data-dropdown-trigger]]:flex [&_[data-dropdown-trigger]]:h-full [&_[data-dropdown-trigger]]:min-h-0">
+              {dateDropdown}
+            </div>
+
+            <div
+              className="w-px shrink-0 self-stretch bg-border"
+              aria-hidden
+            />
+
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={handleEmbeddedTimeToggle}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 self-stretch rounded-r-2xl px-2.5 text-sm text-text-muted hover:bg-surface-hover hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary disabled:cursor-not-allowed",
+                mode === "dateTime" && "text-primary",
+              )}
+              aria-label={mode === "dateTime" ? "Remove time" : "Add time"}>
+              <HiClock className="size-4 shrink-0" />
+              <span className="whitespace-nowrap">
+                {mode === "dateTime" ? "Remove time" : "Add time"}
+              </span>
+            </button>
+          </div>
+          {fieldErrors}
+          {fieldHint}
+        </div>
+      );
+    }
 
     return (
       <div className={cn(className)}>
@@ -242,31 +321,9 @@ export function DateInput({
             {label}
           </Label>
         )}
-        <Dropdown
-          dropdownSelector={triggerButton}
-          selectorClassName={selectorClassName}
-          open={isOpen}
-          onOpenChange={setIsOpen}
-          expandedContent={expandedContent || undefined}
-          showExpanded={!!expandedContent}
-          closeOnItemClick={false}
-          disabled={disabled}>
-          <Dropdown.Panel className="overflow-hidden w-full">
-            <CalendarView
-              startDate={selectedDate}
-              endDate={null}
-              onDateSelect={(start, _end) => handleDateSelect(start)}
-              timeSupported={mode === "dateOnly" && !!onAddTime}
-              onAddTime={onAddTime}
-            />
-          </Dropdown.Panel>
-        </Dropdown>
-        {shouldShowError && error?.message && (
-          <p className="text-sm text-danger mt-1">{error.message}</p>
-        )}
-        {!shouldShowError && hint && (
-          <p className="text-xs text-text-muted mt-1">{hint}</p>
-        )}
+        {dateDropdown}
+        {fieldErrors}
+        {fieldHint}
       </div>
     );
   };
