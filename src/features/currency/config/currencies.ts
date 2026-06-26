@@ -5,6 +5,7 @@
 
 import isoCurrenciesData from "./iso-currencies.json";
 import { type ISelectOption } from "@/features/ui/select/select";
+import { type ISelectOptionGroup } from "@/features/ui/select/select-option-groups";
 
 export type ICurrencyMetadata = {
   code: string;
@@ -95,7 +96,7 @@ export function buildCurrencySelectOptions(input: {
   workspaceCurrencies: string[];
   searchQuery?: string;
 }): {
-  options: ISelectOption[];
+  options: ISelectOptionGroup[];
   recommendedCount: number;
 } {
   const search = input.searchQuery?.trim().toLowerCase() ?? "";
@@ -109,7 +110,10 @@ export function buildCurrencySelectOptions(input: {
       value: c.code,
       label: formatCurrencyLabel(c.code),
     }));
-    return { options: filtered, recommendedCount: 0 };
+    return {
+      options: [{ group: "", children: filtered }],
+      recommendedCount: 0,
+    };
   }
 
   const recommended = getRecommendedCurrencies({
@@ -129,7 +133,12 @@ export function buildCurrencySelectOptions(input: {
   }));
 
   return {
-    options: [...recommendedOptions, ...allOtherOptions],
+    options: [
+      ...(recommendedOptions.length > 0
+        ? [{ group: "Recommended", children: recommendedOptions }]
+        : []),
+      { group: "All currencies", children: allOtherOptions },
+    ],
     recommendedCount: recommendedOptions.length,
   };
 }

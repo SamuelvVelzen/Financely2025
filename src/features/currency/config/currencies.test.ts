@@ -80,11 +80,17 @@ describe("buildCurrencySelectOptions", () => {
     });
 
     expect(recommendedCount).toBe(2);
-    expect(options.slice(0, 2).map((option) => option.value)).toEqual([
-      "EUR",
-      "USD",
-    ]);
-    expect(options.some((option) => option.value === "AFN")).toBe(true);
+    expect(
+      options
+        .flatMap((optionGroup) => optionGroup.children)
+        .slice(0, 2)
+        .map((option) => option.value),
+    ).toEqual(["EUR", "USD"]);
+    expect(
+      options
+        .flatMap((optionGroup) => optionGroup.children)
+        .some((option) => option.value === "AFN"),
+    ).toBe(true);
   });
 
   it("filters all currencies when searching", () => {
@@ -97,7 +103,9 @@ describe("buildCurrencySelectOptions", () => {
     });
 
     expect(recommendedCount).toBe(0);
-    expect(options.map((option) => option.value)).toEqual(["EUR"]);
+    expect(
+      options.flatMap((optionGroup) => optionGroup.children).map((option) => option.value),
+    ).toEqual(["EUR"]);
   });
 });
 
