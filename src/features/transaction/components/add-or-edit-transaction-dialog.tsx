@@ -77,24 +77,39 @@ const TransactionFormSchema = CreateTransactionInputSchema.omit({
 });
 
 type FormData = z.infer<typeof TransactionFormSchema>;
-const getEmptyFormValues = (currency: string): FormData => {
-  // Default to today's date as date-only ISO
+
+function getTodayDateOnlyIso(): string {
   const now = new Date();
   const dateOnly = isoToDateOnly(now.toISOString());
-  const dateOnlyIso = dateOnlyToIso(dateOnly);
+  return dateOnlyToIso(dateOnly);
+}
 
+const getEmptyFormValues = (currency: string): FormData => ({
+  name: "",
+  amount: "",
+  currency,
+  type: "EXPENSE",
+  transactionDate: getTodayDateOnlyIso(),
+  paymentMethod: "OTHER",
+  description: "",
+  tagIds: [],
+  primaryTagId: null,
+});
+
+function getFormValuesForAnotherTransaction(
+  submitted: FormData,
+  defaultCurrency: string,
+): FormData {
   return {
-    name: "",
-    amount: "",
-    currency,
-    type: "EXPENSE",
-    transactionDate: dateOnlyIso,
-    paymentMethod: "OTHER",
-    description: "",
-    tagIds: [],
-    primaryTagId: null,
+    ...getEmptyFormValues(defaultCurrency),
+    type: submitted.type,
+    currency: submitted.currency,
+    paymentMethod: submitted.paymentMethod,
+    transactionDate: submitted.transactionDate,
+    primaryTagId: submitted.primaryTagId ?? null,
+    tagIds: submitted.tagIds ?? [],
   };
-};
+}
 
 export function AddOrEditTransactionDialog({
   open,
@@ -162,6 +177,7 @@ export function AddOrEditTransactionDialog({
   const watchedPrimaryTagId = form.watch("primaryTagId");
   const debouncedName = useDebouncedValue(watchedName, 300);
   const watchedTagIds = form.watch("tagIds") ?? [];
+  const additionalTagCount = watchedTagIds.length;
   const canFetchTagSuggestions =
     open &&
     !isEditMode &&
@@ -188,13 +204,19 @@ export function AddOrEditTransactionDialog({
     setUserEditedTags(false);
   };
 
-  const resetFormForAnotherTransaction = () => {
-    form.reset(getEmptyFormValues(defaultCurrency));
-    setHasTime(false);
+  const resetFormForAnotherTransaction = (submitted: FormData) => {
+    const nextValues = getFormValuesForAnotherTransaction(
+      submitted,
+      defaultCurrency,
+    );
+    const preservedTags =
+      (nextValues.tagIds?.length ?? 0) > 0 || !!nextValues.primaryTagId;
+
+    form.reset(nextValues);
     setDatePickerOpen(false);
-    setShowAdvanced(false);
+    setShowAdvanced((nextValues.tagIds?.length ?? 0) > 0);
     setTagSuggestion(null);
-    setUserEditedTags(false);
+    setUserEditedTags(preservedTags);
   };
 
   const closeDialog = () => {
@@ -241,22 +263,9 @@ export function AddOrEditTransactionDialog({
           primaryTagId: transaction.primaryTag?.id ?? null,
         });
       } else {
-        // Create mode: reset to defaults with current date (no time - DateOnly default)
-        const now = new Date();
-        // Convert to ISO with noon UTC for date-only
-        const dateOnly = isoToDateOnly(now.toISOString());
-        const dateOnlyIso = dateOnlyToIso(dateOnly);
-        form.reset({
-          name: "",
-          amount: "",
-          currency: defaultCurrency,
-          type: "EXPENSE",
-          transactionDate: dateOnlyIso,
-          paymentMethod: "OTHER",
-          description: "",
-          tagIds: [],
-          primaryTagId: null,
-        });
+        form.reset(getEmptyFormValues(defaultCurrency));
+        setShowAdvanced(false);
+        setUserEditedTags(false);
       }
       focusFirstInput();
   }, [open, transaction?.id, form, focusFirstInput, defaultCurrency, transaction]);
@@ -479,11 +488,11 @@ export function AddOrEditTransactionDialog({
         // Create new transaction - use appropriate hook based on type
         if (data.type === "EXPENSE") {
           createExpense(submitData, {
-            onSuccess: (data) => {
+            onSuccess: (created) => {
               if (resolvedAfterSuccess === "addAnother") {
-                resetFormForAnotherTransaction();
+                resetFormForAnotherTransaction(data);
                 setPendingAction(null);
-                if (!isOfflineMutationPlaceholder(data)) {
+                if (!isOfflineMutationPlaceholder(created)) {
                   toast.success("Expense created successfully");
                 }
                 onSuccess?.();
@@ -492,7 +501,7 @@ export function AddOrEditTransactionDialog({
                 resetFormToClosedState();
                 onOpenChange(false);
                 setPendingAction(null);
-                if (!isOfflineMutationPlaceholder(data)) {
+                if (!isOfflineMutationPlaceholder(created)) {
                   toast.success("Expense created successfully");
                 }
                 onSuccess?.();
@@ -506,11 +515,11 @@ export function AddOrEditTransactionDialog({
           });
         } else {
           createIncome(submitData, {
-            onSuccess: (data) => {
+            onSuccess: (created) => {
               if (resolvedAfterSuccess === "addAnother") {
-                resetFormForAnotherTransaction();
+                resetFormForAnotherTransaction(data);
                 setPendingAction(null);
-                if (!isOfflineMutationPlaceholder(data)) {
+                if (!isOfflineMutationPlaceholder(created)) {
                   toast.success("Income created successfully");
                 }
                 onSuccess?.();
@@ -519,7 +528,7 @@ export function AddOrEditTransactionDialog({
                 resetFormToClosedState();
                 onOpenChange(false);
                 setPendingAction(null);
-                if (!isOfflineMutationPlaceholder(data)) {
+                if (!isOfflineMutationPlaceholder(created)) {
                   toast.success("Income created successfully");
                 }
                 onSuccess?.();
@@ -607,6 +616,14 @@ export function AddOrEditTransactionDialog({
                 </Button>
               </div>
 
+              <SelectDropdown
+                name="paymentMethod"
+                label="Payment Method"
+                options={PAYMENT_METHOD_OPTIONS}
+                placeholder="Select payment method..."
+                disabled={pending}
+              />
+
               <Textarea
                 name="description"
                 label="Description"
@@ -643,18 +660,15 @@ export function AddOrEditTransactionDialog({
                 ) : (
                   <HiChevronDown className="size-4 shrink-0" />
                 )}
-                {showAdvanced ? "Hide advanced options" : "Show advanced options"}
+                {showAdvanced
+                  ? "Hide additional tags"
+                  : additionalTagCount > 0
+                    ? `Show additional tags (${additionalTagCount})`
+                    : "Show additional tags"}
               </button>
 
               {showAdvanced && (
                 <div className="space-y-4 pt-1">
-                  <SelectDropdown
-                    name="paymentMethod"
-                    label="Payment Method"
-                    options={PAYMENT_METHOD_OPTIONS}
-                    placeholder="Select payment method..."
-                    disabled={pending}
-                  />
                   <TagSelect
                     name="tagIds"
                     label="Tags"
