@@ -68,7 +68,7 @@ export function TagNameWithIconInput({
 
         <div
           className={cn(
-            "flex w-full items-stretch overflow-hidden rounded-2xl border bg-surface text-base text-text hover:bg-surface-hover focus-within:outline-none focus-within:ring-2 focus-within:ring-primary",
+            "flex w-full items-stretch overflow-hidden rounded-2xl border bg-surface text-base text-text hover:bg-surface-hover",
             borderClass,
             disabled && "opacity-50 cursor-not-allowed",
           )}>
@@ -92,7 +92,7 @@ export function TagNameWithIconInput({
             disabled={disabled}
             aria-invalid={ariaInvalid}
             aria-describedby={ariaDescribedBy}
-            className="min-w-0 flex-1 border-0 bg-transparent py-2 pl-2 pr-2 text-base text-text placeholder:text-text-muted focus:outline-none disabled:cursor-not-allowed"
+            className="min-w-0 flex-1 rounded-r-2xl border-0 bg-transparent py-2 pl-2 pr-2 text-base text-text placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary disabled:cursor-not-allowed"
             name={currentNameField.name}
             ref={currentNameField.ref}
             value={String(currentNameField.value ?? "")}

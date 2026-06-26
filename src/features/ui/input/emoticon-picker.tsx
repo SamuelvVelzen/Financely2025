@@ -27,6 +27,7 @@ type IEmoticonPickerProps = IPropsWithClassName & {
   variant?: "compact" | "standalone";
   /** Hide outer border (e.g. when embedded in a combined input). */
   embedded?: boolean;
+  onOpenChange?: (open: boolean) => void;
   "aria-label"?: string;
 } & IFormOrControlledMode<string>;
 
@@ -37,6 +38,7 @@ export function EmoticonPicker({
   transactionType,
   variant = "standalone",
   embedded = false,
+  onOpenChange,
   "aria-label": ariaLabel = "Choose tag icon",
   value: controlledValue,
   onChange: controlledOnChange,
@@ -260,7 +262,10 @@ export function EmoticonPicker({
         <Dropdown
           dropdownSelector={triggerContent}
           open={isPickerOpen}
-          onOpenChange={setIsPickerOpen}
+          onOpenChange={(open) => {
+            setIsPickerOpen(open);
+            onOpenChange?.(open);
+          }}
           placement="bottom"
           closeOnItemClick={false}
           disabled={disabled}
@@ -270,11 +275,12 @@ export function EmoticonPicker({
               ? cn(
                   "!w-auto border-0 rounded-none rounded-l-2xl",
                   embedded
-                    ? "!h-full !min-h-0 !py-0 !px-0"
+                    ? "!h-full !min-h-0 !py-0 !px-0 focus:ring-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                     : "!min-h-9 !h-9 !px-0",
                 )
               : "!justify-start border border-border rounded-2xl",
             !embedded && !isCompact && borderClass,
+            embedded && isPickerOpen && "ring-2 ring-inset ring-primary",
           )}>
           <Dropdown.Panel className="overflow-hidden w-[min(100vw-2rem,360px)] p-0">
             <div className="border-b border-border p-2">

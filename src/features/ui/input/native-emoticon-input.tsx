@@ -56,7 +56,8 @@ export function NativeEmoticonInput({
         isCompact
           ? cn(
               "self-stretch px-2.5",
-              embedded && "flex items-center rounded-l-2xl hover:bg-surface-hover",
+              embedded &&
+                "flex items-center rounded-l-2xl hover:bg-surface-hover has-focus-visible:ring-2 has-focus-visible:ring-inset has-focus-visible:ring-primary",
             )
           : cn(
               "h-9 w-full gap-2 rounded-2xl border px-3 py-2",
