@@ -10,6 +10,7 @@ export type IRadioGroupProps = IPropsWithClassName & {
   label?: string;
   hint?: string;
   required?: boolean;
+  orientation?: "horizontal" | "vertical";
   disabled?: boolean;
   children: React.ReactNode;
 };
@@ -20,6 +21,7 @@ export function RadioGroup({
   label,
   hint,
   required,
+  orientation = "horizontal",
   disabled = false,
   children,
 }: IRadioGroupProps) {
@@ -57,7 +59,11 @@ export function RadioGroup({
     itemElementsRef.current.get(value)?.focus();
   }, []);
 
-  const baseClasses = "space-y-1 w-full flex flex-wrap gap-3";
+  const baseClasses = "space-y-1 w-full";
+  const orientationClasses =
+    orientation === "horizontal"
+      ? "flex w-full flex-wrap gap-3"
+      : "flex w-full flex-col gap-2";
 
   return (
     <Controller
@@ -104,7 +110,8 @@ export function RadioGroup({
               <div
                 role="radiogroup"
                 aria-labelledby={legendId}
-                aria-orientation={"horizontal"}>
+                aria-orientation={orientation}
+                className={cn(orientationClasses)}>
                 <RadioGroupContext.Provider value={contextValue}>
                   {children}
                 </RadioGroupContext.Provider>

@@ -116,7 +116,7 @@ export function RadioItem({
   };
 
   return (
-    <div className="relative group grow">
+    <div className="relative group min-w-0 flex-1">
       <button
         {...props}
         ref={setButtonRef}
