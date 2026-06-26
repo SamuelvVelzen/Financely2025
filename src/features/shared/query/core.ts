@@ -23,25 +23,27 @@ import {
 /**
  * Generic query hook wrapper with sensible defaults
  *
- * @template TData - The data type returned by the query
+ * @template TQueryFnData - The data type returned by the query function
  * @template TError - The error type
+ * @template TData - The selected/transformed data type (defaults to TQueryFnData)
  * @template TQueryKey - The query key type
  */
 export function useFinQuery<
-  TData,
+  TQueryFnData,
   TError = Error,
+  TData = TQueryFnData,
   TQueryKey extends readonly unknown[] = readonly unknown[],
 >(
   options: {
     queryKey: TQueryKey;
-    queryFn: () => Promise<TData>;
+    queryFn: () => Promise<TQueryFnData>;
     staleTime?: number;
   } & Omit<
-    UseQueryOptions<TData, TError, TData, TQueryKey>,
+    UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
     "queryKey" | "queryFn"
   >,
 ) {
-  return useQuery<TData, TError, TData, TQueryKey>({
+  return useQuery<TQueryFnData, TError, TData, TQueryKey>({
     refetchOnWindowFocus: true,
     ...options,
   });
