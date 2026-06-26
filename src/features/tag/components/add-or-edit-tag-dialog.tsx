@@ -7,7 +7,7 @@ import {
 import { TagRulesForTagSection } from "@/features/tag-rule/components/tag-rules-for-tag-section";
 import { useCreateTagRule } from "@/features/tag-rule/hooks/useTagRules";
 import type { IPendingTagRule } from "@/features/tag-rule/types/pending-tag-rule";
-import { TagNameWithIconInput } from "@/features/tag/components/tag-name-with-icon-input";
+
 import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { Button } from "@/features/ui/button/button";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
@@ -24,6 +24,7 @@ import { useCallback, useEffect, useId, useState } from "react";
 import type { Resolver } from "react-hook-form";
 import { HiOutlineQueueList } from "react-icons/hi2";
 import { type z } from "zod";
+import { TagNameWithIconInput } from "./tag-name-with-icon-input";
 
 type IAddOrEditTagDialog = {
   open: boolean;
@@ -362,7 +363,7 @@ function AddOrEditTagDialogContent({
         label="Type"
         required
         disabled={pending}
-        orientation="horizontal">
+      >
         <RadioItem value="EXPENSE">Expense</RadioItem>
         <RadioItem value="INCOME">Income</RadioItem>
       </RadioGroup>

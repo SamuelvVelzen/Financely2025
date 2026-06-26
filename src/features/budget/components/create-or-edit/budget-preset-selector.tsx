@@ -248,7 +248,7 @@ export function BudgetPresetSelector({
       <RadioGroup
         name="general.preset"
         label="Budget Period"
-        orientation="horizontal"
+
         className="mt-2">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
           <RadioItem value="monthly" icon={HiCalendar}>

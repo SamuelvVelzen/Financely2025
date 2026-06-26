@@ -254,25 +254,25 @@ export function AddOrEditTransactionDialog({
     }
 
     if (transaction) {
-        // Edit mode: populate form with existing transaction data
-        // DateInput expects ISO strings
-        form.reset({
-          name: transaction.name,
-          amount: transaction.amount,
-          currency: transaction.currency,
-          type: transaction.type,
-          transactionDate: transaction.transactionDate, // Already ISO string
-          paymentMethod: transaction.paymentMethod,
-          description: transaction.description ?? "",
-          tagIds: transaction.tags.map((tag) => tag.id),
-          primaryTagId: transaction.primaryTag?.id ?? null,
-        });
-      } else {
-        form.reset(getEmptyFormValues(defaultCurrency));
-        setShowAdvanced(false);
-        setUserEditedTags(false);
-      }
-      focusFirstInput();
+      // Edit mode: populate form with existing transaction data
+      // DateInput expects ISO strings
+      form.reset({
+        name: transaction.name,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        type: transaction.type,
+        transactionDate: transaction.transactionDate, // Already ISO string
+        paymentMethod: transaction.paymentMethod,
+        description: transaction.description ?? "",
+        tagIds: transaction.tags.map((tag) => tag.id),
+        primaryTagId: transaction.primaryTag?.id ?? null,
+      });
+    } else {
+      form.reset(getEmptyFormValues(defaultCurrency));
+      setShowAdvanced(false);
+      setUserEditedTags(false);
+    }
+    focusFirstInput();
   }, [open, transaction?.id, form, focusFirstInput, defaultCurrency, transaction]);
 
   useEffect(() => {
@@ -585,7 +585,7 @@ export function AddOrEditTransactionDialog({
                 label="Type"
                 required
                 disabled={pending}
-                orientation="horizontal">
+              >
                 <RadioItem value="EXPENSE" icon={HiArrowTrendingDown}>
                   Expense
                 </RadioItem>
