@@ -2,7 +2,7 @@ import { Button } from "@/features/ui/button/button";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, subMonths } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HiChevronLeft, HiChevronRight, HiClock } from "react-icons/hi";
 
 export type ICalendarViewProps = {
@@ -32,14 +32,15 @@ export function CalendarView({
   };
 
   const [currentMonth, setCurrentMonth] = useState<Date>(getInitialMonth);
-  const [prevStartDate, setPrevStartDate] = useState(startDate);
+  const startDateTime = startDate?.getTime() ?? null;
 
-  if (startDate !== prevStartDate) {
-    setPrevStartDate(startDate);
-    if (startDate && !isSameMonth(currentMonth, startDate)) {
-      setCurrentMonth(startDate);
-    }
-  }
+  // Sync displayed month when the selected date value changes. Compare by
+  // timestamp — parents like DateInput pass a new Date object each render.
+  useEffect(() => {
+    if (startDateTime == null) return;
+    const date = new Date(startDateTime);
+    setCurrentMonth((month) => (isSameMonth(month, date) ? month : date));
+  }, [startDateTime]);
 
   const handleDateClick = (date: Date) => {
     const normalizedDate = startOfDay(date);
