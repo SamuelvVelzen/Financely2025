@@ -13,12 +13,12 @@ import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
 import { useSubscription } from "@/features/subscription/hooks/useSubscriptions";
 import { matchTagRules } from "@/features/tag-rule/api/client";
 import { TagSuggestionHint } from "@/features/tag-rule/components/tag-suggestion-hint";
+import { useTags } from "@/features/tag/hooks/useTags";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import {
   useCreateExpense,
   useCreateIncome,
-  useUpdateExpense,
-  useUpdateIncome,
+  useUpdateTransaction,
 } from "@/features/transaction/hooks/useTransactions";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
@@ -158,8 +158,8 @@ export function AddOrEditTransactionDialog({
   const isEditMode = !!transaction;
   const { mutate: createExpense } = useCreateExpense();
   const { mutate: createIncome } = useCreateIncome();
-  const { mutate: updateExpense } = useUpdateExpense();
-  const { mutate: updateIncome } = useUpdateIncome();
+  const { mutate: updateTransaction } = useUpdateTransaction();
+  const { data: tagsData } = useTags();
   const toast = useToast();
   const workspaceId = useNavWorkspaceId();
   const defaultCurrency = useDefaultCurrency(workspaceId);
@@ -363,6 +363,42 @@ export function AddOrEditTransactionDialog({
     form,
   ]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const tags = tagsData?.data ?? [];
+    if (tags.length === 0) {
+      return;
+    }
+
+    const primaryTagId = form.getValues("primaryTagId");
+    const tagIds = form.getValues("tagIds") ?? [];
+    if (!primaryTagId && tagIds.length === 0) {
+      return;
+    }
+
+    const isCompatibleTag = (tagId: string) => {
+      const tag = tags.find((item) => item.id === tagId);
+      if (!tag) {
+        return true;
+      }
+      return tag.transactionType === transactionType;
+    };
+
+    const nextPrimaryTagId =
+      primaryTagId && !isCompatibleTag(primaryTagId) ? null : primaryTagId;
+    const nextTagIds = tagIds.filter(isCompatibleTag);
+
+    if (nextPrimaryTagId !== primaryTagId) {
+      form.setValue("primaryTagId", nextPrimaryTagId, { shouldDirty: true });
+    }
+    if (nextTagIds.length !== tagIds.length) {
+      form.setValue("tagIds", nextTagIds, { shouldDirty: true });
+    }
+  }, [open, transactionType, tagsData?.data, form]);
+
   const handleTagFieldChange = () => {
     setUserEditedTags(true);
   };
@@ -426,6 +462,7 @@ export function AddOrEditTransactionDialog({
       : "DateOnly";
 
     const submitData = {
+      type: data.type,
       name: data.name.trim(),
       amount: data.amount.trim(),
       currency: CurrencySchema.parse(data.currency),
@@ -442,48 +479,25 @@ export function AddOrEditTransactionDialog({
 
     try {
       if (isEditMode && transaction) {
-        // Update existing transaction - use appropriate hook based on type
-        if (data.type === "EXPENSE") {
-          updateExpense(
-            { transactionId: transaction.id, input: submitData },
-            {
-              onSuccess: (data) => {
-                resetFormToClosedState();
-                setPendingAction(null);
-                onOpenChange(false);
-                if (!isOfflineMutationPlaceholder(data)) {
-                  toast.success("Expense updated successfully");
-                }
-                onSuccess?.();
-              },
-              onError: (error) => {
-                setPendingAction(null);
-                toast.error("Failed to update expense");
-                throw error;
-              },
-            }
-          );
-        } else {
-          updateIncome(
-            { transactionId: transaction.id, input: submitData },
-            {
-              onSuccess: (data) => {
-                resetFormToClosedState();
-                setPendingAction(null);
-                onOpenChange(false);
-                if (!isOfflineMutationPlaceholder(data)) {
-                  toast.success("Income updated successfully");
-                }
-                onSuccess?.();
-              },
-              onError: (error) => {
-                setPendingAction(null);
-                toast.error("Failed to update income");
-                throw error;
-              },
-            }
-          );
-        }
+        updateTransaction(
+          { transactionId: transaction.id, input: submitData },
+          {
+            onSuccess: (updated) => {
+              resetFormToClosedState();
+              setPendingAction(null);
+              onOpenChange(false);
+              if (!isOfflineMutationPlaceholder(updated)) {
+                toast.success("Transaction updated successfully");
+              }
+              onSuccess?.();
+            },
+            onError: (error) => {
+              setPendingAction(null);
+              toast.error("Failed to update transaction");
+              throw error;
+            },
+          },
+        );
       } else {
         // Create new transaction - use appropriate hook based on type
         if (data.type === "EXPENSE") {
@@ -548,9 +562,7 @@ export function AddOrEditTransactionDialog({
     }
   };
 
-  const dialogTitle = isEditMode
-    ? `Edit ${transactionType === "EXPENSE" ? "Expense" : "Income"}`
-    : "Create Transaction";
+  const dialogTitle = isEditMode ? "Edit Transaction" : "Create Transaction";
 
   return (
     <>
@@ -563,18 +575,15 @@ export function AddOrEditTransactionDialog({
             onSubmit={(data) => processFormSubmit(data, "close")}
             id={formId}>
             <div className="space-y-4">
-              {/* Transaction type selector - only show in create mode */}
-              {!isEditMode && (
-                <RadioGroup
-                  name="type"
-                  label="Type"
-                  required
-                  disabled={pending}
-                  orientation="horizontal">
-                  <RadioItem value="EXPENSE">Expense</RadioItem>
-                  <RadioItem value="INCOME">Income</RadioItem>
-                </RadioGroup>
-              )}
+              <RadioGroup
+                name="type"
+                label="Type"
+                required
+                disabled={pending}
+                orientation="horizontal">
+                <RadioItem value="EXPENSE">Expense</RadioItem>
+                <RadioItem value="INCOME">Income</RadioItem>
+              </RadioGroup>
               <TextInput
                 name="name"
                 label="Name"
@@ -724,7 +733,7 @@ export function AddOrEditTransactionDialog({
             loading: {
               isLoading: pendingAction === "close",
               text: isEditMode
-                ? `Updating ${transactionType === "EXPENSE" ? "expense" : "income"}`
+                ? "Updating transaction"
                 : `Creating ${transactionType === "EXPENSE" ? "expense" : "income"}`,
             },
             buttonContent: isEditMode ? "Update" : "Create",

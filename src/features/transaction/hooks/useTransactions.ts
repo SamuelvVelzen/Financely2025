@@ -131,7 +131,16 @@ export function useUpdateTransaction() {
   >({
     mutationFn: ({ transactionId, input }) =>
       updateTransaction(requireWorkspaceId(workspaceId), transactionId, input),
-    invalidateQueries: [() => queryKeys.transactions(workspaceId!)],
+    invalidateQueries: [
+      () => queryKeys.transactions(workspaceId!),
+      () => queryKeys.expenses(workspaceId!),
+      () => queryKeys.incomes(workspaceId!),
+      () => queryKeys.subscriptions(workspaceId!),
+    ],
+    getOfflineQueuedToast: () => ({
+      title: "Transaction updated successfully",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -377,12 +386,13 @@ export function useUpdateExpense() {
   return useFinMutation<
     ITransaction,
     Error,
-    { transactionId: string; input: Omit<IUpdateTransactionInput, "type"> }
+    { transactionId: string; input: IUpdateTransactionInput }
   >({
     mutationFn: ({ transactionId, input }) =>
       updateTransaction(requireWorkspaceId(workspaceId), transactionId, input),
     invalidateQueries: [
       () => queryKeys.expenses(workspaceId!),
+      () => queryKeys.incomes(workspaceId!),
       () => queryKeys.transactions(workspaceId!),
       () => queryKeys.subscriptions(workspaceId!),
     ],
@@ -521,11 +531,12 @@ export function useUpdateIncome() {
   return useFinMutation<
     ITransaction,
     Error,
-    { transactionId: string; input: Omit<IUpdateTransactionInput, "type"> }
+    { transactionId: string; input: IUpdateTransactionInput }
   >({
     mutationFn: ({ transactionId, input }) =>
       updateTransaction(requireWorkspaceId(workspaceId), transactionId, input),
     invalidateQueries: [
+      () => queryKeys.expenses(workspaceId!),
       () => queryKeys.incomes(workspaceId!),
       () => queryKeys.transactions(workspaceId!),
       () => queryKeys.subscriptions(workspaceId!),
