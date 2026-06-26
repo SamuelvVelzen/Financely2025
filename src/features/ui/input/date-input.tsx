@@ -355,7 +355,7 @@ export function DateInput({
       })();
 
     const embeddedSelectorClassName = cn(
-      "min-w-0 flex-1 !justify-start border-0 rounded-none rounded-l-2xl !h-full !min-h-9 bg-transparent px-0 hover:bg-surface-hover !shadow-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
+      "min-w-0 w-full flex-1 !justify-start border-0 rounded-none rounded-l-2xl !h-full !min-h-9 bg-transparent px-0 hover:bg-surface-hover !shadow-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
       isOpen && "ring-2 ring-inset ring-primary",
       selectorClassName,
     );
@@ -412,7 +412,7 @@ export function DateInput({
               borderClass,
               disabled && "opacity-50 cursor-not-allowed",
             )}>
-            <div className="flex min-w-0 flex-1 self-stretch [&_[data-dropdown-trigger]]:flex [&_[data-dropdown-trigger]]:h-full [&_[data-dropdown-trigger]]:min-h-0">
+            <div className="flex min-w-0 flex-1 self-stretch [&_[data-dropdown-container]]:min-w-0 [&_[data-dropdown-container]]:flex-1 [&_[data-dropdown-trigger]]:flex [&_[data-dropdown-trigger]]:h-full [&_[data-dropdown-trigger]]:w-full [&_[data-dropdown-trigger]]:min-h-0">
               {dateDropdown}
             </div>
 
