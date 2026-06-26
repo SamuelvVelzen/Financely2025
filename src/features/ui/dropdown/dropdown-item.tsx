@@ -26,7 +26,7 @@ export function DropdownItem({
     <Button
       data-dropdown-item
       className={cn(
-        "gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full justify-start",
+        "gap-2 hover:bg-surface-hover px-3 py-2 text-nowrap font-normal w-full justify-start! text-left",
         dropdownItemBorderClasses,
         selected &&
           "bg-primary/10 hover:bg-primary/20 text-primary font-medium",

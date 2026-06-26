@@ -509,7 +509,7 @@ export function Select<
                       "min-w-0 !whitespace-normal",
                       optionClassName
                     )}>
-                    <div className="flex items-center gap-2 w-full min-w-0">
+                    <div className="flex items-center justify-start gap-2 w-full min-w-0 text-left">
                       {multiple && (
                         <Checkbox
                           checked={optionIsSelected}
@@ -526,7 +526,7 @@ export function Select<
                           searchQuery,
                         })
                       ) : (
-                        <span className="flex-1 truncate min-w-0">
+                        <span className="truncate min-w-0 text-left">
                           {highlightText(option.label, searchQuery)}
                         </span>
                       )}
