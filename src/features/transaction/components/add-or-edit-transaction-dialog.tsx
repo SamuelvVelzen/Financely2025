@@ -47,7 +47,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { parseISO } from "date-fns";
 import { useCallback, useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
-import { HiArrowPath, HiChevronDown, HiChevronUp } from "react-icons/hi2";
+import {
+  HiArrowPath,
+  HiArrowTrendingDown,
+  HiArrowTrendingUp,
+  HiChevronDown,
+  HiChevronUp,
+} from "react-icons/hi2";
 import { z } from "zod";
 
 type IAddOrEditTransactionDialog = {
@@ -581,8 +587,12 @@ export function AddOrEditTransactionDialog({
                 required
                 disabled={pending}
                 orientation="horizontal">
-                <RadioItem value="EXPENSE">Expense</RadioItem>
-                <RadioItem value="INCOME">Income</RadioItem>
+                <RadioItem value="EXPENSE" icon={HiArrowTrendingDown}>
+                  Expense
+                </RadioItem>
+                <RadioItem value="INCOME" icon={HiArrowTrendingUp}>
+                  Income
+                </RadioItem>
               </RadioGroup>
               <TextInput
                 name="name"
