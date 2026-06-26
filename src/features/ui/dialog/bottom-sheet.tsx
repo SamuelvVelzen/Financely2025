@@ -16,6 +16,7 @@ import type { IButtonProps } from "../button/button";
 import { Button } from "../button/button";
 import { IconButton } from "../button/icon-button";
 import type { IDialogFocusProps } from "./dialog/types";
+import { hasOpenDropdownPopover, registerOverlayEscapeHandler } from "../dropdown/dropdown-overlay";
 import { useDialogStack } from "./dialog/use-dialog-stack";
 import {
   getPrimaryFooterButtonIndex,
@@ -215,8 +216,19 @@ export function BottomSheet({
   }, [open, onClose]);
 
   const handleClose = useCallback(() => {
+    if (hasOpenDropdownPopover()) return;
     handleOpenChange(false);
   }, [handleOpenChange]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    return registerOverlayEscapeHandler({
+      isActive: () => open,
+      dismissible,
+      onEscape: handleClose,
+    });
+  }, [open, dismissible, handleClose]);
 
   // Calculate snap point positions
   const snapPositions = useMemo(() => {
@@ -417,7 +429,6 @@ export function BottomSheet({
     initialFocusRef: resolvedInitialFocusRef,
     disableInitialFocus:
       disableInitialFocus || resolvedInitialFocusRef === undefined,
-    onEscape: dismissible ? handleClose : undefined,
   });
 
   useEffect(() => {

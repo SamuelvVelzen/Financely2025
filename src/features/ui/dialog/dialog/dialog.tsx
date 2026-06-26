@@ -4,6 +4,10 @@ import { HiX } from "react-icons/hi";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
 import type { IDialogProps, IDialogStatus } from "./types";
+import {
+  hasOpenDropdownPopover,
+  registerOverlayEscapeHandler,
+} from "../../dropdown/dropdown-overlay";
 import { isTopmostOpenDialog } from "./use-dialog-stack";
 import { getPrimaryFooterButtonIndex, useFocusTrap } from "./use-focus-trap";
 
@@ -95,19 +99,28 @@ export function Dialog({
 
   const handleClose = useCallback(() => {
     if (!isTopmostOpenDialog(dialogRef.current)) return;
+    if (hasOpenDropdownPopover()) return;
     handleOpenChange(false);
   }, [handleOpenChange]);
 
-  // Handle native dialog close event (ESC key, form submission)
+  // Handle native dialog close event (programmatic close, form submission)
   const handleDialogClose = useCallback(() => {
-    // Ignore spurious close events while React state still says open (e.g. stacked
-    // dialogs). Re-show the modal so DOM stays in sync with controlled state.
-    if (open) {
-      dialogRef.current?.showModal();
-      return;
-    }
-    handleOpenChange(false);
-  }, [open, handleOpenChange]);
+    if (!open) return;
+    dialogRef.current?.showModal();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    return registerOverlayEscapeHandler({
+      isActive: () =>
+        dialog.open && isTopmostOpenDialog(dialog),
+      dismissible,
+      onEscape: handleClose,
+    });
+  }, [open, dismissible, handleClose]);
 
   // Use pointerdown (not click) for backdrop dismiss so closing a stacked dialog
   // doesn't let the trailing click land on the dialog underneath.
@@ -122,18 +135,12 @@ export function Dialog({
     [dismissible, handleClose]
   );
 
-  // Handle cancel event (ESC key) - prevent if not dismissible
+  // Block native ESC close — React state drives open/close via keydown handler above.
   const handleCancel = useCallback(
     (e: React.SyntheticEvent<HTMLDialogElement>) => {
-      if (!isTopmostOpenDialog(dialogRef.current)) {
-        e.preventDefault();
-        return;
-      }
-      if (!dismissible) {
-        e.preventDefault();
-      }
+      e.preventDefault();
     },
-    [dismissible]
+    []
   );
 
   // Generate title ID for aria-labelledby if title is provided
@@ -189,7 +196,6 @@ export function Dialog({
     initialFocusRef: resolvedInitialFocusRef,
     disableInitialFocus:
       disableInitialFocus || resolvedInitialFocusRef === undefined,
-    onEscape: dismissible ? handleClose : undefined,
   });
 
   const statusClasses: Record<IDialogStatus | "none", string> = {
