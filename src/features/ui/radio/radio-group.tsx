@@ -85,7 +85,7 @@ export function RadioGroup({
           <div className={cn(baseClasses, className)}>
             <fieldset
               id={fieldsetId}
-              className="border-0 p-0 m-0"
+              className="border-0 p-0 m-0 w-full"
               aria-describedby={cn(
                 errorId,
                 hintId && !errorId ? hintId : undefined
