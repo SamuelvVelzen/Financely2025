@@ -22,6 +22,44 @@ import {
 
 export type IPlacementOption = "top" | "bottom" | "left" | "right" | "auto";
 
+const DROPDOWN_VIEWPORT_MARGIN_PX = 8;
+const DROPDOWN_MIN_HEIGHT_PX = 120;
+
+function updateDropdownPanelMaxHeight(
+  trigger: HTMLElement,
+  popover: HTMLElement,
+  placement?: IPlacementOption | IPlacementOption[],
+) {
+  const triggerRect = trigger.getBoundingClientRect();
+  const panel = popover.querySelector<HTMLElement>("[data-dropdown-panel]");
+  const panelRect = panel?.getBoundingClientRect();
+  const margin = DROPDOWN_VIEWPORT_MARGIN_PX;
+  const placementValue = Array.isArray(placement) ? placement[0] : placement;
+
+  let availableHeight: number;
+  if (placementValue === "left" || placementValue === "right") {
+    availableHeight = window.innerHeight - margin * 2;
+  } else {
+    const opensBelow =
+      placementValue === "top"
+        ? false
+        : placementValue === "bottom"
+          ? true
+          : (panelRect?.top ?? triggerRect.bottom) >= triggerRect.bottom - 2;
+
+    availableHeight = opensBelow
+      ? window.innerHeight - triggerRect.bottom - margin
+      : triggerRect.top - margin;
+  }
+
+  const maxHeight = Math.max(
+    DROPDOWN_MIN_HEIGHT_PX,
+    Math.min(availableHeight, window.innerHeight - margin * 2),
+  );
+
+  popover.style.setProperty("--dropdown-max-height", `${maxHeight}px`);
+}
+
 const dropdownSizeClasses: { [key in IButtonSize]: { iconClasses: string } } = {
   xs: { iconClasses: "size-3" },
   sm: { iconClasses: "size-4" },
@@ -105,6 +143,7 @@ export function Dropdown({
   const [internalOpen, setInternalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownContentRef = useRef<HTMLDivElement>(null);
+  const dropdownPanelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
   const expandedContentRef = useRef<HTMLDivElement>(null);
 
@@ -133,9 +172,10 @@ export function Dropdown({
     setDropdownState(!dropdownIsOpen);
   }, [disabled, dropdownIsOpen, setDropdownState]);
 
-  // Sync popover state with controlled open state
+  // Sync popover state and clamp panel height to available viewport space.
   useEffect(() => {
     const popover = dropdownContentRef.current;
+    const trigger = triggerRef.current;
     if (!popover) return;
 
     if (dropdownIsOpen && !popover.matches(":popover-open")) {
@@ -143,7 +183,33 @@ export function Dropdown({
     } else if (!dropdownIsOpen && popover.matches(":popover-open")) {
       popover.hidePopover();
     }
-  }, [dropdownIsOpen]);
+
+    if (!dropdownIsOpen || !trigger) {
+      return;
+    }
+
+    const syncMaxHeight = () => {
+      updateDropdownPanelMaxHeight(trigger, popover, placement);
+    };
+
+    let raf = 0;
+    const syncAfterLayout = () => {
+      syncMaxHeight();
+      raf = requestAnimationFrame(syncMaxHeight);
+    };
+
+    syncAfterLayout();
+
+    window.addEventListener("resize", syncMaxHeight);
+    window.addEventListener("scroll", syncMaxHeight, true);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", syncMaxHeight);
+      window.removeEventListener("scroll", syncMaxHeight, true);
+      popover.style.removeProperty("--dropdown-max-height");
+    };
+  }, [dropdownIsOpen, placement]);
 
   // Handle native popover toggle event
   const handleToggle = useCallback(
@@ -274,7 +340,8 @@ export function Dropdown({
           "dropdown-popover",
           getPositionClasses(),
           showExpanded && "dropdown-anchor-end",
-          "flex flex-row shadow-lg rounded-2xl",
+          "flex flex-row shadow-lg rounded-2xl overflow-hidden",
+          "max-h-[var(--dropdown-max-height,calc(100dvh-1rem))]",
           // Reset default popover styles
           "m-0 p-0 border-0 bg-transparent",
           // Ensure closed popovers stay hidden (flex overrides browser default)
@@ -307,24 +374,25 @@ export function Dropdown({
           }
         }}>
         <div
+          ref={dropdownPanelRef}
           data-dropdown-panel
           data-panel-mode={hasPanelContent ? "content" : "items"}
           data-expanded={showExpanded ? "true" : undefined}
           className={cn(
-            "group/dropdown-panel text-base font-normal flex flex-col",
+            "group/dropdown-panel text-base font-normal flex flex-col min-h-0 overflow-hidden",
             showExpanded ? "shrink-0" : "w-full min-w-full",
             panelClassName,
-            "max-h-[calc(100vh-16px)]",
+            "max-h-[var(--dropdown-max-height,calc(100dvh-1rem))]",
             hasPanelContent &&
               (showExpanded
-                ? "border border-border overflow-hidden bg-surface rounded-l-2xl"
-                : "border border-border overflow-hidden bg-surface rounded-2xl"),
+                ? "border border-border bg-surface rounded-l-2xl"
+                : "border border-border bg-surface rounded-2xl"),
             !hasPanelContent && "bg-surface"
           )}>
           <div
             data-dropdown-list
             data-expanded={showExpanded ? "true" : undefined}
-            className="group/dropdown-list overflow-y-auto flex-1 min-h-0">
+            className="group/dropdown-list overflow-y-auto overscroll-contain flex-1 min-h-0">
             {regularChildren}
           </div>
           {footerChildren.length > 0 && (
