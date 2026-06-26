@@ -5,13 +5,19 @@ import { useFieldAdapter } from "@/features/shared/hooks/use-field-adapter";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { Controller } from "react-hook-form";
 import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
+import { DropdownHeader } from "../dropdown/dropdown-header";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import { NativeSelect } from "../select/native-select";
+import {
+  flattenSelectOptions,
+  normalizeSelectOptions,
+  type ISelectOptionsInput,
+} from "../select/select-option-groups";
 import { type ISelectOption } from "../select/select";
 import { type IValueSerialization } from "../select/select-helpers";
 import { Label } from "../typography/label";
@@ -20,7 +26,7 @@ export type ISelectDropdownProps<
   TValue = string,
   TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
 > = IPropsWithClassName & {
-  options: TOption[] | readonly TOption[];
+  options: ISelectOptionsInput<TValue, TOption>;
   multiple?: boolean;
   placeholder?: string;
   label?: string;
@@ -77,6 +83,16 @@ export function SelectDropdown<
   const [isOpen, setIsOpen] = useState(false);
   const [isNested, setIsNested] = useState(false);
 
+  const optionGroups = useMemo(
+    () => normalizeSelectOptions(options),
+    [options],
+  );
+
+  const flatOptions = useMemo(
+    () => flattenSelectOptions(optionGroups),
+    [optionGroups],
+  );
+
   // Check if this SelectDropdown is nested inside another dropdown
   useEffect(() => {
     if (!containerRef.current) return;
@@ -99,7 +115,7 @@ export function SelectDropdown<
 
     if (multiple && Array.isArray(val)) {
       const selectedOptions = val
-        .map((v) => options.find((opt) => opt.value === v))
+        .map((v) => flatOptions.find((opt) => opt.value === v))
         .filter((opt): opt is TOption => opt !== undefined);
 
       if (selectedOptions.length <= maxDisplayItems) {
@@ -115,7 +131,7 @@ export function SelectDropdown<
     }
 
     if (!multiple) {
-      const selectedOption = options.find((opt) => opt.value === val);
+      const selectedOption = flatOptions.find((opt) => opt.value === val);
       return selectedOption?.label || placeholder;
     }
 
@@ -147,7 +163,7 @@ export function SelectDropdown<
     return (
       <NativeSelect
         className={className}
-        options={options}
+        options={optionGroups}
         multiple={multiple}
         placeholder={placeholder}
         label={label}
@@ -295,41 +311,48 @@ export function SelectDropdown<
           closeOnItemClick={!multiple}
           disabled={disabled}
           allowNested={isNested}>
-          {options.map((option, index) => {
-            const optionIsSelected = isSelected(option.value, value);
-            const handleClick = () => handleOptionClick(option.value);
-            return (
-              <DropdownItem
-                key={String(option.value)}
-                clicked={handleClick}
-                selected={optionIsSelected}>
-                <div
-                  className={cn(
-                    "flex items-center gap-2 w-full",
-                    disabled && "opacity-50 cursor-not-allowed"
-                  )}>
-                  {multiple && (
-                    <Checkbox
-                      checked={optionIsSelected}
-                      onChange={handleClick}
-                      disabled={disabled}
-                      className="pointer-events-none"
-                    />
-                  )}
+          {optionGroups.map((optionGroup, groupIndex) => (
+            <Fragment key={`${optionGroup.group}-${groupIndex}`}>
+              {optionGroup.group && (
+                <DropdownHeader>{optionGroup.group}</DropdownHeader>
+              )}
+              {optionGroup.children.map((option, index) => {
+                const optionIsSelected = isSelected(option.value, value);
+                const handleClick = () => handleOptionClick(option.value);
+                return (
+                  <DropdownItem
+                    key={String(option.value)}
+                    clicked={handleClick}
+                    selected={optionIsSelected}>
+                    <div
+                      className={cn(
+                        "flex items-center gap-2 w-full",
+                        disabled && "opacity-50 cursor-not-allowed"
+                      )}>
+                      {multiple && (
+                        <Checkbox
+                          checked={optionIsSelected}
+                          onChange={handleClick}
+                          disabled={disabled}
+                          className="pointer-events-none"
+                        />
+                      )}
 
-                  {children ? (
-                    children(option, index, {
-                      isSelected: optionIsSelected,
-                      handleClick,
-                      multiple,
-                    })
-                  ) : (
-                    <span>{option.label}</span>
-                  )}
-                </div>
-              </DropdownItem>
-            );
-          })}
+                      {children ? (
+                        children(option, index, {
+                          isSelected: optionIsSelected,
+                          handleClick,
+                          multiple,
+                        })
+                      ) : (
+                        <span>{option.label}</span>
+                      )}
+                    </div>
+                  </DropdownItem>
+                );
+              })}
+            </Fragment>
+          ))}
         </Dropdown>
         {error && (
           <p className="text-sm text-danger mt-1">

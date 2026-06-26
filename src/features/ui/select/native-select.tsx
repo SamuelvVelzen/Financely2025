@@ -12,6 +12,7 @@ import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type SelectHTMLAttributes, useId } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 import { type ISelectOption } from "./select";
+import { normalizeSelectOptions, type ISelectOptionsInput } from "./select-option-groups";
 import {
   createStringToValueConverter,
   createValueToStringConverter,
@@ -27,7 +28,7 @@ export type ISelectInputProps<
   TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
 > = IPropsWithClassName &
   Omit<SelectHTMLAttributes<HTMLSelectElement>, "value" | "onChange"> & {
-    options: TOption[] | readonly TOption[];
+    options: ISelectOptionsInput<TValue, TOption>;
     multiple?: boolean;
     placeholder?: string;
     label?: string;
@@ -100,6 +101,7 @@ export function NativeSelect<
       valueToString,
       stringToValue,
     });
+    const optionGroups = normalizeSelectOptions(options);
 
     return (
       <div className={cn("relative", label ? "space-y-1" : "", className)}>
@@ -150,13 +152,29 @@ export function NativeSelect<
               {placeholder}
             </option>
           )}
-          {options.map((option) => (
-            <option
-              key={String(option.value)}
-              value={convertValueToString(option.value)}>
-              {option.label}
-            </option>
-          ))}
+          {optionGroups.map((optionGroup, groupIndex) =>
+            optionGroup.group ? (
+              <optgroup
+                key={`${optionGroup.group}-${groupIndex}`}
+                label={optionGroup.group}>
+                {optionGroup.children.map((option) => (
+                  <option
+                    key={String(option.value)}
+                    value={convertValueToString(option.value)}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+            ) : (
+              optionGroup.children.map((option) => (
+                <option
+                  key={String(option.value)}
+                  value={convertValueToString(option.value)}>
+                  {option.label}
+                </option>
+              ))
+            ),
+          )}
         </select>
         {hasError && (
           <p

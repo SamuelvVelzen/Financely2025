@@ -4,17 +4,26 @@ import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState, Fragment } from "react";
 import { Controller } from "react-hook-form";
 import { HiChevronDown, HiInformationCircle, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import type { IPlacementOption } from "../dropdown/dropdown";
 import { Dropdown } from "../dropdown/dropdown";
+import { DropdownHeader } from "../dropdown/dropdown-header";
 import { DropdownItem } from "../dropdown/dropdown-item";
 import { DropdownItemEmpty } from "../dropdown/dropdown-item-empty";
 import { Label } from "../typography/label";
 import { NativeSelect } from "./native-select";
+import {
+  flattenSelectOptions,
+  normalizeSelectOptions,
+  type ISelectOptionGroup,
+  type ISelectOptionsInput,
+} from "./select-option-groups";
 import { type IValueSerialization } from "./select-helpers";
+
+export type { ISelectOptionGroup, ISelectOptionsInput } from "./select-option-groups";
 
 export type ISelectOption<TValue = string> = {
   value: TValue;
@@ -25,7 +34,7 @@ export type ISelectProps<
   TValue = string,
   TOption extends ISelectOption<TValue> = ISelectOption<TValue>,
 > = IPropsWithClassName & {
-  options: TOption[] | readonly TOption[];
+  options: ISelectOptionsInput<TValue, TOption>;
   multiple?: boolean;
   placeholder?: string;
   label?: string;
@@ -108,6 +117,16 @@ export function Select<
   >(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const optionGroups = useMemo(
+    () => normalizeSelectOptions(options),
+    [options],
+  );
+
+  const flatOptions = useMemo(
+    () => flattenSelectOptions(optionGroups),
+    [optionGroups],
+  );
+
   const { highlightText } = useHighlightText();
 
   // Helper functions (defined before hooks to avoid issues)
@@ -118,34 +137,44 @@ export function Select<
       }
       if (multiple && Array.isArray(value)) {
         const unmatched = value.filter(
-          (val) => !options.some((opt) => opt.value === val),
+          (val) => !flatOptions.some((opt) => opt.value === val),
         );
         return unmatched;
       }
       if (!multiple && typeof value === "string") {
-        const exists = options.some((opt) => opt.value === value);
+        const exists = flatOptions.some((opt) => opt.value === value);
         return exists ? [] : [value];
       }
       return [];
     },
-    [options, multiple],
+    [flatOptions, multiple],
   );
 
   // Filter options based on search query
   // NOTE: This hook must be called before any early returns to maintain hook order
-  const filteredOptions = useMemo(() => {
+  const filteredOptionGroups = useMemo(() => {
     if (!searchQuery.trim()) {
-      return options;
+      return optionGroups;
     }
 
     const query = searchQuery.toLowerCase();
-    return options.filter((option) => {
-      const searchValue = getOptionSearchValue
-        ? getOptionSearchValue(option)
-        : option.label;
-      return searchValue.toLowerCase().includes(query);
-    });
-  }, [options, searchQuery, getOptionSearchValue]);
+    return optionGroups
+      .map((optionGroup) => ({
+        ...optionGroup,
+        children: optionGroup.children.filter((option) => {
+          const searchValue = getOptionSearchValue
+            ? getOptionSearchValue(option)
+            : option.label;
+          return searchValue.toLowerCase().includes(query);
+        }),
+      }))
+      .filter((optionGroup) => optionGroup.children.length > 0);
+  }, [optionGroups, searchQuery, getOptionSearchValue]);
+
+  const filteredOptions = useMemo(
+    () => flattenSelectOptions(filteredOptionGroups),
+    [filteredOptionGroups],
+  );
 
   // Get current unmatched values
   // NOTE: This hook must be called before any early returns to maintain hook order
@@ -208,7 +237,7 @@ export function Select<
     return (
       <NativeSelect
         className={className}
-        options={options}
+        options={optionGroups}
         multiple={multiple}
         placeholder={placeholder}
         label={label}
@@ -256,11 +285,11 @@ export function Select<
     if (multiple && Array.isArray(value)) {
       // Preserve the order from the value array (FIFO)
       return value
-        .map((val) => options.find((opt) => opt.value === val))
+        .map((val) => flatOptions.find((opt) => opt.value === val))
         .filter((opt): opt is TOption => opt !== undefined);
     }
     if (!multiple) {
-      const option = options.find((opt) => opt.value === value);
+      const option = flatOptions.find((opt) => opt.value === value);
       return option ? [option] : [];
     }
     return [];
@@ -458,9 +487,15 @@ export function Select<
           closeOnItemClick={!multiple}
           selectorClassName={selectorClassName}
           panelClassName={dropdownPanelClassName}>
-          {filteredOptions.length > 0 && (
-            <>
-              {filteredOptions.map((option, index) => {
+          {filteredOptionGroups.map((optionGroup, groupIndex) => (
+            <Fragment key={`${optionGroup.group}-${groupIndex}`}>
+              {optionGroup.group && (
+                <DropdownHeader>{optionGroup.group}</DropdownHeader>
+              )}
+              {optionGroup.children.map((option) => {
+                const index = filteredOptions.findIndex(
+                  (filteredOption) => filteredOption.value === option.value,
+                );
                 const optionIsSelected = isSelected(option.value, value);
                 const handleClick = () => handleOptionClick(option.value);
                 return (
@@ -497,8 +532,8 @@ export function Select<
                   </DropdownItem>
                 );
               })}
-            </>
-          )}
+            </Fragment>
+          ))}
 
           {filteredOptions.length === 0 &&
             searchQuery.trim() &&

@@ -289,14 +289,18 @@ export function Dropdown({
         role="presentation"
         onClick={(e) => {
           e.stopPropagation();
-          if (closeOnItemClick) {
+          if (
+            closeOnItemClick &&
+            (e.target as HTMLElement).closest("[data-dropdown-item]")
+          ) {
             setDropdownState(false);
           }
         }}
         onKeyDown={(e) => {
           if (
             closeOnItemClick &&
-            (e.key === "Enter" || e.key === " ")
+            (e.key === "Enter" || e.key === " ") &&
+            (e.target as HTMLElement).closest("[data-dropdown-item]")
           ) {
             e.stopPropagation();
             setDropdownState(false);

@@ -34,3 +34,6 @@ export const dropdownPanelContentClasses = "bg-surface";
 
 /** Border and rounding for custom dropdown rows that are not DropdownItem buttons. */
 export const dropdownRowBorderClasses = cn("border", dropdownItemBorderClasses);
+
+/** Section label styles for grouped dropdown lists. */
+export const dropdownHeaderBorderClasses = dropdownItemBorderClasses;
