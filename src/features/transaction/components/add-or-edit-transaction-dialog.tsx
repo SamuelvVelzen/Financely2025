@@ -269,8 +269,6 @@ export function AddOrEditTransactionDialog({
       });
     } else {
       form.reset(getEmptyFormValues(defaultCurrency));
-      setShowAdvanced(false);
-      setUserEditedTags(false);
     }
     focusFirstInput();
   }, [open, transaction?.id, form, focusFirstInput, defaultCurrency, transaction]);
