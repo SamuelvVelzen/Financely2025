@@ -31,11 +31,13 @@ import { Route as ApiV1MeWorkspacesRouteImport } from './routes/api/v1/me.worksp
 import { Route as ApiV1MeSettingsRouteImport } from './routes/api/v1/me.settings'
 import { Route as ApiV1MeProfileRouteImport } from './routes/api/v1/me.profile'
 import { Route as ApiV1MeAccountsRouteImport } from './routes/api/v1/me.accounts'
+import { Route as ApiV1CurrencyExchangeRatesRouteImport } from './routes/api/v1/currency/exchange-rates'
 import { Route as ApiV1WorkspaceIdTransactionsRouteImport } from './routes/api/v1/$workspaceId/transactions'
 import { Route as ApiV1WorkspaceIdTagsRouteImport } from './routes/api/v1/$workspaceId/tags'
 import { Route as ApiV1WorkspaceIdTagRulesRouteImport } from './routes/api/v1/$workspaceId/tag-rules'
 import { Route as ApiV1WorkspaceIdSubscriptionsRouteImport } from './routes/api/v1/$workspaceId/subscriptions'
 import { Route as ApiV1WorkspaceIdMessagesRouteImport } from './routes/api/v1/$workspaceId/messages'
+import { Route as ApiV1WorkspaceIdCurrenciesRouteImport } from './routes/api/v1/$workspaceId/currencies'
 import { Route as ApiV1WorkspaceIdBudgetsRouteImport } from './routes/api/v1/$workspaceId/budgets'
 import { Route as appWorkspaceIdTagsSmartTaggingRouteImport } from './routes/(app)/$workspaceId/tags.smart-tagging'
 import { Route as appWorkspaceIdBudgetsNewRouteImport } from './routes/(app)/$workspaceId/budgets.new'
@@ -44,6 +46,7 @@ import { Route as ApiV1WizardWizardIdProgressRouteImport } from './routes/api/v1
 import { Route as ApiV1WizardWizardIdCompleteRouteImport } from './routes/api/v1/wizard.$wizardId.complete'
 import { Route as ApiV1MeWorkspacesWorkspaceIdRouteImport } from './routes/api/v1/me.workspaces.$workspaceId'
 import { Route as ApiV1MeAccountsAccountIdRouteImport } from './routes/api/v1/me.accounts.$accountId'
+import { Route as ApiV1CurrencyExchangeRatesRefreshRouteImport } from './routes/api/v1/currency/exchange-rates.refresh'
 import { Route as ApiV1WorkspaceIdTransactionsCsvUploadRouteImport } from './routes/api/v1/$workspaceId/transactions.csv-upload'
 import { Route as ApiV1WorkspaceIdTransactionsCsvTransformRouteImport } from './routes/api/v1/$workspaceId/transactions.csv-transform'
 import { Route as ApiV1WorkspaceIdTransactionsCsvMappingRouteImport } from './routes/api/v1/$workspaceId/transactions.csv-mapping'
@@ -191,6 +194,12 @@ const ApiV1MeAccountsRoute = ApiV1MeAccountsRouteImport.update({
   path: '/accounts',
   getParentRoute: () => ApiV1MeRoute,
 } as any)
+const ApiV1CurrencyExchangeRatesRoute =
+  ApiV1CurrencyExchangeRatesRouteImport.update({
+    id: '/api/v1/currency/exchange-rates',
+    path: '/api/v1/currency/exchange-rates',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiV1WorkspaceIdTransactionsRoute =
   ApiV1WorkspaceIdTransactionsRouteImport.update({
     id: '/api/v1/$workspaceId/transactions',
@@ -218,6 +227,12 @@ const ApiV1WorkspaceIdMessagesRoute =
   ApiV1WorkspaceIdMessagesRouteImport.update({
     id: '/api/v1/$workspaceId/messages',
     path: '/api/v1/$workspaceId/messages',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1WorkspaceIdCurrenciesRoute =
+  ApiV1WorkspaceIdCurrenciesRouteImport.update({
+    id: '/api/v1/$workspaceId/currencies',
+    path: '/api/v1/$workspaceId/currencies',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiV1WorkspaceIdBudgetsRoute = ApiV1WorkspaceIdBudgetsRouteImport.update({
@@ -266,6 +281,12 @@ const ApiV1MeAccountsAccountIdRoute =
     id: '/$accountId',
     path: '/$accountId',
     getParentRoute: () => ApiV1MeAccountsRoute,
+  } as any)
+const ApiV1CurrencyExchangeRatesRefreshRoute =
+  ApiV1CurrencyExchangeRatesRefreshRouteImport.update({
+    id: '/refresh',
+    path: '/refresh',
+    getParentRoute: () => ApiV1CurrencyExchangeRatesRoute,
   } as any)
 const ApiV1WorkspaceIdTransactionsCsvUploadRoute =
   ApiV1WorkspaceIdTransactionsCsvUploadRouteImport.update({
@@ -483,11 +504,13 @@ export interface FileRoutesByFullPath {
   '/$workspaceId/budgets/new': typeof appWorkspaceIdBudgetsNewRoute
   '/$workspaceId/tags/smart-tagging': typeof appWorkspaceIdTagsSmartTaggingRoute
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
+  '/api/v1/$workspaceId/currencies': typeof ApiV1WorkspaceIdCurrenciesRoute
   '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
   '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
+  '/api/v1/currency/exchange-rates': typeof ApiV1CurrencyExchangeRatesRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/me/settings': typeof ApiV1MeSettingsRoute
@@ -523,6 +546,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/$workspaceId/transactions/csv-mapping': typeof ApiV1WorkspaceIdTransactionsCsvMappingRoute
   '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
   '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
+  '/api/v1/currency/exchange-rates/refresh': typeof ApiV1CurrencyExchangeRatesRefreshRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRouteWithChildren
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
@@ -551,11 +575,13 @@ export interface FileRoutesByTo {
   '/$workspaceId/budgets/new': typeof appWorkspaceIdBudgetsNewRoute
   '/$workspaceId/tags/smart-tagging': typeof appWorkspaceIdTagsSmartTaggingRoute
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
+  '/api/v1/$workspaceId/currencies': typeof ApiV1WorkspaceIdCurrenciesRoute
   '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
   '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
+  '/api/v1/currency/exchange-rates': typeof ApiV1CurrencyExchangeRatesRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/me/settings': typeof ApiV1MeSettingsRoute
@@ -591,6 +617,7 @@ export interface FileRoutesByTo {
   '/api/v1/$workspaceId/transactions/csv-mapping': typeof ApiV1WorkspaceIdTransactionsCsvMappingRoute
   '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
   '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
+  '/api/v1/currency/exchange-rates/refresh': typeof ApiV1CurrencyExchangeRatesRefreshRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRouteWithChildren
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
@@ -622,11 +649,13 @@ export interface FileRoutesById {
   '/(app)/$workspaceId/budgets/new': typeof appWorkspaceIdBudgetsNewRoute
   '/(app)/$workspaceId/tags/smart-tagging': typeof appWorkspaceIdTagsSmartTaggingRoute
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
+  '/api/v1/$workspaceId/currencies': typeof ApiV1WorkspaceIdCurrenciesRoute
   '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
   '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
   '/api/v1/$workspaceId/transactions': typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
+  '/api/v1/currency/exchange-rates': typeof ApiV1CurrencyExchangeRatesRouteWithChildren
   '/api/v1/me/accounts': typeof ApiV1MeAccountsRouteWithChildren
   '/api/v1/me/profile': typeof ApiV1MeProfileRoute
   '/api/v1/me/settings': typeof ApiV1MeSettingsRoute
@@ -662,6 +691,7 @@ export interface FileRoutesById {
   '/api/v1/$workspaceId/transactions/csv-mapping': typeof ApiV1WorkspaceIdTransactionsCsvMappingRoute
   '/api/v1/$workspaceId/transactions/csv-transform': typeof ApiV1WorkspaceIdTransactionsCsvTransformRoute
   '/api/v1/$workspaceId/transactions/csv-upload': typeof ApiV1WorkspaceIdTransactionsCsvUploadRoute
+  '/api/v1/currency/exchange-rates/refresh': typeof ApiV1CurrencyExchangeRatesRefreshRoute
   '/api/v1/me/accounts/$accountId': typeof ApiV1MeAccountsAccountIdRoute
   '/api/v1/me/workspaces/$workspaceId': typeof ApiV1MeWorkspacesWorkspaceIdRouteWithChildren
   '/api/v1/wizard/$wizardId/complete': typeof ApiV1WizardWizardIdCompleteRoute
@@ -693,11 +723,13 @@ export interface FileRouteTypes {
     | '/$workspaceId/budgets/new'
     | '/$workspaceId/tags/smart-tagging'
     | '/api/v1/$workspaceId/budgets'
+    | '/api/v1/$workspaceId/currencies'
     | '/api/v1/$workspaceId/messages'
     | '/api/v1/$workspaceId/subscriptions'
     | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
     | '/api/v1/$workspaceId/transactions'
+    | '/api/v1/currency/exchange-rates'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/me/settings'
@@ -733,6 +765,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/transactions/csv-mapping'
     | '/api/v1/$workspaceId/transactions/csv-transform'
     | '/api/v1/$workspaceId/transactions/csv-upload'
+    | '/api/v1/currency/exchange-rates/refresh'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/me/workspaces/$workspaceId'
     | '/api/v1/wizard/$wizardId/complete'
@@ -761,11 +794,13 @@ export interface FileRouteTypes {
     | '/$workspaceId/budgets/new'
     | '/$workspaceId/tags/smart-tagging'
     | '/api/v1/$workspaceId/budgets'
+    | '/api/v1/$workspaceId/currencies'
     | '/api/v1/$workspaceId/messages'
     | '/api/v1/$workspaceId/subscriptions'
     | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
     | '/api/v1/$workspaceId/transactions'
+    | '/api/v1/currency/exchange-rates'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/me/settings'
@@ -801,6 +836,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/transactions/csv-mapping'
     | '/api/v1/$workspaceId/transactions/csv-transform'
     | '/api/v1/$workspaceId/transactions/csv-upload'
+    | '/api/v1/currency/exchange-rates/refresh'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/me/workspaces/$workspaceId'
     | '/api/v1/wizard/$wizardId/complete'
@@ -831,11 +867,13 @@ export interface FileRouteTypes {
     | '/(app)/$workspaceId/budgets/new'
     | '/(app)/$workspaceId/tags/smart-tagging'
     | '/api/v1/$workspaceId/budgets'
+    | '/api/v1/$workspaceId/currencies'
     | '/api/v1/$workspaceId/messages'
     | '/api/v1/$workspaceId/subscriptions'
     | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
     | '/api/v1/$workspaceId/transactions'
+    | '/api/v1/currency/exchange-rates'
     | '/api/v1/me/accounts'
     | '/api/v1/me/profile'
     | '/api/v1/me/settings'
@@ -871,6 +909,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/transactions/csv-mapping'
     | '/api/v1/$workspaceId/transactions/csv-transform'
     | '/api/v1/$workspaceId/transactions/csv-upload'
+    | '/api/v1/currency/exchange-rates/refresh'
     | '/api/v1/me/accounts/$accountId'
     | '/api/v1/me/workspaces/$workspaceId'
     | '/api/v1/wizard/$wizardId/complete'
@@ -892,11 +931,13 @@ export interface RootRouteChildren {
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiV1MeRoute: typeof ApiV1MeRouteWithChildren
   ApiV1WorkspaceIdBudgetsRoute: typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
+  ApiV1WorkspaceIdCurrenciesRoute: typeof ApiV1WorkspaceIdCurrenciesRoute
   ApiV1WorkspaceIdMessagesRoute: typeof ApiV1WorkspaceIdMessagesRouteWithChildren
   ApiV1WorkspaceIdSubscriptionsRoute: typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
   ApiV1WorkspaceIdTagRulesRoute: typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   ApiV1WorkspaceIdTagsRoute: typeof ApiV1WorkspaceIdTagsRouteWithChildren
   ApiV1WorkspaceIdTransactionsRoute: typeof ApiV1WorkspaceIdTransactionsRouteWithChildren
+  ApiV1CurrencyExchangeRatesRoute: typeof ApiV1CurrencyExchangeRatesRouteWithChildren
   ApiV1WizardProgressRoute: typeof ApiV1WizardProgressRoute
   ApiV1WizardWizardIdCompleteRoute: typeof ApiV1WizardWizardIdCompleteRoute
   ApiV1WizardWizardIdProgressRoute: typeof ApiV1WizardWizardIdProgressRoute
@@ -1058,6 +1099,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeAccountsRouteImport
       parentRoute: typeof ApiV1MeRoute
     }
+    '/api/v1/currency/exchange-rates': {
+      id: '/api/v1/currency/exchange-rates'
+      path: '/api/v1/currency/exchange-rates'
+      fullPath: '/api/v1/currency/exchange-rates'
+      preLoaderRoute: typeof ApiV1CurrencyExchangeRatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/$workspaceId/transactions': {
       id: '/api/v1/$workspaceId/transactions'
       path: '/api/v1/$workspaceId/transactions'
@@ -1091,6 +1139,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/$workspaceId/messages'
       fullPath: '/api/v1/$workspaceId/messages'
       preLoaderRoute: typeof ApiV1WorkspaceIdMessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/$workspaceId/currencies': {
+      id: '/api/v1/$workspaceId/currencies'
+      path: '/api/v1/$workspaceId/currencies'
+      fullPath: '/api/v1/$workspaceId/currencies'
+      preLoaderRoute: typeof ApiV1WorkspaceIdCurrenciesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/$workspaceId/budgets': {
@@ -1148,6 +1203,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/me/accounts/$accountId'
       preLoaderRoute: typeof ApiV1MeAccountsAccountIdRouteImport
       parentRoute: typeof ApiV1MeAccountsRoute
+    }
+    '/api/v1/currency/exchange-rates/refresh': {
+      id: '/api/v1/currency/exchange-rates/refresh'
+      path: '/refresh'
+      fullPath: '/api/v1/currency/exchange-rates/refresh'
+      preLoaderRoute: typeof ApiV1CurrencyExchangeRatesRefreshRouteImport
+      parentRoute: typeof ApiV1CurrencyExchangeRatesRoute
     }
     '/api/v1/$workspaceId/transactions/csv-upload': {
       id: '/api/v1/$workspaceId/transactions/csv-upload'
@@ -1700,6 +1762,21 @@ const ApiV1WorkspaceIdTransactionsRouteWithChildren =
     ApiV1WorkspaceIdTransactionsRouteChildren,
   )
 
+interface ApiV1CurrencyExchangeRatesRouteChildren {
+  ApiV1CurrencyExchangeRatesRefreshRoute: typeof ApiV1CurrencyExchangeRatesRefreshRoute
+}
+
+const ApiV1CurrencyExchangeRatesRouteChildren: ApiV1CurrencyExchangeRatesRouteChildren =
+  {
+    ApiV1CurrencyExchangeRatesRefreshRoute:
+      ApiV1CurrencyExchangeRatesRefreshRoute,
+  }
+
+const ApiV1CurrencyExchangeRatesRouteWithChildren =
+  ApiV1CurrencyExchangeRatesRoute._addFileChildren(
+    ApiV1CurrencyExchangeRatesRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   appRouteRoute: appRouteRouteWithChildren,
   LoginRoute: LoginRoute,
@@ -1708,6 +1785,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiV1MeRoute: ApiV1MeRouteWithChildren,
   ApiV1WorkspaceIdBudgetsRoute: ApiV1WorkspaceIdBudgetsRouteWithChildren,
+  ApiV1WorkspaceIdCurrenciesRoute: ApiV1WorkspaceIdCurrenciesRoute,
   ApiV1WorkspaceIdMessagesRoute: ApiV1WorkspaceIdMessagesRouteWithChildren,
   ApiV1WorkspaceIdSubscriptionsRoute:
     ApiV1WorkspaceIdSubscriptionsRouteWithChildren,
@@ -1715,6 +1793,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1WorkspaceIdTagsRoute: ApiV1WorkspaceIdTagsRouteWithChildren,
   ApiV1WorkspaceIdTransactionsRoute:
     ApiV1WorkspaceIdTransactionsRouteWithChildren,
+  ApiV1CurrencyExchangeRatesRoute: ApiV1CurrencyExchangeRatesRouteWithChildren,
   ApiV1WizardProgressRoute: ApiV1WizardProgressRoute,
   ApiV1WizardWizardIdCompleteRoute: ApiV1WizardWizardIdCompleteRoute,
   ApiV1WizardWizardIdProgressRoute: ApiV1WizardWizardIdProgressRoute,

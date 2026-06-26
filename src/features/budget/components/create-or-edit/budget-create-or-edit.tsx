@@ -662,6 +662,7 @@ export function BudgetCreateOrEditPage({
                   name="general.currency"
                   label="Currency"
                   disabled={pending}
+                  workspaceId={workspaceId}
                 />
               </div>
             </TabContent>

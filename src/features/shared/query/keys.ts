@@ -113,4 +113,10 @@ export const queryKeys = {
   wizardProgress: () => ["wizard", "progress"] as const,
   wizardProgressById: (wizardId: string) =>
     ["wizard", "progress", wizardId] as const,
+
+  exchangeRates: (date?: string) => ["exchange-rates", date ?? "latest"] as const,
+  exchangeRatesForDates: (dates: string[]) =>
+    ["exchange-rates", "batch", dates] as const,
+  workspaceCurrencies: (workspaceId: number) =>
+    ["workspaces", workspaceId, "currencies"] as const,
 } as const;

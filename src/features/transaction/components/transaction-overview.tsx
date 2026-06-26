@@ -352,8 +352,8 @@ export function TransactionOverview({
           />
         )}
 
-        {!isEmpty && !isEmptyWithFilters &&
-          (layout === "list" ? (
+        {!isEmpty && !isEmptyWithFilters && (
+          layout === "list" ? (
             <TransactionListGrouped
               data={transactions}
               searchQuery={searchQuery}
@@ -374,7 +374,8 @@ export function TransactionOverview({
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
             />
-          ))}
+          )
+        )}
       </Container>
 
       <AddOrEditTransactionDialog

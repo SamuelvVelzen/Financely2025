@@ -51,6 +51,10 @@ export type ISelectProps<
   selectorClassName?: string;
   /** Accessible name when `label` is omitted */
   ariaLabel?: string;
+  /** Custom className for dropdown option rows */
+  optionClassName?: string;
+  /** Custom className for the dropdown panel */
+  dropdownPanelClassName?: string;
 } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -75,6 +79,8 @@ export function Select<
   required = false,
   selectorClassName,
   ariaLabel,
+  optionClassName,
+  dropdownPanelClassName,
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,
@@ -344,7 +350,7 @@ export function Select<
     // Custom selector with input and chips
     const selectorContent = (
       <div className="flex items-center gap-2 w-full">
-        <div className="flex flex-wrap gap-1.5 flex-1 min-w-0 items-center">
+        <div className="flex flex-wrap gap-1.5 flex-1 min-w-0 items-center justify-start">
           {multiple && hasSelection &&
             selectedOptions.map((option) => (
               <span
@@ -360,11 +366,19 @@ export function Select<
                 </button>
               </span>
             ))}
-          {!multiple && hasSelection && selectedOptions.length > 0 && (
-            <span className="text-text shrink-0">
-              {selectedOptions[0].label}
-            </span>
-          )}
+          {!multiple &&
+            hasSelection &&
+            selectedOptions.length > 0 &&
+            !searchQuery.trim() && (
+              <span
+                className={cn(
+                  "text-text truncate min-w-0 text-left",
+                  !isOpen && "flex-1"
+                )}>
+                {selectedOptions[0].label}
+              </span>
+            )}
+          {(!multiple && hasSelection && !isOpen) ? null : (
           <input
             ref={inputRef}
             type="text"
@@ -392,7 +406,7 @@ export function Select<
             }
             disabled={disabled}
             className={cn(
-              "flex-1 bg-transparent border-0 outline-none text-text min-w-[50px]",
+              "bg-transparent border-0 outline-none text-text flex-1 min-w-[50px]",
               "placeholder:text-text-muted",
               disabled && "cursor-not-allowed"
             )}
@@ -422,6 +436,7 @@ export function Select<
               }
             }}
           />
+          )}
         </div>
         <HiChevronDown
           className={cn(
@@ -441,7 +456,8 @@ export function Select<
           onOpenChange={handleOpenChange}
           placement={forcePlacement}
           closeOnItemClick={!multiple}
-          selectorClassName={selectorClassName}>
+          selectorClassName={selectorClassName}
+          panelClassName={dropdownPanelClassName}>
           {filteredOptions.length > 0 && (
             <>
               {filteredOptions.map((option, index) => {
@@ -451,13 +467,17 @@ export function Select<
                   <DropdownItem
                     key={String(option.value)}
                     clicked={handleClick}
-                    selected={optionIsSelected}>
-                    <div className="flex items-center gap-2 w-full">
+                    selected={optionIsSelected}
+                    className={cn(
+                      "min-w-0 !whitespace-normal",
+                      optionClassName
+                    )}>
+                    <div className="flex items-center gap-2 w-full min-w-0">
                       {multiple && (
                         <Checkbox
                           checked={optionIsSelected}
                           onChange={handleClick}
-                          className="pointer-events-none"
+                          className="pointer-events-none shrink-0"
                         />
                       )}
 
@@ -469,7 +489,7 @@ export function Select<
                           searchQuery,
                         })
                       ) : (
-                        <span className="flex-1">
+                        <span className="flex-1 truncate min-w-0">
                           {highlightText(option.label, searchQuery)}
                         </span>
                       )}

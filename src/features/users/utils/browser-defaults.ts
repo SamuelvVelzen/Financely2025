@@ -1,5 +1,7 @@
 import type { ICurrency } from "@/features/currency/config/currencies";
-import { SUPPORTED_CURRENCIES } from "@/features/currency/config/currencies";
+import {
+  isKnownCurrency,
+} from "@/features/currency/config/currencies";
 
 const LOCALE_CURRENCY_MAP: Record<string, ICurrency> = {
   "en-US": "USD",
@@ -53,5 +55,5 @@ export function getBrowserCurrency(): ICurrency {
 }
 
 export function isSupportedCurrency(value: string): value is ICurrency {
-  return (SUPPORTED_CURRENCIES as readonly string[]).includes(value);
+  return isKnownCurrency(value);
 }

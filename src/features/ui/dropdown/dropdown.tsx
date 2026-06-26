@@ -74,6 +74,8 @@ type IDropdownProps = {
   selectorClassName?: string;
   /** If true, this dropdown won't close other dropdowns when opened. Useful for nested dropdowns. */
   allowNested?: boolean;
+  /** Optional className for the dropdown panel shell */
+  panelClassName?: string;
 } & PropsWithChildren;
 
 /**
@@ -98,6 +100,7 @@ export function Dropdown({
   size = "md",
   selectorClassName,
   allowNested: _allowNested = false,
+  panelClassName,
 }: IDropdownProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -306,6 +309,7 @@ export function Dropdown({
           className={cn(
             "group/dropdown-panel text-base font-normal flex flex-col",
             showExpanded ? "shrink-0" : "w-full min-w-full",
+            panelClassName,
             "max-h-[calc(100vh-16px)]",
             hasPanelContent &&
               (showExpanded

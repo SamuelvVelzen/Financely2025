@@ -50,7 +50,6 @@ export function BudgetSubscriptionsTab({
     if (!subscriptionsData?.data) return [];
 
     return subscriptionsData.data
-      .filter((sub) => sub.currency === budget.currency)
       .map((sub) => {
         const txInPeriod = (sub.transactions ?? []).filter((tx) => {
           const txDate = new Date(tx.transactionDate);
@@ -59,7 +58,7 @@ export function BudgetSubscriptionsTab({
         return { ...sub, transactionsInPeriod: txInPeriod };
       })
       .filter((sub) => sub.active || sub.transactionsInPeriod.length > 0);
-  }, [subscriptionsData, budget.currency, budgetStart, budgetEnd]);
+  }, [subscriptionsData, budgetStart, budgetEnd]);
 
   if (isLoading) {
     return (

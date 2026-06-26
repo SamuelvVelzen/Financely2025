@@ -26,6 +26,11 @@ import {
   type ITransaction,
   type IUpdateBudgetInput,
 } from "@/features/shared/validation/schemas";
+import {
+  buildRatesByDateMap,
+  convertAmount,
+} from "@/features/currency/services/conversion.service";
+import { ExchangeRateService } from "@/features/currency/services/exchange-rate.service";
 import { prisma } from "@/features/util/prisma";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import { Prisma } from "@prisma/client";
@@ -68,6 +73,43 @@ type IPrismaBudgetItem = {
 function getItemMapKey(tagId: string | null, categoryType: string | null): string {
   if (tagId !== null) return tagId;
   return `misc:${categoryType ?? "EXPENSE"}`;
+}
+
+function resolveRatesForDateKey(
+  ratesByDate: ReturnType<typeof buildRatesByDateMap>,
+  dateKey: string,
+): Record<string, number> | null {
+  if (ratesByDate[dateKey]) {
+    return ratesByDate[dateKey].rates;
+  }
+  const sortedKeys = Object.keys(ratesByDate).sort();
+  for (let i = sortedKeys.length - 1; i >= 0; i--) {
+    if (sortedKeys[i] <= dateKey) {
+      return ratesByDate[sortedKeys[i]].rates;
+    }
+  }
+  return sortedKeys.length > 0 ? ratesByDate[sortedKeys[0]].rates : null;
+}
+
+function getTransactionAmountInCurrency(
+  amount: string,
+  fromCurrency: string,
+  toCurrency: string,
+  transactionDate: string,
+  ratesByDate: ReturnType<typeof buildRatesByDateMap>,
+): number {
+  const numericAmount = parseFloat(amount);
+  if (fromCurrency === toCurrency) {
+    return numericAmount;
+  }
+  const rates = resolveRatesForDateKey(
+    ratesByDate,
+    transactionDate.slice(0, 10),
+  );
+  if (!rates) {
+    return numericAmount;
+  }
+  return convertAmount(numericAmount, fromCurrency, toCurrency, rates) ?? numericAmount;
 }
 
 function parseBudgetItem(item: IPrismaBudgetItem) {
@@ -443,12 +485,11 @@ export class BudgetService {
     const budget = parseBudget(budgetData);
     const itemCategoryMap = buildItemCategoryMap(budgetData.items);
 
-    // Query ALL transactions in the budget date range with matching currency
+    // Query ALL transactions in the budget date range (any currency)
     const transactions = await prisma.transaction.findMany({
       where: {
         userId,
         workspaceId,
-        currency: budget.currency,
         transactionDate: {
           gte: new Date(budget.startDate),
           lte: new Date(budget.endDate),
@@ -506,6 +547,24 @@ export class BudgetService {
       }),
     );
 
+    const transactionDateKeys = [
+      ...new Set(
+        parsedTransactions.map((tx) => tx.transactionDate.slice(0, 10)),
+      ),
+    ];
+    const ratesForDates =
+      await ExchangeRateService.getRatesForDates(transactionDateKeys);
+    const ratesByDate = buildRatesByDateMap(ratesForDates);
+
+    const getBudgetAmount = (tx: ITransaction): number =>
+      getTransactionAmountInCurrency(
+        tx.amount,
+        tx.currency,
+        budget.currency,
+        tx.transactionDate,
+        ratesByDate,
+      );
+
     // Build key -> transactions map (key = tagId for tagged, or misc:EXPENSE/misc:INCOME for misc) and alert map
     const tagTransactionMap = new Map<string, ITransaction[]>();
     const alertMap = new Map<string, ITransaction[]>();
@@ -541,7 +600,7 @@ export class BudgetService {
         const mapKey = getItemMapKey(item.tagId, item.categoryType ?? null);
         const itemTransactions = tagTransactionMap.get(mapKey) ?? [];
         const actualAmount = itemTransactions.reduce(
-          (sum, tx) => sum + parseFloat(tx.amount),
+          (sum, tx) => sum + getBudgetAmount(tx),
           0,
         );
         const expectedAmount = item.monthlyAmounts.reduce(
@@ -615,7 +674,7 @@ export class BudgetService {
           const mapKey = getItemMapKey(item.tagId, item.categoryType ?? null);
           const txsForTag = monthTagTxMap.get(mapKey) ?? [];
           const actual = txsForTag.reduce(
-            (s, tx) => s + parseFloat(tx.amount),
+            (s, tx) => s + getBudgetAmount(tx),
             0,
           );
           const difference = actual - expected;
@@ -655,7 +714,7 @@ export class BudgetService {
     const alerts: IBudgetAlert[] = [];
     for (const [_tagId, txs] of alertMap) {
       const totalAmount = txs.reduce(
-        (sum, tx) => sum + parseFloat(tx.amount),
+        (sum, tx) => sum + getBudgetAmount(tx),
         0,
       );
       const firstTx = txs[0];
@@ -788,7 +847,6 @@ export class BudgetService {
         where: {
           userId,
           workspaceId,
-          currency: budget.currency,
           transactionDate: {
             gte: new Date(budget.startDate),
             lte: new Date(budget.endDate),
@@ -801,8 +859,25 @@ export class BudgetService {
         },
       });
 
+      const overviewDateKeys = [
+        ...new Set(
+          transactions.map((tx) =>
+            tx.transactionDate.toISOString().slice(0, 10),
+          ),
+        ),
+      ];
+      const overviewRatesForDates =
+        await ExchangeRateService.getRatesForDates(overviewDateKeys);
+      const overviewRatesByDate = buildRatesByDateMap(overviewRatesForDates);
+
       transactions.forEach((tx) => {
-        const amount = parseFloat(tx.amount.toString());
+        const amount = getTransactionAmountInCurrency(
+          tx.amount.toString(),
+          tx.currency,
+          budget.currency,
+          tx.transactionDate.toISOString(),
+          overviewRatesByDate,
+        );
         if (tx.primaryTag) {
           const existing = tagSpendingMap.get(tx.primaryTag.id);
           if (existing) {
@@ -819,7 +894,15 @@ export class BudgetService {
       });
 
       const budgetActual = transactions.reduce(
-        (sum, tx) => sum + parseFloat(tx.amount.toString()),
+        (sum, tx) =>
+          sum +
+          getTransactionAmountInCurrency(
+            tx.amount.toString(),
+            tx.currency,
+            budget.currency,
+            tx.transactionDate.toISOString(),
+            overviewRatesByDate,
+          ),
         0,
       );
       totalActual += budgetActual;

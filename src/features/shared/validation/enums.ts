@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   getCurrencyOptions as getCurrencyOptionsFromConfig,
-  SUPPORTED_CURRENCIES,
+  isKnownCurrency,
   type ICurrency,
 } from "@/features/currency/config/currencies";
 import {
@@ -10,10 +10,10 @@ import {
 } from "@/features/transaction/config/payment-methods";
 import { TransactionTypeSchema as GeneratedTransactionTypeSchema } from "./generated.ts/schemas/enums/TransactionType.schema";
 
-export const CurrencySchema = z.enum([...SUPPORTED_CURRENCIES] as [
-  string,
-  ...string[],
-]);
+export const CurrencySchema = z
+  .string()
+  .regex(/^[A-Z]{3}$/, "Invalid currency code")
+  .refine(isKnownCurrency, "Unsupported currency");
 
 export const PaymentMethodSchema = z.enum([...PAYMENT_METHOD_VALUES]);
 

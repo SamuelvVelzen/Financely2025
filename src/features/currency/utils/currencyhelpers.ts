@@ -3,6 +3,7 @@
  * Utility functions for formatting currency values using browser locale
  */
 
+import { getCurrencyMinorUnits } from "@/features/currency/config/currencies";
 import { LocaleHelpers } from "@/features/util/locale.helpers";
 
 const DEFAULT_FRACTION_DIGITS = 2;
@@ -68,14 +69,15 @@ export function getDecimalSeparator(locale?: string): string {
 export function formatCurrency(amount: string, currency: string): string {
   try {
     const numAmount = parseFloat(amount);
+    const minorUnits = getCurrencyMinorUnits(currency);
 
     // Handle invalid amounts
     if (isNaN(numAmount)) {
       return new Intl.NumberFormat(LocaleHelpers.getLocale(), {
         style: "currency",
         currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: minorUnits,
+        maximumFractionDigits: minorUnits,
       }).format(0);
     }
 
@@ -84,8 +86,8 @@ export function formatCurrency(amount: string, currency: string): string {
     return new Intl.NumberFormat(locale, {
       style: "currency",
       currency: currency,
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: minorUnits,
+      maximumFractionDigits: minorUnits,
     }).format(numAmount);
   } catch (_err) {
     return `${amount} ${currency}`;

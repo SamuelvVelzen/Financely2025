@@ -1,3 +1,8 @@
+import { useExchangeRatesForDates } from "@/features/currency/hooks/useExchangeRates";
+import {
+  extractUniqueTransactionDates,
+  getTransactionAmountInCurrency,
+} from "@/features/currency/services/conversion.service";
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type {
   IBudgetComparison,
@@ -188,6 +193,18 @@ export function BudgetDetailTagsContainer({
     );
   }, [selectedItem, displayItems, isTransactionsDialogOpen]);
 
+  const selectedTransactionDates = useMemo(
+    () =>
+      resolvedSelectedItem
+        ? extractUniqueTransactionDates(resolvedSelectedItem.transactions)
+        : [],
+    [resolvedSelectedItem],
+  );
+
+  const { ratesByDate, isLoading: isLoadingRates } = useExchangeRatesForDates(
+    isTransactionsDialogOpen ? selectedTransactionDates : [],
+  );
+
   const handleTransactionClick = (tx: ITransaction) => {
     onTransactionClick?.(tx);
   };
@@ -366,8 +383,28 @@ export function BudgetDetailTagsContainer({
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <div className="text-right text-sm font-medium">
-                        {formatCurrency(tx.amount, budget.currency)}
+                      <div className="text-right">
+                        <div className="text-sm font-medium">
+                          {formatCurrency(tx.amount, tx.currency)}
+                        </div>
+                        {tx.currency !== budget.currency && (
+                          <div className="text-xs text-text-muted">
+                            {isLoadingRates
+                              ? "…"
+                              : formatCurrency(
+                                  String(
+                                    getTransactionAmountInCurrency(
+                                      tx.amount,
+                                      tx.currency,
+                                      budget.currency,
+                                      tx.transactionDate,
+                                      ratesByDate,
+                                    ),
+                                  ),
+                                  budget.currency,
+                                )}
+                          </div>
+                        )}
                       </div>
                       <HiChevronRight className="size-4 text-text-muted" />
                     </div>

@@ -179,6 +179,7 @@ export function WorkspacePreferences() {
                 name="defaultCurrency"
                 label="Default currency"
                 clearable
+                workspaceId={workspaceId}
               />
               <Controller
                 name="smartTaggingEnabled"

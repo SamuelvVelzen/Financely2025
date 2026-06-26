@@ -1,4 +1,4 @@
-import { SUPPORTED_CURRENCIES } from "@/features/currency/config/currencies";
+import { isKnownCurrency } from "@/features/currency/config/currencies";
 import {
   CreateTransactionInputSchema,
   type ICreateTransactionInput,
@@ -618,10 +618,10 @@ function parseAmount(value: string): string {
  */
 function parseCurrency(value: string): ICurrency {
   const normalized = value.toUpperCase().trim();
-  if (SUPPORTED_CURRENCIES.includes(normalized as ICurrency)) {
-    return normalized as ICurrency;
+  if (isKnownCurrency(normalized)) {
+    return normalized;
   }
-  return "USD"; // Default
+  return "USD";
 }
 
 /**
