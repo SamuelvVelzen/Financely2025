@@ -1,7 +1,7 @@
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import React, { useId } from "react";
+import React, { useCallback, useId, useRef } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import { RadioGroupContext, type IRadioGroupContext } from "./radio-group-context";
 
@@ -10,7 +10,6 @@ export type IRadioGroupProps = IPropsWithClassName & {
   label?: string;
   hint?: string;
   required?: boolean;
-  orientation?: "horizontal" | "vertical";
   disabled?: boolean;
   children: React.ReactNode;
 };
@@ -21,7 +20,6 @@ export function RadioGroup({
   label,
   hint,
   required,
-  orientation = "horizontal",
   disabled = false,
   children,
 }: IRadioGroupProps) {
@@ -29,12 +27,37 @@ export function RadioGroup({
   const groupId = `radio-group-${generatedId}`;
   const form = useFormContext();
   const error = form.formState.errors[name];
+  const itemOrderRef = useRef<string[]>([]);
+  const itemElementsRef = useRef<Map<string, HTMLButtonElement>>(new Map());
 
-  const baseClasses = "space-y-1 w-full";
-  const orientationClasses =
-    orientation === "horizontal"
-      ? "flex flex-wrap gap-3"
-      : "flex flex-col gap-2";
+  const registerItem = useCallback(
+    (value: string, element: HTMLButtonElement | null) => {
+      if (element) {
+        if (!itemOrderRef.current.includes(value)) {
+          itemOrderRef.current.push(value);
+        }
+        itemElementsRef.current.set(value, element);
+        return;
+      }
+
+      itemOrderRef.current = itemOrderRef.current.filter((item) => item !== value);
+      itemElementsRef.current.delete(value);
+    },
+    []
+  );
+
+  const getItems = useCallback(() => [...itemOrderRef.current], []);
+
+  const getItemElement = useCallback(
+    (value: string) => itemElementsRef.current.get(value),
+    []
+  );
+
+  const focusItem = useCallback((value: string) => {
+    itemElementsRef.current.get(value)?.focus();
+  }, []);
+
+  const baseClasses = "space-y-1 w-full flex flex-wrap gap-3";
 
   return (
     <Controller
@@ -47,6 +70,10 @@ export function RadioGroup({
           onChange: field.onChange,
           disabled,
           groupId,
+          registerItem,
+          getItems,
+          getItemElement,
+          focusItem,
         };
 
         const fieldsetId = `${groupId}-fieldset`;
@@ -74,7 +101,10 @@ export function RadioGroup({
                   </Label>
                 </legend>
               )}
-              <div className={cn(orientationClasses)}>
+              <div
+                role="radiogroup"
+                aria-labelledby={legendId}
+                aria-orientation={"horizontal"}>
                 <RadioGroupContext.Provider value={contextValue}>
                   {children}
                 </RadioGroupContext.Provider>

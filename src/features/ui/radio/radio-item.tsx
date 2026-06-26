@@ -1,12 +1,18 @@
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import React, { useContext, useId, useRef } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  type KeyboardEvent,
+} from "react";
 import { type IconType } from "react-icons";
 import { RadioGroupContext } from "./radio-group-context";
 
 export type IRadioItemProps = Omit<
-  React.InputHTMLAttributes<HTMLInputElement>,
-  "type" | "id" | "name" | "checked" | "onChange" | "value"
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "type" | "id" | "name" | "value" | "role" | "aria-checked"
 > &
   IPropsWithClassName & {
     value: string | number;
@@ -15,6 +21,29 @@ export type IRadioItemProps = Omit<
     icon?: IconType;
   };
 
+function getAdjacentItemValue(
+  items: string[],
+  currentValue: string,
+  direction: -1 | 1,
+  isItemDisabled: (value: string) => boolean
+): string | null {
+  const currentIndex = items.indexOf(currentValue);
+  if (currentIndex === -1) {
+    return null;
+  }
+
+  for (let step = 1; step <= items.length; step++) {
+    const nextIndex =
+      (currentIndex + direction * step + items.length) % items.length;
+    const nextValue = items[nextIndex];
+    if (!isItemDisabled(nextValue)) {
+      return nextValue;
+    }
+  }
+
+  return null;
+}
+
 export function RadioItem({
   className,
   id,
@@ -22,6 +51,7 @@ export function RadioItem({
   disabled,
   children,
   icon: Icon,
+  onKeyDown,
   ...props
 }: IRadioItemProps) {
   const context = useContext(RadioGroupContext);
@@ -30,42 +60,76 @@ export function RadioItem({
   }
 
   const generatedId = useId();
-  const radioId = id || `${context.groupId}-${generatedId}`;
+  const stringValue = String(value);
+  const buttonId = id || `${context.groupId}-item-${stringValue}-${generatedId}`;
   const isChecked = context.value === value;
   const isDisabled = disabled || context.disabled;
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = () => {
+  const handleChange = useCallback(() => {
     if (!isDisabled) {
       context.onChange(value);
+    }
+  }, [context, isDisabled, value]);
+
+  const setButtonRef = useCallback(
+    (element: HTMLButtonElement | null) => {
+      context.registerItem(stringValue, element);
+    },
+    [context, stringValue]
+  );
+
+  useEffect(() => {
+    return () => {
+      context.registerItem(stringValue, null);
+    };
+  }, [context, stringValue]);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    onKeyDown?.(event);
+    if (event.defaultPrevented || isDisabled) {
+      return;
+    }
+
+    const items = context.getItems();
+    const previousKey = "ArrowLeft";
+    const nextKey = "ArrowRight";
+
+    const isItemDisabled = (itemValue: string) =>
+      context.getItemElement(itemValue)?.disabled ?? false;
+
+    if (event.key === previousKey || event.key === nextKey) {
+      event.preventDefault();
+      const direction = event.key === previousKey ? -1 : 1;
+      const nextValue = getAdjacentItemValue(
+        items,
+        stringValue,
+        direction,
+        isItemDisabled
+      );
+      if (!nextValue) {
+        return;
+      }
+
+      context.onChange(nextValue);
+      context.focusItem(nextValue);
     }
   };
 
   return (
     <div className="relative group grow">
-      <input
-        ref={inputRef}
-        type="radio"
-        id={radioId}
-        name={context.name}
-        value={String(value)}
-        checked={isChecked}
-        onChange={handleChange}
-        onMouseDown={(e) => {
-          if (!isDisabled && e.detail > 0) {
-            e.preventDefault();
-          }
-        }}
-        disabled={isDisabled}
-        className="sr-only peer"
-        aria-checked={isChecked}
+      <button
         {...props}
-      />
-      <label
-        htmlFor={radioId}
+        ref={setButtonRef}
+        type="button"
+        id={buttonId}
+        role="radio"
+        aria-checked={isChecked}
+        disabled={isDisabled}
+        onClick={handleChange}
+        onKeyDown={handleKeyDown}
         className={cn(
-          "relative block cursor-pointer focus:outline-none p-2 rounded-2xl border transition-all text-left hover:border-primary/50 hover:bg-surface-hover/50 h-full",
-          "peer-focus-visible:ring-2 peer-focus-visible:ring-primary",
+          "relative block w-full cursor-pointer focus:outline-none p-2 rounded-2xl border transition-all text-left hover:border-primary/50 hover:bg-surface-hover/50 h-full",
+          "focus-visible:ring-2 focus-visible:ring-primary",
           "border-border bg-surface",
           isDisabled && "opacity-50 cursor-not-allowed",
           isChecked && "border-primary bg-primary/5 hover:border-primary",
@@ -90,7 +154,7 @@ export function RadioItem({
             <div className="size-2 bg-primary rounded-full" />
           </div>
         )}
-      </label>
+      </button>
     </div>
   );
 }
