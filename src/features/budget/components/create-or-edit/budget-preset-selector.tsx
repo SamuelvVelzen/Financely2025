@@ -80,6 +80,13 @@ export function BudgetPresetSelector({
       form.setValue("general.startDate", formatLocalDate(dates.start));
       form.setValue("general.endDate", formatLocalDate(dates.end));
 
+      if (newPreset === "monthly") {
+        form.setValue("general.year", dates.start.getFullYear());
+        form.setValue("general.month", dates.start.getMonth() + 1);
+      } else if (newPreset === "yearly" || newPreset === "yearly-per-month") {
+        form.setValue("general.year", dates.start.getFullYear());
+      }
+
       const name = formatBudgetName(newPreset, dates);
       form.setValue("general.name", name);
       onNameChange?.(name);
@@ -128,18 +135,25 @@ export function BudgetPresetSelector({
     [form, preset, onNameChange, onPresetChange],
   );
 
-  // Trigger handlers when year/month changes for monthly/yearly presets
+  // Sync dates when the user changes year/month dropdowns. Preset is read inside
+  // the effect but omitted from deps so switching to monthly doesn't run with a
+  // stale month before handlePresetChange updates general.month.
   useEffect(() => {
-    if (preset === "monthly" && watchedYear && watchedMonth) {
-      handleMonthChange(watchedYear, watchedMonth);
-    }
-  }, [preset, watchedYear, watchedMonth, handleMonthChange]);
+    if (preset !== "monthly" || !watchedYear || !watchedMonth) return;
+    handleMonthChange(watchedYear, watchedMonth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- preset intentionally omitted
+  }, [watchedYear, watchedMonth, handleMonthChange]);
 
   useEffect(() => {
-    if ((preset === "yearly" || preset === "yearly-per-month") && watchedYear) {
-      handleYearChange(Number(watchedYear));
+    if (
+      (preset !== "yearly" && preset !== "yearly-per-month") ||
+      !watchedYear
+    ) {
+      return;
     }
-  }, [preset, watchedYear, handleYearChange]);
+    handleYearChange(Number(watchedYear));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- preset intentionally omitted
+  }, [watchedYear, handleYearChange]);
 
   const handleCustomDateChange = () => {
     if (preset !== "custom") return;
