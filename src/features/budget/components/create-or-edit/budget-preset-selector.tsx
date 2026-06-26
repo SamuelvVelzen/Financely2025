@@ -5,15 +5,17 @@ import {
   getCurrentYearPreset,
   getMonthlyPreset,
   getYearlyPreset,
+  parseBudgetYear,
   type IBudgetDateRange,
   type IBudgetPreset,
 } from "@/features/budget/utils/budget-presets";
 import { DateInput } from "@/features/ui/input/date-input";
 import { RadioGroup, RadioItem } from "@/features/ui/radio";
+import { Select } from "@/features/ui/select/select";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Label } from "@/features/ui/typography/label";
 import { Text } from "@/features/ui/typography/text";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   HiCalendar,
@@ -199,15 +201,40 @@ export function BudgetPresetSelector({
 
   const MIN_YEAR = currentYear - 10;
   const MAX_YEAR = currentYear + 50;
+  const [customYears, setCustomYears] = useState<number[]>([]);
 
-  const yearOptions = useMemo(
-    () =>
-      Array.from({ length: MAX_YEAR - MIN_YEAR + 1 }, (_, i) => {
-        const year = MIN_YEAR + i;
-        return { value: year, label: String(year) };
-      }),
-    [MIN_YEAR, MAX_YEAR]
+  const handleCreateYear = useCallback(
+    (searchQuery: string) => {
+      const result = parseBudgetYear(searchQuery);
+      if (!result.valid) {
+        form.setError("general.year", { type: "manual", message: result.message });
+        return;
+      }
+      form.clearErrors("general.year");
+      form.setValue("general.year", result.year, { shouldValidate: true });
+      setCustomYears((prev) =>
+        prev.includes(result.year) ? prev : [...prev, result.year],
+      );
+    },
+    [form],
   );
+
+  const yearOptions = useMemo(() => {
+    const years = new Set<number>();
+    for (let year = MIN_YEAR; year <= MAX_YEAR; year++) {
+      years.add(year);
+    }
+    for (const year of customYears) {
+      years.add(year);
+    }
+    if (watchedYear) {
+      years.add(Number(watchedYear));
+    }
+    years.add(selectedYear);
+    return Array.from(years)
+      .sort((a, b) => a - b)
+      .map((year) => ({ value: year, label: String(year) }));
+  }, [MIN_YEAR, MAX_YEAR, customYears, watchedYear, selectedYear]);
 
   const monthOptions = useMemo(
     () =>
@@ -291,12 +318,17 @@ export function BudgetPresetSelector({
 
       {preset === "monthly" && (
         <div className="grid grid-cols-2 gap-4">
-          <SelectDropdown<number>
+          <Select<number>
             name="general.year"
             label="Year"
             options={yearOptions}
             placeholder={`e.g. ${currentYear}`}
-            clearable={false}
+            searchPlaceholder="Type a year..."
+            onCreateNew={handleCreateYear}
+            createNewLabel={(query) => `Use year "${query}"`}
+            valueToString={(v) => String(v)}
+            stringToValue={(s) => Number(s)}
+            required
           />
           <SelectDropdown<number>
             name="general.month"
@@ -309,12 +341,17 @@ export function BudgetPresetSelector({
       )}
 
       {(preset === "yearly" || preset === "yearly-per-month") && (
-        <SelectDropdown<number>
+        <Select<number>
           name="general.year"
           label="Year"
           options={yearOptions}
           placeholder={`e.g. ${currentYear}`}
-          clearable={false}
+          searchPlaceholder="Type a year..."
+          onCreateNew={handleCreateYear}
+          createNewLabel={(query) => `Use year "${query}"`}
+          valueToString={(v) => String(v)}
+          stringToValue={(s) => Number(s)}
+          required
         />
       )}
 

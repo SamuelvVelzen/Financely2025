@@ -19,6 +19,33 @@ export interface IYearMonth {
   month: number;
 }
 
+export const MIN_BUDGET_YEAR = 1;
+export const MAX_BUDGET_YEAR = 9999;
+
+export type IBudgetYearParseResult =
+  | { valid: true; year: number }
+  | { valid: false; message: string };
+
+/** Parse and validate a user-entered budget year (rejects text, decimals, dates). */
+export function parseBudgetYear(input: string): IBudgetYearParseResult {
+  const trimmed = input.trim();
+  if (!/^\d+$/.test(trimmed)) {
+    return { valid: false, message: "Year must be a whole number" };
+  }
+  const year = Number(trimmed);
+  if (
+    !Number.isInteger(year) ||
+    year < MIN_BUDGET_YEAR ||
+    year > MAX_BUDGET_YEAR
+  ) {
+    return {
+      valid: false,
+      message: `Year must be between ${MIN_BUDGET_YEAR} and ${MAX_BUDGET_YEAR}`,
+    };
+  }
+  return { valid: true, year };
+}
+
 /**
  * Get date range for a specific month
  */

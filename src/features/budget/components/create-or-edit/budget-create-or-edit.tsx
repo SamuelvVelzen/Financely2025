@@ -10,6 +10,8 @@ import { getBudgetMonthsFromDateStrings } from "@/features/budget/utils/budget-f
 import {
   formatBudgetName,
   getCurrentYearPreset,
+  MAX_BUDGET_YEAR,
+  MIN_BUDGET_YEAR,
   type IBudgetPreset,
 } from "@/features/budget/utils/budget-presets";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
@@ -115,7 +117,12 @@ const BudgetFormSchema = z.object({
       endDate: z.string().min(1, "End date is required"),
       currency: z.string().min(1, "Currency is required"),
       preset: z.enum(["monthly", "yearly", "yearly-per-month", "custom"]),
-      year: z.number().optional(),
+      year: z
+        .number()
+        .int()
+        .min(MIN_BUDGET_YEAR, `Year must be at least ${MIN_BUDGET_YEAR}`)
+        .max(MAX_BUDGET_YEAR, `Year must be at most ${MAX_BUDGET_YEAR}`)
+        .optional(),
       month: z.number().optional(),
     })
     .superRefine((data, ctx) => {
