@@ -219,6 +219,15 @@ export function BudgetPresetSelector({
     [form],
   );
 
+  const handleYearValueChange = useCallback(
+    (year: number | number[] | undefined) => {
+      if (year !== undefined && !Array.isArray(year)) {
+        form.clearErrors("general.year");
+      }
+    },
+    [form],
+  );
+
   const yearOptions = useMemo(() => {
     const years = new Set<number>();
     for (let year = MIN_YEAR; year <= MAX_YEAR; year++) {
@@ -328,6 +337,7 @@ export function BudgetPresetSelector({
             createNewLabel={(query) => `Use year "${query}"`}
             valueToString={(v) => String(v)}
             stringToValue={(s) => Number(s)}
+            onValueChange={handleYearValueChange}
             required
           />
           <SelectDropdown<number>
@@ -351,6 +361,7 @@ export function BudgetPresetSelector({
           createNewLabel={(query) => `Use year "${query}"`}
           valueToString={(v) => String(v)}
           stringToValue={(s) => Number(s)}
+          onValueChange={handleYearValueChange}
           required
         />
       )}
