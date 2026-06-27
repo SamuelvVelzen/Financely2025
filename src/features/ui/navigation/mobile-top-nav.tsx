@@ -7,7 +7,7 @@ import { cn } from "@/features/util/cn";
 import { WorkspaceSwitcherDropdown } from "@/features/workspace/components/workspace-switcher-dropdown";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
-import { signOutFromApp } from "@/lib/auth-client";
+import { requestSignOut } from "@/features/shared/offline/offline-sign-out-gate";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   HiArrowPath,
@@ -34,7 +34,7 @@ export function MobileTopNav() {
 
   const handleLogout = async () => {
     const redirect = getAuthRedirectPath(location);
-    await signOutFromApp({
+    requestSignOut({
       fetchOptions: {
         onSuccess: () => {
           void navigate({
