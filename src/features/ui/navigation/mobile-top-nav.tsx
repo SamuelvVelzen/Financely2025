@@ -8,6 +8,7 @@ import { WorkspaceSwitcherDropdown } from "@/features/workspace/components/works
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { requestSignOut } from "@/features/shared/offline/offline-sign-out-gate";
+import { OfflinePendingSyncIndicator } from "@/features/shared/offline/offline-pending-sync-indicator";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   HiArrowPath,
@@ -76,7 +77,8 @@ export function MobileTopNav() {
         <WorkspaceSwitcherDropdown compact />
       </div>
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2">
+        <OfflinePendingSyncIndicator className="hidden min-[420px]:inline-flex" />
         <ThemeToggle />
 
         <Dropdown

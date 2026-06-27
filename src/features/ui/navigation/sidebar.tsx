@@ -8,6 +8,7 @@ import { WorkspaceSwitcherDropdown } from "@/features/workspace/components/works
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { requestSignOut } from "@/features/shared/offline/offline-sign-out-gate";
+import { OfflinePendingSyncIndicator } from "@/features/shared/offline/offline-pending-sync-indicator";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   HiArrowPath,
@@ -64,7 +65,10 @@ export function Sidebar() {
       </div>
 
       {isExpanded ? (
-        <WorkspaceSwitcherDropdown className="mb-4 px-0.5" />
+        <div className="mb-4 space-y-3">
+          <WorkspaceSwitcherDropdown className="px-0.5" />
+          <OfflinePendingSyncIndicator className="mx-0.5" />
+        </div>
       ) : null}
 
       {/* Main Navigation */}
