@@ -234,16 +234,16 @@ export function TransactionOverview({
   };
 
   const isEmpty = useMemo(() => {
-    return (
-      !isLoading && !error && transactions.length === 0 && !hasActiveFilters
-    );
-  }, [transactions, isLoading, error, hasActiveFilters]);
+    return transactions.length === 0 && !hasActiveFilters;
+  }, [transactions, hasActiveFilters]);
 
   const isEmptyWithFilters = useMemo(() => {
-    return (
-      !isLoading && !error && transactions.length === 0 && hasActiveFilters
-    );
-  }, [transactions, isLoading, error, hasActiveFilters]);
+    return transactions.length === 0 && hasActiveFilters;
+  }, [transactions, hasActiveFilters]);
+
+  const showTransactionsLoading = isLoading && transactions.length === 0;
+  const showTransactionsError = Boolean(error) && transactions.length === 0;
+  const hasTransactions = transactions.length > 0;
 
   const handleCsvExport = useCallback(() => {
     exportTransactionsToCsv(
@@ -313,21 +313,21 @@ export function TransactionOverview({
       />
 
       <Container>
-        {isLoading && (
+        {showTransactionsLoading && (
           <div className="flex items-center justify-center">
             <Loading text="Loading transactions" />
           </div>
         )}
 
-        {error && !isLoading && (
+        {showTransactionsError && (
           <QueryErrorState
             title="Unable to load transactions"
-            message={error.message}
+            message={error?.message ?? "Could not load transactions"}
             onRetry={() => void refetch()}
           />
         )}
 
-        {isEmpty && (
+        {isEmpty && !showTransactionsLoading && (
           <EmptyPage
             icon={HiArrowsRightLeft}
             emptyText={
@@ -339,7 +339,7 @@ export function TransactionOverview({
             }}></EmptyPage>
         )}
 
-        {isEmptyWithFilters && (
+        {isEmptyWithFilters && !showTransactionsLoading && (
           <EmptyPage
             icon={HiArrowsRightLeft}
             emptyText={
@@ -352,7 +352,7 @@ export function TransactionOverview({
           />
         )}
 
-        {!isEmpty && !isEmptyWithFilters && (
+        {hasTransactions && (
           layout === "list" ? (
             <TransactionListGrouped
               data={transactions}

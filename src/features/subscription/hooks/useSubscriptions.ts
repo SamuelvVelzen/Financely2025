@@ -10,6 +10,13 @@ import {
   updateSubscription,
 } from "@/features/subscription/api/client";
 import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
+import {
+  buildOptimisticSubscription,
+  prependToDataListCaches,
+  removeFromDataListCaches,
+  snapshotForPrefixes,
+  updateInDataListCaches,
+} from "@/features/shared/offline/optimistic-cache";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
@@ -78,15 +85,33 @@ export function useDetectSubscriptions() {
 }
 
 export function useConfirmSubscription() {
+  const queryClient = useQueryClient();
   const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
   return useFinMutation<ISubscription, Error, IConfirmSubscriptionInput>({
     mutationFn: (input) =>
       confirmSubscription(requireWorkspaceId(workspaceId), input),
     invalidateQueries: [
-      () => queryKeys.subscriptions(workspaceId!),
-      () => queryKeys.subscriptionCandidates(workspaceId!),
-      () => queryKeys.transactions(workspaceId!),
+      () => queryKeys.subscriptions(wid),
+      () => queryKeys.subscriptionCandidates(wid),
+      () => queryKeys.transactions(wid),
     ],
+    onMutate: async (input) => {
+      const prefix = ["subscriptions", wid] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      prependToDataListCaches(
+        queryClient,
+        [prefix],
+        buildOptimisticSubscription({
+          name: input.name,
+          type: input.type,
+          amount: input.amount,
+          currency: input.currency,
+          frequency: input.frequency,
+        }),
+      );
+      return { snapshot };
+    },
     getOfflineQueuedToast: () => ({
       title: "Subscription confirmed",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -160,6 +185,21 @@ export function useUpdateSubscription() {
         input,
       ),
     invalidateQueries: [() => queryKeys.subscriptions(workspaceId!)],
+    onMutate: async ({ subscriptionId, input }) => {
+      const prefix = ["subscriptions", workspaceId!] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      updateInDataListCaches<ISubscription>(
+        queryClient,
+        [prefix],
+        subscriptionId,
+        (sub) => ({
+          ...sub,
+          ...input,
+          updatedAt: new Date().toISOString(),
+        }),
+      );
+      return { snapshot };
+    },
     onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.subscription(
@@ -178,14 +218,22 @@ export function useUpdateSubscription() {
 }
 
 export function useDeleteSubscription() {
+  const queryClient = useQueryClient();
   const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: (subscriptionId) =>
       deleteSubscription(requireWorkspaceId(workspaceId), subscriptionId),
     invalidateQueries: [
-      () => queryKeys.subscriptions(workspaceId!),
-      () => queryKeys.transactions(workspaceId!),
+      () => queryKeys.subscriptions(wid),
+      () => queryKeys.transactions(wid),
     ],
+    onMutate: async (subscriptionId) => {
+      const prefix = ["subscriptions", wid] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      removeFromDataListCaches(queryClient, [prefix], subscriptionId);
+      return { snapshot };
+    },
     getOfflineQueuedToast: () => ({
       title: "Subscription deleted",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,

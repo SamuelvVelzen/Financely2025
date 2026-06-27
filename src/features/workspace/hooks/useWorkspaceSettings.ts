@@ -1,4 +1,5 @@
 import type { ICurrency } from "@/features/currency/config/currencies";
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -12,6 +13,7 @@ import {
 import { getBrowserCurrency } from "@/features/users/utils/browser-defaults";
 import { resolveDefaultCurrencyFromSetting } from "@/features/workspace/utils/resolve-default-currency";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 export function useWorkspaceSettings(workspaceId: IWorkspaceId | null) {
@@ -24,6 +26,7 @@ export function useWorkspaceSettings(workspaceId: IWorkspaceId | null) {
 }
 
 export function useUpdateWorkspaceSettings(workspaceId: IWorkspaceId | null) {
+  const queryClient = useQueryClient();
   return useFinMutation<
     IWorkspaceSetting,
     Error,
@@ -33,6 +36,23 @@ export function useUpdateWorkspaceSettings(workspaceId: IWorkspaceId | null) {
     invalidateQueries: workspaceId
       ? [() => queryKeys.workspaceSettings(workspaceId)]
       : [],
+    onMutate: async (input) => {
+      if (workspaceId == null) return undefined;
+      const key = queryKeys.workspaceSettings(workspaceId);
+      const snapshot = queryClient.getQueryData<IWorkspaceSetting | null>(key);
+      if (snapshot) {
+        queryClient.setQueryData(key, {
+          ...snapshot,
+          ...input,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      return { snapshot: [[key, snapshot]] as const };
+    },
+    getOfflineQueuedToast: () => ({
+      title: "Workspace settings saved",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 

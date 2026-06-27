@@ -81,6 +81,8 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const { data: allTagsData } = useTags({ sort: "name:asc" });
   const tags = useMemo(() => data?.data ?? [], [data?.data]);
   const allTags = useMemo(() => allTagsData?.data ?? [], [allTagsData?.data]);
+  const showTagsLoading = isLoading && tags.length === 0;
+  const showTagsError = Boolean(error) && tags.length === 0;
   const sortedTags = useOrderedData(tags) as ITag[];
   const { mutate: createTag } = useCreateTag();
   const { mutate: deleteTag } = useDeleteTag();
@@ -338,13 +340,13 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
           <Tab value="income">Income</Tab>
 
           <TabContent value="expense">
-            {isLoading ? (
+            {showTagsLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loading text="Loading tags" />
               </div>
-            ) : error ? (
+            ) : showTagsError ? (
               <p className="text-danger text-center py-8">
-                Error loading tags: {error.message}
+                Error loading tags: {error?.message}
               </p>
             ) : (
               <div className="space-y-6">
@@ -398,13 +400,13 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
           </TabContent>
 
           <TabContent value="income">
-            {isLoading ? (
+            {showTagsLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loading text="Loading tags" />
               </div>
-            ) : error ? (
+            ) : showTagsError ? (
               <p className="text-danger text-center py-8">
-                Error loading tags: {error.message}
+                Error loading tags: {error?.message}
               </p>
             ) : (
               <div className="space-y-6">

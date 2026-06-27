@@ -1,4 +1,12 @@
 import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
+import {
+  buildOptimisticTag,
+  prependToDataListCaches,
+  removeFromDataListCaches,
+  snapshotForPrefixes,
+  updateInDataListCaches,
+} from "@/features/shared/offline/optimistic-cache";
+import { setPendingClientEntityId } from "@/features/shared/offline/optimistic-entity-context";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -40,14 +48,31 @@ export function useTags(query?: ITagsQuery) {
 }
 
 export function useCreateTag() {
+  const queryClient = useQueryClient();
   const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
   return useFinMutation<ITag, Error, ICreateTagInput>({
     mutationFn: (input) =>
       createTag(requireWorkspaceId(workspaceId), input),
     invalidateQueries: [
-      () => queryKeys.tags(workspaceId!),
-      () => queryKeys.tagRules(workspaceId!),
+      () => queryKeys.tags(wid),
+      () => queryKeys.tagRules(wid),
     ],
+    onMutate: async (input) => {
+      const tempId = crypto.randomUUID();
+      setPendingClientEntityId(tempId);
+      const prefix = ["tags", wid] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      const optimistic = buildOptimisticTag(input, tempId);
+      prependToDataListCaches(queryClient, [prefix], optimistic, {
+        seedKeysIfEmpty: [
+          ["tags", wid],
+          ["tags", wid, { sort: "name:asc" }],
+          ["tags", wid, { q: undefined, sort: "name:asc" }],
+        ],
+      });
+      return { snapshot };
+    },
     getOfflineQueuedToast: (input) => ({
       title: `Tag "${input.name}" created successfully`,
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -56,14 +81,28 @@ export function useCreateTag() {
 }
 
 export function useUpdateTag() {
+  const queryClient = useQueryClient();
   const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
   return useFinMutation<ITag, Error, { tagId: string; input: IUpdateTagInput }>(
     {
       mutationFn: ({ tagId, input }) =>
         updateTag(requireWorkspaceId(workspaceId), tagId, input),
-      invalidateQueries: [() => queryKeys.tags(workspaceId!)],
+      invalidateQueries: [() => queryKeys.tags(wid)],
+      onMutate: async ({ tagId, input }) => {
+        const prefix = ["tags", wid] as const;
+        const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+        updateInDataListCaches<ITag>(queryClient, [prefix], tagId, (tag) => ({
+          ...tag,
+          ...input,
+          emoticon:
+            input.emoticon !== undefined ? input.emoticon : tag.emoticon,
+          updatedAt: new Date().toISOString(),
+        }));
+        return { snapshot };
+      },
       getOfflineQueuedToast: (vars) => ({
-        title: `Tag "${vars.input.name}" updated successfully`,
+        title: `Tag "${vars.input.name ?? "Tag"}" updated successfully`,
         message: OFFLINE_MUTATION_DEFAULT_DETAIL,
       }),
     },
@@ -71,14 +110,22 @@ export function useUpdateTag() {
 }
 
 export function useDeleteTag() {
+  const queryClient = useQueryClient();
   const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: (tagId) =>
       deleteTag(requireWorkspaceId(workspaceId), tagId),
     invalidateQueries: [
-      () => queryKeys.tags(workspaceId!),
-      () => queryKeys.transactions(workspaceId!),
+      () => queryKeys.tags(wid),
+      () => queryKeys.transactions(wid),
     ],
+    onMutate: async (tagId) => {
+      const prefix = ["tags", wid] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      removeFromDataListCaches(queryClient, [prefix], tagId);
+      return { snapshot };
+    },
     getOfflineQueuedToast: () => ({
       title: "Tag deleted successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,

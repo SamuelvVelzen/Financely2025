@@ -8,6 +8,14 @@ import {
   updateBudget,
 } from "@/features/budget/api/client";
 import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
+import {
+  buildOptimisticBudget,
+  prependToDataListCaches,
+  removeFromDataListCaches,
+  snapshotForPrefixes,
+  updateInDataListCaches,
+} from "@/features/shared/offline/optimistic-cache";
+import { getOfflineOutboxUserId } from "@/features/shared/offline/offline-mutation-outbox";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
@@ -52,6 +60,7 @@ export function useBudgetComparison(budgetId: string) {
 }
 
 export function useCreateBudget() {
+  const queryClient = useQueryClient();
   const workspaceId = useActiveWorkspaceId();
   return useFinMutation<IBudget, Error, ICreateBudgetInput>({
     mutationFn: (input) => createBudget(workspaceId, input),
@@ -59,6 +68,16 @@ export function useCreateBudget() {
       () => queryKeys.budgets(workspaceId),
       () => queryKeys.budgetsOverview(workspaceId),
     ],
+    onMutate: async (input) => {
+      const prefix = ["budgets", workspaceId] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      prependToDataListCaches(
+        queryClient,
+        [prefix],
+        buildOptimisticBudget(input, getOfflineOutboxUserId() ?? "local"),
+      );
+      return { snapshot };
+    },
     getOfflineQueuedToast: () => ({
       title: "Budget created successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
@@ -81,6 +100,20 @@ export function useUpdateBudget() {
       () => queryKeys.budgets(workspaceId),
       () => queryKeys.budgetsOverview(workspaceId),
     ],
+    onMutate: async ({ budgetId, input }) => {
+      const prefix = ["budgets", workspaceId] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      updateInDataListCaches<IBudget>(queryClient, [prefix], budgetId, (b) => ({
+        ...b,
+        name: input.name ?? b.name,
+        periodType: input.periodType ?? b.periodType,
+        startDate: input.startDate ?? b.startDate,
+        endDate: input.endDate ?? b.endDate,
+        currency: input.currency ?? b.currency,
+        updatedAt: new Date().toISOString(),
+      }));
+      return { snapshot };
+    },
     onSuccess: async (_data, variables) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.budget(workspaceId, variables.budgetId),
@@ -94,6 +127,7 @@ export function useUpdateBudget() {
 }
 
 export function useDeleteBudget() {
+  const queryClient = useQueryClient();
   const workspaceId = useActiveWorkspaceId();
   return useFinMutation<{ success: boolean }, Error, string>({
     mutationFn: (budgetId) => deleteBudget(workspaceId, budgetId),
@@ -101,6 +135,12 @@ export function useDeleteBudget() {
       () => queryKeys.budgets(workspaceId),
       () => queryKeys.budgetsOverview(workspaceId),
     ],
+    onMutate: async (budgetId) => {
+      const prefix = ["budgets", workspaceId] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      removeFromDataListCaches(queryClient, [prefix], budgetId);
+      return { snapshot };
+    },
     getOfflineQueuedToast: () => ({
       title: "Budget deleted successfully",
       message: OFFLINE_MUTATION_DEFAULT_DETAIL,
