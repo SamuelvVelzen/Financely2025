@@ -4,6 +4,21 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 export type IButtonSize = "xs" | "sm" | "md" | "lg";
 
+/** Shared outer dimensions so text and icon buttons align per size token. */
+export const buttonHeightClasses: { [key in IButtonSize]: string } = {
+  xs: "h-7",
+  sm: "h-8",
+  md: "h-9",
+  lg: "h-11",
+};
+
+export const iconButtonSizeClasses: { [key in IButtonSize]: string } = {
+  xs: "h-7! w-7!",
+  sm: "h-8! w-8!",
+  md: "h-9! w-9!",
+  lg: "h-11! w-11!",
+};
+
 export type IVariant =
   | "default"
   | "danger"
@@ -77,10 +92,10 @@ export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Butto
   const isDisabled = disabled || isLoading;
   const disabledClasses = isDisabled && "opacity-50 cursor-not-allowed";
   const sizeClasses: { [key in IButtonSize]: string } = {
-    xs: "px-0.5 py-0.25 text-xs",
-    sm: "px-2 py-0.75 text-sm",
-    md: "px-4 py-1.25 text-base",
-    lg: "px-6 py-1.75 text-lg",
+    xs: `${buttonHeightClasses.xs} px-2 text-xs`,
+    sm: `${buttonHeightClasses.sm} px-2 text-sm`,
+    md: `${buttonHeightClasses.md} px-4 text-base`,
+    lg: `${buttonHeightClasses.lg} px-6 text-lg`,
   };
 
   return (

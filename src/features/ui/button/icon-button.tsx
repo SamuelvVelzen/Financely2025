@@ -1,7 +1,7 @@
 import { cn } from "@/features/util/cn";
 import { type ReactNode } from "react";
 import { Tooltip } from "../tooltip/tooltip";
-import { Button, type IButtonProps, type IButtonSize } from "./button";
+import { Button, type IButtonProps, iconButtonSizeClasses } from "./button";
 
 type IIconButton = {
   icon?: ReactNode;
@@ -26,20 +26,17 @@ export function IconButton({
 }: IIconButton) {
   const iconButtonContent = children ? children : icon;
 
-  const sizeClasses: { [key in IButtonSize]: string } = {
-    xs: "p-0.5 -my-0.5",
-    sm: "p-1 -my-1.",
-    md: "p-2 -my-2",
-    lg: "p-4 -my-4",
-  };
-
   const button = (
     <Button
-      className={cn("rounded-full", sizeClasses[size], className)}
+      size={size}
+      className={cn(
+        "rounded-full shrink-0 px-0! py-0!",
+        iconButtonSizeClasses[size],
+        className,
+      )}
       clicked={clicked}
       disabled={disabled}
       buttonContent={iconButtonContent}
-      size={size}
       {...props}
     />
   );
