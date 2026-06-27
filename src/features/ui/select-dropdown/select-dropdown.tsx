@@ -45,6 +45,8 @@ export type ISelectDropdownProps<
   required?: boolean;
   /** Accessible name when `label` is omitted */
   ariaLabel?: string;
+  /** When false, the trigger sizes to its content instead of stretching full width. */
+  fullWidth?: boolean;
 } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -64,6 +66,7 @@ export function SelectDropdown<
   disabled = false,
   required = false,
   ariaLabel,
+  fullWidth = true,
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,
@@ -169,6 +172,7 @@ export function SelectDropdown<
         label={label}
         disabled={disabled}
         required={required}
+        fullWidth={fullWidth}
         valueToString={valueToString}
         stringToValue={stringToValue}
         aria-label={ariaLabel}
@@ -254,7 +258,11 @@ export function SelectDropdown<
     // Custom selector button
     const selectorButton = (
       <>
-        <span className="flex-1 text-left whitespace-nowrap truncate">
+        <span
+          className={cn(
+            "text-left whitespace-nowrap truncate",
+            fullWidth && "flex-1",
+          )}>
           {displayText}
         </span>
         <div className="flex items-center gap-1 ml-2">
@@ -293,7 +301,9 @@ export function SelectDropdown<
     );
 
     return (
-      <div ref={containerRef} className={cn("relative", className)}>
+      <div
+        ref={containerRef}
+        className={cn("relative", fullWidth && "min-w-0 w-full", className)}>
         {label && (
           <Label
             className="mb-1"
@@ -301,17 +311,21 @@ export function SelectDropdown<
             {label}
           </Label>
         )}
-        <Dropdown
-          dropdownSelector={selectorButton}
-          open={effectiveIsOpen}
-          onOpenChange={(open) => {
-            if (disabled && open) return;
-            setIsOpen(open);
-          }}
-          closeOnItemClick={!multiple}
-          disabled={disabled}
-          allowNested={isNested}>
-          {optionGroups.map((optionGroup, groupIndex) => (
+        <div className={cn(fullWidth && "min-w-0 w-full")}>
+          <Dropdown
+            dropdownSelector={selectorButton}
+            open={effectiveIsOpen}
+            onOpenChange={(open) => {
+              if (disabled && open) return;
+              setIsOpen(open);
+            }}
+            closeOnItemClick={!multiple}
+            disabled={disabled}
+            allowNested={isNested}
+            selectorClassName={
+              fullWidth ? "min-w-0 max-w-full" : "w-auto max-w-xs"
+            }>
+            {optionGroups.map((optionGroup, groupIndex) => (
             <Fragment key={`${optionGroup.group}-${groupIndex}`}>
               {optionGroup.group && (
                 <DropdownHeader>{optionGroup.group}</DropdownHeader>
@@ -353,7 +367,8 @@ export function SelectDropdown<
               })}
             </Fragment>
           ))}
-        </Dropdown>
+          </Dropdown>
+        </div>
         {error && (
           <p className="text-sm text-danger mt-1">
             {(error as { message?: string })?.message || String(error)}

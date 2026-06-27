@@ -33,6 +33,8 @@ export type ISelectInputProps<
     placeholder?: string;
     label?: string;
     disabled?: boolean;
+    /** When false, the select sizes to its content instead of stretching full width. */
+    fullWidth?: boolean;
   } & IValueSerialization<TValue> &
   IFormOrControlledMode<TValue | TValue[]>;
 
@@ -47,6 +49,7 @@ export function NativeSelect<
   placeholder = "Select...",
   label,
   disabled = false,
+  fullWidth = true,
   value: controlledValue,
   onChange: controlledOnChange,
   onValueChange,
@@ -83,7 +86,9 @@ export function NativeSelect<
 
   const baseClasses =
     "border rounded-2xl bg-surface text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 disabled:cursor-not-allowed";
-  const widthBaseClasses = `h-[22px] box-content`;
+  const widthBaseClasses = fullWidth
+    ? "min-h-9 box-border min-w-0 max-w-full"
+    : "h-[22px] box-content";
 
   const paddingClasses = "py-2 pl-2 pr-2";
 
@@ -104,7 +109,13 @@ export function NativeSelect<
     const optionGroups = normalizeSelectOptions(options);
 
     return (
-      <div className={cn("relative", label ? "space-y-1" : "", className)}>
+      <div
+        className={cn(
+          "relative",
+          fullWidth && "min-w-0 w-full",
+          label ? "space-y-1" : "",
+          className,
+        )}>
         {label && <Label>{label}</Label>}
         <select
           {...selectProps}
@@ -118,7 +129,7 @@ export function NativeSelect<
             borderClass,
             paddingClasses,
             widthBaseClasses,
-            "w-full"
+            fullWidth ? "w-full" : "w-auto max-w-xs",
           )}
           value={
             multiple
