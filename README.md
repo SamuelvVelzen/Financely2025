@@ -137,6 +137,39 @@ The application supports importing transactions from CSV files with automatic ba
 
 The detected bank is automatically selected, but you can manually change it if needed. See `docs/adding-a-new-bank.md` for information on adding support for additional banks.
 
+### Offline support
+
+Financely is built to keep working when your connection drops. The goal is a future installable PWA where you can keep adding data on this device and have it sync later.
+
+**What works offline today**
+
+- **Writes (create, update, delete)** — JSON API mutations are queued in IndexedDB when you are offline or when a request fails with a network error. Changes replay automatically in order when you reconnect.
+- **CSV uploads** — File uploads use the same outbox pattern as other mutations (`apiPostFormData`). Mapping, transform, and import steps that send JSON are also queued.
+- **Optimistic UI** — Lists update immediately when you save; the UI rolls back only on a real error (not when a change is queued for sync).
+- **Pending sync indicator** — A badge in the app shell shows how many local changes are waiting to sync.
+- **Sign-out protection** — Signing out with unsynced changes shows a confirmation so you do not lose work by accident.
+
+**What still requires a connection**
+
+- **Initial app load** — There is no service worker yet, so a cold start offline will not load the app shell.
+- **Reading fresh data** — Lists use in-memory React Query cache only. Browsing data after a full page reload while offline is limited.
+- **Auth flows** — Login, password change, email change, and social account linking go through Better Auth and need the server.
+- **CSV wizard steps** — Upload can be queued, but column detection and row parsing need a server round-trip to complete the import flow.
+
+**How it works**
+
+1. `useFinMutation` runs with `networkMode: "always"` so mutations are not paused while offline.
+2. The API client queues failed or offline writes to the `financely-offline-mutations` IndexedDB store (per signed-in user).
+3. `OfflineMutationProcessor` replays the queue FIFO when online, with retries for transient failures.
+4. On success, affected React Query caches are invalidated so lists reflect server state.
+5. If automatic sync fails, the pending badge stays visible — **tap it to retry manually**.
+
+**Tag + transaction offline:** If you create a tag offline and use it on a transaction, the app links the temporary tag id to the real server id during sync so the transaction replays correctly.
+
+**Requirements**
+
+- You must be **signed in** to queue changes. Unsigned users see an error if they try to save while offline.
+
 ## Learn More
 
 To learn more about the technologies used, take a look at the following resources:
