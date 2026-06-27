@@ -1,4 +1,5 @@
 import {
+  keepPreviousData,
   type InfiniteData,
   type UseInfiniteQueryOptions,
   type UseInfiniteQueryResult,
@@ -19,6 +20,10 @@ import {
   clearPendingOutboxInvalidations,
   setPendingOutboxInvalidations,
 } from "@/features/shared/offline/mutation-outbox-context";
+import {
+  type IQuerySnapshot,
+  restoreSnapshot,
+} from "@/features/shared/offline/optimistic-cache";
 
 /**
  * Generic query hook wrapper with sensible defaults
@@ -45,6 +50,7 @@ export function useFinQuery<
 ) {
   return useQuery<TQueryFnData, TError, TData, TQueryKey>({
     refetchOnWindowFocus: true,
+    placeholderData: keepPreviousData,
     ...options,
   });
 }
@@ -104,6 +110,8 @@ export function useFinMutation<
     onSuccess: userOnSuccess,
     onQueued,
     getOfflineQueuedToast,
+    onMutate: userOnMutate,
+    onError: userOnError,
     ...restOptions
   } = options;
 
@@ -111,6 +119,22 @@ export function useFinMutation<
     ...restOptions,
     /** Let mutationFn run while offline so our API client can enqueue; default would pause forever. */
     networkMode: "always",
+    onMutate: async (variables) => {
+      return (await userOnMutate?.(variables)) as TContext;
+    },
+    onError: async (error, variables, context) => {
+      if (
+        context &&
+        typeof context === "object" &&
+        "snapshot" in context
+      ) {
+        restoreSnapshot(
+          queryClient,
+          (context as { snapshot: IQuerySnapshot }).snapshot,
+        );
+      }
+      await userOnError?.(error, variables, context);
+    },
     mutationFn: async (variables: TVariables) => {
       const invalidateBases = invalidateQueries.map((fn) => [...fn().slice(0, 1)]);
       setPendingOutboxInvalidations(invalidateBases);
@@ -193,6 +217,7 @@ export function useFinInfiniteQuery<
     TPageParam
   >({
     refetchOnWindowFocus: true,
+    placeholderData: keepPreviousData,
     queryFn: ({ pageParam }) =>
       userQueryFn({ pageParam: pageParam as TPageParam }),
     ...restOptions,

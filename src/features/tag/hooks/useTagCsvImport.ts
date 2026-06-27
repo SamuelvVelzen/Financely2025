@@ -1,3 +1,9 @@
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
+import {
+  buildOptimisticTag,
+  prependToDataListCaches,
+  snapshotForPrefixes,
+} from "@/features/shared/offline/optimistic-cache";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -16,6 +22,7 @@ import {
   uploadTagCsvFile,
   validateTagCsvMapping,
 } from "../api/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 function requireWorkspaceId(id: number | null): number {
   if (id == null) {
@@ -29,6 +36,10 @@ export function useUploadTagCsvFile() {
   return useFinMutation<ITagCsvUploadResponse, Error, File>({
     mutationFn: (file) =>
       uploadTagCsvFile(requireWorkspaceId(workspaceId), file),
+    getOfflineQueuedToast: () => ({
+      title: "CSV upload queued",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -58,6 +69,10 @@ export function useValidateTagCsvMapping() {
   return useFinMutation<ITagCsvMappingValidation, Error, ITagCsvFieldMapping>({
     mutationFn: (mapping) =>
       validateTagCsvMapping(requireWorkspaceId(workspaceId), mapping),
+    getOfflineQueuedToast: () => ({
+      title: "CSV mapping validated",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -91,10 +106,24 @@ export function useParseTagCsvRows(
 }
 
 export function useImportTagCsv() {
+  const queryClient = useQueryClient();
   const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
   return useFinMutation<ITagCsvImportResponse, Error, ICreateTagInput[]>({
     mutationFn: (tags) =>
       importTagCsv(requireWorkspaceId(workspaceId), tags),
-    invalidateQueries: [() => queryKeys.tags(workspaceId!)],
+    invalidateQueries: [() => queryKeys.tags(wid)],
+    onMutate: async (tags) => {
+      const prefix = ["tags", wid] as const;
+      const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
+      for (const tag of tags) {
+        prependToDataListCaches(queryClient, [prefix], buildOptimisticTag(tag));
+      }
+      return { snapshot };
+    },
+    getOfflineQueuedToast: (tags) => ({
+      title: `${tags.length} tag${tags.length === 1 ? "" : "s"} queued for import`,
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }

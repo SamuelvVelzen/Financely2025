@@ -1,11 +1,18 @@
-import type { IErrorResponse } from "@/features/shared/validation/schemas";
+import { isReplayableNetworkError } from "@/features/shared/offline/network-errors";
+import { OfflineMutationQueuedError } from "@/features/shared/offline/offline-mutation-errors";
 import {
+  deserializeFormData,
   enqueueOfflineMutation,
   getOfflineOutboxUserId,
+  type IOfflineFormDataField,
   type IOfflineMutationRecord,
 } from "@/features/shared/offline/offline-mutation-outbox";
-import { getIsOnline } from "@/features/shared/offline/online-status-store";
-import { OfflineMutationQueuedError } from "@/features/shared/offline/offline-mutation-errors";
+import {
+  getIsOnline,
+  reportNetworkFailure,
+  reportNetworkSuccess,
+} from "@/features/shared/offline/online-status-store";
+import type { IErrorResponse } from "@/features/shared/validation/schemas";
 
 /**
  * API Client Configuration
@@ -31,7 +38,7 @@ export class ApiClientError extends Error {
     return new ApiClientError(
       response.error.code,
       response.error.message,
-      400, // Default, should be extracted from actual response
+      400,
       response.error.details as Record<string, unknown> | undefined,
     );
   }
@@ -58,6 +65,38 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
   return data as T;
 }
 
+function offlineSignInRequiredError(): ApiClientError {
+  return new ApiClientError(
+    "OFFLINE",
+    "You are offline. Sign in to save changes on this device until you reconnect.",
+    0,
+  );
+}
+
+async function queueOfflineMutation(input: {
+  method: IOfflineMutationRecord["method"];
+  endpoint: string;
+  body?: unknown;
+  formData?: FormData;
+}): Promise<never> {
+  const userId = getOfflineOutboxUserId();
+  if (!userId) {
+    throw offlineSignInRequiredError();
+  }
+  const queueId = await enqueueOfflineMutation({
+    userId,
+    method: input.method,
+    endpoint: input.endpoint,
+    body: input.body,
+    formData: input.formData,
+  });
+  throw new OfflineMutationQueuedError(queueId);
+}
+
+function shouldQueueBeforeRequest(): boolean {
+  return typeof window !== "undefined" && !getIsOnline();
+}
+
 /**
  * Fetch wrapper with error normalization and JSON parsing (GET and reads)
  */
@@ -67,16 +106,24 @@ async function fetchApi<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
 
-  const response = await fetch(url, {
-    ...options,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
-
-  return parseJsonResponse<T>(response);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+      },
+    });
+    const result = await parseJsonResponse<T>(response);
+    reportNetworkSuccess();
+    return result;
+  } catch (error: unknown) {
+    if (isReplayableNetworkError(error)) {
+      reportNetworkFailure();
+    }
+    throw error;
+  }
 }
 
 /**
@@ -91,40 +138,85 @@ async function fetchJsonMutation<T>(
   const { bypassOfflineGate, ...rest } = init ?? {};
   const url = `${API_BASE_URL}${endpoint}`;
 
-  if (
-    typeof window !== "undefined" &&
-    !bypassOfflineGate &&
-    !getIsOnline()
-  ) {
-    const userId = getOfflineOutboxUserId();
-    if (!userId) {
-      throw new ApiClientError(
-        "OFFLINE",
-        "You are offline. Sign in to save changes on this device until you reconnect.",
-        0,
-      );
-    }
-    const queueId = await enqueueOfflineMutation({
-      userId,
-      method,
-      endpoint,
-      body,
-    });
-    throw new OfflineMutationQueuedError(queueId);
+  if (!bypassOfflineGate && shouldQueueBeforeRequest()) {
+    return queueOfflineMutation({ method, endpoint, body });
   }
 
-  const response = await fetch(url, {
-    ...rest,
-    method,
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...rest.headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  try {
+    const response = await fetch(url, {
+      ...rest,
+      method,
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...rest.headers,
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const result = await parseJsonResponse<T>(response);
+    reportNetworkSuccess();
+    return result;
+  } catch (error: unknown) {
+    if (!bypassOfflineGate && isReplayableNetworkError(error)) {
+      reportNetworkFailure();
+      return queueOfflineMutation({ method, endpoint, body });
+    }
+    throw error;
+  }
+}
 
-  return parseJsonResponse<T>(response);
+/**
+ * Multipart POST with offline outbox support (CSV uploads, etc.).
+ */
+export async function apiPostFormData<T>(
+  endpoint: string,
+  formData: FormData,
+  init?: IFetchMutationInit,
+): Promise<T> {
+  const { bypassOfflineGate, ...rest } = init ?? {};
+  const url = `${API_BASE_URL}${endpoint}`;
+
+  if (!bypassOfflineGate && shouldQueueBeforeRequest()) {
+    return queueOfflineMutation({
+      method: "POST",
+      endpoint,
+      formData,
+    });
+  }
+
+  try {
+    const response = await fetch(url, {
+      ...rest,
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+    const result = await parseJsonResponse<T>(response);
+    reportNetworkSuccess();
+    return result;
+  } catch (error: unknown) {
+    if (!bypassOfflineGate && isReplayableNetworkError(error)) {
+      reportNetworkFailure();
+      return queueOfflineMutation({
+        method: "POST",
+        endpoint,
+        formData,
+      });
+    }
+    throw error;
+  }
+}
+
+function parseFormFieldsFromRecord(
+  record: IOfflineMutationRecord,
+): IOfflineFormDataField[] {
+  if (!record.formFieldsJson) return [];
+  try {
+    const raw = JSON.parse(record.formFieldsJson) as unknown;
+    return Array.isArray(raw) ? (raw as IOfflineFormDataField[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -133,6 +225,14 @@ async function fetchJsonMutation<T>(
 export async function replayOfflineMutationFromRecord(
   record: IOfflineMutationRecord,
 ): Promise<unknown> {
+  if (record.contentType === "multipart") {
+    const fields = parseFormFieldsFromRecord(record);
+    const formData = await deserializeFormData(fields);
+    return apiPostFormData<unknown>(record.endpoint, formData, {
+      bypassOfflineGate: true,
+    });
+  }
+
   return fetchJsonMutation<unknown>(
     record.endpoint,
     record.method,
@@ -181,7 +281,6 @@ export async function apiDelete<T>(endpoint: string): Promise<T> {
 
 /**
  * Helper to convert Decimal strings to numbers for UI display only
- * Note: Keep as string for financial calculations to preserve precision
  */
 export function decimalStringToNumber(decimalString: string): number {
   return parseFloat(decimalString);

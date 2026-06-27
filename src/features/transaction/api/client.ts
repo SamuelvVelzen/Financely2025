@@ -3,6 +3,7 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  apiPostFormData,
   buildQueryString,
 } from "@/features/shared/api/client";
 import type {
@@ -22,9 +23,6 @@ import type {
 import { workspaceApiV1Path } from "@/features/workspace/workspace-api-path";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import type { BankEnum } from "../config/banks";
-
-const API_V1_BASE =
-  typeof window !== "undefined" ? "/api/v1" : "http://localhost:3000/api/v1";
 
 export interface ICsvMappingSuggestion {
   mapping: ICsvFieldMapping;
@@ -130,20 +128,10 @@ export async function uploadCsvFile(
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(
-    `${API_V1_BASE}${workspaceApiV1Path(workspaceId, "transactions/csv-upload")}`,
-    {
-      method: "POST",
-      body: formData,
-    }
+  return apiPostFormData<ICsvUploadResponse>(
+    workspaceApiV1Path(workspaceId, "transactions/csv-upload"),
+    formData,
   );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || "Upload failed");
-  }
-
-  return response.json();
 }
 
 export async function getCsvMapping(

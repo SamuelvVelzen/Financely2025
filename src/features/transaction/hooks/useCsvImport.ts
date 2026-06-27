@@ -1,3 +1,10 @@
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
+import {
+  buildOptimisticTransaction,
+  prependToPaginatedCaches,
+  snapshotForPrefixes,
+  transactionListPrefixes,
+} from "@/features/shared/offline/optimistic-cache";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -17,6 +24,7 @@ import {
   type ICsvMappingSuggestion,
 } from "../api/client";
 import type { BankEnum } from "../config/banks";
+import { useQueryClient } from "@tanstack/react-query";
 
 function requireWorkspaceId(id: number | null): number {
   if (id == null) {
@@ -30,6 +38,10 @@ export function useUploadCsvFile() {
   return useFinMutation<ICsvUploadResponse, Error, File>({
     mutationFn: (file) =>
       uploadCsvFile(requireWorkspaceId(workspaceId), file),
+    getOfflineQueuedToast: () => ({
+      title: "CSV upload queued",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -87,18 +99,40 @@ export function useTransformCsvRows() {
         defaultCurrency,
         bank,
       ),
+    getOfflineQueuedToast: () => ({
+      title: "CSV rows transformed",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
 export function useImportCsvTransactions() {
+  const queryClient = useQueryClient();
   const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
   return useFinMutation<ICsvImportResponse, Error, ICreateTransactionInput[]>({
     mutationFn: (transactions) =>
       importCsvTransactions(requireWorkspaceId(workspaceId), transactions),
     invalidateQueries: [
-      () => queryKeys.transactions(workspaceId!),
-      () => queryKeys.expenses(workspaceId!),
-      () => queryKeys.incomes(workspaceId!),
+      () => queryKeys.transactions(wid),
+      () => queryKeys.expenses(wid),
+      () => queryKeys.incomes(wid),
     ],
+    onMutate: async (transactions) => {
+      const prefixes = transactionListPrefixes(wid);
+      const snapshot = await snapshotForPrefixes(queryClient, prefixes);
+      for (const tx of transactions) {
+        prependToPaginatedCaches(
+          queryClient,
+          prefixes,
+          buildOptimisticTransaction(tx),
+        );
+      }
+      return { snapshot };
+    },
+    getOfflineQueuedToast: (transactions) => ({
+      title: `${transactions.length} transaction${transactions.length === 1 ? "" : "s"} queued for import`,
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
