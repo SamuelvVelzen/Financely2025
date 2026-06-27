@@ -64,10 +64,19 @@ export function ButtonToggleGroup<T extends string>({
   const sizes = sizeClasses[size];
   const trackRef = useRef<HTMLDivElement>(null);
   const segmentRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const optionsRef = useRef(options);
   const [indicator, setIndicator] = useState<IIndicatorStyle>({ left: 0, width: 0 });
+  const optionsSignature = options
+    .map(
+      (option) =>
+        `${option.value}:${option.label ?? ""}:${option.disabled ? 1 : 0}`
+    )
+    .join("|");
 
   const updateIndicator = useCallback(() => {
-    const selectedIndex = options.findIndex((option) => option.value === value);
+    const selectedIndex = optionsRef.current.findIndex(
+      (option) => option.value === value
+    );
     const segment = segmentRefs.current[selectedIndex];
     const track = trackRef.current;
 
@@ -77,16 +86,23 @@ export function ButtonToggleGroup<T extends string>({
 
     const trackRect = track.getBoundingClientRect();
     const segmentRect = segment.getBoundingClientRect();
+    const left = Math.round(segmentRect.left - trackRect.left);
+    const width = Math.round(segmentRect.width);
 
-    setIndicator({
-      left: segmentRect.left - trackRect.left,
-      width: segmentRect.width,
+    setIndicator((prev) => {
+      if (prev.left === left && prev.width === width) {
+        return prev;
+      }
+      return { left, width };
     });
-  }, [options, value]);
+  }, [value]);
 
   useLayoutEffect(() => {
+    optionsRef.current = options;
     updateIndicator();
-  }, [updateIndicator, options.length]);
+    // optionsSignature tracks option content; parents may pass unstable array references
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
+  }, [updateIndicator, optionsSignature]);
 
   useLayoutEffect(() => {
     const track = trackRef.current;
@@ -106,7 +122,7 @@ export function ButtonToggleGroup<T extends string>({
     });
 
     return () => observer.disconnect();
-  }, [updateIndicator, options.length]);
+  }, [updateIndicator, optionsSignature]);
 
   return (
     <div
