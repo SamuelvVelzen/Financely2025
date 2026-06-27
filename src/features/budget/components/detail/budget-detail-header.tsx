@@ -1,4 +1,3 @@
-import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import { Container } from "@/features/ui/container/container";
@@ -13,6 +12,72 @@ import {
   HiPencil,
   HiTrash,
 } from "react-icons/hi2";
+
+function BudgetDetailActionsMenu({
+  onEdit,
+  onDelete,
+  size,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  size: "xs" | "sm";
+}) {
+  return (
+    <Dropdown size={size}>
+      <DropdownItem icon={<HiPencil className="size-4" />} clicked={onEdit}>
+        Edit
+      </DropdownItem>
+      <DropdownItem
+        icon={<HiTrash className="size-4" />}
+        clicked={onDelete}
+        className="text-danger">
+        Delete
+      </DropdownItem>
+    </Dropdown>
+  );
+}
+
+function MonthPeriodDropdown({
+  selectedMonthKey,
+  selectedMonthLabel,
+  monthOptions,
+  onMonthChange,
+  size = "sm",
+}: {
+  selectedMonthKey: string | null;
+  selectedMonthLabel: string | null;
+  monthOptions: { value: string; label: string }[];
+  onMonthChange: (monthKey: string | null) => void;
+  size?: "xs" | "sm";
+}) {
+  const handleMonthOptionSelect = (value: string) => {
+    onMonthChange(value === "all" ? null : value);
+  };
+
+  return (
+    <Dropdown
+      size={size}
+      placement={["bottom", "top"]}
+      dropdownSelector={{
+        variant: selectedMonthKey ? "primary" : "default",
+        content: (
+          <div className="flex items-center gap-2">
+            <HiCalendar className="size-4" />
+            <span>{selectedMonthLabel ?? "Period"}</span>
+          </div>
+        ),
+      }}>
+      {monthOptions.map((option) => (
+        <DropdownItem
+          key={option.value}
+          clicked={() => handleMonthOptionSelect(option.value)}
+          selected={(selectedMonthKey ?? "all") === option.value}>
+          {option.label}
+        </DropdownItem>
+      ))}
+    </Dropdown>
+  );
+}
 
 type IBudgetDetailHeaderProps = {
   budgetName: string;
@@ -75,54 +140,20 @@ export function BudgetDetailHeader({
 
         <div className="flex shrink-0 items-center gap-2">
           {isSticky && hasMultipleMonths && (
-            <Dropdown
+            <MonthPeriodDropdown
+              selectedMonthKey={selectedMonthKey}
+              selectedMonthLabel={selectedMonthLabel}
+              monthOptions={monthOptions}
+              onMonthChange={onMonthChange}
               size="xs"
-              placement={["bottom", "top"]}
-              dropdownSelector={{
-                variant: selectedMonthKey ? "primary" : "default",
-                content: (
-                  <div className="flex items-center gap-2">
-                    <HiCalendar className="size-4" />
-                    <span>{selectedMonthLabel ?? "Period"}</span>
-                  </div>
-                ),
-              }}>
-              {monthOptions.map((option) => (
-                <DropdownItem
-                  key={option.value}
-                  clicked={() => handleMonthOptionSelect(option.value)}
-                  selected={(selectedMonthKey ?? "all") === option.value}>
-                  {option.label}
-                </DropdownItem>
-              ))}
-            </Dropdown>
+            />
           )}
 
-          {isSticky ? (
-            <>
-              <IconButton clicked={onEdit} size="sm" ariaLabel="Edit budget">
-                <HiPencil className="size-4" />
-              </IconButton>
-              <IconButton
-                clicked={onDelete}
-                variant="danger"
-                size="sm"
-                ariaLabel="Delete budget">
-                <HiTrash className="size-4" />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <Button variant="secondary" clicked={onEdit} size="sm">
-                <HiPencil className="size-4 mr-2" />
-                Edit
-              </Button>
-              <Button variant="danger" clicked={onDelete} size="sm">
-                <HiTrash className="size-4 mr-2" />
-                Delete
-              </Button>
-            </>
-          )}
+          <BudgetDetailActionsMenu
+            onEdit={onEdit}
+            onDelete={onDelete}
+            size={"sm"}
+          />
         </div>
       </div>
 
@@ -135,9 +166,10 @@ export function BudgetDetailHeader({
           )}>
           <div className={cn(isSticky && "overflow-hidden")}>
             {hasMultipleMonths && (
-              <div className="flex items-center gap-3">
-                <div className="max-w-xs flex-1">
+              <div className="flex min-w-0 w-full items-center gap-3">
+                <div className="min-w-0 flex-1">
                   <SelectDropdown
+                    className="w-full min-w-0"
                     value={selectedMonthKey ?? "all"}
                     onChange={(val) => handleMonthOptionSelect(val as string)}
                     options={monthOptions}
@@ -147,6 +179,7 @@ export function BudgetDetailHeader({
                 {selectedMonthKey && (
                   <LinkButton
                     variant="primary"
+                    className="shrink-0"
                     clicked={() => onMonthChange(null)}>
                     All months
                   </LinkButton>

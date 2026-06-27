@@ -1,3 +1,4 @@
+import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { cn } from "@/features/util/cn";
@@ -18,6 +19,10 @@ export function SubscriptionOverviewHeader({
   isSticky,
 
 }: ISubscriptionOverviewHeaderProps) {
+  const { isMobile } = useResponsive();
+  const buttonSize = isMobile ? "xs" : "sm";
+  const iconClass = isMobile ? "size-4" : isSticky ? "size-5" : "size-6";
+
   return (
     <Container className={cn("sticky z-10 top-0 transition-all")}>
       <div className="flex items-center justify-between gap-2 transition-all">
@@ -42,13 +47,11 @@ export function SubscriptionOverviewHeader({
         <Button
           clicked={actions.onDetectSubscriptions}
           variant="primary"
-          size="sm"
+          size={buttonSize}
           buttonContent={
-            <div className="flex items-center gap-2">
-              <HiMagnifyingGlass
-                className={cn(isSticky ? "size-5" : "size-6")}
-              />
-              {isSticky ? "Detect" : "Detect Subscriptions"}
+            <div className="flex items-center gap-1.5">
+              <HiMagnifyingGlass className={iconClass} />
+              {isMobile || isSticky ? "Detect" : "Detect Subscriptions"}
             </div>
           }
         />

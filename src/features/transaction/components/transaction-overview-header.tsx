@@ -5,6 +5,7 @@ import type { IFilterProps } from "@/features/transaction/hooks/use-transaction-
 import { useTransactionHeader } from "@/features/transaction/hooks/use-transaction-header";
 import type { ITransactionLayoutMode } from "@/features/transaction/hooks/use-transaction-view-mode";
 import { Button } from "@/features/ui/button/button";
+import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
@@ -47,9 +48,25 @@ export interface ITransactionOverviewHeaderProps {
   viewMode: ITransactionViewModeProps;
 }
 
-function TransactionActionsMenuItems({ actions }: { actions: IActionHandlers }) {
+function TransactionActionsMenuItems({
+  actions,
+  includeAddAction = false,
+}: {
+  actions: IActionHandlers;
+  includeAddAction?: boolean;
+}) {
   return (
     <>
+      {includeAddAction && (
+        <>
+          <DropdownItem
+            icon={<HiPlus className="size-4" />}
+            clicked={actions.onCreateTransaction}>
+            Add transaction
+          </DropdownItem>
+          <DropdownDivider />
+        </>
+      )}
       <DropdownItem
         icon={<HiArrowPath />}
         clicked={actions.onDetectSubscriptions}>
@@ -67,14 +84,23 @@ function TransactionActionsMenuItems({ actions }: { actions: IActionHandlers }) 
         clicked={actions.onCsvExportClick}>
         Export to CSV
       </DropdownItem>
-    </>
-  );
+
+    </>)
 }
 
-function TransactionHeaderMenu({ actions }: { actions: IActionHandlers }) {
+
+function TransactionHeaderMenu({
+  actions,
+  includeAddAction = false,
+  size = "sm",
+}: {
+  actions: IActionHandlers;
+  includeAddAction?: boolean;
+  size?: "xs" | "sm" | "md" | "lg";
+}) {
   return (
-    <Dropdown size="sm">
-      <TransactionActionsMenuItems actions={actions} />
+    <Dropdown size={size}>
+      <TransactionActionsMenuItems actions={actions} includeAddAction={includeAddAction} />
     </Dropdown>
   );
 }
@@ -89,6 +115,8 @@ export function TransactionOverviewHeader({
 }: ITransactionOverviewHeaderProps) {
   const { monthDisplay } = useTransactionHeader(filterProps.filterState);
   const { isMobile } = useResponsive();
+  const buttonSize = isMobile ? "xs" : "sm";
+  const addIconClass = isMobile ? "size-3.5" : isSticky ? "size-5" : "size-6";
 
   const badges = useTransactionFilterBadges({
     filterState: filterProps.filterState,
@@ -154,44 +182,62 @@ export function TransactionOverviewHeader({
                 <Button
                   clicked={actions.onCreateTransaction}
                   variant="primary"
-                  size="sm">
-                  <HiPlus className="size-5" /> Add
+                  size={"sm"}>
+                  <HiPlus className={addIconClass} /> Add
                 </Button>
               )}
               <Button
                 clicked={onFiltersClick}
                 variant={filterProps.hasActiveFilters ? "primary" : "default"}
-                size="sm"
+                size={buttonSize}
+                ariaLabel={
+                  filterProps.hasActiveFilters
+                    ? `Filters (${filterCount})`
+                    : "Filters"
+                }
                 buttonContent={
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <HiFunnel className="size-4" />
-                    <span>
-                      Filters
-                      {filterProps.hasActiveFilters ? ` (${filterCount})` : ""}
-                    </span>
+                    {!isMobile && (
+                      <span>
+                        Filters
+                        {filterProps.hasActiveFilters ? ` (${filterCount})` : ""}
+                      </span>
+                    )}
+                    {isMobile && filterProps.hasActiveFilters && (
+                      <span className="text-xs">({filterCount})</span>
+                    )}
                   </div>
                 }
               />
               {isMobile && (
-                <TransactionHeaderMenu actions={actions} />
+                <TransactionHeaderMenu
+                  actions={actions}
+                  includeAddAction={isSticky}
+                  size={buttonSize}
+                />
               )}
             </>
           ) : (
             <>
-              <Button
-                clicked={actions.onCreateTransaction}
-                variant="primary"
-                size="sm">
-                <HiPlus className="size-6" /> Add
-              </Button>
-
               {isMobile ? (
-                <TransactionHeaderMenu actions={actions} />
+                <IconButton
+                  clicked={actions.onCreateTransaction}
+                  variant="primary"
+                  size={buttonSize}
+                  ariaLabel="Add transaction">
+                  <HiPlus className={addIconClass} />
+                </IconButton>
               ) : (
-                <Dropdown>
-                  <TransactionActionsMenuItems actions={actions} />
-                </Dropdown>
+                <Button
+                  clicked={actions.onCreateTransaction}
+                  variant="primary"
+                  size={buttonSize}>
+                  <HiPlus className={addIconClass} /> Add
+                </Button>
               )}
+
+              <TransactionHeaderMenu actions={actions} size={buttonSize} />
             </>
           )}
         </div>
