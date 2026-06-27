@@ -1,4 +1,3 @@
-import { Currency } from "@/features/currency/components/currency";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import {
@@ -8,9 +7,6 @@ import {
   type ITagSuggestions,
   type ITransaction,
 } from "@/features/shared/validation/schemas";
-import type { ISubscriptionFrequency } from "@/features/subscription/config/frequencies";
-import { FREQUENCY_LABELS } from "@/features/subscription/config/frequencies";
-import { useSubscription } from "@/features/subscription/hooks/useSubscriptions";
 import { matchTagRules } from "@/features/tag-rule/api/client";
 import { TagSuggestionHint } from "@/features/tag-rule/components/tag-suggestion-hint";
 import { useTags } from "@/features/tag/hooks/useTags";
@@ -20,7 +16,7 @@ import {
   useCreateIncome,
   useUpdateTransaction,
 } from "@/features/transaction/hooks/useTransactions";
-import { Badge } from "@/features/ui/badge/badge";
+import { SubscriptionInfo } from "@/features/transaction/components/subscription-info";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -34,7 +30,6 @@ import { RadioItem } from "@/features/ui/radio/radio-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import { useToast } from "@/features/ui/toast";
-import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import {
   dateOnlyToIso,
   isoToDateOnly,
@@ -46,13 +41,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { parseISO } from "date-fns";
 import { useCallback, useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
-import {
-  HiArrowPath,
-  HiArrowTrendingDown,
-  HiArrowTrendingUp,
-  HiChevronDown,
-  HiChevronUp,
-} from "react-icons/hi2";
+import { HiArrowTrendingDown, HiArrowTrendingUp } from "react-icons/hi2";
 import { z } from "zod";
 
 type IAddOrEditTransactionDialog = {
@@ -752,93 +741,5 @@ export function AddOrEditTransactionDialog({
         onCancel={() => setShowUnsavedDialog(false)}
       />
     </>
-  );
-}
-
-type ISubscriptionInfoProps = {
-  subscriptionId: string;
-  subscriptionName: string;
-  frequency: string;
-  active: boolean;
-  currentTransactionId: string;
-};
-
-function SubscriptionInfo({
-  subscriptionId,
-  subscriptionName,
-  frequency,
-  active,
-  currentTransactionId,
-}: ISubscriptionInfoProps) {
-  const [showTransactions, setShowTransactions] = useState(false);
-  const { data: subscription } = useSubscription(subscriptionId);
-  const transactions = subscription?.transactions ?? [];
-  const otherTransactions = transactions.filter(
-    (t) => t.id !== currentTransactionId,
-  );
-
-  return (
-    <div className="border border-border rounded-xl p-3 space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <HiArrowPath className="size-4 text-info" />
-          <span className="text-sm font-medium text-text">
-            {subscriptionName}
-          </span>
-          <Badge variant="info" className="text-xs">
-            {FREQUENCY_LABELS[frequency as ISubscriptionFrequency] ??
-              frequency}
-          </Badge>
-          {!active && (
-            <Badge variant="warning" className="text-xs">
-              Paused
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      {otherTransactions.length > 0 && (
-        <>
-          <button
-            type="button"
-            className="flex items-center gap-1 text-xs text-text-muted hover:text-text transition-colors"
-            onClick={() => setShowTransactions(!showTransactions)}>
-            {showTransactions ? (
-              <HiChevronUp className="size-3" />
-            ) : (
-              <HiChevronDown className="size-3" />
-            )}
-            {otherTransactions.length} other transaction
-            {otherTransactions.length !== 1 ? "s" : ""}
-          </button>
-
-          {showTransactions && (
-            <div className="space-y-1 ml-2">
-              {otherTransactions.map((tx) => (
-                <div
-                  key={tx.id}
-                  className="flex items-center justify-between text-xs text-text-muted py-0.5">
-                  <span className="truncate flex-1">{tx.name}</span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span>
-                      {DateFormatHelpers.formatIsoStringToString(
-                        tx.transactionDate,
-                        "DateOnly",
-                      )}
-                    </span>
-                    <Currency
-                      amount={tx.amount}
-                      type={tx.type}
-                      currency={tx.currency}
-                      className="text-xs"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </div>
   );
 }

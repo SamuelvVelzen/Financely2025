@@ -1,6 +1,6 @@
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type { IBudgetAlert } from "@/features/shared/validation/schemas";
-import { TagInline } from "@/features/tag/components/tag-display";
+import { TagInline } from "@/features/tag/components/tag-inline";
 import { Alert } from "@/features/ui/alert/alert";
 import { Badge } from "@/features/ui/badge/badge";
 import { cn } from "@/features/util/cn";

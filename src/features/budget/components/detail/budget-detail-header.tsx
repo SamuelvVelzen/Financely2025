@@ -1,83 +1,14 @@
+import { BudgetDetailActionsMenu } from "@/features/budget/components/detail/budget-detail-actions-menu";
+import { MonthPeriodDropdown } from "@/features/budget/components/detail/month-period-dropdown";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { LinkButton } from "@/features/ui/button/link-button";
 import { Container } from "@/features/ui/container/container";
-import { Dropdown } from "@/features/ui/dropdown/dropdown";
-import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { cn } from "@/features/util/cn";
 import {
   HiArrowLeft,
-  HiCalendar,
   HiOutlineCurrencyEuro,
-  HiPencil,
-  HiTrash,
 } from "react-icons/hi2";
-
-function BudgetDetailActionsMenu({
-  onEdit,
-  onDelete,
-  size,
-}: {
-  onEdit: () => void;
-  onDelete: () => void;
-  size: "xs" | "sm";
-}) {
-  return (
-    <Dropdown size={size}>
-      <DropdownItem icon={<HiPencil className="size-4" />} clicked={onEdit}>
-        Edit
-      </DropdownItem>
-      <DropdownItem
-        icon={<HiTrash className="size-4" />}
-        clicked={onDelete}
-        className="text-danger">
-        Delete
-      </DropdownItem>
-    </Dropdown>
-  );
-}
-
-function MonthPeriodDropdown({
-  selectedMonthKey,
-  selectedMonthLabel,
-  monthOptions,
-  onMonthChange,
-  size = "sm",
-}: {
-  selectedMonthKey: string | null;
-  selectedMonthLabel: string | null;
-  monthOptions: { value: string; label: string }[];
-  onMonthChange: (monthKey: string | null) => void;
-  size?: "xs" | "sm";
-}) {
-  const handleMonthOptionSelect = (value: string) => {
-    onMonthChange(value === "all" ? null : value);
-  };
-
-  return (
-    <Dropdown
-      size={size}
-      placement={["bottom", "top"]}
-      dropdownSelector={{
-        variant: selectedMonthKey ? "primary" : "default",
-        content: (
-          <div className="flex items-center gap-2">
-            <HiCalendar className="size-4" />
-            <span>{selectedMonthLabel ?? "Period"}</span>
-          </div>
-        ),
-      }}>
-      {monthOptions.map((option) => (
-        <DropdownItem
-          key={option.value}
-          clicked={() => handleMonthOptionSelect(option.value)}
-          selected={(selectedMonthKey ?? "all") === option.value}>
-          {option.label}
-        </DropdownItem>
-      ))}
-    </Dropdown>
-  );
-}
 
 type IBudgetDetailHeaderProps = {
   budgetName: string;

@@ -1,16 +1,15 @@
-import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import type {
   IBudgetAlert,
   IBudgetComparison,
 } from "@/features/shared/validation/schemas";
 import { Badge } from "@/features/ui/badge/badge";
-import { cn } from "@/features/util/cn";
 import {
   getNetRemainingFromTotals,
   getNetRemainingStatus,
 } from "@/features/budget/utils/budget-summary-helpers";
 import { BudgetAlerts } from "./budget-alerts";
 import { getStatusColor } from "./budget-status";
+import { SummaryMetric } from "./summary-metric";
 
 type IBudgetSummaryContainerProps = {
   totals: IBudgetComparison["totals"];
@@ -18,51 +17,6 @@ type IBudgetSummaryContainerProps = {
   alerts: IBudgetAlert[];
   periodViewLabel?: string | null;
 };
-
-type ISummaryMetricProps = {
-  label: string;
-  actual: string;
-  expected: string;
-  currency: IBudgetComparison["budget"]["currency"];
-  valueClassName?: string;
-  align?: "left" | "center" | "right";
-  size?: "md" | "lg" | "xl";
-};
-
-function SummaryMetric({
-  label,
-  actual,
-  expected,
-  currency,
-  valueClassName,
-  align = "left",
-  size = "md",
-}: ISummaryMetricProps) {
-  return (
-    <div
-      className={cn(
-        align === "center" && "text-center",
-        align === "right" && "text-right",
-      )}>
-      <div className="text-xs text-text-muted mb-0.5">{label}</div>
-      <div
-        className={cn(
-          "font-semibold",
-          size === "xl"
-            ? "text-3xl"
-            : size === "lg"
-              ? "text-2xl"
-              : "text-xl",
-          valueClassName,
-        )}>
-        {formatCurrency(actual, currency)}
-      </div>
-      <div className="text-xs text-text-muted">
-        of {formatCurrency(expected, currency)}
-      </div>
-    </div>
-  );
-}
 
 export function BudgetSummaryContainer({
   currency,

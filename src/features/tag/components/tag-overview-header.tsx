@@ -1,16 +1,12 @@
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
+import { TagHeaderDropdown } from "@/features/tag/components/tag-header-dropdown";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
-import { Dropdown } from "@/features/ui/dropdown/dropdown";
-import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { SearchInput } from "@/features/ui/input/search-input";
-import { DragHandleIcon } from "@/features/ui/list/drag-handle";
 import { cn } from "@/features/util/cn";
 import {
-  HiArrowDownTray,
   HiFunnel,
-  HiOutlineRectangleStack,
   HiOutlineTag,
   HiPlus,
 } from "react-icons/hi2";
@@ -35,37 +31,6 @@ export interface ITagOverviewHeaderProps {
   onFiltersClick: () => void;
 }
 
-function TagHeaderDropdown({
-  actions,
-  isReorderMode,
-  size = "sm",
-}: {
-  actions: IActionHandlers;
-  isReorderMode: boolean;
-  size?: "xs" | "sm" | "md" | "lg";
-}) {
-  return (
-    <Dropdown size={size}>
-      <DropdownItem
-        icon={<DragHandleIcon className="size-4" />}
-        text="Reorder tags"
-        clicked={actions.onToggleReorder}
-        selected={isReorderMode}
-      />
-      <DropdownItem
-        icon={<HiArrowDownTray className="size-4" />}
-        clicked={actions.onCsvImportClick}>
-        Import from CSV
-      </DropdownItem>
-      <DropdownItem
-        icon={<HiOutlineRectangleStack className="size-4" />}
-        clicked={actions.onSmartTaggingClick}>
-        Smart tagging & presets
-      </DropdownItem>
-    </Dropdown>
-  );
-}
-
 export function TagOverviewHeader({
   searchQuery,
   onSearchChange,
@@ -82,7 +47,6 @@ export function TagOverviewHeader({
 
   return (
     <Container className={cn("sticky z-10 top-0 transition-all")}>
-      {/* Title section - animates between sizes */}
       <div
         className={cn(
           "flex items-center justify-between gap-2 transition-all",
@@ -106,7 +70,6 @@ export function TagOverviewHeader({
 
         <div className="flex gap-2 items-center">
           {isSticky ? (
-            // Sticky: Show Add button + Dropdown + Filters button (if search active)
             <>
               {isMobile ? (
                 <IconButton
@@ -148,7 +111,6 @@ export function TagOverviewHeader({
               )}
             </>
           ) : (
-            // Expanded: Show Add button + Dropdown
             <>
               {isMobile ? (
                 <IconButton
@@ -176,7 +138,6 @@ export function TagOverviewHeader({
         </div>
       </div>
 
-      {/* Filters section - animates height and opacity when sticky */}
       <div
         inert={isSticky ? true : undefined}
         className={cn(

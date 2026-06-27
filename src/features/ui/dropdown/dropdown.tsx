@@ -14,11 +14,8 @@ import {
 import { HiDotsVertical } from "react-icons/hi";
 import { Button, type IButtonProps, type IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
-import {
-  dropdownFooterBorderClasses,
-  dropdownPanelContentClasses,
-  dropdownPanelFooterBorderClasses,
-} from "./dropdown-item-classes";
+import { DropdownFooter } from "./dropdown-footer";
+import { DropdownPanel } from "./dropdown-panel";
 
 export type IPlacementOption = "top" | "bottom" | "left" | "right" | "auto";
 
@@ -66,34 +63,6 @@ const dropdownSizeClasses: { [key in IButtonSize]: { iconClasses: string } } = {
   md: { iconClasses: "size-5" },
   lg: { iconClasses: "size-6" },
 };
-
-type IDropdownFooterProps = {} & PropsWithChildren & IPropsWithClassName;
-
-function DropdownFooter({ children, className = "" }: IDropdownFooterProps) {
-  return (
-    <div
-      className={cn(
-        "flex gap-2",
-        dropdownPanelFooterBorderClasses,
-        dropdownFooterBorderClasses,
-        className
-      )}>
-      {children}
-    </div>
-  );
-}
-
-DropdownFooter.displayName = "DropdownFooter";
-
-type IDropdownPanelProps = {} & PropsWithChildren & IPropsWithClassName;
-
-function DropdownPanel({ children, className = "" }: IDropdownPanelProps) {
-  return (
-    <div className={cn(dropdownPanelContentClasses, className)}>{children}</div>
-  );
-}
-
-DropdownPanel.displayName = "DropdownPanel";
 
 type IDropdownProps = {
   dropdownSelector?:

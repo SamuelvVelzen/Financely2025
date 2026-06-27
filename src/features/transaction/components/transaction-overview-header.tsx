@@ -7,19 +7,14 @@ import type { ITransactionLayoutMode } from "@/features/transaction/hooks/use-tr
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
-import { Dropdown } from "@/features/ui/dropdown/dropdown";
-import { DropdownDivider } from "@/features/ui/dropdown/dropdown-divider";
-import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { cn } from "@/features/util/cn";
 import {
-  HiArrowDownTray,
-  HiArrowPath,
   HiArrowsRightLeft,
-  HiArrowUpTray,
   HiFunnel,
   HiPlus,
 } from "react-icons/hi2";
 import { TransactionFilters } from "./transaction-filters";
+import { TransactionHeaderMenu } from "./transaction-header-menu";
 import { TransactionViewControls } from "./transaction-view-controls";
 
 /**
@@ -46,63 +41,6 @@ export interface ITransactionOverviewHeaderProps {
   filterCount: number;
   onFiltersClick: () => void;
   viewMode: ITransactionViewModeProps;
-}
-
-function TransactionActionsMenuItems({
-  actions,
-  includeAddAction = false,
-}: {
-  actions: IActionHandlers;
-  includeAddAction?: boolean;
-}) {
-  return (
-    <>
-      {includeAddAction && (
-        <>
-          <DropdownItem
-            icon={<HiPlus className="size-4" />}
-            clicked={actions.onCreateTransaction}>
-            Add transaction
-          </DropdownItem>
-          <DropdownDivider />
-        </>
-      )}
-      <DropdownItem
-        icon={<HiArrowPath />}
-        clicked={actions.onDetectSubscriptions}>
-        Detect Subscriptions
-      </DropdownItem>
-      <DropdownDivider />
-      <DropdownItem
-        icon={<HiArrowDownTray />}
-        clicked={actions.onCsvImportClick}>
-        Import from CSV
-      </DropdownItem>
-      <DropdownDivider />
-      <DropdownItem
-        icon={<HiArrowUpTray />}
-        clicked={actions.onCsvExportClick}>
-        Export to CSV
-      </DropdownItem>
-
-    </>)
-}
-
-
-function TransactionHeaderMenu({
-  actions,
-  includeAddAction = false,
-  size = "sm",
-}: {
-  actions: IActionHandlers;
-  includeAddAction?: boolean;
-  size?: "xs" | "sm" | "md" | "lg";
-}) {
-  return (
-    <Dropdown size={size}>
-      <TransactionActionsMenuItems actions={actions} includeAddAction={includeAddAction} />
-    </Dropdown>
-  );
 }
 
 export function TransactionOverviewHeader({

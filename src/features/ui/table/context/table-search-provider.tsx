@@ -5,28 +5,14 @@ import {
 } from "../hooks/use-table-search";
 import {
   TableSearchContext,
-  TableSearchDataContext,
 } from "./table-search-context";
+import { TableSearchDataBridge } from "./table-search-data-bridge";
 
 export type TableSearchProviderProps<T, TContext = unknown> = {
   data: T[];
   search: TableSearchConfig<T, TContext>;
   children: React.ReactNode;
 };
-
-function TableSearchDataBridge<T>({
-  filteredData,
-  children,
-}: {
-  filteredData: T[];
-  children: React.ReactNode;
-}) {
-  return (
-    <TableSearchDataContext.Provider value={filteredData}>
-      {children}
-    </TableSearchDataContext.Provider>
-  );
-}
 
 export function TableSearchProvider<T, TContext = unknown>({
   data,

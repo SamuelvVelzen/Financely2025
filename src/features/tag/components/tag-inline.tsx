@@ -1,18 +1,7 @@
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
-import { Badge, type IBadgeProps } from "@/features/ui/badge/badge";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import type { ReactNode } from "react";
-
-export type ITagDisplayData = {
-  name: string;
-  emoticon?: string | null;
-  color?: string | null;
-};
-
-export function formatTagLabel(tag: ITagDisplayData): string {
-  return tag.emoticon ? `${tag.emoticon} ${tag.name}` : tag.name;
-}
+import type { ITagDisplayData } from "./tag-display";
 
 type ITagInlineProps = IPropsWithClassName & {
   tag: ITagDisplayData;
@@ -53,34 +42,5 @@ export function TagInline({
         {searchQuery ? highlightText(tag.name, searchQuery) : tag.name}
       </span>
     </span>
-  );
-}
-
-type ITagBadgeProps = {
-  tag: ITagDisplayData;
-  searchQuery?: string;
-  className?: string;
-  tooltip?: ReactNode;
-  tooltipPlacement?: IBadgeProps["tooltipPlacement"];
-};
-
-export function TagBadge({
-  tag,
-  searchQuery,
-  className,
-  tooltip,
-  tooltipPlacement,
-}: ITagBadgeProps) {
-  const { highlightText } = useHighlightText();
-
-  return (
-    <Badge
-      backgroundColor={tag.color ?? undefined}
-      className={className}
-      tooltip={tooltip}
-      tooltipPlacement={tooltipPlacement}>
-      {tag.emoticon && <span className="shrink-0">{tag.emoticon}</span>}
-      {searchQuery ? highlightText(tag.name, searchQuery) : tag.name}
-    </Badge>
   );
 }

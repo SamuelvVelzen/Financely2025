@@ -1,13 +1,11 @@
 import { getCurrencyOptions } from "@/features/shared/validation/schemas";
 import { Accordion } from "@/features/ui/accordion/accordion";
 import { Alert } from "@/features/ui/alert/alert";
-import { LinkButton } from "@/features/ui/button/link-button";
 import { Form } from "@/features/ui/form/form";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { Label } from "@/features/ui/typography/label";
 import {
   TRANSACTION_FIELDS,
-  type ITransactionFieldMetadata,
 } from "../../../config/transaction-fields";
 import { BankProfileFactory } from "../../../services/bank.factory";
 import {
@@ -15,78 +13,8 @@ import {
   supportsDateTimeExtraction,
 } from "../../../services/csv-description-extraction";
 import { BankSelect } from "../../bank-select";
+import { FieldMappingCard } from "./field-mapping-card";
 import { useTransactionImportContext } from "./transaction-import-context";
-
-interface IFieldMappingCardProps {
-  field: ITransactionFieldMetadata;
-  isRequired: boolean;
-  showTypeHint: boolean;
-}
-
-function FieldMappingCard({
-  field,
-  isRequired,
-  showTypeHint,
-}: IFieldMappingCardProps) {
-  const {
-    mappingForm,
-    columns,
-    mapping,
-    suggestedMapping,
-    handleResetToSuggested,
-    handleMappingFieldChange,
-  } = useTransactionImportContext();
-
-  const columnOptions = [
-    { value: "", label: "— Not mapped —" },
-    ...columns.map((col) => ({ value: col, label: col })),
-  ];
-  const suggestedColumn = suggestedMapping?.[field.name];
-  const hasSuggestedMapping = !!suggestedColumn;
-  const currentValue = mapping[field.name] || "";
-  const isDifferentFromSuggested = currentValue !== suggestedColumn;
-  const fieldError = mappingForm.formState.errors.mappings?.[field.name];
-
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label
-          required={isRequired}
-          className="text-sm">
-          {field.label}
-        </Label>
-        {hasSuggestedMapping && isDifferentFromSuggested && (
-          <LinkButton
-            clicked={() => handleResetToSuggested(field.name)}
-            buttonContent="Reset"
-            className="text-xs"
-          />
-        )}
-      </div>
-      <Form
-        form={mappingForm}
-        onSubmit={() => {}}>
-        <SelectDropdown
-          name={`mappings.${field.name}`}
-          options={columnOptions}
-          placeholder="Select column..."
-          multiple={false}
-          clearable={false}
-          onValueChange={(value) => {
-            const column = (value as string) || null;
-            handleMappingFieldChange(field.name, column);
-          }}
-        />
-      </Form>
-      {fieldError && (
-        <p className="text-xs text-danger">{fieldError.message}</p>
-      )}
-      {showTypeHint && (
-        <p className="text-xs text-info">Map to debit/credit column</p>
-      )}
-    </div>
-  );
-}
 
 export function MappingStepContent() {
   const {

@@ -1,9 +1,7 @@
-import { RouteErrorFallback } from "@/features/ui/container/route-error-fallback";
 import { ACTIVE_WORKSPACE_STORAGE_KEY } from "@/features/workspace/constants";
 import { ActiveWorkspaceProvider } from "@/features/workspace/active-workspace-provider";
 import { parseWorkspaceIdParam } from "@/features/workspace/workspace-id";
 import { useMe } from "@/features/users/hooks/useUser";
-import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import {
   notFound,
   Outlet,
@@ -55,27 +53,5 @@ export function WorkspaceShellLayout() {
     <ActiveWorkspaceProvider workspaceId={workspaceId}>
       <Outlet />
     </ActiveWorkspaceProvider>
-  );
-}
-
-export function WorkspaceRouteError({
-  error,
-  reset,
-}: {
-  error: Error;
-  reset: () => void;
-}) {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset: resetQueries }) => (
-        <RouteErrorFallback
-          error={error}
-          reset={() => {
-            resetQueries();
-            reset();
-          }}
-        />
-      )}
-    </QueryErrorResetBoundary>
   );
 }

@@ -49,9 +49,7 @@ const UserPreferencesFormSchema = UpdateUserSettingInputSchema.extend({
 
 type IUserPreferencesForm = z.infer<typeof UserPreferencesFormSchema>;
 
-function NotSetValue() {
-  return <span className="text-text-muted">Not set</span>;
-}
+import { NotSetValue } from "@/features/users/components/not-set-value";
 
 function formatLanguage(value: string | null | undefined): string {
   if (!value) {

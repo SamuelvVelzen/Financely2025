@@ -11,7 +11,7 @@ import {
   useUpdateTagRule,
 } from "@/features/tag-rule/hooks/useTagRules";
 import { getRecommendedTagMetadataForPreset } from "@/features/tag/config/default-tag-rules";
-import { TagInline } from "@/features/tag/components/tag-display";
+import { TagInline } from "@/features/tag/components/tag-inline";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";

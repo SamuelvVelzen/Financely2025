@@ -5,7 +5,7 @@ import type { ITransaction } from "@/features/shared/validation/schemas";
 import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { groupTransactionsByDate } from "@/features/transaction/utils/group-transactions-by-date";
-import { TagBadge } from "@/features/tag/components/tag-display";
+import { TagBadge } from "@/features/tag/components/tag-badge";
 import { Badge } from "@/features/ui/badge/badge";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";

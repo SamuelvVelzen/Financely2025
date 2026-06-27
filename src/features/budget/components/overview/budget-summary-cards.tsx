@@ -4,7 +4,7 @@ import {
 } from "@/features/budget/utils/budget-overview-helpers";
 import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
 import { type IBudgetsOverviewResponse } from "@/features/shared/validation/schemas";
-import { TagInline } from "@/features/tag/components/tag-display";
+import { TagInline } from "@/features/tag/components/tag-inline";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { Loading } from "@/features/ui/loading";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
