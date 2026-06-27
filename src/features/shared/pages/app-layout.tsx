@@ -23,6 +23,7 @@ export function AppLayout() {
           <Sidebar />
           <main
             id={MAIN_CONTENT_ID}
+            data-scroll-restoration-id={MAIN_CONTENT_ID}
             aria-label="Main content"
             tabIndex={-1}
             className="flex-1 overflow-y-auto overflow-x-hidden bg-background p-4 pt-20 pb-24 md:pt-4 md:pb-4 focus:outline-none">
