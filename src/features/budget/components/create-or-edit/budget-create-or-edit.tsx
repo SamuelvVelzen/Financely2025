@@ -68,21 +68,21 @@ const MonthlyAmountEntrySchema = z.object({
   expectedAmount: z.string(),
 });
 
-const BUDGET_AMOUNT_MIN_MESSAGE = "Amount should be higher than 0";
+const BUDGET_AMOUNT_REQUIRED_MESSAGE = "Amount is required";
 
-function budgetAmountIsPositive(
+function budgetAmountIsFilled(
   raw: string | number | undefined | null
 ): boolean {
   if (raw === null || raw === undefined) {
     return false;
   }
   if (typeof raw === "number") {
-    return Number.isFinite(raw) && raw > 0;
+    return Number.isFinite(raw) && raw >= 0;
   }
   if (typeof raw === "object") {
     const boxed = raw as { toFixed?: (n: number) => string };
     if (typeof boxed.toFixed === "function") {
-      return budgetAmountIsPositive(boxed.toFixed(2));
+      return budgetAmountIsFilled(boxed.toFixed(2));
     }
     return false;
   }
@@ -93,7 +93,7 @@ function budgetAmountIsPositive(
   const primary = parseLocalizedDecimal(trimmed);
   if (primary) {
     const n = Number(primary);
-    return Number.isFinite(n) && n > 0;
+    return Number.isFinite(n) && n >= 0;
   }
   const compact = trimmed.replace(/\s|\u00A0/g, "");
   const lastComma = compact.lastIndexOf(",");
@@ -103,7 +103,7 @@ function budgetAmountIsPositive(
       ? compact.replace(/\./g, "").replace(",", ".")
       : compact.replace(/,/g, "");
   const n = Number(candidate);
-  return Number.isFinite(n) && n > 0;
+  return Number.isFinite(n) && n >= 0;
 }
 
 const BudgetFormSchema = z.object({
@@ -205,7 +205,7 @@ const BudgetFormSchema = z.object({
         if (monthly.length === 0) {
           ctx.addIssue({
             code: "custom",
-            message: BUDGET_AMOUNT_MIN_MESSAGE,
+            message: BUDGET_AMOUNT_REQUIRED_MESSAGE,
             path: ["budget", "items", i, "expectedAmount"],
           });
           continue;
@@ -217,12 +217,12 @@ const BudgetFormSchema = z.object({
           const monthHasOwn = String(rawMa ?? "").trim() !== "";
           const effective = monthHasOwn ? rawMa : item.expectedAmount;
 
-          if (budgetAmountIsPositive(effective)) continue;
+          if (budgetAmountIsFilled(effective)) continue;
 
           if (monthHasOwn) {
             ctx.addIssue({
               code: "custom",
-              message: BUDGET_AMOUNT_MIN_MESSAGE,
+              message: BUDGET_AMOUNT_REQUIRED_MESSAGE,
               path: [
                 "budget",
                 "items",
@@ -235,7 +235,7 @@ const BudgetFormSchema = z.object({
           } else if (!addedMasterBlankAggregate) {
             ctx.addIssue({
               code: "custom",
-              message: BUDGET_AMOUNT_MIN_MESSAGE,
+              message: BUDGET_AMOUNT_REQUIRED_MESSAGE,
               path: ["budget", "items", i, "expectedAmount"],
             });
             addedMasterBlankAggregate = true;
@@ -246,10 +246,10 @@ const BudgetFormSchema = z.object({
     }
 
     for (let i = 0; i < data.budget.items.length; i++) {
-      if (!budgetAmountIsPositive(data.budget.items[i].expectedAmount)) {
+      if (!budgetAmountIsFilled(data.budget.items[i].expectedAmount)) {
         ctx.addIssue({
           code: "custom",
-          message: BUDGET_AMOUNT_MIN_MESSAGE,
+          message: BUDGET_AMOUNT_REQUIRED_MESSAGE,
           path: ["budget", "items", i, "expectedAmount"],
         });
       }

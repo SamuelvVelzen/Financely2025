@@ -74,8 +74,8 @@ export const CreateBudgetItemMonthlyAmountInputSchema = z.object({
   year: z.number().int(),
   month: z.number().int().min(1).max(12),
   expectedAmount: DecimalStringSchema.refine(
-    (val) => parseFloat(val) > 0,
-    "Expected amount must be greater than 0",
+    (val) => parseFloat(val) >= 0,
+    "Expected amount must be 0 or greater",
   ),
 });
 
