@@ -41,7 +41,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { parseISO } from "date-fns";
 import { useCallback, useEffect, useId, useState } from "react";
 import { type Resolver } from "react-hook-form";
-import { HiArrowTrendingDown, HiArrowTrendingUp } from "react-icons/hi2";
+import {
+  HiArrowTrendingDown,
+  HiArrowTrendingUp,
+  HiChevronDown,
+  HiChevronUp,
+} from "react-icons/hi2";
 import { z } from "zod";
 
 type IAddOrEditTransactionDialog = {
