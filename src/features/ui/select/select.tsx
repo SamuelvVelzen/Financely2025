@@ -18,7 +18,6 @@ import { NativeSelect } from "./native-select";
 import {
   flattenSelectOptions,
   normalizeSelectOptions,
-  type ISelectOptionGroup,
   type ISelectOptionsInput,
 } from "./select-option-groups";
 import { type IValueSerialization } from "./select-helpers";

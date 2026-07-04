@@ -1,7 +1,8 @@
 import { cn } from "@/features/util/cn";
 import { type ReactNode } from "react";
 import { Tooltip } from "../tooltip/tooltip";
-import { Button, type IButtonProps, iconButtonSizeClasses } from "./button";
+import { Button, type IButtonProps } from "./button";
+import { iconButtonSizeClasses } from "./button-size-classes";
 
 type IIconButton = {
   icon?: ReactNode;

@@ -7,7 +7,7 @@ import { cn } from "@/features/util/cn";
 import { WorkspaceSwitcherDropdown } from "@/features/workspace/components/workspace-switcher-dropdown";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
-import { requestSignOut } from "@/features/shared/offline/offline-sign-out-gate";
+import { requestSignOut } from "@/features/shared/offline/request-sign-out";
 import { OfflinePendingSyncIndicator } from "@/features/shared/offline/offline-pending-sync-indicator";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import {

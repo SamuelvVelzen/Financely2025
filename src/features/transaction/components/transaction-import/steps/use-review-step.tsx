@@ -38,7 +38,7 @@ export function useReviewStep(): IStepConfig<IStep> {
         applyTagSuggestionsToCandidates(prev, rules, tagTransactionTypes),
       );
     },
-    [ctx.setCandidates, tagTransactionTypes],
+    [ctx, tagTransactionTypes],
   );
 
   return {

@@ -2,7 +2,7 @@ import type { ITagRule } from "@/features/shared/validation/schemas";
 import { TagRulesPanel } from "@/features/tag-rule/components/tag-rules-panel";
 import { useTagRules } from "@/features/tag-rule/hooks/useTagRules";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useEffectEvent, useMemo } from "react";
 
 type IImportReviewTagRulesDialogProps = {
   open: boolean;
@@ -25,20 +25,20 @@ export function ImportReviewTagRulesDialog({
   onRulesUpdated,
 }: IImportReviewTagRulesDialogProps) {
   const { data } = useTagRules();
-  const onRulesUpdatedRef = useRef(onRulesUpdated);
-  onRulesUpdatedRef.current = onRulesUpdated;
+  const rules = data?.data;
+  const onRulesUpdatedEvent = useEffectEvent(onRulesUpdated);
 
   const rulesRevision = useMemo(
-    () => (data?.data ? getRulesRevision(data.data) : ""),
-    [data?.data],
+    () => (rules ? getRulesRevision(rules) : ""),
+    [rules],
   );
 
   useEffect(() => {
-    if (!open || !data?.data) {
+    if (!open || !rules) {
       return;
     }
-    onRulesUpdatedRef.current(data.data);
-  }, [open, rulesRevision]);
+    onRulesUpdatedEvent(rules);
+  }, [open, rulesRevision, rules]);
 
   return (
     <Dialog

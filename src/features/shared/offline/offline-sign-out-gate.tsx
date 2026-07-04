@@ -1,19 +1,13 @@
 import { countOfflineMutationsForCurrentUser } from "@/features/shared/offline/offline-mutation-outbox";
+import {
+  SIGN_OUT_REQUEST_EVENT,
+} from "@/features/shared/offline/request-sign-out";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import {
   signOutFromApp,
   type ISignOutFromAppOptions,
 } from "@/lib/auth-client";
 import { useCallback, useEffect, useState } from "react";
-
-const SIGN_OUT_REQUEST_EVENT = "financely-sign-out-request";
-
-export function requestSignOut(options?: ISignOutFromAppOptions): void {
-  if (typeof window === "undefined") return;
-  window.dispatchEvent(
-    new CustomEvent(SIGN_OUT_REQUEST_EVENT, { detail: options }),
-  );
-}
 
 /**
  * Intercepts sign-out when unsynced offline mutations exist.

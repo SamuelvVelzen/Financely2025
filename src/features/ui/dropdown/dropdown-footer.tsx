@@ -3,7 +3,6 @@ import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type PropsWithChildren } from "react";
 import {
   dropdownFooterBorderClasses,
-  dropdownPanelContentClasses,
   dropdownPanelFooterBorderClasses,
 } from "./dropdown-item-classes";
 

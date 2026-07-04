@@ -7,7 +7,7 @@ import {
 import { useSyncExternalStore } from "react";
 
 let pendingRows: IOfflineMutationRecord[] = [];
-let rowsListeners = new Set<() => void>();
+const rowsListeners = new Set<() => void>();
 let refreshPromise: Promise<void> | null = null;
 
 async function refreshPendingRows(): Promise<void> {

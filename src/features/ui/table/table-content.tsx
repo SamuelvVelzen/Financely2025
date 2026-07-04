@@ -1,5 +1,4 @@
 import { cn } from "@/features/util/cn";
-import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import React, { useMemo } from "react";
 import {
   useTablePaginationContext,

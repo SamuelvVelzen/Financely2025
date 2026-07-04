@@ -2,7 +2,6 @@ import { getMonthsInRange } from "@/features/budget/utils/budget-presets";
 import { formatDecimal } from "@/features/currency/utils/currencyhelpers";
 import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import type { ITag } from "@/features/shared/validation/schemas";
-import { TagInline } from "@/features/tag/components/tag-inline";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Accordion } from "@/features/ui/accordion/accordion";
 import { Badge } from "@/features/ui/badge/badge";

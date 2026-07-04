@@ -59,7 +59,6 @@ export function EmoticonPicker({
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(DEFAULT_EMOJI_CATEGORY);
   const [pickerSearch, setPickerSearch] = useState("");
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const pickerSearchRef = useRef<HTMLInputElement>(null);
 
   const selectedEmoji = useMemo(
@@ -73,7 +72,7 @@ export function EmoticonPicker({
     if (raw !== normalized) {
       field.onChange(normalized);
     }
-  }, [field.onChange, field.value]);
+  }, [field, field.onChange, field.value]);
 
   const suggestedEmojis = useMemo(
     () => getSuggestedEmojis(transactionType),
@@ -86,6 +85,25 @@ export function EmoticonPicker({
   );
 
   const isSearchActive = pickerSearch.trim().length > 0;
+  const highlightScope = `${pickerSearch}|${selectedCategory}|${isSearchActive}`;
+  const [highlightState, setHighlightState] = useState({
+    scope: highlightScope,
+    index: 0,
+  });
+  const highlightedIndex =
+    highlightState.scope === highlightScope ? highlightState.index : 0;
+
+  const setHighlightedIndex = (
+    index: number | ((current: number) => number),
+  ) => {
+    setHighlightState((prev) => {
+      const currentIndex =
+        prev.scope === highlightScope ? prev.index : 0;
+      const nextIndex =
+        typeof index === "function" ? index(currentIndex) : index;
+      return { scope: highlightScope, index: nextIndex };
+    });
+  };
 
   const visibleEmojis = useMemo(() => {
     if (isSearchActive) {
@@ -101,22 +119,19 @@ export function EmoticonPicker({
     })) satisfies IEmojiCatalogEntry[];
   }, [isSearchActive, searchResults, selectedCategory]);
 
-  useEffect(() => {
-    if (!isPickerOpen) {
+  const handlePickerOpenChange = (open: boolean) => {
+    if (!open) {
       setPickerSearch("");
       setSelectedCategory(DEFAULT_EMOJI_CATEGORY);
-      setHighlightedIndex(0);
-      return;
+      setHighlightState({ scope: "", index: 0 });
+    } else {
+      requestAnimationFrame(() => {
+        pickerSearchRef.current?.focus();
+      });
     }
-
-    requestAnimationFrame(() => {
-      pickerSearchRef.current?.focus();
-    });
-  }, [isPickerOpen]);
-
-  useEffect(() => {
-    setHighlightedIndex(0);
-  }, [pickerSearch, selectedCategory, isSearchActive]);
+    setIsPickerOpen(open);
+    onOpenChange?.(open);
+  };
 
   const handleEmojiSelect = (
     emoji: string,
@@ -262,10 +277,7 @@ export function EmoticonPicker({
         <Dropdown
           dropdownSelector={triggerContent}
           open={isPickerOpen}
-          onOpenChange={(open) => {
-            setIsPickerOpen(open);
-            onOpenChange?.(open);
-          }}
+          onOpenChange={handlePickerOpenChange}
           placement="bottom"
           closeOnItemClick={false}
           disabled={disabled}
@@ -291,7 +303,10 @@ export function EmoticonPicker({
                   id={pickerSearchId}
                   type="search"
                   value={pickerSearch}
-                  onChange={(event) => setPickerSearch(event.target.value)}
+                  onChange={(event) => {
+                    setPickerSearch(event.target.value);
+                    setHighlightedIndex(0);
+                  }}
                   onKeyDown={(event) =>
                     handlePickerSearchKeyDown(event, currentField.onChange)
                   }
@@ -366,7 +381,10 @@ export function EmoticonPicker({
                             type="button"
                             role="tab"
                             aria-selected={isActive}
-                            onClick={() => setSelectedCategory(category)}
+                            onClick={() => {
+                              setSelectedCategory(category);
+                              setHighlightedIndex(0);
+                            }}
                             className={cn(
                               "px-3 py-2 text-xs font-medium whitespace-nowrap transition-colors border-b-2",
                               isActive

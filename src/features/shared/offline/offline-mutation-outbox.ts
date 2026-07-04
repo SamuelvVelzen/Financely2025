@@ -72,7 +72,7 @@ export function openOfflineMutationDb(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, OFFLINE_DB_VERSION);
     req.onerror = () => reject(req.error ?? new Error("IndexedDB open failed"));
     req.onsuccess = () => resolve(req.result);
-    req.onupgradeneeded = (event) => {
+    req.onupgradeneeded = (_event) => {
       const db = req.result;
       if (!db.objectStoreNames.contains(STORE)) {
         const store = db.createObjectStore(STORE, { keyPath: "id" });

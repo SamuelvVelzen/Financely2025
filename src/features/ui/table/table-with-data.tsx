@@ -2,7 +2,6 @@ import {
   useTableSearchFilteredData,
 } from "./context/table-search-context";
 import { TableSortProvider } from "./context/table-sort-provider";
-import { type SortConfig } from "./hooks/use-table-sort";
 import { TableContent } from "./table-content";
 import type { ITableProps } from "./table";
 import { TableWithPagination } from "./table-with-pagination";

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Dialog } from "./dialog/dialog";
 import type { IDialogProps } from "./dialog/types";
 import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
@@ -51,21 +51,21 @@ export function MultiStepDialog<StepType extends string>({
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const wasOpenRef = useRef(open);
 
-  const resetToInitialStep = () => {
+  const resetToInitialStep = useCallback(() => {
     setStep((current) => {
       if (current !== initialStep) {
         onStepChange?.(current, initialStep);
       }
       return initialStep;
     });
-  };
+  }, [initialStep, onStepChange]);
 
   useEffect(() => {
     if (open && !wasOpenRef.current) {
       resetToInitialStep();
     }
     wasOpenRef.current = open;
-  }, [open, initialStep]);
+  }, [open, resetToInitialStep]);
 
   const handleDialogClose = () => {
     resetToInitialStep();

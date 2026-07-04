@@ -1,9 +1,9 @@
-import {
+import type {
   CreateTagFieldsSchema,
-  type ITag,
-  type ITransactionType,
+  ITag,
+  ITransactionType,
 } from "@/features/shared/validation/schemas";
-import { type z } from "zod";
+import type { z } from "zod";
 
 export type IAddOrEditTagDialogProps = {
   open: boolean;

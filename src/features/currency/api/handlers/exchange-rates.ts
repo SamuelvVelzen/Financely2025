@@ -17,14 +17,11 @@ export async function GET({ request }: { request: Request }) {
       const dateParam = url.searchParams.get("date");
       const datesParam = url.searchParams.get("dates");
 
-      let dates: string[] = [];
-      if (datesParam) {
-        dates = datesParam.split(",").map((d) => d.trim()).filter(Boolean);
-      } else if (dateParam) {
-        dates = [dateParam];
-      } else {
-        dates = [new Date().toISOString().slice(0, 10)];
-      }
+      const dates = datesParam
+        ? datesParam.split(",").map((d) => d.trim()).filter(Boolean)
+        : dateParam
+          ? [dateParam]
+          : [new Date().toISOString().slice(0, 10)];
 
       const ratesByDate = await ExchangeRateService.getRatesForDates(dates);
       const response = ExchangeRatesResponseSchema.parse({ ratesByDate });
