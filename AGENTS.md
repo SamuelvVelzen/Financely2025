@@ -47,6 +47,30 @@ Sub-parts attached to a parent (e.g. `Dropdown.Footer`, `Dropdown.Panel`) still 
 - Keep changes focused; don't refactor unrelated code.
 - Only commit when explicitly asked.
 
+## Quality checks
+
+Before finishing a task that changes application code, run the project quality gate and fix any failures you introduced:
+
+```bash
+npm run check
+```
+
+`check` runs, in order:
+
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `typecheck` | `tsc --noEmit` | TypeScript compile errors |
+| `lint` | `eslint . --max-warnings 0` | ESLint (zero warnings) |
+| `test` | `vitest run` | Unit tests |
+
+Use individual scripts when iterating:
+
+- `npm run typecheck` — after TypeScript-only edits
+- `npm run lint` — after lint-related fixes
+- `npm test` — after logic changes covered by tests
+
+Do not mark implementation work complete while `npm run check` is failing. Report remaining failures if you cannot fix them.
+
 ## Installed skills
 
 Project skills live in `.agents/skills/` (see `skills-lock.json`). Read the relevant `SKILL.md` before applying it.
