@@ -9,6 +9,7 @@ type ITagListProps = {
   searchQuery?: string;
   onEdit?: (tag: ITag) => void;
   onEditRules?: (tag: ITag) => void;
+  onViewTransactions?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
   onOrderChange?: (orderedIds: (string | number)[]) => void;
   /** Whether dragging/reordering is enabled. Defaults to false. */
@@ -20,6 +21,7 @@ export function TagList({
   searchQuery,
   onEdit,
   onEditRules,
+  onViewTransactions,
   onDelete,
   onOrderChange,
   draggable = false,
@@ -38,6 +40,7 @@ export function TagList({
             searchQuery={searchQuery}
             onEdit={onEdit}
             onEditRules={onEditRules}
+            onViewTransactions={onViewTransactions}
             onDelete={onDelete}
             dragProps={dragProps}
           />
@@ -57,6 +60,7 @@ export function TagList({
             searchQuery={searchQuery}
             onEdit={onEdit}
             onEditRules={onEditRules}
+            onViewTransactions={onViewTransactions}
             onDelete={onDelete}
           />
         </SortableListItem>

@@ -7,6 +7,7 @@ type ITagListItemProps = {
   searchQuery?: string;
   onEdit?: (tag: ITag) => void;
   onEditRules?: (tag: ITag) => void;
+  onViewTransactions?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
 };
 
@@ -15,6 +16,7 @@ export function TagListItem({
   searchQuery,
   onEdit,
   onEditRules,
+  onViewTransactions,
   onDelete,
 }: ITagListItemProps) {
   return (
@@ -24,6 +26,7 @@ export function TagListItem({
         tag={tag}
         onEdit={onEdit}
         onEditRules={onEditRules}
+        onViewTransactions={onViewTransactions}
         onDelete={onDelete}
       />
     </>

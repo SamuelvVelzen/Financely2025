@@ -1,12 +1,18 @@
 import type { ITag } from "@/features/shared/validation/schemas";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { HiOutlineQueueList, HiPencil, HiTrash } from "react-icons/hi2";
+import {
+  HiArrowsRightLeft,
+  HiOutlineQueueList,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi2";
 
 type ITagListItemActionsProps = {
   tag: ITag;
   onEdit?: (tag: ITag) => void;
   onEditRules?: (tag: ITag) => void;
+  onViewTransactions?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
 };
 
@@ -14,9 +20,11 @@ export function TagListItemActions({
   tag,
   onEdit,
   onEditRules,
+  onViewTransactions,
   onDelete,
 }: ITagListItemActionsProps) {
-  const hasDropdownActions = onEdit || onEditRules || onDelete;
+  const hasDropdownActions =
+    onEdit || onEditRules || onViewTransactions || onDelete;
 
   if (!hasDropdownActions) {
     return null;
@@ -41,6 +49,13 @@ export function TagListItemActions({
             icon={<HiOutlineQueueList className="size-4" />}
             text="Tagging rules"
             clicked={() => onEditRules(tag)}
+          />
+        )}
+        {onViewTransactions && (
+          <DropdownItem
+            icon={<HiArrowsRightLeft className="size-4" />}
+            text="View transactions"
+            clicked={() => onViewTransactions(tag)}
           />
         )}
         {onDelete && (

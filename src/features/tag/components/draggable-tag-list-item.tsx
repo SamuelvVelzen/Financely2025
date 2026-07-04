@@ -11,6 +11,7 @@ type IDraggableTagListItemProps = {
   searchQuery?: string;
   onEdit?: (tag: ITag) => void;
   onEditRules?: (tag: ITag) => void;
+  onViewTransactions?: (tag: ITag) => void;
   onDelete?: (tagId: string) => void;
   dragProps: ISortableListDragProps;
 };
@@ -20,6 +21,7 @@ export function DraggableTagListItem({
   searchQuery,
   onEdit,
   onEditRules,
+  onViewTransactions,
   onDelete,
   dragProps,
 }: IDraggableTagListItemProps) {
@@ -40,6 +42,7 @@ export function DraggableTagListItem({
         tag={tag}
         onEdit={onEdit}
         onEditRules={onEditRules}
+        onViewTransactions={onViewTransactions}
         onDelete={onDelete}
       />
     </SortableListItem>

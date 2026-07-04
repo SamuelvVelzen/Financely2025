@@ -20,6 +20,7 @@ import { TabContent } from "@/features/ui/tab/tab-content";
 import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
 import { useDebouncedValue } from "@/features/util/use-debounced-value";
+import { buildTransactionSearchForTag } from "@/features/transaction/utils/transaction-filter-nav";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useNavigate } from "@tanstack/react-router";
@@ -167,6 +168,17 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
     setShowTagRulesPanel(true);
     setIsTagDialogOpen(true);
   };
+
+  const handleViewTransactions = useCallback(
+    (tag: ITag) => {
+      navigate({
+        to: "/$workspaceId/transactions",
+        params: { workspaceId: workspaceRouteParam },
+        search: buildTransactionSearchForTag(tag),
+      });
+    },
+    [navigate, workspaceRouteParam],
+  );
 
   const handleSmartTaggingClick = useCallback(() => {
     navigate({
@@ -361,6 +373,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
                       draggable={isReorderMode}
                       onEdit={handleEditTag}
                       onEditRules={handleEditTagRules}
+                      onViewTransactions={handleViewTransactions}
                       onDelete={handleDeleteClick}
                       onOrderChange={(orderedIds) => {
                         handleSectionReorder(
@@ -421,6 +434,7 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
                       draggable={isReorderMode}
                       onEdit={handleEditTag}
                       onEditRules={handleEditTagRules}
+                      onViewTransactions={handleViewTransactions}
                       onDelete={handleDeleteClick}
                       onOrderChange={(orderedIds) => {
                         handleSectionReorder(
