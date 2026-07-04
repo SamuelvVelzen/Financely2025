@@ -148,11 +148,18 @@ export class TransactionService {
       ...(type && { type }),
       ...(tagIds && tagIds.length > 0
         ? {
-            tags: {
-              some: {
-                id: { in: tagIds },
+            OR: [
+              {
+                tags: {
+                  some: {
+                    id: { in: tagIds },
+                  },
+                },
               },
-            },
+              {
+                primaryTagId: { in: tagIds },
+              },
+            ],
           }
         : {}),
       ...(q
