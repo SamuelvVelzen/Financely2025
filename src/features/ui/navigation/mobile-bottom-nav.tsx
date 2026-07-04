@@ -1,8 +1,8 @@
-import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
+import { AddTransactionDialogHost } from "@/features/transaction/components/add-transaction-dialog-host";
+import { useAddTransactionDialog } from "@/features/transaction/hooks/use-add-transaction-dialog";
 import { cn } from "@/features/util/cn";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
-import { useState } from "react";
 import {
   HiArrowsRightLeft,
   HiChartBar,
@@ -17,11 +17,11 @@ import { MobileNavItem } from "./mobile-nav-item";
 export function MobileBottomNav() {
   const workspaceId = useNavWorkspaceId();
   const workspaceParams = { workspaceId: workspaceIdToRouteParam(workspaceId) };
-  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
-
-  const handleCreateTransaction = () => {
-    setIsTransactionDialogOpen(true);
-  };
+  const {
+    open: isTransactionDialogOpen,
+    onOpenChange: setIsTransactionDialogOpen,
+    openDialog: openAddTransactionDialog,
+  } = useAddTransactionDialog();
 
   return (
     <>
@@ -55,7 +55,7 @@ export function MobileBottomNav() {
           />
           <div className="flex items-center justify-center max-w-15 flex-1 px-2 relative -top-7 m-0 p-0">
             <IconButton
-              clicked={handleCreateTransaction}
+              clicked={openAddTransactionDialog}
               variant="primary"
               ariaLabel="Add transaction">
               <HiPlus className="size-10" />
@@ -77,7 +77,7 @@ export function MobileBottomNav() {
           />
         </nav>
       </Container>
-      <AddOrEditTransactionDialog
+      <AddTransactionDialogHost
         open={isTransactionDialogOpen}
         onOpenChange={setIsTransactionDialogOpen}
       />
