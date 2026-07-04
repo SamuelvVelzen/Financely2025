@@ -6,8 +6,7 @@ import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useRef, useState } from "react";
-import { HiX } from "react-icons/hi";
-import { HiMagnifyingGlass } from "react-icons/hi2";
+import { HiMagnifyingGlass, HiXMark } from "react-icons/hi2";
 import { TextInput } from "./text-input";
 
 export type ISearchInputProps = IPropsWithClassName & {
@@ -138,7 +137,7 @@ export function SearchInput({
                 ariaLabel="Clear search"
                 size="xs"
                 className="p-0">
-                <HiX className={iconSizeClass} />
+                <HiXMark className={iconSizeClass} />
               </IconButton>
             ) : undefined
           }

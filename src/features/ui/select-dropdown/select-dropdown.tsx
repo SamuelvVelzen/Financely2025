@@ -6,8 +6,8 @@ import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type ReactNode, useEffect, useMemo, useRef, useState, Fragment } from "react";
+import { HiChevronDown, HiXMark } from "react-icons/hi2";
 import { Controller } from "react-hook-form";
-import { HiChevronDown, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownHeader } from "../dropdown/dropdown-header";
@@ -285,7 +285,7 @@ export function SelectDropdown<
                   : "hover:text-text cursor-pointer"
               )}
               aria-label="Clear selection">
-              <HiX className="size-4" />
+              <HiXMark className="size-4" />
             </span>
           )}
 

@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { HiDotsVertical } from "react-icons/hi";
+import { HiEllipsisVertical } from "react-icons/hi2";
 import { Button, type IButtonProps, type IButtonSize } from "../button/button";
 import { IconButton } from "../button/icon-button";
 import { DropdownFooter } from "./dropdown-footer";
@@ -271,7 +271,7 @@ export function Dropdown({
           size={size}
           clicked={handleSelectorClick}
           disabled={disabled}>
-          <HiDotsVertical className={dropdownSizeClasses[size].iconClasses} />
+          <HiEllipsisVertical className={dropdownSizeClasses[size].iconClasses} />
         </IconButton>
       )}
     </div>

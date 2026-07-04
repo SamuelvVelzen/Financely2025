@@ -15,7 +15,7 @@ import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { cn } from "@/features/util/cn";
 import { useMemo } from "react";
-import { HiExclamationCircle } from "react-icons/hi";
+import { HiExclamationCircle } from "react-icons/hi2";
 import { BankProfileFactory } from "../../../services/bank.factory";
 import { CsvRowErrorDialog } from "../csv-row-error-dialog";
 import { useTransactionImportContext } from "./transaction-import-context";

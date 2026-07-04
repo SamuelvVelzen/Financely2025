@@ -1,12 +1,6 @@
 import { cn } from "@/features/util/cn";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { HiQuestionMarkCircle, HiX } from "react-icons/hi";
-import {
-  HiCheckCircle,
-  HiExclamationCircle,
-  HiExclamationTriangle,
-  HiInformationCircle,
-} from "react-icons/hi2";
+import { HiCheckCircle, HiExclamationCircle, HiExclamationTriangle, HiInformationCircle, HiQuestionMarkCircle, HiXMark } from "react-icons/hi2";
 import { type IVariant } from "../button/button";
 import { IconButton } from "../button/icon-button";
 import type { IToast, IToastPosition } from "./types";
@@ -222,7 +216,7 @@ export function Toast({ toast, onRemove }: IToastProps) {
                 // config.text
               )}
               ariaLabel="Close notification">
-              <HiX className="size-4" />
+              <HiXMark className="size-4" />
             </IconButton>
           )}
         </div>

@@ -5,8 +5,8 @@ import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState, Fragment } from "react";
+import { HiChevronDown, HiInformationCircle, HiXMark } from "react-icons/hi2";
 import { Controller } from "react-hook-form";
-import { HiChevronDown, HiInformationCircle, HiX } from "react-icons/hi";
 import { Checkbox } from "../checkbox/checkbox";
 import type { IPlacementOption } from "../dropdown/dropdown";
 import { Dropdown } from "../dropdown/dropdown";
@@ -391,7 +391,7 @@ export function Select<
                   onClick={(e) => handleRemoveChip(e, option.value)}
                   className="hover:text-text-muted focus:outline-none cursor-pointer"
                   aria-label={`Remove ${option.label}`}>
-                  <HiX className="size-3" />
+                  <HiXMark className="size-3" />
                 </button>
               </span>
             ))}

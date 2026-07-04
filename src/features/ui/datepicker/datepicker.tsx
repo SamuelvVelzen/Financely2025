@@ -9,7 +9,7 @@ import {
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { parseISO } from "date-fns";
 import { useMemo, useState } from "react";
-import { HiCalendar, HiChevronDown } from "react-icons/hi";
+import { HiCalendar, HiChevronDown } from "react-icons/hi2";
 import { Dropdown } from "../dropdown/dropdown";
 import { DropdownDivider } from "../dropdown/dropdown-divider";
 import { DropdownItem } from "../dropdown/dropdown-item";

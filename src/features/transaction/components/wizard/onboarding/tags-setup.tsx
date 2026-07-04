@@ -12,9 +12,7 @@ import { useToast } from "@/features/ui/toast";
 import { Text } from "@/features/ui/typography/text";
 import { Title } from "@/features/ui/typography/title";
 import { useMemo, useState } from "react";
-import { HiCheck, HiPlus } from "react-icons/hi";
-import { HiOutlineTag } from "react-icons/hi2";
-
+import { HiCheck, HiOutlineTag, HiPlus } from "react-icons/hi2";
 export function TagsSetup() {
   const { data: tagsResponse, isLoading } = useTags();
   const { mutate: createTag } = useCreateTag();

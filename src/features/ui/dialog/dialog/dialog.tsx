@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { HiX } from "react-icons/hi";
+import { HiXMark } from "react-icons/hi2";
 import { Button } from "../../button/button";
 import { IconButton } from "../../button/icon-button";
 import type { IDialogProps, IDialogStatus } from "./types";
@@ -241,7 +241,7 @@ export function Dialog({
         <div className="flex items-center gap-2 shrink-0">
           {headerActions}
           <IconButton clicked={handleClose}>
-            <HiX className="size-5" />
+            <HiXMark className="size-5" />
           </IconButton>
         </div>
       </header>

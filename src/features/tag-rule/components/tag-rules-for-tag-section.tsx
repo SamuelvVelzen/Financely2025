@@ -27,9 +27,7 @@ import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-cont
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useMemo, useState } from "react";
-import { HiOutlineExternalLink } from "react-icons/hi";
-import { HiPencil, HiPlus, HiTrash } from "react-icons/hi2";
-
+import { HiArrowTopRightOnSquare, HiPencil, HiPlus, HiTrash } from "react-icons/hi2";
 const SOURCE_LABELS: Record<ITagRule["source"], string> = {
   USER: "User",
   SYSTEM: "Preset",
@@ -277,7 +275,7 @@ export function TagRulesForTagSection({
             params: { workspaceId: workspaceRouteParam },
           })
         }>
-          All presets & history <HiOutlineExternalLink className="size-4" />
+          All presets & history <HiArrowTopRightOnSquare className="size-4" />
         </LinkButton>
       </p>
 

@@ -1,5 +1,5 @@
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { type IconType } from "react-icons";
+import { type IconType } from "@/features/ui/icons/icon-type";
 import { Button, type IButtonProps } from "../button/button";
 
 type IEmptyPageProps = {

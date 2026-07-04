@@ -3,8 +3,7 @@ import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { addMonths, eachDayOfInterval, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, subMonths } from "date-fns";
 import { useState } from "react";
-import { HiChevronLeft, HiChevronRight, HiClock } from "react-icons/hi";
-
+import { HiChevronLeft, HiChevronRight, HiClock } from "react-icons/hi2";
 export type ICalendarViewProps = {
   startDate?: Date | null;
   endDate?: Date | null;

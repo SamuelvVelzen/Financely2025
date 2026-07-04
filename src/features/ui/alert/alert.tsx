@@ -1,12 +1,6 @@
 import { cn } from "@/features/util/cn";
 import type { ReactNode } from "react";
-import { HiQuestionMarkCircle } from "react-icons/hi";
-import {
-  HiCheckCircle,
-  HiExclamationCircle,
-  HiExclamationTriangle,
-  HiInformationCircle,
-} from "react-icons/hi2";
+import { HiCheckCircle, HiExclamationCircle, HiExclamationTriangle, HiInformationCircle, HiQuestionMarkCircle } from "react-icons/hi2";
 import type { IVariant } from "../button/button";
 
 interface IAlertProps {

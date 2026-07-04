@@ -1,10 +1,8 @@
+import { HiCheck, HiSparkles } from "react-icons/hi2";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Text } from "@/features/ui/typography/text";
 import { Title } from "@/features/ui/typography/title";
-import { HiCheck } from "react-icons/hi";
-import { HiSparkles } from "react-icons/hi2";
-
 export function GettingStarted() {
   return (
     <div className="text-center">

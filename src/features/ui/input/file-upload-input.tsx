@@ -2,8 +2,7 @@ import { IconButton } from "@/features/ui/button/icon-button";
 import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { useId, useMemo, useRef, useState } from "react";
-import { HiX } from "react-icons/hi";
-
+import { HiXMark } from "react-icons/hi2";
 type NativeInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "type" | "multiple" | "value" | "defaultValue" | "onChange"
@@ -150,7 +149,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
                   clicked={() => handleRemoveFile(index)}
                   disabled={disabled}
                   ariaLabel={`Remove ${file.name}`}>
-                  <HiX className="size-5" />
+                  <HiXMark className="size-5" />
                 </IconButton>
               )}
             </div>

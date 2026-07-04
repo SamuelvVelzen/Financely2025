@@ -23,6 +23,7 @@ export default defineConfig({
       "#tanstack-start-entry",
       "tanstack-start-manifest:v",
       "tanstack-start-injected-head-scripts:v",
+      "react-icons/hi2",
     ],
   },
 });

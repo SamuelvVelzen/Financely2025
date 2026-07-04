@@ -17,9 +17,7 @@ import { useToast } from "@/features/ui/toast";
 import { Text } from "@/features/ui/typography/text";
 import { Title } from "@/features/ui/typography/title";
 import { useMemo, useState } from "react";
-import { HiCheck, HiPlus } from "react-icons/hi";
-import { HiArrowsRightLeft, HiArrowDownTray } from "react-icons/hi2";
-
+import { HiArrowDownTray, HiArrowsRightLeft, HiCheck, HiPlus } from "react-icons/hi2";
 export function TransactionSetup() {
   const {
     data,

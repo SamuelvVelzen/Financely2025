@@ -1,3 +1,4 @@
+import { HiClock } from "react-icons/hi2";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { DateInput } from "@/features/ui/input/date-input";
 import { cn } from "@/features/util/cn";
@@ -6,8 +7,6 @@ import {
   isoToDateOnly,
 } from "@/features/util/date/dateisohelpers";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
-import { HiClock } from "react-icons/hi";
-
 interface IDateSelectCellProps extends IPropsWithClassName {
   // ISO date string value
   value?: string;

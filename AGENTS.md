@@ -74,6 +74,13 @@ Use individual scripts when iterating:
 
 Do not mark implementation work complete while `npm run check` is failing. Report remaining failures if you cannot fix them.
 
+## Icons
+
+Import icons from `react-icons/hi2` only (Heroicons v2). Do not import from the root `react-icons` package or `react-icons/hi` (v1).
+
+- `IconType` for props: `import type { IconType } from "@/features/ui/icons/icon-type"`
+- v2 renames: `HiX` → `HiXMark`, `HiEmojiHappy` → `HiFaceSmile`, `HiCloudUpload` → `HiCloudArrowUp`, `HiDotsVertical` → `HiEllipsisVertical`, `HiOutlineExternalLink` → `HiArrowTopRightOnSquare`
+
 ## Installed skills
 
 Project skills live in `.agents/skills/` (see `skills-lock.json`). Read the relevant `SKILL.md` before applying it.

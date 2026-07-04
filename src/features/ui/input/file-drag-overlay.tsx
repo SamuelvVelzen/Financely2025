@@ -1,6 +1,5 @@
+import { HiCloudArrowUp } from "react-icons/hi2";
 import { cn } from "@/features/util/cn";
-import { HiCloudUpload } from "react-icons/hi";
-
 type IFileDragOverlayProps = {
   className?: string;
 };
@@ -20,7 +19,7 @@ export function FileDragOverlay({ className }: IFileDragOverlayProps) {
         "motion-safe:transition-all",
         className
       )}>
-      <HiCloudUpload className="size-12 text-primary" />
+      <HiCloudArrowUp className="size-12 text-primary" />
       <p className="text-lg font-semibold text-primary">Drop your file here</p>
     </div>
   );

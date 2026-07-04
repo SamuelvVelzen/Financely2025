@@ -10,8 +10,8 @@ import {
   useSyncExternalStore,
   type PropsWithChildren,
 } from "react";
+import { HiXMark } from "react-icons/hi2";
 import { createPortal } from "react-dom";
-import { HiX } from "react-icons/hi";
 import type { IButtonProps } from "../button/button";
 import { Button } from "../button/button";
 import { IconButton } from "../button/icon-button";
@@ -577,7 +577,7 @@ export function BottomSheet({
           </div>
 
           <IconButton clicked={handleClose}>
-            <HiX className="size-5" />
+            <HiXMark className="size-5" />
           </IconButton>
         </div>
 

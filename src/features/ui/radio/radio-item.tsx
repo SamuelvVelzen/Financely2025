@@ -7,7 +7,7 @@ import React, {
   useId,
   type KeyboardEvent,
 } from "react";
-import { type IconType } from "react-icons";
+import { type IconType } from "@/features/ui/icons/icon-type";
 import { RadioGroupContext } from "./radio-group-context";
 
 export type IRadioItemProps = Omit<

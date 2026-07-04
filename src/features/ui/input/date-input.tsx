@@ -18,9 +18,8 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
+import { HiChevronDown, HiClock } from "react-icons/hi2";
 import type { ControllerRenderProps } from "react-hook-form";
-import { HiChevronDown, HiClock } from "react-icons/hi";
-
 export type IDateInputProps = IPropsWithClassName & {
   mode?: "dateOnly" | "dateTime";
   label?: string;

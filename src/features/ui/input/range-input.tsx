@@ -4,8 +4,8 @@ import { Label } from "@/features/ui/typography/label";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { HiXMark } from "react-icons/hi2";
 import { FormProvider } from "react-hook-form";
-import { HiX } from "react-icons/hi";
 import { useFinForm } from "../form/useForm";
 
 export type IPriceRange = {
@@ -278,7 +278,7 @@ export function RangeInput({
                 clicked={handleClear}
                 className="absolute left-1/2 -translate-x-1/2 text-text-muted hover:text-text p-1"
                 ariaLabel="Clear range">
-                <HiX className="size-4" />
+                <HiXMark className="size-4" />
               </IconButton>
             )}
 

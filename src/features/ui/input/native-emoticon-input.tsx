@@ -1,7 +1,7 @@
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useRef } from "react";
-import { HiEmojiHappy } from "react-icons/hi";
+import { HiFaceSmile } from "react-icons/hi2";
 import { extractFirstEmoji, normalizeEmoticon } from "./emoticon-picker-data";
 
 type INativeEmoticonInputProps = IPropsWithClassName & {
@@ -77,7 +77,7 @@ export function NativeEmoticonInput({
             {previewEmoji}
           </span>
         ) : (
-          <HiEmojiHappy
+          <HiFaceSmile
             className={cn(
               "text-text-muted",
               isCompact ? "size-4" : "size-5",

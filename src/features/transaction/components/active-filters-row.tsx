@@ -1,8 +1,8 @@
+import { HiXMark } from "react-icons/hi2";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
-import { HiX } from "react-icons/hi";
 import type { IFilterBadge } from "../utils/filter-badges";
 
 export interface IActiveFiltersRowProps {
@@ -48,7 +48,7 @@ export function ActiveFiltersRow({
                     size="xs"
                     ariaLabel={`Remove ${badge.type} filter`}
                     className={cn(`bg-[${badge.color}]`)}>
-                    <HiX className="size-3" />
+                    <HiXMark className="size-3" />
                   </IconButton>
                 </Badge>
               ) : (
@@ -67,7 +67,7 @@ export function ActiveFiltersRow({
                     }}
                     size="xs"
                     ariaLabel={`Remove ${badge.type} filter`}>
-                    <HiX className="size-3" />
+                    <HiXMark className="size-3" />
                   </IconButton>
                 </Badge>
               )}

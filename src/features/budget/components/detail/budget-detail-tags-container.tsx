@@ -17,8 +17,7 @@ import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
 import { formatDate } from "@/features/util/date/date-helpers";
 import { useMemo, useState } from "react";
-import { HiChevronRight } from "react-icons/hi";
-import { HiSquares2X2 } from "react-icons/hi2";
+import { HiChevronRight, HiSquares2X2 } from "react-icons/hi2";
 import {
   BudgetStatusIcon,
 } from "./budget-status-badge";

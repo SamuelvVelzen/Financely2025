@@ -9,8 +9,7 @@ import { NativeEmoticonInput } from "@/features/ui/input/native-emoticon-input";
 import { cn } from "@/features/util/cn";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { HiEmojiHappy } from "react-icons/hi";
-import { HiChevronDown, HiMagnifyingGlass } from "react-icons/hi2";
+import { HiChevronDown, HiFaceSmile, HiMagnifyingGlass } from "react-icons/hi2";
 import {
   DEFAULT_EMOJI_CATEGORY,
   EMOJI_CATEGORIES,
@@ -234,7 +233,7 @@ export function EmoticonPicker({
             {previewEmoji}
           </span>
         ) : (
-          <HiEmojiHappy
+          <HiFaceSmile
             className="size-4 text-text-muted"
             aria-hidden
           />
@@ -253,7 +252,7 @@ export function EmoticonPicker({
             {previewEmoji}
           </span>
         ) : (
-          <HiEmojiHappy className="size-5 shrink-0 text-text-muted" />
+          <HiFaceSmile className="size-5 shrink-0 text-text-muted" />
         )}
         <span
           className={cn(

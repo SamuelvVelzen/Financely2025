@@ -1,6 +1,6 @@
 import { cn } from "@/features/util/cn";
 import { type ReactNode, useCallback, useDeferredValue } from "react";
-import { HiArrowLeft, HiArrowRight, HiCheck } from "react-icons/hi";
+import { HiArrowLeft, HiArrowRight, HiCheck } from "react-icons/hi2";
 import { Button } from "../button/button";
 import { Container } from "../container/container";
 import { WizardProgress } from "./wizard-progress";

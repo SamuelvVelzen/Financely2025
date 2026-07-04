@@ -1,8 +1,7 @@
 import { IconButton } from "@/features/ui/button/icon-button";
 import { cn } from "@/features/util/cn";
 import { useRef, useState } from "react";
-import { HiChevronDown, HiChevronUp } from "react-icons/hi";
-
+import { HiChevronDown, HiChevronUp } from "react-icons/hi2";
 export type ITimePickerProps = {
   value: Date;
   onChange: (date: Date) => void;
