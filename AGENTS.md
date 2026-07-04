@@ -52,8 +52,11 @@ Sub-parts attached to a parent (e.g. `Dropdown.Footer`, `Dropdown.Panel`) still 
 Before finishing a task that changes application code, run the project quality gate and fix any failures you introduced:
 
 ```bash
+npm run prisma:generate
 npm run check
 ```
+
+`prisma:generate` is required first because Prisma client and Zod schemas are generated into `node_modules` and `src/features/shared/validation/generated.ts` (gitignored). CI runs the same steps via [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 `check` runs, in order:
 
