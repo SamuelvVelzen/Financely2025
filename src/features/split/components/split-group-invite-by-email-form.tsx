@@ -1,3 +1,4 @@
+import { SplitSectionCard } from "@/features/split/components/split-section-card";
 import { useAddSplitMember } from "@/features/split/hooks/use-split-groups";
 import { Button } from "@/features/ui/button/button";
 import { BaseInput } from "@/features/ui/input/input";
@@ -32,20 +33,11 @@ export function SplitGroupInviteByEmailForm({ groupId }: { groupId: string }) {
   };
 
   return (
-    <section className="rounded-2xl border border-border bg-surface/50 p-5 space-y-5">
-      <div className="flex items-start gap-4">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-secondary">
-          <HiEnvelope className="size-5" />
-        </span>
-        <div className="min-w-0 pt-0.5">
-          <h3 className="text-base font-semibold text-text">Invite by email</h3>
-          <p className="text-sm leading-relaxed text-text-muted mt-1.5">
-            Add Financely users directly. If they do not have an account yet,
-            they will join automatically when they sign up.
-          </p>
-        </div>
-      </div>
-
+    <SplitSectionCard
+      variant="secondary"
+      icon={<HiEnvelope className="size-5" />}
+      title="Invite by email"
+      description="Add Financely users directly. If they do not have an account yet, they will join automatically when they sign up.">
       <div className="space-y-4">
         <BaseInput
           label="Email"
@@ -74,6 +66,6 @@ export function SplitGroupInviteByEmailForm({ groupId }: { groupId: string }) {
         <HiUserPlus className="size-4" />
         Add to group
       </Button>
-    </section>
+    </SplitSectionCard>
   );
 }

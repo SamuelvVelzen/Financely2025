@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
+import { Currency } from "@/features/currency/components/currency";
 import type { ISplitSettlement } from "@/features/split/utils/group-split-settlements-by-date";
 import { ListItem } from "@/features/ui/list/list-item";
 
@@ -20,9 +20,11 @@ export function SplitSettlementListItem({
             <p className="text-sm text-text-muted truncate">{settlement.note}</p>
           ) : null}
         </div>
-        <p className="shrink-0 font-medium text-text">
-          {formatCurrency(settlement.amount, currency)}
-        </p>
+        <Currency
+          amount={settlement.amount}
+          currency={currency}
+          className="shrink-0 font-medium"
+        />
       </div>
     </ListItem>
   );

@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
+import { Currency } from "@/features/currency/components/currency";
 import { useSplitSummary } from "@/features/split/hooks/use-split-groups";
 import { Container } from "@/features/ui/container/container";
 import { Skeleton } from "@/features/ui/skeleton";
@@ -27,7 +27,7 @@ export function SplitSummaryCard() {
   );
 
   return (
-    <Container className="border border-border rounded-2xl">
+    <Container>
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-sm font-medium text-text-muted mb-2">
@@ -36,11 +36,22 @@ export function SplitSummaryCard() {
           </div>
           {totalOwed < -0.005 ? (
             <p className="text-lg font-semibold text-danger">
-              You owe {formatCurrency(Math.abs(totalOwed).toFixed(2), groups[0]!.currency)} across {groups.length} groups
+              You owe{" "}
+              <Currency
+                amount={Math.abs(totalOwed).toFixed(2)}
+                currency={groups[0]!.currency}
+                className="text-lg font-semibold text-danger"
+              />{" "}
+              across {groups.length} groups
             </p>
           ) : totalOwedToYou > 0.005 ? (
             <p className="text-lg font-semibold text-success">
-              You are owed {formatCurrency(totalOwedToYou.toFixed(2), groups[0]!.currency)}
+              You are owed{" "}
+              <Currency
+                amount={totalOwedToYou.toFixed(2)}
+                currency={groups[0]!.currency}
+                className="text-lg font-semibold text-success"
+              />
             </p>
           ) : (
             <p className="text-lg font-semibold text-text">All settled in splits</p>

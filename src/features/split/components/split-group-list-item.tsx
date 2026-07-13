@@ -1,8 +1,9 @@
 import type { ISplitGroupDialogTarget } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
-import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
+import { Currency } from "@/features/currency/components/currency";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { ListItem } from "@/features/ui/list/list-item";
+import { cn } from "@/features/util/cn";
 import { HiPencil, HiTrash } from "react-icons/hi2";
 
 type ISplitGroupListItem = ISplitGroupDialogTarget & {
@@ -43,11 +44,16 @@ export function SplitGroupListItem({
           <div className="text-right">
             {hasBalance ? (
               <p
-                className={
-                  net < 0 ? "font-semibold text-danger" : "font-semibold text-success"
-                }>
+                className={cn(
+                  "font-semibold",
+                  net < 0 ? "text-danger" : "text-success",
+                )}>
                 {net < 0 ? "You owe " : "Owed "}
-                {formatCurrency(Math.abs(net).toFixed(2), group.defaultCurrency)}
+                <Currency
+                  amount={Math.abs(net).toFixed(2)}
+                  currency={group.defaultCurrency}
+                  className="font-semibold"
+                />
               </p>
             ) : (
               <p className="text-sm text-text-muted">Settled up</p>

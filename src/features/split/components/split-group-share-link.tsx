@@ -1,3 +1,4 @@
+import { SplitSectionCard } from "@/features/split/components/split-section-card";
 import {
   copySplitInviteLink,
   shareSplitInviteLink,
@@ -44,20 +45,11 @@ export function SplitGroupShareLink({
   };
 
   return (
-    <section className="rounded-2xl border border-primary/20 bg-primary/5 p-5 space-y-5">
-      <div className="flex items-start gap-4">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
-          <HiLink className="size-5" />
-        </span>
-        <div className="min-w-0 pt-0.5">
-          <h3 className="text-base font-semibold text-text">Share a link</h3>
-          <p className="text-sm leading-relaxed text-text-muted mt-1.5">
-            Send this link in a chat or group message. Anyone with it can join
-            as a guest and add expenses.
-          </p>
-        </div>
-      </div>
-
+    <SplitSectionCard
+      variant="primary"
+      icon={<HiLink className="size-5" />}
+      title="Share a link"
+      description="Send this link in a chat or group message. Anyone with it can join as a guest and add expenses.">
       <div className="flex items-stretch gap-2 rounded-2xl border border-border bg-background p-1.5">
         <p className="min-w-0 flex-1 self-center truncate px-3 py-1 text-sm text-text-muted">
           {inviteUrl}
@@ -90,6 +82,6 @@ export function SplitGroupShareLink({
           </Button>
         ) : null}
       </div>
-    </section>
+    </SplitSectionCard>
   );
 }

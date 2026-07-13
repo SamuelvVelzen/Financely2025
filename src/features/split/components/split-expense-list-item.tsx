@@ -1,13 +1,11 @@
+import { Currency } from "@/features/currency/components/currency";
 import type { ISplitExpense } from "@/features/split/offline/split-offline-optimistic";
-import {
-  formatViewerExpenseNetAmount,
-  getViewerExpenseNetAmount,
-} from "@/features/split/utils/get-viewer-expense-net-amount";
+import { getViewerExpenseNetAmount } from "@/features/split/utils/get-viewer-expense-net-amount";
 import { Badge } from "@/features/ui/badge/badge";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { ListItem } from "@/features/ui/list/list-item";
-import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
+import { cn } from "@/features/util/cn";
 import { HiPencil, HiTrash } from "react-icons/hi2";
 
 export function SplitExpenseListItem({
@@ -31,9 +29,6 @@ export function SplitExpenseListItem({
       : null;
   const showViewerNet = viewerNet != null && Math.abs(viewerNet) > 0.005;
   const viewerOwes = showViewerNet && viewerNet < 0;
-  const viewerNetLabel = showViewerNet
-    ? formatViewerExpenseNetAmount(viewerNet, groupCurrency)
-    : null;
 
   return (
     <ListItem
@@ -55,24 +50,29 @@ export function SplitExpenseListItem({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <div className="text-right">
-            <p className="font-medium text-text">
-              {formatCurrency(expense.amount, expense.currency)}
-            </p>
+          <div className="flex flex-col items-end text-right">
+            <Currency
+              amount={expense.amount}
+              currency={expense.currency}
+              className="font-medium"
+            />
             {expense.groupAmount && expense.currency !== groupCurrency ? (
-              <p className="text-xs text-text-muted">
-                {formatCurrency(expense.groupAmount, groupCurrency)}
-              </p>
+              <Currency
+                amount={expense.groupAmount}
+                currency={groupCurrency}
+                className="text-xs text-text-muted"
+              />
             ) : null}
-            {viewerNetLabel ? (
-              <p
-                className={
-                  viewerOwes
-                    ? "text-xs font-medium text-danger"
-                    : "text-xs font-medium text-success"
-                }>
-                {viewerNetLabel}
-              </p>
+            {showViewerNet ? (
+              <Currency
+                amount={Math.abs(viewerNet).toFixed(2)}
+                currency={groupCurrency}
+                type={viewerOwes ? "EXPENSE" : "INCOME"}
+                className={cn(
+                  "text-xs font-medium",
+                  viewerOwes ? "text-danger" : "text-success",
+                )}
+              />
             ) : null}
           </div>
           {canEdit ? (

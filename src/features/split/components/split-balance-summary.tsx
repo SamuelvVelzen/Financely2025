@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/features/currency/utils/currencyhelpers";
+import { Currency } from "@/features/currency/components/currency";
 import { Container } from "@/features/ui/container/container";
 
 type IBalanceData = {
@@ -23,23 +23,31 @@ export function SplitBalanceSummary({ balances }: { balances: IBalanceData }) {
         {net < -0.005 ? (
           <>
             <p className="text-sm text-text-muted">You owe</p>
-            <p className="text-3xl font-bold text-danger">
-              {formatCurrency(Math.abs(net).toFixed(2), currency)}
-            </p>
+            <Currency
+              amount={Math.abs(net).toFixed(2)}
+              currency={currency}
+              type="EXPENSE"
+              className="text-3xl font-bold text-danger"
+            />
           </>
         ) : net > 0.005 ? (
           <>
             <p className="text-sm text-text-muted">You are owed</p>
-            <p className="text-3xl font-bold text-success">
-              {formatCurrency(net.toFixed(2), currency)}
-            </p>
+            <Currency
+              amount={net.toFixed(2)}
+              currency={currency}
+              type="INCOME"
+              className="text-3xl font-bold text-success"
+            />
           </>
         ) : (
           <>
             <p className="text-sm text-text-muted">All settled up</p>
-            <p className="text-2xl font-bold text-text">
-              {formatCurrency("0", currency)}
-            </p>
+            <Currency
+              amount="0"
+              currency={currency}
+              className="text-2xl font-bold"
+            />
           </>
         )}
       </div>
@@ -48,7 +56,7 @@ export function SplitBalanceSummary({ balances }: { balances: IBalanceData }) {
           {balances.simplifiedDebts.map((debt) => (
             <li key={`${debt.fromMemberId}-${debt.toMemberId}`} className="text-sm text-text-muted">
               {debt.fromDisplayName} owes {debt.toDisplayName}{" "}
-              {formatCurrency(debt.amount, currency)}
+              <Currency amount={debt.amount} currency={currency} />
             </li>
           ))}
         </ul>
