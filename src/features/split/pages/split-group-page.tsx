@@ -1,10 +1,9 @@
 import { AddOrEditSplitGroupDialog } from "@/features/split/components/add-or-edit-split-group-dialog";
 import type { ISplitGroupWizardStep } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
 import { SplitBalanceSummary } from "@/features/split/components/split-balance-summary";
+import { SplitGroupActivityTabs } from "@/features/split/components/split-group-activity-tabs";
 import { SplitExpenseDialog } from "@/features/split/components/split-expense-dialog";
-import { SplitExpenseList } from "@/features/split/components/split-expense-list";
 import { SplitGroupDetailHeader } from "@/features/split/components/split-group-detail-header";
-import { SplitMembersSection } from "@/features/split/components/split-members-section";
 import { RecordSettlementDialog } from "@/features/split/components/record-settlement-dialog";
 import {
   useDeleteSplitExpense,
@@ -12,18 +11,20 @@ import {
   useSplitBalances,
   useSplitExpenses,
   useSplitGroup,
+  useSplitSettlements,
 } from "@/features/split/hooks/use-split-groups";
 import type { ISplitExpense } from "@/features/split/offline/split-offline-optimistic";
+import type { ISplitSettlement } from "@/features/split/utils/group-split-settlements-by-date";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { useMe } from "@/features/users/hooks/useUser";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { Container } from "@/features/ui/container/container";
+import { AvatarGroup } from "@/features/ui/avatar/avatar-group";
 import { Button } from "@/features/ui/button/button";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Skeleton } from "@/features/ui/skeleton";
 import { IconButton } from "@/features/ui/button/icon-button";
-import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
 import { HiPlus } from "react-icons/hi2";
 import { useState } from "react";
@@ -40,6 +41,8 @@ export function SplitGroupPage() {
   const { data: group, isLoading: groupLoading } = useSplitGroup(groupId);
   const { data: expensesData, isLoading: expensesLoading } =
     useSplitExpenses(groupId);
+  const { data: settlementsData, isLoading: settlementsLoading } =
+    useSplitSettlements(groupId);
   const { data: balances, isLoading: balancesLoading } =
     useSplitBalances(groupId);
   const deleteExpense = useDeleteSplitExpense(groupId);
@@ -147,6 +150,7 @@ export function SplitGroupPage() {
         onEdit={() => openGroupDialog("details")}
         canDelete={isCreator}
         onDelete={() => setDeleteGroupOpen(true)}
+        onManageMembers={() => openGroupDialog("members")}
       />
 
       <Container>
@@ -173,31 +177,34 @@ export function SplitGroupPage() {
               ) : null}
             </div>
 
-            <SplitMembersSection
-              groupId={groupId}
-              groupName={groupName}
-              members={members}
-              currentMemberId={currentMemberId}
-              currentMemberRole={currentMemberRole}
-              onAddMember={() => openGroupDialog("members")}
-            />
+            <button
+              type="button"
+              aria-label={`Manage people, ${members.length} in group`}
+              onClick={() => openGroupDialog("members")}
+              className="w-full text-left">
+              <Container className="mb-0 cursor-pointer transition-colors hover:bg-surface-hover focus-within:outline-none focus-within:ring-2 focus-within:ring-primary">
+                <h2 className="mb-3 text-sm font-semibold text-text">People</h2>
+                <AvatarGroup
+                  items={members}
+                  max={4}
+                  size="sm"
+                  showTotalCount
+                />
+              </Container>
+            </button>
           </div>
 
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-text mb-4">Expenses</h2>
-            {expensesLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loading text="Loading expenses" />
-              </div>
-            ) : (
-              <SplitExpenseList
-                expenses={expensesData?.expenses ?? []}
-                groupCurrency={groupCurrency}
-                viewer={viewer}
-                onEdit={openEditExpense}
-                onDelete={setDeletingExpense}
-              />
-            )}
+            <SplitGroupActivityTabs
+              expenses={expensesData?.expenses ?? []}
+              settlements={(settlementsData?.settlements ?? []) as ISplitSettlement[]}
+              groupCurrency={groupCurrency}
+              expensesLoading={expensesLoading}
+              settlementsLoading={settlementsLoading}
+              viewer={viewer}
+              onEditExpense={openEditExpense}
+              onDeleteExpense={setDeletingExpense}
+            />
           </div>
         </div>
       </Container>
@@ -267,6 +274,7 @@ export function SplitGroupPage() {
         members={members}
         currency={groupCurrency}
         currentMemberId={currentMemberId}
+        isAdmin={isAdmin}
       />
       <DeleteDialog
         open={deletingExpense != null}

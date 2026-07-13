@@ -1,22 +1,37 @@
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { HiClipboardDocument, HiPencil, HiShare, HiTrash } from "react-icons/hi2";
+import {
+  HiClipboardDocument,
+  HiPencil,
+  HiShare,
+  HiTrash,
+  HiUserPlus,
+} from "react-icons/hi2";
 
 export function SplitGroupDetailActionsMenu({
   onEdit,
   onDelete,
   onCopyLink,
   onShareLink,
+  onManageMembers,
   size = "sm",
 }: {
   onEdit?: () => void;
   onDelete?: () => void;
   onCopyLink?: () => void;
   onShareLink?: () => void;
+  onManageMembers?: () => void;
   size?: "xs" | "sm";
 }) {
   return (
     <Dropdown size={size}>
+      {onManageMembers ? (
+        <DropdownItem
+          icon={<HiUserPlus className="size-4" />}
+          clicked={onManageMembers}>
+          Manage people
+        </DropdownItem>
+      ) : null}
       {onCopyLink ? (
         <DropdownItem
           icon={<HiClipboardDocument className="size-4" />}

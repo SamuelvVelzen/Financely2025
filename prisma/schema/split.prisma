@@ -23,7 +23,7 @@ model SplitGroup {
   guestAccessToken String   @unique
   guestCanView     Boolean  @default(true)
   guestCanAdd      Boolean  @default(true)
-  guestCanSettle   Boolean  @default(false)
+  guestCanSettle   Boolean  @default(true)
   guestCanEditOwn  Boolean  @default(true)
   members          SplitGroupMember[]
   expenses         SplitExpense[]

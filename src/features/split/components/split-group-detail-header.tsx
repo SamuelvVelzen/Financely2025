@@ -17,6 +17,7 @@ export function SplitGroupDetailHeader({
   canEdit,
   onDelete,
   canDelete,
+  onManageMembers,
 }: {
   groupName: string;
   currency: string;
@@ -26,6 +27,7 @@ export function SplitGroupDetailHeader({
   canEdit?: boolean;
   onDelete?: () => void;
   canDelete?: boolean;
+  onManageMembers?: () => void;
 }) {
   const toast = useToast();
   const canNativeShare =
@@ -65,8 +67,13 @@ export function SplitGroupDetailHeader({
   const showDelete = Boolean(canDelete && onDelete);
   const showCopyLink = Boolean(guestAccessToken);
   const showShareLink = Boolean(guestAccessToken && canNativeShare);
+  const showManageMembers = Boolean(onManageMembers);
   const showActionsMenu =
-    showEdit || showDelete || showCopyLink || showShareLink;
+    showManageMembers ||
+    showEdit ||
+    showDelete ||
+    showCopyLink ||
+    showShareLink;
 
   return (
     <Container className="sticky z-10 top-0 mb-3">
@@ -83,6 +90,7 @@ export function SplitGroupDetailHeader({
         </div>
         {showActionsMenu ? (
           <SplitGroupDetailActionsMenu
+            onManageMembers={showManageMembers ? onManageMembers : undefined}
             onCopyLink={showCopyLink ? () => void handleCopyLink() : undefined}
             onShareLink={
               showShareLink ? () => void handleShareLink() : undefined

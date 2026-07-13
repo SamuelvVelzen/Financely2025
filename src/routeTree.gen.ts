@@ -82,6 +82,7 @@ import { Route as ApiV1WorkspaceIdMessagesMessageIdRouteImport } from './routes/
 import { Route as ApiV1WorkspaceIdBudgetsOverviewRouteImport } from './routes/api/v1/$workspaceId/budgets.overview'
 import { Route as ApiV1WorkspaceIdBudgetsBudgetIdRouteImport } from './routes/api/v1/$workspaceId/budgets.$budgetId'
 import { Route as appWorkspaceIdBudgetsBudgetIdEditRouteImport } from './routes/(app)/$workspaceId/budgets.$budgetId.edit'
+import { Route as ApiV1SplitsGuestTokenSettlementsRouteImport } from './routes/api/v1/splits.guest.$token.settlements'
 import { Route as ApiV1SplitsGuestTokenJoinRouteImport } from './routes/api/v1/splits.guest.$token.join'
 import { Route as ApiV1SplitsGuestTokenExpensesRouteImport } from './routes/api/v1/splits.guest.$token.expenses'
 import { Route as ApiV1MeWorkspacesWorkspaceIdSettingsRouteImport } from './routes/api/v1/me.workspaces.$workspaceId.settings'
@@ -510,6 +511,12 @@ const appWorkspaceIdBudgetsBudgetIdEditRoute =
     path: '/budgets/$budgetId/edit',
     getParentRoute: () => appWorkspaceIdRouteRoute,
   } as any)
+const ApiV1SplitsGuestTokenSettlementsRoute =
+  ApiV1SplitsGuestTokenSettlementsRouteImport.update({
+    id: '/settlements',
+    path: '/settlements',
+    getParentRoute: () => ApiV1SplitsGuestTokenRoute,
+  } as any)
 const ApiV1SplitsGuestTokenJoinRoute =
   ApiV1SplitsGuestTokenJoinRouteImport.update({
     id: '/join',
@@ -700,6 +707,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
+  '/api/v1/splits/guest/$token/settlements': typeof ApiV1SplitsGuestTokenSettlementsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
   '/api/v1/me/splits/groups/$groupId/balances': typeof ApiV1MeSplitsGroupsGroupIdBalancesRoute
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
@@ -790,6 +798,7 @@ export interface FileRoutesByTo {
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
+  '/api/v1/splits/guest/$token/settlements': typeof ApiV1SplitsGuestTokenSettlementsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
   '/api/v1/me/splits/groups/$groupId/balances': typeof ApiV1MeSplitsGroupsGroupIdBalancesRoute
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
@@ -884,6 +893,7 @@ export interface FileRoutesById {
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
+  '/api/v1/splits/guest/$token/settlements': typeof ApiV1SplitsGuestTokenSettlementsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
   '/api/v1/me/splits/groups/$groupId/balances': typeof ApiV1MeSplitsGroupsGroupIdBalancesRoute
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
@@ -978,6 +988,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
+    | '/api/v1/splits/guest/$token/settlements'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
     | '/api/v1/me/splits/groups/$groupId/balances'
     | '/api/v1/me/splits/groups/$groupId/convert-pending'
@@ -1068,6 +1079,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
+    | '/api/v1/splits/guest/$token/settlements'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
     | '/api/v1/me/splits/groups/$groupId/balances'
     | '/api/v1/me/splits/groups/$groupId/convert-pending'
@@ -1161,6 +1173,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
+    | '/api/v1/splits/guest/$token/settlements'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
     | '/api/v1/me/splits/groups/$groupId/balances'
     | '/api/v1/me/splits/groups/$groupId/convert-pending'
@@ -1707,6 +1720,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$workspaceId/budgets/$budgetId/edit'
       preLoaderRoute: typeof appWorkspaceIdBudgetsBudgetIdEditRouteImport
       parentRoute: typeof appWorkspaceIdRouteRoute
+    }
+    '/api/v1/splits/guest/$token/settlements': {
+      id: '/api/v1/splits/guest/$token/settlements'
+      path: '/settlements'
+      fullPath: '/api/v1/splits/guest/$token/settlements'
+      preLoaderRoute: typeof ApiV1SplitsGuestTokenSettlementsRouteImport
+      parentRoute: typeof ApiV1SplitsGuestTokenRoute
     }
     '/api/v1/splits/guest/$token/join': {
       id: '/api/v1/splits/guest/$token/join'
@@ -2280,11 +2300,13 @@ const ApiV1CurrencyExchangeRatesRouteWithChildren =
 interface ApiV1SplitsGuestTokenRouteChildren {
   ApiV1SplitsGuestTokenExpensesRoute: typeof ApiV1SplitsGuestTokenExpensesRoute
   ApiV1SplitsGuestTokenJoinRoute: typeof ApiV1SplitsGuestTokenJoinRoute
+  ApiV1SplitsGuestTokenSettlementsRoute: typeof ApiV1SplitsGuestTokenSettlementsRoute
 }
 
 const ApiV1SplitsGuestTokenRouteChildren: ApiV1SplitsGuestTokenRouteChildren = {
   ApiV1SplitsGuestTokenExpensesRoute: ApiV1SplitsGuestTokenExpensesRoute,
   ApiV1SplitsGuestTokenJoinRoute: ApiV1SplitsGuestTokenJoinRoute,
+  ApiV1SplitsGuestTokenSettlementsRoute: ApiV1SplitsGuestTokenSettlementsRoute,
 }
 
 const ApiV1SplitsGuestTokenRouteWithChildren =

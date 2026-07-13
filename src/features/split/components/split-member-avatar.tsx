@@ -1,21 +1,11 @@
-import { getMemberInitials } from "@/features/split/utils/get-member-initials";
-import { cn } from "@/features/util/cn";
+import { Avatar } from "@/features/ui/avatar/avatar";
+import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
 
 export function SplitMemberAvatar({
   displayName,
   className,
 }: {
   displayName: string;
-  className?: string;
-}) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary",
-        className,
-      )}>
-      {getMemberInitials(displayName)}
-    </span>
-  );
+} & IPropsWithClassName) {
+  return <Avatar displayName={displayName} size="md" className={className} />;
 }

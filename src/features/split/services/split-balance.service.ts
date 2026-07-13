@@ -14,7 +14,7 @@ export type ISplitBalancesResult = {
 export class SplitBalanceService {
   static async getBalances(
     groupId: string,
-    viewerUserId?: string,
+    options?: { viewerUserId?: string; viewerMemberId?: string },
   ): Promise<ISplitBalancesResult & { viewerNetAmount?: string }> {
     const group = await prisma.splitGroup.findUniqueOrThrow({
       where: { id: groupId },
@@ -94,8 +94,10 @@ export class SplitBalanceService {
     const simplifiedDebts = simplifyDebts(memberBalances, group.defaultCurrency);
 
     let viewerNetAmount: string | undefined;
-    if (viewerUserId) {
-      const viewerMember = members.find((m) => m.userId === viewerUserId);
+    if (options?.viewerMemberId) {
+      viewerNetAmount = (netByMember.get(options.viewerMemberId) ?? 0).toFixed(2);
+    } else if (options?.viewerUserId) {
+      const viewerMember = members.find((m) => m.userId === options.viewerUserId);
       if (viewerMember) {
         viewerNetAmount = (netByMember.get(viewerMember.id) ?? 0).toFixed(2);
       }
@@ -127,7 +129,9 @@ export class SplitBalanceService {
 
     const groups = await Promise.all(
       memberships.map(async (m) => {
-        const balances = await this.getBalances(m.groupId, userId);
+        const balances = await this.getBalances(m.groupId, {
+          viewerUserId: userId,
+        });
         return {
           groupId: m.group.id,
           groupName: m.group.name,

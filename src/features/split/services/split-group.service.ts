@@ -128,6 +128,7 @@ export class SplitGroupService {
           defaultCurrency: input.defaultCurrency,
           createdByUserId: userId,
           guestAccessToken: generateGuestToken(),
+          guestCanSettle: true,
         },
       });
 

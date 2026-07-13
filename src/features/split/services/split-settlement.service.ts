@@ -6,9 +6,7 @@ import type { ICreateSplitSettlementInput } from "../validation/schemas";
 const EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export class SplitSettlementService {
-  static async listSettlements(groupId: string, userId: string) {
-    await requireActiveMemberForUser(groupId, userId);
-
+  static async listSettlementsForGroup(groupId: string) {
     const settlements = await prisma.splitSettlement.findMany({
       where: { groupId, deletedAt: null },
       include: {
@@ -31,17 +29,29 @@ export class SplitSettlementService {
     }));
   }
 
-  static async createSettlement(
+  static async listSettlements(groupId: string, userId: string) {
+    await requireActiveMemberForUser(groupId, userId);
+    return this.listSettlementsForGroup(groupId);
+  }
+
+  static async createSettlementForMember(
     groupId: string,
-    userId: string,
+    actorMemberId: string,
+    createdByUserId: string | null,
     input: ICreateSplitSettlementInput,
   ) {
-    const member = await requireActiveMemberForUser(groupId, userId);
+    if (input.fromMemberId === input.toMemberId) {
+      throw new Error("Payer and recipient must be different people");
+    }
+
+    const actor = await prisma.splitGroupMember.findFirstOrThrow({
+      where: { id: actorMemberId, groupId, status: { in: ["linked", "guest"] } },
+    });
 
     if (
-      member.id !== input.fromMemberId &&
-      member.id !== input.toMemberId &&
-      member.role !== "admin"
+      actor.id !== input.fromMemberId &&
+      actor.id !== input.toMemberId &&
+      actor.role !== "admin"
     ) {
       throw new Error("You must be involved in the settlement");
     }
@@ -55,7 +65,7 @@ export class SplitSettlementService {
           amount: input.amount,
           settledAt: new Date(input.settledAt),
           note: input.note ?? null,
-          createdByUserId: userId,
+          createdByUserId,
         },
         include: {
           fromMember: { select: { displayName: true } },
@@ -66,7 +76,7 @@ export class SplitSettlementService {
       await SplitActivityService.log(
         groupId,
         {
-          actorMemberId: member.id,
+          actorMemberId: actor.id,
           action: "created",
           entityType: "settlement",
           entityId: created.id,
@@ -88,6 +98,15 @@ export class SplitSettlementService {
       settledAt: settlement.settledAt.toISOString(),
       note: settlement.note,
     };
+  }
+
+  static async createSettlement(
+    groupId: string,
+    userId: string,
+    input: ICreateSplitSettlementInput,
+  ) {
+    const member = await requireActiveMemberForUser(groupId, userId);
+    return this.createSettlementForMember(groupId, member.id, userId, input);
   }
 
   static async deleteSettlement(

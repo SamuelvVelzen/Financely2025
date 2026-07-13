@@ -296,10 +296,9 @@ export async function balancesGET({
 }) {
   try {
     return await withAuth(async (userId) => {
-      const balances = await SplitBalanceService.getBalances(
-        params.groupId,
-        userId,
-      );
+      const balances = await SplitBalanceService.getBalances(params.groupId, {
+        viewerUserId: userId,
+      });
       return json(balances);
     });
   } catch (error) {

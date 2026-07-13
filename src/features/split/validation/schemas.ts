@@ -65,6 +65,9 @@ export const CreateSplitSettlementInputSchema = z.object({
   amount: DecimalStringSchema,
   settledAt: DateStringSchema,
   note: z.string().max(500).optional(),
+}).refine((data) => data.fromMemberId !== data.toMemberId, {
+  message: "Payer and recipient must be different people",
+  path: ["toMemberId"],
 });
 
 export const GuestJoinInputSchema = z.object({

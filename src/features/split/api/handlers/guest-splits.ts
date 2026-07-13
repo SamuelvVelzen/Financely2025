@@ -5,6 +5,7 @@ import {
 } from "@/features/shared/api/errors";
 import {
   CreateSplitExpenseInputSchema,
+  CreateSplitSettlementInputSchema,
   GuestJoinInputSchema,
 } from "@/features/shared/validation/schemas";
 import {
@@ -16,6 +17,7 @@ import {
 import { SplitBalanceService } from "@/features/split/services/split-balance.service";
 import { SplitExpenseService } from "@/features/split/services/split-expense.service";
 import { SplitGroupService } from "@/features/split/services/split-group.service";
+import { SplitSettlementService } from "@/features/split/services/split-settlement.service";
 import { json } from "@tanstack/react-start";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
@@ -88,8 +90,13 @@ export async function guestGroupGET({
     assertGuestCan(group, "view");
 
     const expenses = await SplitExpenseService.listExpensesForGroup(group.id);
-    const balances = await SplitBalanceService.getBalances(group.id);
+    const balances = await SplitBalanceService.getBalances(group.id, {
+      viewerMemberId: member.id,
+    });
     const members = await SplitGroupService.listActiveMembers(group.id);
+    const settlements = await SplitSettlementService.listSettlementsForGroup(
+      group.id,
+    );
 
     return json({
       group: {
@@ -97,6 +104,7 @@ export async function guestGroupGET({
         name: group.name,
         defaultCurrency: group.defaultCurrency,
         guestCanAdd: group.guestCanAdd,
+        guestCanSettle: group.guestCanSettle,
       },
       member: {
         id: member.id,
@@ -104,6 +112,7 @@ export async function guestGroupGET({
       },
       members,
       expenses,
+      settlements,
       balances,
     });
   } catch (error) {
@@ -111,6 +120,38 @@ export async function guestGroupGET({
   }
 }
 
+export async function guestCreateSettlementPOST({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { token: string };
+}) {
+  try {
+    const { group, member } = await requireGuestAccess(
+      params.token,
+      getGuestSessionId(request),
+    );
+    assertGuestCan(group, "settle");
+
+    const body = CreateSplitSettlementInputSchema.parse(await request.json());
+    const settlement = await SplitSettlementService.createSettlementForMember(
+      group.id,
+      member.id,
+      null,
+      body,
+    );
+
+    return json(settlement, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return createErrorResponse(
+        new ApiError(ErrorCodes.VALIDATION_ERROR, "Invalid body", 400),
+      );
+    }
+    return createErrorResponse(error);
+  }
+}
 export async function guestCreateExpensePOST({
   request,
   params,
