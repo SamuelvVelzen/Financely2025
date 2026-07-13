@@ -272,3 +272,20 @@ export {
   type ISubscriptionDismissal,
   type ISubscriptionDismissalsResponse,
 } from "@/features/subscription/validation/schemas";
+
+export {
+  CreateSplitGroupInputSchema,
+  UpdateSplitGroupInputSchema,
+  AddSplitMemberInputSchema,
+  CreateSplitExpenseInputSchema,
+  UpdateSplitExpenseInputSchema,
+  CreateSplitSettlementInputSchema,
+  GuestJoinInputSchema,
+  SplitBalancesSchema,
+  type ICreateSplitGroupInput,
+  type IUpdateSplitGroupInput,
+  type IAddSplitMemberInput,
+  type ICreateSplitExpenseInput,
+  type IUpdateSplitExpenseInput,
+  type ICreateSplitSettlementInput,
+} from "@/features/split/validation/schemas";

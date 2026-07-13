@@ -119,4 +119,14 @@ export const queryKeys = {
     ["exchange-rates", "batch", dates] as const,
   workspaceCurrencies: (workspaceId: number) =>
     ["workspaces", workspaceId, "currencies"] as const,
+
+  splitGroups: () => ["split-groups"] as const,
+  splitGroup: (groupId: string) => ["split-groups", groupId] as const,
+  splitExpenses: (groupId: string) =>
+    ["split-groups", groupId, "expenses"] as const,
+  splitBalances: (groupId: string) =>
+    ["split-groups", groupId, "balances"] as const,
+  splitSettlements: (groupId: string) =>
+    ["split-groups", groupId, "settlements"] as const,
+  splitSummary: () => ["split-groups", "summary"] as const,
 } as const;

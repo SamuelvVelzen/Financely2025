@@ -20,6 +20,8 @@ model User {
   wizardProgress         WizardProgress[]
   userSetting            UserSetting?
   tagRules               TagRule[]
+  splitGroupsCreated     SplitGroup[]       @relation("SplitGroupCreator")
+  splitGroupMemberships  SplitGroupMember[]
 }
 
 model UserSetting {

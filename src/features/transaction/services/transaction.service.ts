@@ -603,6 +603,14 @@ export class TransactionService {
       throw new Error("Transaction not found");
     }
 
+    const splitLink = await prisma.transaction.findFirst({
+      where: { id: transactionId },
+      select: { splitExpenseShareId: true, splitSyncDetachedAt: true },
+    });
+    if (splitLink?.splitExpenseShareId && !splitLink.splitSyncDetachedAt) {
+      throw new Error("This transaction is managed by a split expense");
+    }
+
     const validated = UpdateTransactionInputSchema.parse(input);
 
     // Verify tags if updating
@@ -744,6 +752,14 @@ export class TransactionService {
     );
     if (!existing) {
       throw new Error("Transaction not found");
+    }
+
+    const splitLink = await prisma.transaction.findFirst({
+      where: { id: transactionId },
+      select: { splitExpenseShareId: true, splitSyncDetachedAt: true },
+    });
+    if (splitLink?.splitExpenseShareId && !splitLink.splitSyncDetachedAt) {
+      throw new Error("This transaction is managed by a split expense");
     }
 
     await prisma.transaction.delete({

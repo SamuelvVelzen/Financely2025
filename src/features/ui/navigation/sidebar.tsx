@@ -19,6 +19,7 @@ import {
   HiOutlineBell,
   HiOutlineCurrencyEuro,
   HiOutlineTag,
+  HiUsers,
 } from "react-icons/hi2";
 import { IconButton } from "../button/icon-button";
 import { Container } from "../container/container";
@@ -99,6 +100,13 @@ export function Sidebar() {
               params={workspaceParams}
               label="Transactions"
               icon={HiArrowsRightLeft}
+            />
+          </li>
+          <li>
+            <NavItem
+              to="/splits"
+              label="Splits"
+              icon={HiUsers}
             />
           </li>
           <li>

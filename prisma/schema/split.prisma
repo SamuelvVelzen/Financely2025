@@ -1,0 +1,137 @@
+// ----------
+// Split / shared expenses
+// ----------
+
+enum SplitMemberStatus {
+  pending
+  guest
+  linked
+  removed
+}
+
+enum SplitShareStatus {
+  active
+  removed
+}
+
+model SplitGroup {
+  id               String   @id @default(cuid())
+  name             String
+  defaultCurrency  String
+  createdByUserId  String
+  createdBy        User     @relation("SplitGroupCreator", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  guestAccessToken String   @unique
+  guestCanView     Boolean  @default(true)
+  guestCanAdd      Boolean  @default(true)
+  guestCanSettle   Boolean  @default(false)
+  guestCanEditOwn  Boolean  @default(true)
+  members          SplitGroupMember[]
+  expenses         SplitExpense[]
+  settlements      SplitSettlement[]
+  activities       SplitActivity[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([createdByUserId])
+}
+
+model SplitGroupMember {
+  id              String            @id @default(cuid())
+  groupId         String
+  group           SplitGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email           String?
+  normalizedEmail String?
+  displayName     String
+  status          SplitMemberStatus @default(pending)
+  role            String            @default("member")
+  guestSessionId  String?
+  joinedAt        DateTime          @default(now())
+  removedAt       DateTime?
+  paidExpenses    SplitExpense[]    @relation("SplitExpensePayer")
+  shares          SplitExpenseShare[]
+  settlementsFrom SplitSettlement[] @relation("SettlementFrom")
+  settlementsTo   SplitSettlement[] @relation("SettlementTo")
+  activities      SplitActivity[]
+
+  @@unique([groupId, userId])
+  @@unique([groupId, normalizedEmail])
+  @@index([userId])
+  @@index([normalizedEmail])
+  @@index([groupId, status])
+}
+
+model SplitExpense {
+  id               String   @id @default(cuid())
+  groupId          String
+  group            SplitGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  paidByMemberId   String
+  paidByMember     SplitGroupMember @relation("SplitExpensePayer", fields: [paidByMemberId], references: [id], onDelete: Restrict)
+  amount           Decimal
+  currency         String
+  groupAmount      Decimal?
+  conversionStatus String   @default("pending")
+  exchangeRateDate DateTime?
+  exchangeRate     Decimal?
+  description      String
+  expenseDate      DateTime
+  splitMode        String   @default("equal")
+  createdByUserId  String?
+  clientMutationId String?  @unique
+  shares           SplitExpenseShare[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([groupId, expenseDate])
+}
+
+model SplitExpenseShare {
+  id               String           @id @default(cuid())
+  expenseId        String
+  memberId         String
+  status           SplitShareStatus @default(active)
+  shareAmount      Decimal
+  shareGroupAmount Decimal?
+  expense          SplitExpense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  member           SplitGroupMember @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  transaction      Transaction?
+
+  @@unique([expenseId, memberId])
+}
+
+model SplitSettlement {
+  id              String           @id @default(cuid())
+  groupId         String
+  group           SplitGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  fromMemberId    String
+  fromMember      SplitGroupMember @relation("SettlementFrom", fields: [fromMemberId], references: [id], onDelete: Restrict)
+  toMemberId      String
+  toMember        SplitGroupMember @relation("SettlementTo", fields: [toMemberId], references: [id], onDelete: Restrict)
+  amount          Decimal
+  settledAt       DateTime
+  note            String?
+  createdByUserId String?
+  deletedAt       DateTime?
+  deletedByUserId String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([groupId, settledAt])
+}
+
+model SplitActivity {
+  id            String            @id @default(cuid())
+  groupId       String
+  group         SplitGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  actorMemberId String?
+  actorMember   SplitGroupMember? @relation(fields: [actorMemberId], references: [id], onDelete: SetNull)
+  action        String
+  entityType    String
+  entityId      String
+  beforeJson    String?
+  afterJson     String?
+  createdAt     DateTime          @default(now())
+
+  @@index([groupId, createdAt])
+}

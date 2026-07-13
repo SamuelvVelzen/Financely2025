@@ -1,5 +1,6 @@
 import { BudgetSummaryCards } from "@/features/budget/components/overview/budget-summary-cards";
 import { useBudgetsOverview } from "@/features/budget/hooks/useBudgets";
+import { SplitSummaryCard } from "@/features/split/components/split-summary-card";
 import { Container } from "@/features/ui/container/container";
 import { Title } from "@/features/ui/typography/title";
 import { HiOutlineChartBar } from "react-icons/hi2";
@@ -20,6 +21,10 @@ export function DashboardOverview() {
         <p className="text-text-muted text-sm">
           Welcome to Financely. Manage your finances with ease.
         </p>
+      </Container>
+
+      <Container>
+        <SplitSummaryCard />
       </Container>
 
       <Container>

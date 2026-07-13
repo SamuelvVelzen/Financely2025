@@ -82,7 +82,7 @@ export const auth = betterAuth({
       create: {
         after: async (userInfo) => {
           // Create the app User record linked to this UserInfo + default workspace
-          await prisma.user.create({
+          const user = await prisma.user.create({
             data: {
               userInfoId: userInfo.id,
               workspaces: {
@@ -90,6 +90,14 @@ export const auth = betterAuth({
               },
             },
           });
+
+          const { SplitMemberLinkService } = await import(
+            "@/features/split/services/split-member-link.service"
+          );
+          await SplitMemberLinkService.linkByNormalizedEmail(
+            user.id,
+            userInfo.email,
+          );
         },
       },
     },
