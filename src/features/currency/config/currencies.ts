@@ -3,9 +3,9 @@
  * Single source of truth for supported ISO 4217 currencies
  */
 
-import isoCurrenciesData from "./iso-currencies.json";
 import { type ISelectOption } from "@/features/ui/select/select";
 import { type ISelectOptionGroup } from "@/features/ui/select/select-option-groups";
+import isoCurrenciesData from "./iso-currencies.json";
 
 export type ICurrencyMetadata = {
   code: string;
@@ -16,12 +16,12 @@ export type ICurrencyMetadata = {
 const ISO_CURRENCIES = isoCurrenciesData as ICurrencyMetadata[];
 
 const CURRENCY_BY_CODE = new Map(
-  ISO_CURRENCIES.map((currency) => [currency.code, currency]),
+  ISO_CURRENCIES.map((currency) => [currency.code, currency])
 );
 
 /** All supported ISO 4217 currency codes */
 export const SUPPORTED_CURRENCIES = ISO_CURRENCIES.map(
-  (c) => c.code,
+  (c) => c.code
 ) as readonly string[];
 
 export type ICurrency = string;
@@ -30,7 +30,9 @@ export function isKnownCurrency(value: string): value is ICurrency {
   return CURRENCY_BY_CODE.has(value);
 }
 
-export function getCurrencyMetadata(code: string): ICurrencyMetadata | undefined {
+export function getCurrencyMetadata(
+  code: string
+): ICurrencyMetadata | undefined {
   return CURRENCY_BY_CODE.get(code);
 }
 
@@ -44,7 +46,7 @@ export function formatCurrencyLabel(code: string): string {
 }
 
 export function uniquePreserveOrder(
-  values: Array<string | null | undefined>,
+  values: Array<string | null | undefined>
 ): string[] {
   const seen = new Set<string>();
   const result: string[] = [];
@@ -81,12 +83,10 @@ export function getAllCurrencyOptions(): ISelectOption[] {
 }
 
 export function getCurrencyOptionsForCodes(codes: string[]): ISelectOption[] {
-  return codes
-    .filter(isKnownCurrency)
-    .map((code) => ({
-      value: code,
-      label: formatCurrencyLabel(code),
-    }));
+  return codes.filter(isKnownCurrency).map((code) => ({
+    value: code,
+    label: formatCurrencyLabel(code),
+  }));
 }
 
 export function buildCurrencySelectOptions(input: {
@@ -94,6 +94,7 @@ export function buildCurrencySelectOptions(input: {
   browserCurrency: string;
   lastUsed: string[];
   workspaceCurrencies: string[];
+  recommendedCurrencies?: string[];
   searchQuery?: string;
 }): {
   options: ISelectOptionGroup[];
@@ -105,7 +106,7 @@ export function buildCurrencySelectOptions(input: {
     const filtered = ISO_CURRENCIES.filter(
       (c) =>
         c.code.toLowerCase().includes(search) ||
-        c.name.toLowerCase().includes(search),
+        c.name.toLowerCase().includes(search)
     ).map((c) => ({
       value: c.code,
       label: formatCurrencyLabel(c.code),
@@ -116,17 +117,21 @@ export function buildCurrencySelectOptions(input: {
     };
   }
 
-  const recommended = getRecommendedCurrencies({
+  const autoRecommended = getRecommendedCurrencies({
     workspaceDefault: input.workspaceDefault,
     browserCurrency: input.browserCurrency,
     lastUsed: input.lastUsed,
     workspaceCurrencies: input.workspaceCurrencies,
   });
 
+  const recommended = input.recommendedCurrencies
+    ? [...input.recommendedCurrencies, ...autoRecommended]
+    : autoRecommended;
+
   const recommendedSet = new Set(recommended);
   const recommendedOptions = getCurrencyOptionsForCodes(recommended);
   const allOtherOptions = ISO_CURRENCIES.filter(
-    (c) => !recommendedSet.has(c.code),
+    (c) => !recommendedSet.has(c.code)
   ).map((c) => ({
     value: c.code,
     label: formatCurrencyLabel(c.code),

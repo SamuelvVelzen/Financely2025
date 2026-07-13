@@ -26,12 +26,15 @@ type ICurrencySelectProps = IPropsWithClassName &
   > &
   IFormOrControlledMode<ICurrency | ICurrency[]> & {
     workspaceId?: IWorkspaceId | null;
+    /** When set, replaces workspace/browser/last-used recommendations. */
+    recommendedCurrencies?: ICurrency[];
     clearable?: boolean;
   };
 
 export function CurrencySelect({
   className,
   workspaceId = null,
+  recommendedCurrencies,
   name,
   value,
   onValueChange,
@@ -50,8 +53,15 @@ export function CurrencySelect({
         browserCurrency,
         lastUsed,
         workspaceCurrencies,
+        recommendedCurrencies,
       }),
-    [workspaceDefault, browserCurrency, lastUsed, workspaceCurrencies],
+    [
+      workspaceDefault,
+      browserCurrency,
+      lastUsed,
+      workspaceCurrencies,
+      recommendedCurrencies,
+    ],
   );
 
   const handleValueChange = (nextValue: ICurrency | ICurrency[] | undefined) => {

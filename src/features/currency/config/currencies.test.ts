@@ -107,6 +107,26 @@ describe("buildCurrencySelectOptions", () => {
       options.flatMap((optionGroup) => optionGroup.children).map((option) => option.value),
     ).toEqual(["EUR"]);
   });
+
+  it("uses explicit recommended currencies when provided", () => {
+    const { options, recommendedCount } = buildCurrencySelectOptions({
+      workspaceDefault: "USD",
+      browserCurrency: "GBP",
+      lastUsed: ["CHF"],
+      workspaceCurrencies: ["JPY"],
+      recommendedCurrencies: ["EUR", "MXN"],
+    });
+
+    expect(recommendedCount).toBe(2);
+    expect(options[0]?.group).toBe("Recommended");
+    expect(options[0]?.children.map((option) => option.value)).toEqual([
+      "EUR",
+      "MXN",
+    ]);
+    expect(
+      options[1]?.children.some((option) => option.value === "USD"),
+    ).toBe(true);
+  });
 });
 
 describe("getCurrencySearchValue", () => {
