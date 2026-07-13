@@ -44,6 +44,24 @@ export class SplitGroupService {
     }));
   }
 
+  static async listActiveMembers(groupId: string) {
+    const members = await prisma.splitGroupMember.findMany({
+      where: {
+        groupId,
+        status: { in: ["linked", "guest", "pending"] },
+      },
+      orderBy: { joinedAt: "asc" },
+      select: {
+        id: true,
+        displayName: true,
+        status: true,
+        role: true,
+      },
+    });
+
+    return members;
+  }
+
   static async getGroup(groupId: string, userId: string) {
     const member = await prisma.splitGroupMember.findFirst({
       where: {
@@ -74,6 +92,8 @@ export class SplitGroupService {
       guestCanAdd: group.guestCanAdd,
       guestCanSettle: group.guestCanSettle,
       guestCanEditOwn: group.guestCanEditOwn,
+      guestAccessToken:
+        member.role === "admin" ? group.guestAccessToken : undefined,
       createdAt: group.createdAt.toISOString(),
       members: group.members.map((m) => ({
         id: m.id,

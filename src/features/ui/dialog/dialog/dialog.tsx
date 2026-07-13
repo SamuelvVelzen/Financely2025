@@ -246,7 +246,7 @@ export function Dialog({
         </div>
       </header>
 
-      <div className={"px-6 py-4 overflow-y-auto"}>{bodyContent}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">{bodyContent}</div>
 
       {footerButtons && footerButtons.length > 0 && (
         <footer

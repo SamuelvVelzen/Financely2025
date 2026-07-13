@@ -1,14 +1,17 @@
 import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
-  useCreateSplitGroup,
-  useUpdateSplitGroup,
-} from "@/features/split/hooks/use-split-groups";
-import {
   getEmptySplitGroupFormValues,
   getSplitGroupFormValuesFromGroup,
   type IAddOrEditSplitGroupDialogProps,
   type ISplitGroupFormValues,
+  type ISplitGroupWizardStep,
 } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
+import { SplitGroupMembersStep } from "@/features/split/components/split-group-members-step";
+import {
+  useCreateSplitGroup,
+  useSplitGroup,
+  useUpdateSplitGroup,
+} from "@/features/split/hooks/use-split-groups";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
@@ -17,16 +20,18 @@ import { TextInput } from "@/features/ui/input/text-input";
 import { useToast } from "@/features/ui/toast";
 import { useId, useState } from "react";
 
-function SplitGroupForm({
+function SplitGroupDetailsForm({
   formId,
   initialValues,
   canChangeCurrency,
+  isEditMode,
   disabled,
   onSubmit,
 }: {
   formId: string;
   initialValues: ISplitGroupFormValues;
   canChangeCurrency: boolean;
+  isEditMode: boolean;
   disabled?: boolean;
   onSubmit: (values: ISplitGroupFormValues) => void;
 }) {
@@ -38,7 +43,10 @@ function SplitGroupForm({
   const hasChanges =
     trimmedName !== initialValues.name.trim() ||
     (canChangeCurrency && currency !== initialValues.defaultCurrency);
-  const canSubmit = trimmedName.length > 0 && hasChanges && !disabled;
+  const canSubmit =
+    trimmedName.length > 0 &&
+    (isEditMode || hasChanges) &&
+    !disabled;
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -85,16 +93,47 @@ export function AddOrEditSplitGroupDialogContent({
   onOpenChange,
   group,
   defaultCurrency,
+  initialStep = "details",
   onSuccess,
 }: IAddOrEditSplitGroupDialogProps) {
   const { isMobile } = useResponsive();
   const toast = useToast();
   const formId = useId();
   const isEditMode = group != null;
+  const [step, setStep] = useState<ISplitGroupWizardStep>(initialStep);
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(
+    group?.id ?? null,
+  );
   const canChangeCurrency = !isEditMode || group.expenseCount === 0;
   const createGroup = useCreateSplitGroup();
-  const updateGroup = useUpdateSplitGroup(group?.id ?? "");
+  const updateGroup = useUpdateSplitGroup(activeGroupId ?? group?.id ?? "");
+  const { data: liveGroup } = useSplitGroup(activeGroupId ?? group?.id ?? "");
   const isPending = createGroup.isPending || updateGroup.isPending;
+
+  const resolvedGroup = liveGroup ?? group;
+  const groupId = activeGroupId ?? group?.id ?? "";
+  const groupName =
+    (resolvedGroup?.name as string | undefined) ?? group?.name ?? "";
+  const guestAccessToken =
+    (resolvedGroup?.guestAccessToken as string | undefined) ??
+    group?.guestAccessToken;
+  const members =
+    (resolvedGroup?.members as Array<{
+      id: string;
+      displayName: string;
+      status?: string;
+      role?: string;
+    }>) ??
+    group?.members ??
+    [];
+  const currentMemberId =
+    (resolvedGroup?.currentMemberId as string | undefined) ??
+    group?.currentMemberId ??
+    "";
+  const currentMemberRole =
+    (resolvedGroup?.currentMemberRole as string | undefined) ??
+    group?.currentMemberRole ??
+    "member";
 
   const initialValues = group
     ? getSplitGroupFormValuesFromGroup(group)
@@ -104,25 +143,38 @@ export function AddOrEditSplitGroupDialogContent({
     onOpenChange(false);
   };
 
-  const handleSubmit = async (values: ISplitGroupFormValues) => {
+  const goToMembersStep = (nextGroupId: string) => {
+    setActiveGroupId(nextGroupId);
+    setStep("members");
+  };
+
+  const handleDetailsSubmit = async (values: ISplitGroupFormValues) => {
     try {
       if (isEditMode && group) {
-        await updateGroup.mutateAsync({
-          name: values.name,
-          ...(canChangeCurrency
-            ? { defaultCurrency: values.defaultCurrency }
-            : {}),
-        });
-        toast.success("Group updated");
-      } else {
-        await createGroup.mutateAsync({
-          name: values.name,
-          defaultCurrency: values.defaultCurrency,
-        });
-        toast.success("Group created");
+        const hasChanges =
+          values.name !== group.name.trim() ||
+          (canChangeCurrency && values.defaultCurrency !== group.defaultCurrency);
+
+        if (hasChanges) {
+          await updateGroup.mutateAsync({
+            name: values.name,
+            ...(canChangeCurrency
+              ? { defaultCurrency: values.defaultCurrency }
+              : {}),
+          });
+          toast.success("Group updated");
+        }
+
+        goToMembersStep(group.id);
+        return;
       }
-      handleClose();
-      onSuccess?.();
+
+      const created = await createGroup.mutateAsync({
+        name: values.name,
+        defaultCurrency: values.defaultCurrency,
+      });
+      toast.success("Group created");
+      goToMembersStep(created.id as string);
     } catch {
       toast.error(
         isEditMode ? "Could not update group" : "Could not create group",
@@ -130,38 +182,72 @@ export function AddOrEditSplitGroupDialogContent({
     }
   };
 
-  const title = isEditMode ? "Edit group" : "New split group";
-  const submitLabel = isEditMode ? "Save" : "Create group";
-  const submitLoadingText = isEditMode ? "Saving group" : "Creating group";
+  const handleDone = () => {
+    handleClose();
+    onSuccess?.();
+  };
 
-  const form = open ? (
-    <SplitGroupForm
-      formId={formId}
-      initialValues={initialValues}
-      canChangeCurrency={canChangeCurrency}
-      disabled={isPending}
-      onSubmit={(values) => void handleSubmit(values)}
-    />
-  ) : null;
+  const detailsTitle = isEditMode ? "Edit group" : "New split group";
+  const membersTitle = isEditMode ? "Manage people" : "Invite people";
+  const title = step === "details" ? detailsTitle : membersTitle;
 
-  const footerButtons = [
-    {
-      buttonContent: "Cancel",
-      clicked: handleClose,
-      disabled: isPending,
-    },
-    {
-      variant: "primary" as const,
-      type: "submit" as const,
-      form: formId,
-      disabled: isPending,
-      loading: {
-        isLoading: isPending,
-        text: submitLoadingText,
-      },
-      buttonContent: submitLabel,
-    },
-  ];
+  const detailsForm =
+    step === "details" && open ? (
+      <SplitGroupDetailsForm
+        formId={formId}
+        initialValues={initialValues}
+        canChangeCurrency={canChangeCurrency}
+        isEditMode={isEditMode}
+        disabled={isPending}
+        onSubmit={(values) => void handleDetailsSubmit(values)}
+      />
+    ) : null;
+
+  const membersStep =
+    step === "members" && open && groupId ? (
+      <SplitGroupMembersStep
+        groupId={groupId}
+        groupName={groupName}
+        guestAccessToken={guestAccessToken}
+        members={members}
+        currentMemberId={currentMemberId}
+        currentMemberRole={currentMemberRole}
+      />
+    ) : null;
+
+  const footerButtons =
+    step === "details"
+      ? [
+          {
+            buttonContent: "Cancel",
+            clicked: handleClose,
+            disabled: isPending,
+          },
+          {
+            variant: "primary" as const,
+            type: "submit" as const,
+            form: formId,
+            disabled: isPending,
+            loading: {
+              isLoading: isPending,
+              text: isEditMode ? "Saving group" : "Creating group",
+            },
+            buttonContent: isEditMode ? "Next" : "Create & invite",
+          },
+        ]
+      : [
+          {
+            buttonContent: "Back",
+            clicked: () => setStep("details"),
+          },
+          {
+            variant: "primary" as const,
+            clicked: handleDone,
+            buttonContent: "Done",
+          },
+        ];
+
+  const content = step === "details" ? detailsForm : membersStep;
 
   if (isMobile) {
     return (
@@ -170,7 +256,7 @@ export function AddOrEditSplitGroupDialogContent({
         onOpenChange={onOpenChange}
         title={title}
         footerButtons={footerButtons}>
-        {form}
+        {content}
       </BottomSheet>
     );
   }
@@ -180,9 +266,10 @@ export function AddOrEditSplitGroupDialogContent({
       open={open}
       onOpenChange={onOpenChange}
       title={title}
-      content={form}
+      content={content}
       footerButtons={footerButtons}
       dismissible={!isPending}
+      size={step === "members" ? "3/4" : "lg"}
     />
   );
 }

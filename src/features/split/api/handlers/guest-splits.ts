@@ -89,17 +89,20 @@ export async function guestGroupGET({
 
     const expenses = await SplitExpenseService.listExpensesForGroup(group.id);
     const balances = await SplitBalanceService.getBalances(group.id);
+    const members = await SplitGroupService.listActiveMembers(group.id);
 
     return json({
       group: {
         id: group.id,
         name: group.name,
         defaultCurrency: group.defaultCurrency,
+        guestCanAdd: group.guestCanAdd,
       },
       member: {
         id: member.id,
         displayName: member.displayName,
       },
+      members,
       expenses,
       balances,
     });

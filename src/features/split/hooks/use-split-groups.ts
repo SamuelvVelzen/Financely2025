@@ -11,6 +11,7 @@ import {
   getSplitGroups,
   getSplitSettlements,
   getSplitSummary,
+  removeSplitMember,
   updateSplitExpense,
   updateSplitGroup,
 } from "@/features/split/api/client";
@@ -158,6 +159,18 @@ export function useCreateSplitSettlement(groupId: string) {
       () => queryKeys.splitSettlements(groupId),
       () => queryKeys.splitBalances(groupId),
       () => queryKeys.splitSummary(),
+    ],
+  });
+}
+
+export function useRemoveSplitMember(groupId: string) {
+  return useFinMutation({
+    mutationFn: (memberId: string) => removeSplitMember(groupId, memberId),
+    invalidateQueries: [
+      () => queryKeys.splitGroup(groupId),
+      () => queryKeys.splitGroups(),
+      () => queryKeys.splitBalances(groupId),
+      () => queryKeys.splitExpenses(groupId),
     ],
   });
 }

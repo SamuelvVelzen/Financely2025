@@ -1,5 +1,5 @@
-import { AddSplitMemberDialog } from "@/features/split/components/add-split-member-dialog";
 import { AddOrEditSplitGroupDialog } from "@/features/split/components/add-or-edit-split-group-dialog";
+import type { ISplitGroupWizardStep } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
 import { SplitBalanceSummary } from "@/features/split/components/split-balance-summary";
 import { SplitExpenseDialog } from "@/features/split/components/split-expense-dialog";
 import { SplitExpenseList } from "@/features/split/components/split-expense-list";
@@ -47,8 +47,9 @@ export function SplitGroupPage() {
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ISplitExpense | undefined>();
   const [deletingExpense, setDeletingExpense] = useState<ISplitExpense | undefined>();
-  const [addMemberOpen, setAddMemberOpen] = useState(false);
-  const [editGroupOpen, setEditGroupOpen] = useState(false);
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+  const [groupDialogInitialStep, setGroupDialogInitialStep] =
+    useState<ISplitGroupWizardStep>("details");
   const [deleteGroupOpen, setDeleteGroupOpen] = useState(false);
   const [settleOpen, setSettleOpen] = useState(false);
 
@@ -67,6 +68,11 @@ export function SplitGroupPage() {
     if (!open) {
       setEditingExpense(undefined);
     }
+  };
+
+  const openGroupDialog = (step: ISplitGroupWizardStep = "details") => {
+    setGroupDialogInitialStep(step);
+    setGroupDialogOpen(true);
   };
 
   const handleDeleteConfirm = () => {
@@ -121,6 +127,7 @@ export function SplitGroupPage() {
   const currentMemberRole = group.currentMemberRole as string;
   const groupCurrency = group.defaultCurrency as string;
   const groupName = group.name as string;
+  const guestAccessToken = group.guestAccessToken as string | undefined;
   const isAdmin = currentMemberRole === "admin";
   const isCreator = group.isCreator as boolean;
   const viewer = {
@@ -134,9 +141,10 @@ export function SplitGroupPage() {
       <SplitGroupDetailHeader
         groupName={groupName}
         currency={groupCurrency}
+        guestAccessToken={guestAccessToken}
         onBack={() => navigate({ to: "/splits" })}
         canEdit={isAdmin}
-        onEdit={() => setEditGroupOpen(true)}
+        onEdit={() => openGroupDialog("details")}
         canDelete={isCreator}
         onDelete={() => setDeleteGroupOpen(true)}
       />
@@ -166,8 +174,12 @@ export function SplitGroupPage() {
             </div>
 
             <SplitMembersSection
+              groupId={groupId}
+              groupName={groupName}
               members={members}
-              onAddMember={() => setAddMemberOpen(true)}
+              currentMemberId={currentMemberId}
+              currentMemberRole={currentMemberRole}
+              onAddMember={() => openGroupDialog("members")}
             />
           </div>
 
@@ -212,13 +224,18 @@ export function SplitGroupPage() {
         onSwitchToCreate={() => setEditingExpense(undefined)}
       />
       <AddOrEditSplitGroupDialog
-        open={editGroupOpen}
-        onOpenChange={setEditGroupOpen}
+        open={groupDialogOpen}
+        onOpenChange={setGroupDialogOpen}
+        initialStep={groupDialogInitialStep}
         group={{
           id: groupId,
           name: groupName,
           defaultCurrency: groupCurrency,
           expenseCount: expensesData?.expenses?.length ?? 0,
+          guestAccessToken,
+          members,
+          currentMemberId,
+          currentMemberRole,
         }}
         defaultCurrency={defaultCurrency}
       />
@@ -242,11 +259,6 @@ export function SplitGroupPage() {
             },
           },
         ]}
-      />
-      <AddSplitMemberDialog
-        open={addMemberOpen}
-        onOpenChange={setAddMemberOpen}
-        groupId={groupId}
       />
       <RecordSettlementDialog
         open={settleOpen}
