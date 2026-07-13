@@ -1,12 +1,17 @@
 import type { ICreateSplitSettlementInput } from "@/features/shared/validation/schemas";
 import { createGuestSplitSettlement } from "@/features/split/api/guest-client";
-import { useCreateSplitSettlement } from "@/features/split/hooks/use-split-groups";
+import {
+  useCreateSplitSettlement,
+  useUpdateSplitSettlement,
+} from "@/features/split/hooks/use-split-groups";
+import type { ISplitSettlement } from "@/features/split/utils/group-split-settlements-by-date";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { useFinMutation } from "@/features/shared/query/core";
 import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
-import { TextInput } from "@/features/ui/input/text-input";
+import { Textarea } from "@/features/ui/input/textarea";
 import { Select } from "@/features/ui/select/select";
 import { useToast } from "@/features/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,6 +24,55 @@ function getOtherMembers(members: IMember[], currentMemberId: string) {
   return members.filter((member) => member.id !== currentMemberId);
 }
 
+function getDirectionFromSettlement(
+  settlement: ISplitSettlement,
+  currentMemberId: string,
+): ISettlementDirection {
+  return settlement.fromMemberId === currentMemberId ? "paid" : "received";
+}
+
+function getOtherMemberIdFromSettlement(
+  settlement: ISplitSettlement,
+  currentMemberId: string,
+) {
+  return settlement.fromMemberId === currentMemberId
+    ? settlement.toMemberId
+    : settlement.fromMemberId;
+}
+
+function getCreateFormState(
+  members: IMember[],
+  currentMemberId: string,
+) {
+  const otherMembers = getOtherMembers(members, currentMemberId);
+  const firstOther = otherMembers[0]?.id ?? "";
+
+  return {
+    direction: "paid" as const,
+    otherMemberId: firstOther,
+    fromMemberId: currentMemberId,
+    toMemberId: firstOther,
+    amount: "",
+    note: "",
+    settledAt: new Date().toISOString(),
+  };
+}
+
+function getEditFormState(
+  settlement: ISplitSettlement,
+  currentMemberId: string,
+) {
+  return {
+    direction: getDirectionFromSettlement(settlement, currentMemberId),
+    otherMemberId: getOtherMemberIdFromSettlement(settlement, currentMemberId),
+    fromMemberId: settlement.fromMemberId,
+    toMemberId: settlement.toMemberId,
+    amount: settlement.amount,
+    note: settlement.note ?? "",
+    settledAt: settlement.settledAt,
+  };
+}
+
 export function RecordSettlementDialog({
   open,
   onOpenChange,
@@ -28,6 +82,7 @@ export function RecordSettlementDialog({
   currency,
   currentMemberId,
   isAdmin = false,
+  settlement,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,23 +92,30 @@ export function RecordSettlementDialog({
   currency: string;
   currentMemberId: string;
   isAdmin?: boolean;
+  settlement?: ISplitSettlement;
 }) {
   const { isMobile } = useResponsive();
   const toast = useToast();
   const queryClient = useQueryClient();
+  const isEditMode = settlement != null;
   const createAuthSettlement = useCreateSplitSettlement(groupId ?? "");
+  const updateAuthSettlement = useUpdateSplitSettlement(groupId ?? "");
   const otherMembers = useMemo(
     () => getOtherMembers(members, currentMemberId),
     [members, currentMemberId],
   );
-  const [direction, setDirection] = useState<ISettlementDirection>("paid");
+  const initialFormState = settlement
+    ? getEditFormState(settlement, currentMemberId)
+    : getCreateFormState(members, currentMemberId);
+  const [direction, setDirection] = useState(initialFormState.direction);
   const [otherMemberId, setOtherMemberId] = useState(
-    otherMembers[0]?.id ?? "",
+    initialFormState.otherMemberId,
   );
-  const [fromMemberId, setFromMemberId] = useState(currentMemberId);
-  const [toMemberId, setToMemberId] = useState(otherMembers[0]?.id ?? "");
-  const [amount, setAmount] = useState("");
-  const [note, setNote] = useState("");
+  const [fromMemberId, setFromMemberId] = useState(initialFormState.fromMemberId);
+  const [toMemberId, setToMemberId] = useState(initialFormState.toMemberId);
+  const [amount, setAmount] = useState(initialFormState.amount);
+  const [note, setNote] = useState(initialFormState.note);
+  const [settledAt, setSettledAt] = useState(initialFormState.settledAt);
 
   const createGuestSettlement = useFinMutation({
     mutationFn: (input: ICreateSplitSettlementInput) =>
@@ -65,18 +127,11 @@ export function RecordSettlementDialog({
 
   const isPending = guestToken
     ? createGuestSettlement.isPending
-    : createAuthSettlement.isPending;
+    : isEditMode
+      ? updateAuthSettlement.isPending
+      : createAuthSettlement.isPending;
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      const firstOther = otherMembers[0]?.id ?? "";
-      setDirection("paid");
-      setOtherMemberId(firstOther);
-      setFromMemberId(currentMemberId);
-      setToMemberId(firstOther);
-      setAmount("");
-      setNote("");
-    }
     onOpenChange(nextOpen);
   };
 
@@ -121,6 +176,7 @@ export function RecordSettlementDialog({
     Boolean(resolvedFromMemberId) &&
     Boolean(resolvedToMemberId) &&
     resolvedFromMemberId !== resolvedToMemberId &&
+    Boolean(settledAt) &&
     !isPending;
 
   const handleSubmit = async () => {
@@ -128,26 +184,48 @@ export function RecordSettlementDialog({
       return;
     }
 
-    const input: ICreateSplitSettlementInput = {
-      fromMemberId: resolvedFromMemberId,
-      toMemberId: resolvedToMemberId,
-      amount,
-      settledAt: new Date().toISOString(),
-      note: note || undefined,
-    };
-
     try {
-      if (guestToken) {
-        await createGuestSettlement.mutateAsync(input);
-      } else if (groupId) {
-        await createAuthSettlement.mutateAsync(input);
+      if (isEditMode && settlement && groupId) {
+        await updateAuthSettlement.mutateAsync({
+          settlementId: settlement.id,
+          input: {
+            fromMemberId: resolvedFromMemberId,
+            toMemberId: resolvedToMemberId,
+            amount,
+            settledAt,
+            note: note || null,
+          },
+        });
+        toast.success("Settlement updated");
+      } else {
+        const input: ICreateSplitSettlementInput = {
+          fromMemberId: resolvedFromMemberId,
+          toMemberId: resolvedToMemberId,
+          amount,
+          settledAt,
+          note: note || undefined,
+        };
+
+        if (guestToken) {
+          await createGuestSettlement.mutateAsync(input);
+        } else if (groupId) {
+          await createAuthSettlement.mutateAsync(input);
+        }
+        toast.success("Settlement recorded");
       }
-      toast.success("Settlement recorded");
       handleOpenChange(false);
     } catch {
-      toast.error("Could not record settlement");
+      toast.error(
+        isEditMode
+          ? "Could not update settlement"
+          : "Could not record settlement",
+      );
     }
   };
+
+  const title = isEditMode ? "Edit settlement" : "Settle up";
+  const submitLabel = isEditMode ? "Save changes" : "Record payment";
+  const pendingLabel = isEditMode ? "Saving changes" : "Recording payment";
 
   const form = (
     <div className="space-y-4 p-4">
@@ -210,10 +288,19 @@ export function RecordSettlementDialog({
         value={amount}
         onChange={(value) => setAmount(String(value ?? ""))}
       />
-      <TextInput
+      {isEditMode ? (
+        <DateInput
+          label="Date"
+          mode="dateTime"
+          value={settledAt}
+          onChange={(value) => setSettledAt(String(value ?? ""))}
+        />
+      ) : null}
+      <Textarea
         label="Note (optional)"
         value={note}
         onChange={(value) => setNote(String(value ?? ""))}
+        rows={3}
       />
     </div>
   );
@@ -229,9 +316,9 @@ export function RecordSettlementDialog({
       clicked: () => void handleSubmit(),
       disabled: !canSubmit,
       loading: isPending
-        ? { isLoading: true, text: "Recording payment" }
+        ? { isLoading: true, text: pendingLabel }
         : undefined,
-      buttonContent: "Record payment",
+      buttonContent: submitLabel,
     },
   ];
 
@@ -240,7 +327,7 @@ export function RecordSettlementDialog({
       <BottomSheet
         open={open}
         onOpenChange={handleOpenChange}
-        title="Settle up"
+        title={title}
         footerButtons={footerButtons}>
         {form}
       </BottomSheet>
@@ -251,7 +338,7 @@ export function RecordSettlementDialog({
     <Dialog
       open={open}
       onOpenChange={handleOpenChange}
-      title="Settle up"
+      title={title}
       content={form}
       footerButtons={footerButtons}
     />

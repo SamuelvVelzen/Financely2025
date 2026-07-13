@@ -5,6 +5,7 @@ import type {
   ICreateSplitSettlementInput,
   IUpdateSplitExpenseInput,
   IUpdateSplitGroupInput,
+  IUpdateSplitSettlementInput,
   IAddSplitMemberInput,
 } from "@/features/shared/validation/schemas";
 
@@ -110,6 +111,26 @@ export async function createSplitSettlement(
   return apiPost<Record<string, unknown>>(
     `${BASE}/groups/${groupId}/settlements`,
     input,
+  );
+}
+
+export async function updateSplitSettlement(
+  groupId: string,
+  settlementId: string,
+  input: IUpdateSplitSettlementInput,
+) {
+  return apiPatch<Record<string, unknown>>(
+    `${BASE}/groups/${groupId}/settlements/${settlementId}`,
+    input,
+  );
+}
+
+export async function deleteSplitSettlement(
+  groupId: string,
+  settlementId: string,
+) {
+  return apiDelete<{ success: boolean }>(
+    `${BASE}/groups/${groupId}/settlements/${settlementId}`,
   );
 }
 

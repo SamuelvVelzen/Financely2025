@@ -11,6 +11,7 @@ import {
   CreateSplitSettlementInputSchema,
   UpdateSplitExpenseInputSchema,
   UpdateSplitGroupInputSchema,
+  UpdateSplitSettlementInputSchema,
 } from "@/features/shared/validation/schemas";
 import { SplitBalanceService } from "@/features/split/services/split-balance.service";
 import { SplitExpenseService } from "@/features/split/services/split-expense.service";
@@ -340,6 +341,43 @@ export async function createSettlementPOST({
         body,
       );
       return json(settlement, { status: 201 });
+    });
+  } catch (error) {
+    return handleSplitError(error);
+  }
+}
+
+export async function updateSettlementPATCH({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { groupId: string; settlementId: string };
+}) {
+  try {
+    return await withAuth(async (userId) => {
+      const body = UpdateSplitSettlementInputSchema.parse(await request.json());
+      const settlement = await SplitSettlementService.updateSettlement(
+        params.settlementId,
+        userId,
+        body,
+      );
+      return json(settlement);
+    });
+  } catch (error) {
+    return handleSplitError(error);
+  }
+}
+
+export async function deleteSettlementDELETE({
+  params,
+}: {
+  params: { groupId: string; settlementId: string };
+}) {
+  try {
+    return await withAuth(async (userId) => {
+      await SplitSettlementService.deleteSettlement(params.settlementId, userId);
+      return json({ success: true });
     });
   } catch (error) {
     return handleSplitError(error);

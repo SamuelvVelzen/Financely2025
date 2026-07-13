@@ -5,6 +5,7 @@ import {
   createSplitSettlement,
   deleteSplitExpense,
   deleteSplitGroup,
+  deleteSplitSettlement,
   getSplitBalances,
   getSplitExpenses,
   getSplitGroup,
@@ -14,6 +15,7 @@ import {
   removeSplitMember,
   updateSplitExpense,
   updateSplitGroup,
+  updateSplitSettlement,
 } from "@/features/split/api/client";
 import {
   buildOptimisticSplitExpense,
@@ -28,6 +30,7 @@ import type {
   ICreateSplitSettlementInput,
   IUpdateSplitExpenseInput,
   IUpdateSplitGroupInput,
+  IUpdateSplitSettlementInput,
 } from "@/features/shared/validation/schemas";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -155,6 +158,35 @@ export function useCreateSplitSettlement(groupId: string) {
   return useFinMutation({
     mutationFn: (input: ICreateSplitSettlementInput) =>
       createSplitSettlement(groupId, input),
+    invalidateQueries: [
+      () => queryKeys.splitSettlements(groupId),
+      () => queryKeys.splitBalances(groupId),
+      () => queryKeys.splitSummary(),
+    ],
+  });
+}
+
+export function useUpdateSplitSettlement(groupId: string) {
+  return useFinMutation({
+    mutationFn: ({
+      settlementId,
+      input,
+    }: {
+      settlementId: string;
+      input: IUpdateSplitSettlementInput;
+    }) => updateSplitSettlement(groupId, settlementId, input),
+    invalidateQueries: [
+      () => queryKeys.splitSettlements(groupId),
+      () => queryKeys.splitBalances(groupId),
+      () => queryKeys.splitSummary(),
+    ],
+  });
+}
+
+export function useDeleteSplitSettlement(groupId: string) {
+  return useFinMutation({
+    mutationFn: (settlementId: string) =>
+      deleteSplitSettlement(groupId, settlementId),
     invalidateQueries: [
       () => queryKeys.splitSettlements(groupId),
       () => queryKeys.splitBalances(groupId),

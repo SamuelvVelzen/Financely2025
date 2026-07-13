@@ -280,6 +280,7 @@ export {
   CreateSplitExpenseInputSchema,
   UpdateSplitExpenseInputSchema,
   CreateSplitSettlementInputSchema,
+  UpdateSplitSettlementInputSchema,
   GuestJoinInputSchema,
   SplitBalancesSchema,
   type ICreateSplitGroupInput,
@@ -288,4 +289,5 @@ export {
   type ICreateSplitExpenseInput,
   type IUpdateSplitExpenseInput,
   type ICreateSplitSettlementInput,
+  type IUpdateSplitSettlementInput,
 } from "@/features/split/validation/schemas";

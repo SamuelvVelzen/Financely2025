@@ -97,6 +97,7 @@ import { Route as ApiV1MeSplitsGroupsGroupIdExpensesRouteImport } from './routes
 import { Route as ApiV1MeSplitsGroupsGroupIdConvertPendingRouteImport } from './routes/api/v1/me.splits.groups.$groupId.convert-pending'
 import { Route as ApiV1MeSplitsGroupsGroupIdBalancesRouteImport } from './routes/api/v1/me.splits.groups.$groupId.balances'
 import { Route as ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/$workspaceId/transactions.$transactionId.tags.$tagId'
+import { Route as ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRouteImport } from './routes/api/v1/me.splits.groups.$groupId.settlements.$settlementId'
 import { Route as ApiV1MeSplitsGroupsGroupIdMembersMemberIdRouteImport } from './routes/api/v1/me.splits.groups.$groupId.members.$memberId'
 import { Route as ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRouteImport } from './routes/api/v1/me.splits.groups.$groupId.guest-link.rotate'
 import { Route as ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRouteImport } from './routes/api/v1/me.splits.groups.$groupId.expenses.$expenseId'
@@ -601,6 +602,12 @@ const ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute =
     path: '/tags/$tagId',
     getParentRoute: () => ApiV1WorkspaceIdTransactionsTransactionIdRoute,
   } as any)
+const ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute =
+  ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRouteImport.update({
+    id: '/$settlementId',
+    path: '/$settlementId',
+    getParentRoute: () => ApiV1MeSplitsGroupsGroupIdSettlementsRoute,
+  } as any)
 const ApiV1MeSplitsGroupsGroupIdMembersMemberIdRoute =
   ApiV1MeSplitsGroupsGroupIdMembersMemberIdRouteImport.update({
     id: '/$memberId',
@@ -713,10 +720,11 @@ export interface FileRoutesByFullPath {
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
   '/api/v1/me/splits/groups/$groupId/expenses': typeof ApiV1MeSplitsGroupsGroupIdExpensesRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/members': typeof ApiV1MeSplitsGroupsGroupIdMembersRouteWithChildren
-  '/api/v1/me/splits/groups/$groupId/settlements': typeof ApiV1MeSplitsGroupsGroupIdSettlementsRoute
+  '/api/v1/me/splits/groups/$groupId/settlements': typeof ApiV1MeSplitsGroupsGroupIdSettlementsRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/guest-link/rotate': typeof ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute
   '/api/v1/me/splits/groups/$groupId/members/$memberId': typeof ApiV1MeSplitsGroupsGroupIdMembersMemberIdRoute
+  '/api/v1/me/splits/groups/$groupId/settlements/$settlementId': typeof ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute
 }
 export interface FileRoutesByTo {
@@ -804,10 +812,11 @@ export interface FileRoutesByTo {
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
   '/api/v1/me/splits/groups/$groupId/expenses': typeof ApiV1MeSplitsGroupsGroupIdExpensesRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/members': typeof ApiV1MeSplitsGroupsGroupIdMembersRouteWithChildren
-  '/api/v1/me/splits/groups/$groupId/settlements': typeof ApiV1MeSplitsGroupsGroupIdSettlementsRoute
+  '/api/v1/me/splits/groups/$groupId/settlements': typeof ApiV1MeSplitsGroupsGroupIdSettlementsRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/guest-link/rotate': typeof ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute
   '/api/v1/me/splits/groups/$groupId/members/$memberId': typeof ApiV1MeSplitsGroupsGroupIdMembersMemberIdRoute
+  '/api/v1/me/splits/groups/$groupId/settlements/$settlementId': typeof ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute
 }
 export interface FileRoutesById {
@@ -899,10 +908,11 @@ export interface FileRoutesById {
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
   '/api/v1/me/splits/groups/$groupId/expenses': typeof ApiV1MeSplitsGroupsGroupIdExpensesRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/members': typeof ApiV1MeSplitsGroupsGroupIdMembersRouteWithChildren
-  '/api/v1/me/splits/groups/$groupId/settlements': typeof ApiV1MeSplitsGroupsGroupIdSettlementsRoute
+  '/api/v1/me/splits/groups/$groupId/settlements': typeof ApiV1MeSplitsGroupsGroupIdSettlementsRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRouteWithChildren
   '/api/v1/me/splits/groups/$groupId/guest-link/rotate': typeof ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute
   '/api/v1/me/splits/groups/$groupId/members/$memberId': typeof ApiV1MeSplitsGroupsGroupIdMembersMemberIdRoute
+  '/api/v1/me/splits/groups/$groupId/settlements/$settlementId': typeof ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute
 }
 export interface FileRouteTypes {
@@ -998,6 +1008,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId'
     | '/api/v1/me/splits/groups/$groupId/guest-link/rotate'
     | '/api/v1/me/splits/groups/$groupId/members/$memberId'
+    | '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1089,6 +1100,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId'
     | '/api/v1/me/splits/groups/$groupId/guest-link/rotate'
     | '/api/v1/me/splits/groups/$groupId/members/$memberId'
+    | '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert'
   id:
     | '__root__'
@@ -1183,6 +1195,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId'
     | '/api/v1/me/splits/groups/$groupId/guest-link/rotate'
     | '/api/v1/me/splits/groups/$groupId/members/$memberId'
+    | '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert'
   fileRoutesById: FileRoutesById
 }
@@ -1826,6 +1839,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRouteImport
       parentRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRoute
     }
+    '/api/v1/me/splits/groups/$groupId/settlements/$settlementId': {
+      id: '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
+      path: '/$settlementId'
+      fullPath: '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
+      preLoaderRoute: typeof ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRouteImport
+      parentRoute: typeof ApiV1MeSplitsGroupsGroupIdSettlementsRoute
+    }
     '/api/v1/me/splits/groups/$groupId/members/$memberId': {
       id: '/api/v1/me/splits/groups/$groupId/members/$memberId'
       path: '/$memberId'
@@ -1996,12 +2016,27 @@ const ApiV1MeSplitsGroupsGroupIdMembersRouteWithChildren =
     ApiV1MeSplitsGroupsGroupIdMembersRouteChildren,
   )
 
+interface ApiV1MeSplitsGroupsGroupIdSettlementsRouteChildren {
+  ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute: typeof ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute
+}
+
+const ApiV1MeSplitsGroupsGroupIdSettlementsRouteChildren: ApiV1MeSplitsGroupsGroupIdSettlementsRouteChildren =
+  {
+    ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute:
+      ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute,
+  }
+
+const ApiV1MeSplitsGroupsGroupIdSettlementsRouteWithChildren =
+  ApiV1MeSplitsGroupsGroupIdSettlementsRoute._addFileChildren(
+    ApiV1MeSplitsGroupsGroupIdSettlementsRouteChildren,
+  )
+
 interface ApiV1MeSplitsGroupsGroupIdRouteChildren {
   ApiV1MeSplitsGroupsGroupIdBalancesRoute: typeof ApiV1MeSplitsGroupsGroupIdBalancesRoute
   ApiV1MeSplitsGroupsGroupIdConvertPendingRoute: typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
   ApiV1MeSplitsGroupsGroupIdExpensesRoute: typeof ApiV1MeSplitsGroupsGroupIdExpensesRouteWithChildren
   ApiV1MeSplitsGroupsGroupIdMembersRoute: typeof ApiV1MeSplitsGroupsGroupIdMembersRouteWithChildren
-  ApiV1MeSplitsGroupsGroupIdSettlementsRoute: typeof ApiV1MeSplitsGroupsGroupIdSettlementsRoute
+  ApiV1MeSplitsGroupsGroupIdSettlementsRoute: typeof ApiV1MeSplitsGroupsGroupIdSettlementsRouteWithChildren
   ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute: typeof ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute
 }
 
@@ -2016,7 +2051,7 @@ const ApiV1MeSplitsGroupsGroupIdRouteChildren: ApiV1MeSplitsGroupsGroupIdRouteCh
     ApiV1MeSplitsGroupsGroupIdMembersRoute:
       ApiV1MeSplitsGroupsGroupIdMembersRouteWithChildren,
     ApiV1MeSplitsGroupsGroupIdSettlementsRoute:
-      ApiV1MeSplitsGroupsGroupIdSettlementsRoute,
+      ApiV1MeSplitsGroupsGroupIdSettlementsRouteWithChildren,
     ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute:
       ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute,
   }

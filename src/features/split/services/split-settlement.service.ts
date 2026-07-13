@@ -1,7 +1,13 @@
 import { prisma } from "@/features/util/prisma";
-import { requireActiveMemberForUser } from "../auth/split-group-access";
+import {
+  canEditSettlement,
+  requireActiveMemberForUser,
+} from "../auth/split-group-access";
 import { SplitActivityService } from "./split-activity.service";
-import type { ICreateSplitSettlementInput } from "../validation/schemas";
+import type {
+  ICreateSplitSettlementInput,
+  IUpdateSplitSettlementInput,
+} from "../validation/schemas";
 
 const EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
 
@@ -26,6 +32,7 @@ export class SplitSettlementService {
       settledAt: s.settledAt.toISOString(),
       note: s.note,
       createdByUserId: s.createdByUserId,
+      createdAt: s.createdAt.toISOString(),
     }));
   }
 
@@ -107,6 +114,84 @@ export class SplitSettlementService {
   ) {
     const member = await requireActiveMemberForUser(groupId, userId);
     return this.createSettlementForMember(groupId, member.id, userId, input);
+  }
+
+  static async updateSettlement(
+    settlementId: string,
+    userId: string,
+    input: IUpdateSplitSettlementInput,
+  ) {
+    const settlement = await prisma.splitSettlement.findFirstOrThrow({
+      where: { id: settlementId, deletedAt: null },
+    });
+
+    const member = await requireActiveMemberForUser(settlement.groupId, userId);
+
+    if (!canEditSettlement(member, settlement, userId)) {
+      throw new Error("Not allowed to edit this settlement");
+    }
+
+    const fromMemberId = input.fromMemberId ?? settlement.fromMemberId;
+    const toMemberId = input.toMemberId ?? settlement.toMemberId;
+
+    if (fromMemberId === toMemberId) {
+      throw new Error("Payer and recipient must be different people");
+    }
+
+    if (
+      member.role !== "admin" &&
+      member.id !== fromMemberId &&
+      member.id !== toMemberId
+    ) {
+      throw new Error("You must be involved in the settlement");
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.splitSettlement.update({
+        where: { id: settlementId },
+        data: {
+          fromMemberId,
+          toMemberId,
+          amount: input.amount ?? settlement.amount,
+          settledAt: input.settledAt
+            ? new Date(input.settledAt)
+            : settlement.settledAt,
+          note:
+            input.note !== undefined ? input.note : settlement.note,
+        },
+        include: {
+          fromMember: { select: { displayName: true } },
+          toMember: { select: { displayName: true } },
+        },
+      });
+
+      await SplitActivityService.log(
+        settlement.groupId,
+        {
+          actorMemberId: member.id,
+          action: "updated",
+          entityType: "settlement",
+          entityId: settlementId,
+          after: { amount: result.amount.toString() },
+        },
+        tx,
+      );
+
+      return result;
+    });
+
+    return {
+      id: updated.id,
+      fromMemberId: updated.fromMemberId,
+      fromDisplayName: updated.fromMember.displayName,
+      toMemberId: updated.toMemberId,
+      toDisplayName: updated.toMember.displayName,
+      amount: updated.amount.toString(),
+      settledAt: updated.settledAt.toISOString(),
+      note: updated.note,
+      createdByUserId: updated.createdByUserId,
+      createdAt: updated.createdAt.toISOString(),
+    };
   }
 
   static async deleteSettlement(

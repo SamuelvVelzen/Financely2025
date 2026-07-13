@@ -16,6 +16,8 @@ export function SplitGroupActivityTabs({
   viewer,
   onEditExpense,
   onDeleteExpense,
+  onEditSettlement,
+  onDeleteSettlement,
 }: {
   expenses: ISplitExpense[];
   settlements: ISplitSettlement[];
@@ -25,6 +27,8 @@ export function SplitGroupActivityTabs({
   viewer?: { userId: string; memberId: string; role: string };
   onEditExpense?: (expense: ISplitExpense) => void;
   onDeleteExpense?: (expense: ISplitExpense) => void;
+  onEditSettlement?: (settlement: ISplitSettlement) => void;
+  onDeleteSettlement?: (settlement: ISplitSettlement) => void;
 }) {
   return (
     <TabGroup defaultValue="expenses">
@@ -56,6 +60,9 @@ export function SplitGroupActivityTabs({
           <SplitSettlementList
             settlements={settlements}
             currency={groupCurrency}
+            viewer={viewer}
+            onEdit={onEditSettlement}
+            onDelete={onDeleteSettlement}
           />
         )}
       </TabContent>

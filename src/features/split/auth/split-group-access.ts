@@ -61,3 +61,23 @@ export function canEditExpense(
   if (expense.paidByMemberId === member.id) return true;
   return false;
 }
+
+export function canEditSettlement(
+  member: SplitGroupMember,
+  settlement: {
+    fromMemberId: string;
+    toMemberId: string;
+    createdByUserId: string | null;
+  },
+  userId: string,
+): boolean {
+  if (member.role === "admin") return true;
+  if (settlement.createdByUserId === userId) return true;
+  if (
+    member.id === settlement.fromMemberId ||
+    member.id === settlement.toMemberId
+  ) {
+    return true;
+  }
+  return false;
+}

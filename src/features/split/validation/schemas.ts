@@ -70,6 +70,25 @@ export const CreateSplitSettlementInputSchema = z.object({
   path: ["toMemberId"],
 });
 
+export const UpdateSplitSettlementInputSchema = z
+  .object({
+    fromMemberId: z.string().min(1).optional(),
+    toMemberId: z.string().min(1).optional(),
+    amount: DecimalStringSchema.optional(),
+    settledAt: DateStringSchema.optional(),
+    note: z.string().max(500).nullable().optional(),
+  })
+  .refine(
+    (data) =>
+      data.fromMemberId == null ||
+      data.toMemberId == null ||
+      data.fromMemberId !== data.toMemberId,
+    {
+      message: "Payer and recipient must be different people",
+      path: ["toMemberId"],
+    },
+  );
+
 export const GuestJoinInputSchema = z.object({
   displayName: z.string().min(1).max(100),
 });
@@ -116,4 +135,7 @@ export type IUpdateSplitExpenseInput = z.infer<
 >;
 export type ICreateSplitSettlementInput = z.infer<
   typeof CreateSplitSettlementInputSchema
+>;
+export type IUpdateSplitSettlementInput = z.infer<
+  typeof UpdateSplitSettlementInputSchema
 >;

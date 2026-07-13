@@ -8,6 +8,7 @@ import { RecordSettlementDialog } from "@/features/split/components/record-settl
 import {
   useDeleteSplitExpense,
   useDeleteSplitGroup,
+  useDeleteSplitSettlement,
   useSplitBalances,
   useSplitExpenses,
   useSplitGroup,
@@ -46,6 +47,7 @@ export function SplitGroupPage() {
   const { data: balances, isLoading: balancesLoading } =
     useSplitBalances(groupId);
   const deleteExpense = useDeleteSplitExpense(groupId);
+  const deleteSettlement = useDeleteSplitSettlement(groupId);
   const deleteGroup = useDeleteSplitGroup();
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ISplitExpense | undefined>();
@@ -55,6 +57,12 @@ export function SplitGroupPage() {
     useState<ISplitGroupWizardStep>("details");
   const [deleteGroupOpen, setDeleteGroupOpen] = useState(false);
   const [settleOpen, setSettleOpen] = useState(false);
+  const [editingSettlement, setEditingSettlement] = useState<
+    ISplitSettlement | undefined
+  >();
+  const [deletingSettlement, setDeletingSettlement] = useState<
+    ISplitSettlement | undefined
+  >();
 
   const openCreateExpense = () => {
     setEditingExpense(undefined);
@@ -76,6 +84,33 @@ export function SplitGroupPage() {
   const openGroupDialog = (step: ISplitGroupWizardStep = "details") => {
     setGroupDialogInitialStep(step);
     setGroupDialogOpen(true);
+  };
+
+  const openEditSettlement = (settlement: ISplitSettlement) => {
+    setEditingSettlement(settlement);
+    setSettleOpen(true);
+  };
+
+  const handleSettlementDialogOpenChange = (open: boolean) => {
+    setSettleOpen(open);
+    if (!open) {
+      setEditingSettlement(undefined);
+    }
+  };
+
+  const handleDeleteSettlementConfirm = () => {
+    if (!deletingSettlement) {
+      return;
+    }
+    deleteSettlement.mutate(deletingSettlement.id, {
+      onSuccess: () => {
+        toast.success("Settlement deleted");
+        setDeletingSettlement(undefined);
+      },
+      onError: () => {
+        toast.error("Could not delete settlement");
+      },
+    });
   };
 
   const handleDeleteConfirm = () => {
@@ -167,7 +202,12 @@ export function SplitGroupPage() {
             )}
 
             <div className="flex flex-col gap-2">
-              <Button variant="secondary" clicked={() => setSettleOpen(true)}>
+              <Button
+                variant="secondary"
+                clicked={() => {
+                  setEditingSettlement(undefined);
+                  setSettleOpen(true);
+                }}>
                 Settle up
               </Button>
               {!isMobile ? (
@@ -204,6 +244,8 @@ export function SplitGroupPage() {
               viewer={viewer}
               onEditExpense={openEditExpense}
               onDeleteExpense={setDeletingExpense}
+              onEditSettlement={openEditSettlement}
+              onDeleteSettlement={setDeletingSettlement}
             />
           </div>
         </div>
@@ -268,13 +310,40 @@ export function SplitGroupPage() {
         ]}
       />
       <RecordSettlementDialog
+        key={settleOpen ? (editingSettlement?.id ?? "create") : "closed"}
         open={settleOpen}
-        onOpenChange={setSettleOpen}
+        onOpenChange={handleSettlementDialogOpenChange}
         groupId={groupId}
         members={members}
         currency={groupCurrency}
         currentMemberId={currentMemberId}
         isAdmin={isAdmin}
+        settlement={editingSettlement}
+      />
+      <DeleteDialog
+        open={deletingSettlement != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeletingSettlement(undefined);
+          }
+        }}
+        title="Delete settlement"
+        content="Delete this settlement? This cannot be undone."
+        footerButtons={[
+          {
+            buttonContent: "Cancel",
+            clicked: () => setDeletingSettlement(undefined),
+          },
+          {
+            buttonContent: "Delete",
+            variant: "danger",
+            clicked: handleDeleteSettlementConfirm,
+            loading: {
+              isLoading: deleteSettlement.isPending,
+              text: "Deleting settlement",
+            },
+          },
+        ]}
       />
       <DeleteDialog
         open={deletingExpense != null}

@@ -10,6 +10,8 @@ export type ISplitSettlement = {
   amount: string;
   settledAt: string;
   note: string | null;
+  createdByUserId: string | null;
+  createdAt: string;
 };
 
 export type ISplitSettlementDateGroup = {
