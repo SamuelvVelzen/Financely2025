@@ -20,7 +20,7 @@ export function SplitSettlementListItem({
             <p className="text-sm text-text-muted truncate">{settlement.note}</p>
           ) : null}
         </div>
-        <p className="shrink-0 font-medium">
+        <p className="shrink-0 font-medium text-text">
           {formatCurrency(settlement.amount, currency)}
         </p>
       </div>

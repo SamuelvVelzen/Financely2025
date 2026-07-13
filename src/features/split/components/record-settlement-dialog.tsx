@@ -5,7 +5,6 @@ import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { useFinMutation } from "@/features/shared/query/core";
 import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
-import { Button } from "@/features/ui/button/button";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { Select } from "@/features/ui/select/select";
@@ -216,30 +215,45 @@ export function RecordSettlementDialog({
         value={note}
         onChange={(value) => setNote(String(value ?? ""))}
       />
-      <Button
-        variant="primary"
-        clicked={() => void handleSubmit()}
-        disabled={!canSubmit}
-        loading={
-          isPending
-            ? { isLoading: true, text: "Recording payment" }
-            : undefined
-        }
-        className="w-full">
-        Record payment
-      </Button>
     </div>
   );
 
+  const footerButtons = [
+    {
+      buttonContent: "Cancel",
+      clicked: () => handleOpenChange(false),
+      disabled: isPending,
+    },
+    {
+      variant: "primary" as const,
+      clicked: () => void handleSubmit(),
+      disabled: !canSubmit,
+      loading: isPending
+        ? { isLoading: true, text: "Recording payment" }
+        : undefined,
+      buttonContent: "Record payment",
+    },
+  ];
+
   if (isMobile) {
     return (
-      <BottomSheet open={open} onOpenChange={handleOpenChange} title="Settle up">
+      <BottomSheet
+        open={open}
+        onOpenChange={handleOpenChange}
+        title="Settle up"
+        footerButtons={footerButtons}>
         {form}
       </BottomSheet>
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange} title="Settle up" content={form} />
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      title="Settle up"
+      content={form}
+      footerButtons={footerButtons}
+    />
   );
 }

@@ -3,6 +3,7 @@ import {
   formatViewerExpenseNetAmount,
   getViewerExpenseNetAmount,
 } from "@/features/split/utils/get-viewer-expense-net-amount";
+import { Badge } from "@/features/ui/badge/badge";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { ListItem } from "@/features/ui/list/list-item";
@@ -44,18 +45,18 @@ export function SplitExpenseListItem({
           <p className="text-sm text-text-muted">
             Paid by {expense.paidByDisplayName}
           </p>
-          {expense.syncState === "pending" ? (
-            <span className="text-xs text-warning">Syncing when online</span>
-          ) : null}
-          {expense.conversionStatus === "pending" ? (
-            <span className="text-xs text-warning ml-2">
-              Pending conversion
-            </span>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            {expense.syncState === "pending" ? (
+              <Badge variant="warning">Syncing when online</Badge>
+            ) : null}
+            {expense.conversionStatus === "pending" ? (
+              <Badge variant="warning">Pending conversion</Badge>
+            ) : null}
+          </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <div className="text-right">
-            <p className="font-medium">
+            <p className="font-medium text-text">
               {formatCurrency(expense.amount, expense.currency)}
             </p>
             {expense.groupAmount && expense.currency !== groupCurrency ? (

@@ -2,6 +2,7 @@ import { useSplitGroups } from "@/features/split/hooks/use-split-groups";
 import type { ISplitGroupDialogTarget } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
 import { SplitGroupListItem } from "@/features/split/components/split-group-list-item";
 import { EmptyPage } from "@/features/ui/container/empty-container";
+import { QueryErrorState } from "@/features/ui/container/query-error-state";
 import { List } from "@/features/ui/list/list";
 import { Loading } from "@/features/ui/loading";
 import { useNavigate } from "@tanstack/react-router";
@@ -24,7 +25,7 @@ export function SplitGroupList({
   onDelete?: (group: ISplitGroupDialogTarget) => void;
 }) {
   const navigate = useNavigate();
-  const { data, isLoading, error } = useSplitGroups();
+  const { data, isLoading, error, refetch } = useSplitGroups();
 
   if (isLoading) {
     return (
@@ -36,9 +37,11 @@ export function SplitGroupList({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-8 text-danger">
-        Failed to load split groups
-      </div>
+      <QueryErrorState
+        title="Unable to load split groups"
+        message={error.message ?? "Could not load split groups"}
+        onRetry={() => void refetch()}
+      />
     );
   }
 

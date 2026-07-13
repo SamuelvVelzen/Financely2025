@@ -32,7 +32,7 @@ export function SplitGroupListItem({
     <ListItem className="py-3" clicked={() => onView(group)}>
       <div className="flex w-full min-w-0 items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <p className="font-medium truncate">{group.name}</p>
+          <p className="font-medium truncate text-text">{group.name}</p>
           <p className="text-sm text-text-muted mt-0.5">
             {group.memberCount} {group.memberCount === 1 ? "member" : "members"}{" "}
             · {group.expenseCount}{" "}

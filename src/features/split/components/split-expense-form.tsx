@@ -2,10 +2,12 @@ import { CurrencySelect } from "@/features/currency/components/currency-select";
 import { getSplitExpenseRecommendedCurrencies } from "@/features/split/utils/split-expense-currencies";
 import type { ISplitExpenseFormValues } from "@/features/split/utils/split-expense-form-values";
 import type { ISplitExpense } from "@/features/split/offline/split-offline-optimistic";
+import { Checkbox } from "@/features/ui/checkbox";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { Select } from "@/features/ui/select/select";
+import { Label } from "@/features/ui/typography/label";
 import {
   dateOnlyToIso,
   isoToDateOnly,
@@ -154,20 +156,16 @@ export function SplitExpenseForm({
         disabled={disabled}
       />
       <div>
-        <p className="text-sm font-medium text-text mb-2">Split between</p>
+        <Label className="mb-2 block">Split between</Label>
         <ul className="space-y-2">
           {members.map((m) => (
             <li key={m.id}>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="size-4 rounded border-border"
-                  checked={participantIds.includes(m.id)}
-                  onChange={() => toggleParticipant(m.id)}
-                  disabled={disabled}
-                />
-                {m.displayName}
-              </label>
+              <Checkbox
+                label={m.displayName}
+                checked={participantIds.includes(m.id)}
+                onChange={() => toggleParticipant(m.id)}
+                disabled={disabled}
+              />
             </li>
           ))}
         </ul>

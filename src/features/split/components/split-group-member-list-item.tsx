@@ -3,7 +3,7 @@ import {
   getMemberStatusLabel,
   type ISplitGroupMember,
 } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
-import { SplitMemberAvatar } from "@/features/split/components/split-member-avatar";
+import { Avatar } from "@/features/ui/avatar/avatar";
 import { Badge } from "@/features/ui/badge/badge";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { ListItem } from "@/features/ui/list/list-item";
@@ -31,7 +31,7 @@ export function SplitGroupMemberListItem({
   return (
     <ListItem className="gap-4 py-4">
       <div className="flex min-w-0 flex-1 items-center gap-4">
-        <SplitMemberAvatar displayName={member.displayName} />
+        <Avatar displayName={member.displayName} size="md" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-sm font-medium text-text truncate">
