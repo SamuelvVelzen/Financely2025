@@ -183,8 +183,9 @@ export function AddOrEditSplitGroupDialogContent({
   };
 
   const handleDone = () => {
+    const createdGroupId = !isEditMode && groupId ? groupId : undefined;
     handleClose();
-    onSuccess?.();
+    onSuccess?.(createdGroupId);
   };
 
   const detailsTitle = isEditMode ? "Edit group" : "New split group";

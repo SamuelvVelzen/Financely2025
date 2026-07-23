@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { AddOrEditSplitGroupDialog } from "@/features/split/components/add-or-edit-split-group-dialog";
 import type { ISplitGroupDialogTarget } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
 import { SplitGroupList } from "@/features/split/components/split-group-list";
@@ -11,6 +12,7 @@ import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { useToast } from "@/features/ui/toast";
 
 export function SplitsPage() {
+  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<
     ISplitGroupDialogTarget | undefined
@@ -71,6 +73,15 @@ export function SplitsPage() {
         onOpenChange={handleDialogOpenChange}
         group={editingGroup}
         defaultCurrency={defaultCurrency}
+        onSuccess={(groupId) => {
+          if (!groupId) {
+            return;
+          }
+          void navigate({
+            to: "/splits/$groupId",
+            params: { groupId },
+          });
+        }}
       />
       <DeleteDialog
         open={deletingGroup != null}

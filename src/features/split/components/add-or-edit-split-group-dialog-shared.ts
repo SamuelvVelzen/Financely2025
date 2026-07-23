@@ -24,7 +24,8 @@ export type IAddOrEditSplitGroupDialogProps = {
   group?: ISplitGroupDialogTarget;
   defaultCurrency: string;
   initialStep?: ISplitGroupWizardStep;
-  onSuccess?: () => void;
+  /** Called when the wizard finishes. For create, receives the new group id. */
+  onSuccess?: (groupId?: string) => void;
 };
 
 export type ISplitGroupFormValues = {
