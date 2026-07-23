@@ -2,6 +2,7 @@ import { prisma } from "@/features/util/prisma";
 import { randomBytes } from "node:crypto";
 import { formatFullName } from "@/features/users/validation/schemas";
 import { SplitActivityService } from "./split-activity.service";
+import { SplitBalanceService } from "./split-balance.service";
 import { normalizeEmail } from "../utils/normalize-email";
 import type {
   ICreateSplitGroupInput,
@@ -33,16 +34,25 @@ export class SplitGroupService {
       orderBy: { joinedAt: "desc" },
     });
 
-    return memberships.map((m) => ({
-      id: m.group.id,
-      name: m.group.name,
-      defaultCurrency: m.group.defaultCurrency,
-      memberCount: m.group.members.length,
-      expenseCount: m.group._count.expenses,
-      role: m.role,
-      isCreator: m.group.createdByUserId === userId,
-      joinedAt: m.joinedAt.toISOString(),
-    }));
+    return Promise.all(
+      memberships.map(async (m) => {
+        const balances = await SplitBalanceService.getBalances(m.group.id, {
+          viewerMemberId: m.id,
+        });
+
+        return {
+          id: m.group.id,
+          name: m.group.name,
+          defaultCurrency: m.group.defaultCurrency,
+          memberCount: m.group.members.length,
+          expenseCount: m.group._count.expenses,
+          role: m.role,
+          isCreator: m.group.createdByUserId === userId,
+          joinedAt: m.joinedAt.toISOString(),
+          viewerNetAmount: balances.viewerNetAmount ?? "0.00",
+        };
+      }),
+    );
   }
 
   static async listActiveMembers(groupId: string) {

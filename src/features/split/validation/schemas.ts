@@ -100,7 +100,9 @@ export const SplitGroupListItemSchema = z.object({
   memberCount: z.number(),
   expenseCount: z.number(),
   role: z.string(),
+  isCreator: z.boolean(),
   joinedAt: z.string(),
+  viewerNetAmount: z.string(),
 });
 
 export const SplitBalancesSchema = z.object({
