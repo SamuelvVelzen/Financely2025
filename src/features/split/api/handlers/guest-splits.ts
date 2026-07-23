@@ -13,6 +13,7 @@ import {
   getGroupByGuestToken,
   GUEST_SESSION_COOKIE,
   requireGuestAccess,
+  SplitGuestAccessError,
 } from "@/features/split/auth/split-guest-access";
 import { SplitBalanceService } from "@/features/split/services/split-balance.service";
 import { SplitExpenseService } from "@/features/split/services/split-expense.service";
@@ -32,6 +33,33 @@ function getGuestSessionId(request: Request): string | null {
 
 function guestSessionCookie(sessionId: string): string {
   return `${GUEST_SESSION_COOKIE}=${encodeURIComponent(sessionId)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`;
+}
+
+function mapGuestAccessError(error: unknown) {
+  if (error instanceof SplitGuestAccessError) {
+    if (error.message === "Invalid share link") {
+      return createErrorResponse(
+        new ApiError(ErrorCodes.NOT_FOUND, error.message, 404),
+      );
+    }
+    if (
+      error.message === "Guest session required" ||
+      error.message === "Guest session not found"
+    ) {
+      return createErrorResponse(
+        new ApiError(ErrorCodes.UNAUTHORIZED, error.message, 401),
+      );
+    }
+    return createErrorResponse(
+      new ApiError(ErrorCodes.UNAUTHORIZED, error.message, 403),
+    );
+  }
+  if (error instanceof Error && error.message === "Invalid share link") {
+    return createErrorResponse(
+      new ApiError(ErrorCodes.NOT_FOUND, error.message, 404),
+    );
+  }
+  return createErrorResponse(error);
 }
 
 export async function guestJoinPOST({
@@ -71,7 +99,7 @@ export async function guestJoinPOST({
         new ApiError(ErrorCodes.VALIDATION_ERROR, "Invalid body", 400),
       );
     }
-    return createErrorResponse(error);
+    return mapGuestAccessError(error);
   }
 }
 
@@ -116,7 +144,7 @@ export async function guestGroupGET({
       balances,
     });
   } catch (error) {
-    return createErrorResponse(error);
+    return mapGuestAccessError(error);
   }
 }
 
@@ -149,7 +177,7 @@ export async function guestCreateSettlementPOST({
         new ApiError(ErrorCodes.VALIDATION_ERROR, "Invalid body", 400),
       );
     }
-    return createErrorResponse(error);
+    return mapGuestAccessError(error);
   }
 }
 export async function guestCreateExpensePOST({
@@ -181,6 +209,6 @@ export async function guestCreateExpensePOST({
         new ApiError(ErrorCodes.VALIDATION_ERROR, "Invalid body", 400),
       );
     }
-    return createErrorResponse(error);
+    return mapGuestAccessError(error);
   }
 }

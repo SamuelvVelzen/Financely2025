@@ -86,6 +86,7 @@ import { Route as ApiV1SplitsGuestTokenSettlementsRouteImport } from './routes/a
 import { Route as ApiV1SplitsGuestTokenJoinRouteImport } from './routes/api/v1/splits.guest.$token.join'
 import { Route as ApiV1SplitsGuestTokenExpensesRouteImport } from './routes/api/v1/splits.guest.$token.expenses'
 import { Route as ApiV1MeWorkspacesWorkspaceIdSettingsRouteImport } from './routes/api/v1/me.workspaces.$workspaceId.settings'
+import { Route as ApiV1MeSplitsJoinTokenRouteImport } from './routes/api/v1/me.splits.join.$token'
 import { Route as ApiV1MeSplitsGroupsGroupIdRouteImport } from './routes/api/v1/me.splits.groups.$groupId'
 import { Route as ApiV1WorkspaceIdTagsCsvMappingValidateRouteImport } from './routes/api/v1/$workspaceId/tags.csv-mapping.validate'
 import { Route as ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRouteImport } from './routes/api/v1/$workspaceId/subscriptions.dismissals.$dismissalId'
@@ -536,6 +537,11 @@ const ApiV1MeWorkspacesWorkspaceIdSettingsRoute =
     path: '/settings',
     getParentRoute: () => ApiV1MeWorkspacesWorkspaceIdRoute,
   } as any)
+const ApiV1MeSplitsJoinTokenRoute = ApiV1MeSplitsJoinTokenRouteImport.update({
+  id: '/splits/join/$token',
+  path: '/splits/join/$token',
+  getParentRoute: () => ApiV1MeRoute,
+} as any)
 const ApiV1MeSplitsGroupsGroupIdRoute =
   ApiV1MeSplitsGroupsGroupIdRouteImport.update({
     id: '/$groupId',
@@ -711,6 +717,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
   '/api/v1/me/splits/groups/$groupId': typeof ApiV1MeSplitsGroupsGroupIdRouteWithChildren
+  '/api/v1/me/splits/join/$token': typeof ApiV1MeSplitsJoinTokenRoute
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
@@ -803,6 +810,7 @@ export interface FileRoutesByTo {
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
   '/api/v1/me/splits/groups/$groupId': typeof ApiV1MeSplitsGroupsGroupIdRouteWithChildren
+  '/api/v1/me/splits/join/$token': typeof ApiV1MeSplitsJoinTokenRoute
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
@@ -899,6 +907,7 @@ export interface FileRoutesById {
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
   '/api/v1/me/splits/groups/$groupId': typeof ApiV1MeSplitsGroupsGroupIdRouteWithChildren
+  '/api/v1/me/splits/join/$token': typeof ApiV1MeSplitsJoinTokenRoute
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
@@ -995,6 +1004,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
     | '/api/v1/me/splits/groups/$groupId'
+    | '/api/v1/me/splits/join/$token'
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
@@ -1087,6 +1097,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
     | '/api/v1/me/splits/groups/$groupId'
+    | '/api/v1/me/splits/join/$token'
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
@@ -1182,6 +1193,7 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
     | '/api/v1/me/splits/groups/$groupId'
+    | '/api/v1/me/splits/join/$token'
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
@@ -1762,6 +1774,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeWorkspacesWorkspaceIdSettingsRouteImport
       parentRoute: typeof ApiV1MeWorkspacesWorkspaceIdRoute
     }
+    '/api/v1/me/splits/join/$token': {
+      id: '/api/v1/me/splits/join/$token'
+      path: '/splits/join/$token'
+      fullPath: '/api/v1/me/splits/join/$token'
+      preLoaderRoute: typeof ApiV1MeSplitsJoinTokenRouteImport
+      parentRoute: typeof ApiV1MeRoute
+    }
     '/api/v1/me/splits/groups/$groupId': {
       id: '/api/v1/me/splits/groups/$groupId'
       path: '/$groupId'
@@ -2079,6 +2098,7 @@ interface ApiV1MeRouteChildren {
   ApiV1MeWorkspacesRoute: typeof ApiV1MeWorkspacesRouteWithChildren
   ApiV1MeSplitsGroupsRoute: typeof ApiV1MeSplitsGroupsRouteWithChildren
   ApiV1MeSplitsSummaryRoute: typeof ApiV1MeSplitsSummaryRoute
+  ApiV1MeSplitsJoinTokenRoute: typeof ApiV1MeSplitsJoinTokenRoute
 }
 
 const ApiV1MeRouteChildren: ApiV1MeRouteChildren = {
@@ -2088,6 +2108,7 @@ const ApiV1MeRouteChildren: ApiV1MeRouteChildren = {
   ApiV1MeWorkspacesRoute: ApiV1MeWorkspacesRouteWithChildren,
   ApiV1MeSplitsGroupsRoute: ApiV1MeSplitsGroupsRouteWithChildren,
   ApiV1MeSplitsSummaryRoute: ApiV1MeSplitsSummaryRoute,
+  ApiV1MeSplitsJoinTokenRoute: ApiV1MeSplitsJoinTokenRoute,
 }
 
 const ApiV1MeRouteWithChildren =

@@ -22,6 +22,11 @@ import { z } from "zod";
 
 function handleSplitError(error: unknown) {
   if (error instanceof Error) {
+    if (error.message === "Invalid share link") {
+      return createErrorResponse(
+        new ApiError(ErrorCodes.NOT_FOUND, error.message, 404),
+      );
+    }
     if (error.message === "Not a member of this group") {
       return createErrorResponse(
         new ApiError(ErrorCodes.UNAUTHORIZED, error.message, 403),
@@ -396,6 +401,21 @@ export async function rotateGuestLinkPOST({
         userId,
       );
       return json({ guestAccessToken: token });
+    });
+  } catch (error) {
+    return handleSplitError(error);
+  }
+}
+
+export async function joinByInviteTokenPOST({
+  params,
+}: {
+  params: { token: string };
+}) {
+  try {
+    return await withAuth(async (userId) => {
+      const result = await SplitGroupService.joinAsUser(params.token, userId);
+      return json(result, { status: 201 });
     });
   } catch (error) {
     return handleSplitError(error);

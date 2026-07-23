@@ -1,27 +1,32 @@
-import { useParams } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
+import { joinSplitGroupByInviteToken } from "@/features/split/api/client";
 import { SplitBalanceSummary } from "@/features/split/components/split-balance-summary";
 import { SplitGroupActivityTabs } from "@/features/split/components/split-group-activity-tabs";
 import { SplitGuestExpenseDialog } from "@/features/split/components/split-guest-expense-dialog";
+import { SplitGuestInviteError } from "@/features/split/components/split-guest-invite-error";
 import { RecordSettlementDialog } from "@/features/split/components/record-settlement-dialog";
 import type { ISplitExpense } from "@/features/split/offline/split-offline-optimistic";
 import type { ISplitSettlement } from "@/features/split/utils/group-split-settlements-by-date";
+import { isInvalidShareLinkError } from "@/features/split/utils/is-invalid-share-link-error";
 import { apiGet } from "@/features/shared/api/client";
 import { useFinQuery } from "@/features/shared/query/core";
+import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { Button } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { Skeleton } from "@/features/ui/skeleton";
 import { IconButton } from "@/features/ui/button/icon-button";
-import { Link } from "@tanstack/react-router";
+import { authClient } from "@/lib/auth-client";
 import { HiPlus } from "react-icons/hi2";
-import { useState } from "react";
-import { useResponsive } from "@/features/shared/hooks/useResponsive";
 
 export function SplitGuestViewPage() {
   const { token } = useParams({ from: "/splits/join/$token/view" });
+  const navigate = useNavigate();
   const { isMobile } = useResponsive();
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [settleOpen, setSettleOpen] = useState(false);
-  const { data, isLoading } = useFinQuery({
+  const [recoveringAsUser, setRecoveringAsUser] = useState(false);
+  const { data, isLoading, isError, error } = useFinQuery({
     queryKey: ["split-guest", token],
     queryFn: () =>
       apiGet<{
@@ -37,9 +42,46 @@ export function SplitGuestViewPage() {
         settlements: ISplitSettlement[];
         balances: Parameters<typeof SplitBalanceSummary>[0]["balances"];
       }>(`/splits/guest/${token}`),
+    retry: false,
   });
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isError || recoveringAsUser) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function tryJoinAsLoggedInUser() {
+      const session = await authClient.getSession();
+      if (cancelled || !session.data) {
+        return;
+      }
+
+      setRecoveringAsUser(true);
+      try {
+        const result = await joinSplitGroupByInviteToken(token);
+        if (cancelled) {
+          return;
+        }
+        await navigate({
+          to: "/splits/$groupId",
+          params: { groupId: result.groupId },
+        });
+      } catch {
+        if (!cancelled) {
+          setRecoveringAsUser(false);
+        }
+      }
+    }
+
+    void tryJoinAsLoggedInUser();
+    return () => {
+      cancelled = true;
+    };
+  }, [isError, navigate, recoveringAsUser, token]);
+
+  if (isLoading || recoveringAsUser) {
     return (
       <div className="min-h-screen bg-background p-4">
         <Skeleton className="h-10 w-48 mb-6" />
@@ -48,11 +90,24 @@ export function SplitGuestViewPage() {
     );
   }
 
-  if (!data) {
+  if (isError || !data) {
+    if (isInvalidShareLinkError(error)) {
+      return (
+        <SplitGuestInviteError
+          token={token}
+          title="Invite link unavailable"
+          description="This share link is invalid or no longer works. Ask the group admin for a new invite."
+          showJoinAgain={false}
+        />
+      );
+    }
+
     return (
-      <div className="min-h-screen bg-background p-4">
-        <p className="text-text-muted">Unable to load group</p>
-      </div>
+      <SplitGuestInviteError
+        token={token}
+        title="Unable to load group"
+        description="Your guest session may have expired, or this browser is not signed into the group. Join again with your name to continue."
+      />
     );
   }
 
@@ -94,7 +149,10 @@ export function SplitGuestViewPage() {
           <p className="text-text-muted mb-2">
             Create a Financely account to sync shares to your transactions.
           </p>
-          <Link to="/register" search={{ redirect: "" }} className="text-primary font-medium">
+          <Link
+            to="/register"
+            search={{ redirect: `/splits/join/${token}` }}
+            className="text-primary font-medium">
             Sign up free
           </Link>
         </Container>

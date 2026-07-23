@@ -147,3 +147,10 @@ export async function convertPendingExpenses(groupId: string) {
     {},
   );
 }
+
+export async function joinSplitGroupByInviteToken(token: string) {
+  return apiPost<{ groupId: string; memberId: string }>(
+    `${BASE}/join/${token}`,
+    {},
+  );
+}
