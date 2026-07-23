@@ -7,6 +7,7 @@ import type { ISplitExpense } from "@/features/split/offline/split-offline-optim
 import { SplitExpenseForm } from "@/features/split/components/split-expense-form";
 import {
   getEmptySplitExpenseFormValues,
+  getExactSharesForSubmit,
   getFormValuesForAnotherExpense,
   getSplitExpenseFormValuesFromExpense,
   type ISplitExpenseFormValues,
@@ -110,7 +111,8 @@ export function SplitExpenseDialog({
             expenseDate: values.expenseDate,
             paidByMemberId: values.paidByMemberId,
             participantMemberIds: values.participantMemberIds,
-            splitMode: "equal",
+            splitMode: values.splitMode,
+            exactShares: getExactSharesForSubmit(values),
           },
         });
         if (!isOfflineMutationPlaceholder(updated)) {
@@ -138,7 +140,8 @@ export function SplitExpenseDialog({
         expenseDate: values.expenseDate,
         paidByMemberId: values.paidByMemberId,
         participantMemberIds: values.participantMemberIds,
-        splitMode: "equal",
+        splitMode: values.splitMode,
+        exactShares: getExactSharesForSubmit(values),
         clientMutationId: crypto.randomUUID(),
       });
 

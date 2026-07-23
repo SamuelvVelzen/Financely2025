@@ -79,6 +79,7 @@ export function SplitGroupMembersStep({
           <SplitGroupInviteByEmailForm groupId={groupId} />
           {guestAccessToken ? (
             <SplitGroupShareLink
+              groupId={groupId}
               guestAccessToken={guestAccessToken}
               groupName={groupName}
             />

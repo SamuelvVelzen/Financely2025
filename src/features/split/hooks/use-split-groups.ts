@@ -13,6 +13,7 @@ import {
   getSplitSettlements,
   getSplitSummary,
   removeSplitMember,
+  rotateGuestLink,
   updateSplitExpense,
   updateSplitGroup,
   updateSplitSettlement,
@@ -214,6 +215,16 @@ export function useAddSplitMember(groupId: string) {
       () => queryKeys.splitGroup(groupId),
       () => queryKeys.splitGroups(),
       () => queryKeys.splitBalances(groupId),
+    ],
+  });
+}
+
+export function useRotateGuestLink(groupId: string) {
+  return useFinMutation({
+    mutationFn: () => rotateGuestLink(groupId),
+    invalidateQueries: [
+      () => queryKeys.splitGroup(groupId),
+      () => queryKeys.splitGroups(),
     ],
   });
 }

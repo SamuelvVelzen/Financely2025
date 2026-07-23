@@ -36,6 +36,13 @@ export const ExactShareInputSchema = z.object({
   shareAmount: DecimalStringSchema,
 });
 
+export const SplitModeSchema = z.enum([
+  "equal",
+  "exact",
+  "percent",
+  "shares",
+]);
+
 export const CreateSplitExpenseInputSchema = z.object({
   description: z.string().min(1).max(200),
   amount: DecimalStringSchema,
@@ -43,7 +50,7 @@ export const CreateSplitExpenseInputSchema = z.object({
   expenseDate: DateStringSchema,
   paidByMemberId: z.string().min(1),
   participantMemberIds: z.array(z.string().min(1)).min(1),
-  splitMode: z.enum(["equal", "exact"]).default("equal"),
+  splitMode: SplitModeSchema.default("equal"),
   exactShares: z.array(ExactShareInputSchema).optional(),
   clientMutationId: z.string().uuid().optional(),
 });
@@ -55,7 +62,7 @@ export const UpdateSplitExpenseInputSchema = z.object({
   expenseDate: DateStringSchema.optional(),
   paidByMemberId: z.string().min(1).optional(),
   participantMemberIds: z.array(z.string().min(1)).min(1).optional(),
-  splitMode: z.enum(["equal", "exact"]).optional(),
+  splitMode: SplitModeSchema.optional(),
   exactShares: z.array(ExactShareInputSchema).optional(),
 });
 

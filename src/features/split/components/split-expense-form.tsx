@@ -1,13 +1,14 @@
 import { CurrencySelect } from "@/features/currency/components/currency-select";
+import { getCurrencyMinorUnits } from "@/features/currency/config/currencies";
+import { SplitExpenseSplitSection } from "@/features/split/components/split-expense-split-section";
 import { getSplitExpenseRecommendedCurrencies } from "@/features/split/utils/split-expense-currencies";
 import type { ISplitExpenseFormValues } from "@/features/split/utils/split-expense-form-values";
+import type { ISplitMode } from "@/features/split/utils/split-mode";
 import type { ISplitExpense } from "@/features/split/offline/split-offline-optimistic";
-import { Checkbox } from "@/features/ui/checkbox";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { Select } from "@/features/ui/select/select";
-import { Label } from "@/features/ui/typography/label";
 import {
   dateOnlyToIso,
   isoToDateOnly,
@@ -16,6 +17,48 @@ import { parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 
 type IMember = { id: string; displayName: string };
+
+function parseSum(values: string[]): number {
+  return values.reduce((acc, value) => {
+    const parsed = parseFloat(value);
+    return acc + (Number.isFinite(parsed) ? parsed : 0);
+  }, 0);
+}
+
+function canSubmitSplit(
+  amount: string,
+  currency: string,
+  participantIds: string[],
+  splitMode: ISplitMode,
+  shareInputs: Record<string, string>,
+): boolean {
+  if (participantIds.length === 0) {
+    return false;
+  }
+  if (splitMode === "equal") {
+    return true;
+  }
+
+  const inputs = participantIds.map((id) => shareInputs[id]?.trim() ?? "");
+  if (inputs.some((value) => value.length === 0)) {
+    return false;
+  }
+
+  const sum = parseSum(inputs);
+  if (splitMode === "exact") {
+    const total = parseFloat(amount);
+    if (!Number.isFinite(total)) {
+      return false;
+    }
+    const minor = getCurrencyMinorUnits(currency);
+    const factor = 10 ** minor;
+    return Math.round(sum * factor) === Math.round(total * factor);
+  }
+  if (splitMode === "percent") {
+    return Math.round(sum * 100) === 10000;
+  }
+  return sum > 0;
+}
 
 export function SplitExpenseForm({
   formId,
@@ -42,6 +85,8 @@ export function SplitExpenseForm({
   const [participantIds, setParticipantIds] = useState(
     initialValues.participantMemberIds,
   );
+  const [splitMode, setSplitMode] = useState<ISplitMode>(initialValues.splitMode);
+  const [shareInputs, setShareInputs] = useState(initialValues.shareInputs);
   const [hasTime, setHasTime] = useState(true);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
@@ -74,14 +119,15 @@ export function SplitExpenseForm({
     }
   };
 
-  const toggleParticipant = (id: string) => {
-    setParticipantIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  };
-
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+    if (
+      description.trim().length === 0 ||
+      amount.trim().length === 0 ||
+      !canSubmitSplit(amount, currency, participantIds, splitMode, shareInputs)
+    ) {
+      return;
+    }
     void onSubmit({
       description,
       amount,
@@ -89,13 +135,15 @@ export function SplitExpenseForm({
       expenseDate,
       paidByMemberId,
       participantMemberIds: participantIds,
+      splitMode,
+      shareInputs,
     });
   };
 
   const canSubmit =
     description.trim().length > 0 &&
     amount.trim().length > 0 &&
-    participantIds.length > 0 &&
+    canSubmitSplit(amount, currency, participantIds, splitMode, shareInputs) &&
     !disabled;
 
   return (
@@ -155,21 +203,19 @@ export function SplitExpenseForm({
         options={members.map((m) => ({ value: m.id, label: m.displayName }))}
         disabled={disabled}
       />
-      <div>
-        <Label className="mb-2 block">Split between</Label>
-        <ul className="space-y-2">
-          {members.map((m) => (
-            <li key={m.id}>
-              <Checkbox
-                label={m.displayName}
-                checked={participantIds.includes(m.id)}
-                onChange={() => toggleParticipant(m.id)}
-                disabled={disabled}
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
+      <SplitExpenseSplitSection
+        members={members}
+        amount={amount}
+        currency={currency}
+        paidByMemberId={paidByMemberId}
+        participantIds={participantIds}
+        splitMode={splitMode}
+        shareInputs={shareInputs}
+        disabled={disabled}
+        onParticipantIdsChange={setParticipantIds}
+        onSplitModeChange={setSplitMode}
+        onShareInputsChange={setShareInputs}
+      />
       <button type="submit" className="sr-only" disabled={!canSubmit}>
         Submit
       </button>

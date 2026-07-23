@@ -4,6 +4,7 @@ import type { ISplitExpense } from "@/features/split/offline/split-offline-optim
 import { SplitExpenseForm } from "@/features/split/components/split-expense-form";
 import {
   getEmptySplitExpenseFormValues,
+  getExactSharesForSubmit,
   type ISplitExpenseFormValues,
 } from "@/features/split/utils/split-expense-form-values";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
@@ -46,7 +47,8 @@ export function SplitGuestExpenseDialog({
         expenseDate: input.expenseDate,
         paidByMemberId: input.paidByMemberId,
         participantMemberIds: input.participantMemberIds,
-        splitMode: "equal",
+        splitMode: input.splitMode,
+        exactShares: getExactSharesForSubmit(input),
         clientMutationId: crypto.randomUUID(),
       }),
     onSuccess: async () => {

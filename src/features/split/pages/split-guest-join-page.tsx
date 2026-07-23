@@ -104,7 +104,7 @@ export function SplitGuestJoinPage() {
       <SplitGuestInviteError
         token={token}
         title="Invite link unavailable"
-        description="This share link is invalid or no longer works. Ask the group admin for a new invite."
+        description="This share link is invalid, was reset, or no longer works. Ask the group admin for a new invite."
         showJoinAgain={false}
       />
     );

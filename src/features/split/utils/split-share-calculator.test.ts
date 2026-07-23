@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   computeEqualShares,
   computeExactShares,
+  computePercentShares,
+  computeWeightedShares,
 } from "@/features/split/utils/split-share-calculator";
 import { simplifyDebts } from "@/features/split/utils/simplify-debts";
 
@@ -29,6 +31,54 @@ describe("split-share-calculator", () => {
       { memberId: "b", shareAmount: "4.00" },
     ]);
     expect(shares).toHaveLength(2);
+  });
+
+  it("splits by percentage with remainder to payer", () => {
+    const shares = computePercentShares(
+      "100.00",
+      "USD",
+      [
+        { memberId: "a", shareAmount: "50" },
+        { memberId: "b", shareAmount: "30" },
+        { memberId: "c", shareAmount: "20" },
+      ],
+      "a",
+    );
+    expect(shares).toEqual([
+      { memberId: "a", shareAmount: "50.00" },
+      { memberId: "b", shareAmount: "30.00" },
+      { memberId: "c", shareAmount: "20.00" },
+    ]);
+  });
+
+  it("rejects percentages that do not sum to 100", () => {
+    expect(() =>
+      computePercentShares(
+        "100.00",
+        "USD",
+        [
+          { memberId: "a", shareAmount: "60" },
+          { memberId: "b", shareAmount: "30" },
+        ],
+        "a",
+      ),
+    ).toThrow();
+  });
+
+  it("splits by share weights", () => {
+    const shares = computeWeightedShares(
+      "90.00",
+      "USD",
+      [
+        { memberId: "a", shareAmount: "2" },
+        { memberId: "b", shareAmount: "1" },
+      ],
+      "a",
+    );
+    expect(shares).toEqual([
+      { memberId: "a", shareAmount: "60.00" },
+      { memberId: "b", shareAmount: "30.00" },
+    ]);
   });
 });
 

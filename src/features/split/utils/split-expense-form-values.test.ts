@@ -48,6 +48,33 @@ describe("split expense form values", () => {
       expenseDate: "2026-07-01T12:00:00.000Z",
       paidByMemberId: "member-1",
       participantMemberIds: ["member-1", "member-2"],
+      splitMode: "equal",
+      shareInputs: {},
+    });
+  });
+
+  it("maps exact-split expenses with share amounts", () => {
+    expect(
+      getSplitExpenseFormValuesFromExpense({
+        ...sampleExpense,
+        splitMode: "exact",
+        shares: [
+          { ...sampleExpense.shares[0]!, shareAmount: "20.00" },
+          { ...sampleExpense.shares[1]!, shareAmount: "4.50" },
+        ],
+      }),
+    ).toEqual({
+      description: "Taxi",
+      amount: "24.50",
+      currency: "MXN",
+      expenseDate: "2026-07-01T12:00:00.000Z",
+      paidByMemberId: "member-1",
+      participantMemberIds: ["member-1", "member-2"],
+      splitMode: "exact",
+      shareInputs: {
+        "member-1": "20.00",
+        "member-2": "4.50",
+      },
     });
   });
 
@@ -65,6 +92,8 @@ describe("split expense form values", () => {
       expenseDate: "2026-07-01T12:00:00.000Z",
       paidByMemberId: "member-1",
       participantMemberIds: ["member-1", "member-2"],
+      splitMode: "equal",
+      shareInputs: {},
     });
   });
 });

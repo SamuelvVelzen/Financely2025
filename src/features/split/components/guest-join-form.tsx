@@ -4,6 +4,7 @@ import { Alert } from "@/features/ui/alert/alert";
 import { TextInput } from "@/features/ui/input/text-input";
 import { Button } from "@/features/ui/button/button";
 import { apiPost } from "@/features/shared/api/client";
+import { isInvalidShareLinkError } from "@/features/split/utils/is-invalid-share-link-error";
 
 export function GuestJoinForm({ token }: { token: string }) {
   const navigate = useNavigate();
@@ -18,7 +19,13 @@ export function GuestJoinForm({ token }: { token: string }) {
       await apiPost(`/splits/guest/${token}/join`, { displayName });
       await navigate({ to: "/splits/join/$token/view", params: { token } });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to join");
+      if (isInvalidShareLinkError(e)) {
+        setError(
+          "This invite link is invalid or was reset. Ask the group admin for a new link.",
+        );
+      } else {
+        setError(e instanceof Error ? e.message : "Failed to join");
+      }
     } finally {
       setPending(false);
     }

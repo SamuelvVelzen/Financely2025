@@ -1,6 +1,7 @@
 import { convertAmount } from "@/features/currency/services/conversion.service";
 import { ExchangeRateService } from "@/features/currency/services/exchange-rate.service";
 import type { Prisma } from "@prisma/client";
+import type { ISplitMode } from "../utils/split-mode";
 import {
   computeShares,
   convertShareAmountsToGroupCurrency,
@@ -22,7 +23,7 @@ export class SplitCurrencyService {
       currency: string;
       groupCurrency: string;
       expenseDate: Date;
-      splitMode: "equal" | "exact";
+      splitMode: ISplitMode;
       participantMemberIds: string[];
       payerMemberId: string;
       exactShares?: Array<{ memberId: string; shareAmount?: string }>;

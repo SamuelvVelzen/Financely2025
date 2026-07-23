@@ -3,6 +3,7 @@ import {
   canEditExpense,
   requireActiveMemberForUser,
 } from "../auth/split-group-access";
+import { parseSplitMode } from "../utils/split-mode";
 import { SplitActivityService } from "./split-activity.service";
 import { SplitCurrencyService } from "./split-currency.service";
 import { SplitTransactionSyncService } from "./split-transaction-sync.service";
@@ -189,28 +190,41 @@ export class SplitExpenseService {
     const expenseDate = input.expenseDate
       ? new Date(input.expenseDate)
       : expense.expenseDate;
-    const splitMode = (input.splitMode ?? expense.splitMode) as
-      | "equal"
-      | "exact";
+    const splitMode = parseSplitMode(input.splitMode ?? expense.splitMode);
     const paidByMemberId = input.paidByMemberId ?? expense.paidByMemberId;
+    const existingShares = await prisma.splitExpenseShare.findMany({
+      where: { expenseId, status: "active" },
+      select: { memberId: true, shareAmount: true },
+    });
     const participantMemberIds =
-      input.participantMemberIds ??
-      (
-        await prisma.splitExpenseShare.findMany({
-          where: { expenseId, status: "active" },
-          select: { memberId: true },
-        })
-      ).map((s) => s.memberId);
+      input.participantMemberIds ?? existingShares.map((s) => s.memberId);
+
+    const storedExactShares = existingShares.map((s) => ({
+      memberId: s.memberId,
+      shareAmount: s.shareAmount.toString(),
+    }));
+
+    // Prefer client share inputs. Otherwise recompute from saved money amounts
+    // (percent/share weights are not persisted separately).
+    const computationMode =
+      input.exactShares != null
+        ? splitMode
+        : splitMode === "equal"
+          ? "equal"
+          : "exact";
+    const exactShares =
+      input.exactShares ??
+      (computationMode === "equal" ? undefined : storedExactShares);
 
     const conversion = await SplitCurrencyService.convertExpense({
       amount,
       currency,
       groupCurrency: group.defaultCurrency,
       expenseDate,
-      splitMode,
+      splitMode: computationMode,
       participantMemberIds,
       payerMemberId: paidByMemberId,
-      exactShares: input.exactShares,
+      exactShares,
     });
 
     await prisma.$transaction(async (tx) => {
@@ -309,7 +323,8 @@ export class SplitExpenseService {
       currency: expense.currency,
       groupCurrency: group.defaultCurrency,
       expenseDate: expense.expenseDate,
-      splitMode: expense.splitMode as "equal" | "exact",
+      // Share rows store money amounts; always recompute FX from those.
+      splitMode: "exact",
       participantMemberIds: expense.shares.map((s) => s.memberId),
       payerMemberId: expense.paidByMemberId,
       exactShares: expense.shares.map((s) => ({

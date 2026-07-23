@@ -1,5 +1,6 @@
 import type { ICreateSplitExpenseInput } from "@/features/shared/validation/schemas";
-import { computeEqualShares } from "../utils/split-share-calculator";
+import { parseSplitMode } from "../utils/split-mode";
+import { computeShares } from "../utils/split-share-calculator";
 
 export type ISplitExpense = {
   id: string;
@@ -30,11 +31,13 @@ export function buildOptimisticSplitExpense(
   input: ICreateSplitExpenseInput,
   clientMutationId: string,
 ): ISplitExpense {
-  const shares = computeEqualShares(
+  const shares = computeShares(
+    parseSplitMode(input.splitMode),
     input.amount,
     input.currency,
     input.participantMemberIds,
     input.paidByMemberId,
+    input.exactShares,
   );
 
   return {

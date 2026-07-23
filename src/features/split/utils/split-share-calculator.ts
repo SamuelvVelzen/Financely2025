@@ -1,4 +1,5 @@
 import { getCurrencyMinorUnits } from "@/features/currency/config/currencies";
+import type { ISplitMode } from "@/features/split/utils/split-mode";
 
 export type ISplitShareInput = {
   memberId: string;
@@ -20,6 +21,46 @@ function fromMinorUnits(minor: number, currency: string): string {
   const minorUnits = getCurrencyMinorUnits(currency);
   const factor = 10 ** minorUnits;
   return (minor / factor).toFixed(minorUnits);
+}
+
+function parseNonNegative(value: string | undefined): number {
+  const parsed = parseFloat(value ?? "0");
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return 0;
+  }
+  return parsed;
+}
+
+/** Distribute totalMinor across weights; leftover cents go to remainderMemberId. */
+function distributeByWeights(
+  totalMinor: number,
+  currency: string,
+  weights: Array<{ memberId: string; weight: number }>,
+  remainderMemberId: string,
+): IComputedShare[] {
+  const totalWeight = weights.reduce((acc, item) => acc + item.weight, 0);
+  if (totalWeight <= 0) {
+    throw new Error("Share weights must be greater than zero");
+  }
+
+  let assigned = 0;
+  const shares = weights.map((item) => {
+    const shareMinor = Math.floor((totalMinor * item.weight) / totalWeight);
+    assigned += shareMinor;
+    return { memberId: item.memberId, shareMinor };
+  });
+
+  const remainder = totalMinor - assigned;
+  const remainderIndex = shares.findIndex(
+    (share) => share.memberId === remainderMemberId,
+  );
+  const targetIndex = remainderIndex >= 0 ? remainderIndex : 0;
+  shares[targetIndex]!.shareMinor += remainder;
+
+  return shares.map((share) => ({
+    memberId: share.memberId,
+    shareAmount: fromMinorUnits(share.shareMinor, currency),
+  }));
 }
 
 export function computeEqualShares(
@@ -68,8 +109,53 @@ export function computeExactShares(
   return computed;
 }
 
+export function computePercentShares(
+  totalAmount: string,
+  currency: string,
+  shares: ISplitShareInput[],
+  payerMemberId: string,
+): IComputedShare[] {
+  if (shares.length === 0) {
+    return [];
+  }
+
+  const weights = shares.map((share) => ({
+    memberId: share.memberId,
+    weight: parseNonNegative(share.shareAmount),
+  }));
+  const percentSum = weights.reduce((acc, item) => acc + item.weight, 0);
+  if (Math.round(percentSum * 100) !== 10000) {
+    throw new Error("Percentages must sum to 100");
+  }
+
+  const totalMinor = toMinorUnits(parseFloat(totalAmount), currency);
+  return distributeByWeights(totalMinor, currency, weights, payerMemberId);
+}
+
+export function computeWeightedShares(
+  totalAmount: string,
+  currency: string,
+  shares: ISplitShareInput[],
+  payerMemberId: string,
+): IComputedShare[] {
+  if (shares.length === 0) {
+    return [];
+  }
+
+  const weights = shares.map((share) => ({
+    memberId: share.memberId,
+    weight: parseNonNegative(share.shareAmount),
+  }));
+  if (weights.every((item) => item.weight <= 0)) {
+    throw new Error("Share weights must be greater than zero");
+  }
+
+  const totalMinor = toMinorUnits(parseFloat(totalAmount), currency);
+  return distributeByWeights(totalMinor, currency, weights, payerMemberId);
+}
+
 export function computeShares(
-  splitMode: "equal" | "exact",
+  splitMode: ISplitMode,
   totalAmount: string,
   currency: string,
   participantMemberIds: string[],
@@ -81,6 +167,28 @@ export function computeShares(
       throw new Error("Exact split requires share amounts");
     }
     return computeExactShares(totalAmount, currency, exactShares);
+  }
+  if (splitMode === "percent") {
+    if (!exactShares?.length) {
+      throw new Error("Percent split requires percentages");
+    }
+    return computePercentShares(
+      totalAmount,
+      currency,
+      exactShares,
+      payerMemberId,
+    );
+  }
+  if (splitMode === "shares") {
+    if (!exactShares?.length) {
+      throw new Error("Shares split requires weights");
+    }
+    return computeWeightedShares(
+      totalAmount,
+      currency,
+      exactShares,
+      payerMemberId,
+    );
   }
   return computeEqualShares(
     totalAmount,
