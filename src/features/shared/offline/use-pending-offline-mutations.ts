@@ -40,6 +40,8 @@ function getPendingRowsSnapshot(): IOfflineMutationRecord[] {
   return pendingRows;
 }
 
+const EMPTY_PENDING_ROWS: IOfflineMutationRecord[] = [];
+
 export function usePendingOfflineMutations(): {
   mutations: IOfflineMutationRecord[];
   pendingCount: number;
@@ -48,7 +50,7 @@ export function usePendingOfflineMutations(): {
   const mutations = useSyncExternalStore(
     subscribePendingRows,
     getPendingRowsSnapshot,
-    () => [],
+    () => EMPTY_PENDING_ROWS,
   );
 
   return {

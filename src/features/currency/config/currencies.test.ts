@@ -117,15 +117,20 @@ describe("buildCurrencySelectOptions", () => {
       recommendedCurrencies: ["EUR", "MXN"],
     });
 
-    expect(recommendedCount).toBe(2);
+    // Explicit recommendations are prepended, then auto recommendations follow.
+    expect(recommendedCount).toBe(6);
     expect(options[0]?.group).toBe("Recommended");
     expect(options[0]?.children.map((option) => option.value)).toEqual([
       "EUR",
       "MXN",
+      "USD",
+      "GBP",
+      "CHF",
+      "JPY",
     ]);
     expect(
       options[1]?.children.some((option) => option.value === "USD"),
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 

@@ -36,6 +36,7 @@ export function Form<T extends FieldValues>({
   return (
     <FormProvider {...form}>
       <form
+        method="post"
         onSubmit={form.handleSubmit(handleSubmit)}
         className={cn(className)}
         noValidate

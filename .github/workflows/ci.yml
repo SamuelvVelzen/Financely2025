@@ -32,3 +32,36 @@ jobs:
 
       - name: Quality checks
         run: yarn run check
+
+  e2e-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: yarn prisma:generate
+
+      - name: Install Playwright Chromium
+        run: yarn playwright install --with-deps chromium
+
+      - name: Smoke e2e
+        run: yarn test:e2e:smoke
+        env:
+          CI: true
+          BETTER_AUTH_SECRET: e2e-ci-secret-key-at-least-32-chars
+          BETTER_AUTH_URL: http://localhost:3100
+          SEED_USER_EMAIL: e2e@financely.local
+          SEED_USER_PASSWORD: e2e-password-123
+          RATE_LIMIT_DISABLED: "true"
+          VITE_ENABLE_EMAIL_PASSWORD: "true"
+          VITE_ENABLE_MAGIC_LINK: "false"
