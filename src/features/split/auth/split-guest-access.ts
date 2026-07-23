@@ -15,6 +15,14 @@ export class SplitGuestAccessError extends Error {
   }
 }
 
+export function getGuestSessionIdFromRequest(request: Request): string | null {
+  const cookie = request.headers.get("cookie") ?? "";
+  const match = cookie.match(
+    new RegExp(`${GUEST_SESSION_COOKIE}=([^;]+)`),
+  );
+  return match?.[1] ? decodeURIComponent(match[1]) : null;
+}
+
 export async function getGroupByGuestToken(
   token: string,
 ): Promise<SplitGroup | null> {

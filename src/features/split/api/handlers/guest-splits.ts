@@ -11,6 +11,7 @@ import {
 import {
   assertGuestCan,
   getGroupByGuestToken,
+  getGuestSessionIdFromRequest,
   GUEST_SESSION_COOKIE,
   requireGuestAccess,
   SplitGuestAccessError,
@@ -22,14 +23,6 @@ import { SplitSettlementService } from "@/features/split/services/split-settleme
 import { json } from "@tanstack/react-start";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
-
-function getGuestSessionId(request: Request): string | null {
-  const cookie = request.headers.get("cookie") ?? "";
-  const match = cookie.match(
-    new RegExp(`${GUEST_SESSION_COOKIE}=([^;]+)`),
-  );
-  return match?.[1] ? decodeURIComponent(match[1]) : null;
-}
 
 function guestSessionCookie(sessionId: string): string {
   return `${GUEST_SESSION_COOKIE}=${encodeURIComponent(sessionId)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`;
@@ -78,7 +71,7 @@ export async function guestJoinPOST({
       );
     }
 
-    let sessionId = getGuestSessionId(request);
+    let sessionId = getGuestSessionIdFromRequest(request);
     if (!sessionId) {
       sessionId = randomBytes(24).toString("base64url");
     }
@@ -113,7 +106,7 @@ export async function guestGroupGET({
   try {
     const { group, member } = await requireGuestAccess(
       params.token,
-      getGuestSessionId(request),
+      getGuestSessionIdFromRequest(request),
     );
     assertGuestCan(group, "view");
 
@@ -158,7 +151,7 @@ export async function guestCreateSettlementPOST({
   try {
     const { group, member } = await requireGuestAccess(
       params.token,
-      getGuestSessionId(request),
+      getGuestSessionIdFromRequest(request),
     );
     assertGuestCan(group, "settle");
 
@@ -190,7 +183,7 @@ export async function guestCreateExpensePOST({
   try {
     const { group, member } = await requireGuestAccess(
       params.token,
-      getGuestSessionId(request),
+      getGuestSessionIdFromRequest(request),
     );
     assertGuestCan(group, "add");
 

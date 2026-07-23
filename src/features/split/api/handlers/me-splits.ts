@@ -13,6 +13,7 @@ import {
   UpdateSplitGroupInputSchema,
   UpdateSplitSettlementInputSchema,
 } from "@/features/shared/validation/schemas";
+import { getGuestSessionIdFromRequest } from "@/features/split/auth/split-guest-access";
 import { SplitBalanceService } from "@/features/split/services/split-balance.service";
 import { SplitExpenseService } from "@/features/split/services/split-expense.service";
 import { SplitGroupService } from "@/features/split/services/split-group.service";
@@ -408,13 +409,19 @@ export async function rotateGuestLinkPOST({
 }
 
 export async function joinByInviteTokenPOST({
+  request,
   params,
 }: {
+  request: Request;
   params: { token: string };
 }) {
   try {
     return await withAuth(async (userId) => {
-      const result = await SplitGroupService.joinAsUser(params.token, userId);
+      const result = await SplitGroupService.joinAsUser(
+        params.token,
+        userId,
+        getGuestSessionIdFromRequest(request),
+      );
       return json(result, { status: 201 });
     });
   } catch (error) {

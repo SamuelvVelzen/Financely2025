@@ -340,8 +340,14 @@ export class SplitGroupService {
   /**
    * Join (or reopen) a group via invite token as a logged-in user.
    * Never creates a guest membership — avoids duplicate identities.
+   * When a guest session cookie is present for this group, that guest seat
+   * is promoted (or removed if the user is already a linked member).
    */
-  static async joinAsUser(token: string, userId: string) {
+  static async joinAsUser(
+    token: string,
+    userId: string,
+    guestSessionId?: string | null,
+  ) {
     const group = await prisma.splitGroup.findUnique({
       where: { guestAccessToken: token },
     });
@@ -356,6 +362,17 @@ export class SplitGroupService {
         status: { in: ["linked", "pending"] },
       },
     });
+
+    const guestBySession = guestSessionId
+      ? await prisma.splitGroupMember.findFirst({
+          where: {
+            groupId: group.id,
+            guestSessionId,
+            status: "guest",
+          },
+        })
+      : null;
+
     if (existingByUser) {
       if (existingByUser.status === "pending") {
         await prisma.splitGroupMember.update({
@@ -366,6 +383,16 @@ export class SplitGroupService {
           "./split-transaction-sync.service"
         );
         await SplitTransactionSyncService.backfillForUser(userId);
+      }
+      if (guestBySession) {
+        await prisma.splitGroupMember.update({
+          where: { id: guestBySession.id },
+          data: {
+            status: "removed",
+            removedAt: new Date(),
+            guestSessionId: null,
+          },
+        });
       }
       return { memberId: existingByUser.id, groupId: group.id };
     }
@@ -383,6 +410,25 @@ export class SplitGroupService {
         user.userInfo.lastName,
         user.userInfo.suffix,
       ) || email.split("@")[0]!;
+
+    if (guestBySession) {
+      await prisma.splitGroupMember.update({
+        where: { id: guestBySession.id },
+        data: {
+          userId,
+          email: email.trim(),
+          normalizedEmail: normalized,
+          displayName: guestBySession.displayName || displayName,
+          status: "linked",
+          guestSessionId: null,
+        },
+      });
+      const { SplitTransactionSyncService } = await import(
+        "./split-transaction-sync.service"
+      );
+      await SplitTransactionSyncService.backfillForUser(userId);
+      return { memberId: guestBySession.id, groupId: group.id };
+    }
 
     const pendingByEmail = await prisma.splitGroupMember.findFirst({
       where: {
