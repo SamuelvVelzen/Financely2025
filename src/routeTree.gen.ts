@@ -24,7 +24,7 @@ import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as appWorkspaceIdTransactionsRouteImport } from './routes/(app)/$workspaceId/transactions'
 import { Route as appWorkspaceIdSmartTaggingRouteImport } from './routes/(app)/$workspaceId/smart-tagging'
-import { Route as appWorkspaceIdMessagesRouteImport } from './routes/(app)/$workspaceId/messages'
+import { Route as appWorkspaceIdNotificationsRouteImport } from './routes/(app)/$workspaceId/notifications'
 import { Route as SplitsJoinTokenIndexRouteImport } from './routes/splits.join.$token.index'
 import { Route as appSplitsGroupIdIndexRouteImport } from './routes/(app)/splits.$groupId.index'
 import { Route as appWorkspaceIdTagsIndexRouteImport } from './routes/(app)/$workspaceId/tags.index'
@@ -41,7 +41,7 @@ import { Route as ApiV1WorkspaceIdTransactionsRouteImport } from './routes/api/v
 import { Route as ApiV1WorkspaceIdTagsRouteImport } from './routes/api/v1/$workspaceId/tags'
 import { Route as ApiV1WorkspaceIdTagRulesRouteImport } from './routes/api/v1/$workspaceId/tag-rules'
 import { Route as ApiV1WorkspaceIdSubscriptionsRouteImport } from './routes/api/v1/$workspaceId/subscriptions'
-import { Route as ApiV1WorkspaceIdMessagesRouteImport } from './routes/api/v1/$workspaceId/messages'
+import { Route as ApiV1WorkspaceIdNotificationsRouteImport } from './routes/api/v1/$workspaceId/notifications'
 import { Route as ApiV1WorkspaceIdCurrenciesRouteImport } from './routes/api/v1/$workspaceId/currencies'
 import { Route as ApiV1WorkspaceIdBudgetsRouteImport } from './routes/api/v1/$workspaceId/budgets'
 import { Route as appWorkspaceIdTagsSmartTaggingRouteImport } from './routes/(app)/$workspaceId/tags.smart-tagging'
@@ -76,9 +76,9 @@ import { Route as ApiV1WorkspaceIdTagRulesRuleIdRouteImport } from './routes/api
 import { Route as ApiV1WorkspaceIdSubscriptionsDismissalsRouteImport } from './routes/api/v1/$workspaceId/subscriptions.dismissals'
 import { Route as ApiV1WorkspaceIdSubscriptionsDetectRouteImport } from './routes/api/v1/$workspaceId/subscriptions.detect'
 import { Route as ApiV1WorkspaceIdSubscriptionsSubscriptionIdRouteImport } from './routes/api/v1/$workspaceId/subscriptions.$subscriptionId'
-import { Route as ApiV1WorkspaceIdMessagesReadAllRouteImport } from './routes/api/v1/$workspaceId/messages.read-all'
-import { Route as ApiV1WorkspaceIdMessagesCountRouteImport } from './routes/api/v1/$workspaceId/messages.count'
-import { Route as ApiV1WorkspaceIdMessagesMessageIdRouteImport } from './routes/api/v1/$workspaceId/messages.$messageId'
+import { Route as ApiV1WorkspaceIdNotificationsReadAllRouteImport } from './routes/api/v1/$workspaceId/notifications.read-all'
+import { Route as ApiV1WorkspaceIdNotificationsCountRouteImport } from './routes/api/v1/$workspaceId/notifications.count'
+import { Route as ApiV1WorkspaceIdNotificationsNotificationIdRouteImport } from './routes/api/v1/$workspaceId/notifications.$notificationId'
 import { Route as ApiV1WorkspaceIdBudgetsOverviewRouteImport } from './routes/api/v1/$workspaceId/budgets.overview'
 import { Route as ApiV1WorkspaceIdBudgetsBudgetIdRouteImport } from './routes/api/v1/$workspaceId/budgets.$budgetId'
 import { Route as appWorkspaceIdBudgetsBudgetIdEditRouteImport } from './routes/(app)/$workspaceId/budgets.$budgetId.edit'
@@ -180,11 +180,12 @@ const appWorkspaceIdSmartTaggingRoute =
     path: '/smart-tagging',
     getParentRoute: () => appWorkspaceIdRouteRoute,
   } as any)
-const appWorkspaceIdMessagesRoute = appWorkspaceIdMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
-  getParentRoute: () => appWorkspaceIdRouteRoute,
-} as any)
+const appWorkspaceIdNotificationsRoute =
+  appWorkspaceIdNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
 const SplitsJoinTokenIndexRoute = SplitsJoinTokenIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -271,10 +272,10 @@ const ApiV1WorkspaceIdSubscriptionsRoute =
     path: '/api/v1/$workspaceId/subscriptions',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiV1WorkspaceIdMessagesRoute =
-  ApiV1WorkspaceIdMessagesRouteImport.update({
-    id: '/api/v1/$workspaceId/messages',
-    path: '/api/v1/$workspaceId/messages',
+const ApiV1WorkspaceIdNotificationsRoute =
+  ApiV1WorkspaceIdNotificationsRouteImport.update({
+    id: '/api/v1/$workspaceId/notifications',
+    path: '/api/v1/$workspaceId/notifications',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiV1WorkspaceIdCurrenciesRoute =
@@ -477,23 +478,23 @@ const ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute =
     path: '/$subscriptionId',
     getParentRoute: () => ApiV1WorkspaceIdSubscriptionsRoute,
   } as any)
-const ApiV1WorkspaceIdMessagesReadAllRoute =
-  ApiV1WorkspaceIdMessagesReadAllRouteImport.update({
+const ApiV1WorkspaceIdNotificationsReadAllRoute =
+  ApiV1WorkspaceIdNotificationsReadAllRouteImport.update({
     id: '/read-all',
     path: '/read-all',
-    getParentRoute: () => ApiV1WorkspaceIdMessagesRoute,
+    getParentRoute: () => ApiV1WorkspaceIdNotificationsRoute,
   } as any)
-const ApiV1WorkspaceIdMessagesCountRoute =
-  ApiV1WorkspaceIdMessagesCountRouteImport.update({
+const ApiV1WorkspaceIdNotificationsCountRoute =
+  ApiV1WorkspaceIdNotificationsCountRouteImport.update({
     id: '/count',
     path: '/count',
-    getParentRoute: () => ApiV1WorkspaceIdMessagesRoute,
+    getParentRoute: () => ApiV1WorkspaceIdNotificationsRoute,
   } as any)
-const ApiV1WorkspaceIdMessagesMessageIdRoute =
-  ApiV1WorkspaceIdMessagesMessageIdRouteImport.update({
-    id: '/$messageId',
-    path: '/$messageId',
-    getParentRoute: () => ApiV1WorkspaceIdMessagesRoute,
+const ApiV1WorkspaceIdNotificationsNotificationIdRoute =
+  ApiV1WorkspaceIdNotificationsNotificationIdRouteImport.update({
+    id: '/$notificationId',
+    path: '/$notificationId',
+    getParentRoute: () => ApiV1WorkspaceIdNotificationsRoute,
   } as any)
 const ApiV1WorkspaceIdBudgetsOverviewRoute =
   ApiV1WorkspaceIdBudgetsOverviewRouteImport.update({
@@ -647,7 +648,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof appAccountRoute
   '/onboarding': typeof appOnboardingRoute
   '/': typeof appIndexRoute
-  '/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/$workspaceId/notifications': typeof appWorkspaceIdNotificationsRoute
   '/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
   '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -659,7 +660,7 @@ export interface FileRoutesByFullPath {
   '/$workspaceId/tags/smart-tagging': typeof appWorkspaceIdTagsSmartTaggingRoute
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
   '/api/v1/$workspaceId/currencies': typeof ApiV1WorkspaceIdCurrenciesRoute
-  '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
+  '/api/v1/$workspaceId/notifications': typeof ApiV1WorkspaceIdNotificationsRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
   '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
@@ -679,9 +680,9 @@ export interface FileRoutesByFullPath {
   '/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
   '/api/v1/$workspaceId/budgets/$budgetId': typeof ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren
   '/api/v1/$workspaceId/budgets/overview': typeof ApiV1WorkspaceIdBudgetsOverviewRoute
-  '/api/v1/$workspaceId/messages/$messageId': typeof ApiV1WorkspaceIdMessagesMessageIdRoute
-  '/api/v1/$workspaceId/messages/count': typeof ApiV1WorkspaceIdMessagesCountRoute
-  '/api/v1/$workspaceId/messages/read-all': typeof ApiV1WorkspaceIdMessagesReadAllRoute
+  '/api/v1/$workspaceId/notifications/$notificationId': typeof ApiV1WorkspaceIdNotificationsNotificationIdRoute
+  '/api/v1/$workspaceId/notifications/count': typeof ApiV1WorkspaceIdNotificationsCountRoute
+  '/api/v1/$workspaceId/notifications/read-all': typeof ApiV1WorkspaceIdNotificationsReadAllRoute
   '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
   '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
   '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
@@ -741,7 +742,7 @@ export interface FileRoutesByTo {
   '/account': typeof appAccountRoute
   '/onboarding': typeof appOnboardingRoute
   '/': typeof appIndexRoute
-  '/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/$workspaceId/notifications': typeof appWorkspaceIdNotificationsRoute
   '/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
   '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -752,7 +753,7 @@ export interface FileRoutesByTo {
   '/$workspaceId/tags/smart-tagging': typeof appWorkspaceIdTagsSmartTaggingRoute
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
   '/api/v1/$workspaceId/currencies': typeof ApiV1WorkspaceIdCurrenciesRoute
-  '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
+  '/api/v1/$workspaceId/notifications': typeof ApiV1WorkspaceIdNotificationsRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
   '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
@@ -772,9 +773,9 @@ export interface FileRoutesByTo {
   '/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
   '/api/v1/$workspaceId/budgets/$budgetId': typeof ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren
   '/api/v1/$workspaceId/budgets/overview': typeof ApiV1WorkspaceIdBudgetsOverviewRoute
-  '/api/v1/$workspaceId/messages/$messageId': typeof ApiV1WorkspaceIdMessagesMessageIdRoute
-  '/api/v1/$workspaceId/messages/count': typeof ApiV1WorkspaceIdMessagesCountRoute
-  '/api/v1/$workspaceId/messages/read-all': typeof ApiV1WorkspaceIdMessagesReadAllRoute
+  '/api/v1/$workspaceId/notifications/$notificationId': typeof ApiV1WorkspaceIdNotificationsNotificationIdRoute
+  '/api/v1/$workspaceId/notifications/count': typeof ApiV1WorkspaceIdNotificationsCountRoute
+  '/api/v1/$workspaceId/notifications/read-all': typeof ApiV1WorkspaceIdNotificationsReadAllRoute
   '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
   '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
   '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
@@ -837,7 +838,7 @@ export interface FileRoutesById {
   '/(app)/account': typeof appAccountRoute
   '/(app)/onboarding': typeof appOnboardingRoute
   '/(app)/': typeof appIndexRoute
-  '/(app)/$workspaceId/messages': typeof appWorkspaceIdMessagesRoute
+  '/(app)/$workspaceId/notifications': typeof appWorkspaceIdNotificationsRoute
   '/(app)/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
   '/(app)/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -849,7 +850,7 @@ export interface FileRoutesById {
   '/(app)/$workspaceId/tags/smart-tagging': typeof appWorkspaceIdTagsSmartTaggingRoute
   '/api/v1/$workspaceId/budgets': typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
   '/api/v1/$workspaceId/currencies': typeof ApiV1WorkspaceIdCurrenciesRoute
-  '/api/v1/$workspaceId/messages': typeof ApiV1WorkspaceIdMessagesRouteWithChildren
+  '/api/v1/$workspaceId/notifications': typeof ApiV1WorkspaceIdNotificationsRouteWithChildren
   '/api/v1/$workspaceId/subscriptions': typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
   '/api/v1/$workspaceId/tag-rules': typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   '/api/v1/$workspaceId/tags': typeof ApiV1WorkspaceIdTagsRouteWithChildren
@@ -869,9 +870,9 @@ export interface FileRoutesById {
   '/(app)/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
   '/api/v1/$workspaceId/budgets/$budgetId': typeof ApiV1WorkspaceIdBudgetsBudgetIdRouteWithChildren
   '/api/v1/$workspaceId/budgets/overview': typeof ApiV1WorkspaceIdBudgetsOverviewRoute
-  '/api/v1/$workspaceId/messages/$messageId': typeof ApiV1WorkspaceIdMessagesMessageIdRoute
-  '/api/v1/$workspaceId/messages/count': typeof ApiV1WorkspaceIdMessagesCountRoute
-  '/api/v1/$workspaceId/messages/read-all': typeof ApiV1WorkspaceIdMessagesReadAllRoute
+  '/api/v1/$workspaceId/notifications/$notificationId': typeof ApiV1WorkspaceIdNotificationsNotificationIdRoute
+  '/api/v1/$workspaceId/notifications/count': typeof ApiV1WorkspaceIdNotificationsCountRoute
+  '/api/v1/$workspaceId/notifications/read-all': typeof ApiV1WorkspaceIdNotificationsReadAllRoute
   '/api/v1/$workspaceId/subscriptions/$subscriptionId': typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRoute
   '/api/v1/$workspaceId/subscriptions/detect': typeof ApiV1WorkspaceIdSubscriptionsDetectRouteWithChildren
   '/api/v1/$workspaceId/subscriptions/dismissals': typeof ApiV1WorkspaceIdSubscriptionsDismissalsRouteWithChildren
@@ -934,7 +935,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/onboarding'
     | '/'
-    | '/$workspaceId/messages'
+    | '/$workspaceId/notifications'
     | '/$workspaceId/smart-tagging'
     | '/$workspaceId/transactions'
     | '/api/auth/$'
@@ -946,7 +947,7 @@ export interface FileRouteTypes {
     | '/$workspaceId/tags/smart-tagging'
     | '/api/v1/$workspaceId/budgets'
     | '/api/v1/$workspaceId/currencies'
-    | '/api/v1/$workspaceId/messages'
+    | '/api/v1/$workspaceId/notifications'
     | '/api/v1/$workspaceId/subscriptions'
     | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
@@ -966,9 +967,9 @@ export interface FileRouteTypes {
     | '/$workspaceId/budgets/$budgetId/edit'
     | '/api/v1/$workspaceId/budgets/$budgetId'
     | '/api/v1/$workspaceId/budgets/overview'
-    | '/api/v1/$workspaceId/messages/$messageId'
-    | '/api/v1/$workspaceId/messages/count'
-    | '/api/v1/$workspaceId/messages/read-all'
+    | '/api/v1/$workspaceId/notifications/$notificationId'
+    | '/api/v1/$workspaceId/notifications/count'
+    | '/api/v1/$workspaceId/notifications/read-all'
     | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
     | '/api/v1/$workspaceId/subscriptions/detect'
     | '/api/v1/$workspaceId/subscriptions/dismissals'
@@ -1028,7 +1029,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/onboarding'
     | '/'
-    | '/$workspaceId/messages'
+    | '/$workspaceId/notifications'
     | '/$workspaceId/smart-tagging'
     | '/$workspaceId/transactions'
     | '/api/auth/$'
@@ -1039,7 +1040,7 @@ export interface FileRouteTypes {
     | '/$workspaceId/tags/smart-tagging'
     | '/api/v1/$workspaceId/budgets'
     | '/api/v1/$workspaceId/currencies'
-    | '/api/v1/$workspaceId/messages'
+    | '/api/v1/$workspaceId/notifications'
     | '/api/v1/$workspaceId/subscriptions'
     | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
@@ -1059,9 +1060,9 @@ export interface FileRouteTypes {
     | '/$workspaceId/budgets/$budgetId/edit'
     | '/api/v1/$workspaceId/budgets/$budgetId'
     | '/api/v1/$workspaceId/budgets/overview'
-    | '/api/v1/$workspaceId/messages/$messageId'
-    | '/api/v1/$workspaceId/messages/count'
-    | '/api/v1/$workspaceId/messages/read-all'
+    | '/api/v1/$workspaceId/notifications/$notificationId'
+    | '/api/v1/$workspaceId/notifications/count'
+    | '/api/v1/$workspaceId/notifications/read-all'
     | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
     | '/api/v1/$workspaceId/subscriptions/detect'
     | '/api/v1/$workspaceId/subscriptions/dismissals'
@@ -1123,7 +1124,7 @@ export interface FileRouteTypes {
     | '/(app)/account'
     | '/(app)/onboarding'
     | '/(app)/'
-    | '/(app)/$workspaceId/messages'
+    | '/(app)/$workspaceId/notifications'
     | '/(app)/$workspaceId/smart-tagging'
     | '/(app)/$workspaceId/transactions'
     | '/api/auth/$'
@@ -1135,7 +1136,7 @@ export interface FileRouteTypes {
     | '/(app)/$workspaceId/tags/smart-tagging'
     | '/api/v1/$workspaceId/budgets'
     | '/api/v1/$workspaceId/currencies'
-    | '/api/v1/$workspaceId/messages'
+    | '/api/v1/$workspaceId/notifications'
     | '/api/v1/$workspaceId/subscriptions'
     | '/api/v1/$workspaceId/tag-rules'
     | '/api/v1/$workspaceId/tags'
@@ -1155,9 +1156,9 @@ export interface FileRouteTypes {
     | '/(app)/$workspaceId/budgets/$budgetId/edit'
     | '/api/v1/$workspaceId/budgets/$budgetId'
     | '/api/v1/$workspaceId/budgets/overview'
-    | '/api/v1/$workspaceId/messages/$messageId'
-    | '/api/v1/$workspaceId/messages/count'
-    | '/api/v1/$workspaceId/messages/read-all'
+    | '/api/v1/$workspaceId/notifications/$notificationId'
+    | '/api/v1/$workspaceId/notifications/count'
+    | '/api/v1/$workspaceId/notifications/read-all'
     | '/api/v1/$workspaceId/subscriptions/$subscriptionId'
     | '/api/v1/$workspaceId/subscriptions/detect'
     | '/api/v1/$workspaceId/subscriptions/dismissals'
@@ -1221,7 +1222,7 @@ export interface RootRouteChildren {
   SplitsJoinTokenRoute: typeof SplitsJoinTokenRouteWithChildren
   ApiV1WorkspaceIdBudgetsRoute: typeof ApiV1WorkspaceIdBudgetsRouteWithChildren
   ApiV1WorkspaceIdCurrenciesRoute: typeof ApiV1WorkspaceIdCurrenciesRoute
-  ApiV1WorkspaceIdMessagesRoute: typeof ApiV1WorkspaceIdMessagesRouteWithChildren
+  ApiV1WorkspaceIdNotificationsRoute: typeof ApiV1WorkspaceIdNotificationsRouteWithChildren
   ApiV1WorkspaceIdSubscriptionsRoute: typeof ApiV1WorkspaceIdSubscriptionsRouteWithChildren
   ApiV1WorkspaceIdTagRulesRoute: typeof ApiV1WorkspaceIdTagRulesRouteWithChildren
   ApiV1WorkspaceIdTagsRoute: typeof ApiV1WorkspaceIdTagsRouteWithChildren
@@ -1340,11 +1341,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appWorkspaceIdSmartTaggingRouteImport
       parentRoute: typeof appWorkspaceIdRouteRoute
     }
-    '/(app)/$workspaceId/messages': {
-      id: '/(app)/$workspaceId/messages'
-      path: '/messages'
-      fullPath: '/$workspaceId/messages'
-      preLoaderRoute: typeof appWorkspaceIdMessagesRouteImport
+    '/(app)/$workspaceId/notifications': {
+      id: '/(app)/$workspaceId/notifications'
+      path: '/notifications'
+      fullPath: '/$workspaceId/notifications'
+      preLoaderRoute: typeof appWorkspaceIdNotificationsRouteImport
       parentRoute: typeof appWorkspaceIdRouteRoute
     }
     '/splits/join/$token/': {
@@ -1459,11 +1460,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1WorkspaceIdSubscriptionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/v1/$workspaceId/messages': {
-      id: '/api/v1/$workspaceId/messages'
-      path: '/api/v1/$workspaceId/messages'
-      fullPath: '/api/v1/$workspaceId/messages'
-      preLoaderRoute: typeof ApiV1WorkspaceIdMessagesRouteImport
+    '/api/v1/$workspaceId/notifications': {
+      id: '/api/v1/$workspaceId/notifications'
+      path: '/api/v1/$workspaceId/notifications'
+      fullPath: '/api/v1/$workspaceId/notifications'
+      preLoaderRoute: typeof ApiV1WorkspaceIdNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/$workspaceId/currencies': {
@@ -1704,26 +1705,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1WorkspaceIdSubscriptionsSubscriptionIdRouteImport
       parentRoute: typeof ApiV1WorkspaceIdSubscriptionsRoute
     }
-    '/api/v1/$workspaceId/messages/read-all': {
-      id: '/api/v1/$workspaceId/messages/read-all'
+    '/api/v1/$workspaceId/notifications/read-all': {
+      id: '/api/v1/$workspaceId/notifications/read-all'
       path: '/read-all'
-      fullPath: '/api/v1/$workspaceId/messages/read-all'
-      preLoaderRoute: typeof ApiV1WorkspaceIdMessagesReadAllRouteImport
-      parentRoute: typeof ApiV1WorkspaceIdMessagesRoute
+      fullPath: '/api/v1/$workspaceId/notifications/read-all'
+      preLoaderRoute: typeof ApiV1WorkspaceIdNotificationsReadAllRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdNotificationsRoute
     }
-    '/api/v1/$workspaceId/messages/count': {
-      id: '/api/v1/$workspaceId/messages/count'
+    '/api/v1/$workspaceId/notifications/count': {
+      id: '/api/v1/$workspaceId/notifications/count'
       path: '/count'
-      fullPath: '/api/v1/$workspaceId/messages/count'
-      preLoaderRoute: typeof ApiV1WorkspaceIdMessagesCountRouteImport
-      parentRoute: typeof ApiV1WorkspaceIdMessagesRoute
+      fullPath: '/api/v1/$workspaceId/notifications/count'
+      preLoaderRoute: typeof ApiV1WorkspaceIdNotificationsCountRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdNotificationsRoute
     }
-    '/api/v1/$workspaceId/messages/$messageId': {
-      id: '/api/v1/$workspaceId/messages/$messageId'
-      path: '/$messageId'
-      fullPath: '/api/v1/$workspaceId/messages/$messageId'
-      preLoaderRoute: typeof ApiV1WorkspaceIdMessagesMessageIdRouteImport
-      parentRoute: typeof ApiV1WorkspaceIdMessagesRoute
+    '/api/v1/$workspaceId/notifications/$notificationId': {
+      id: '/api/v1/$workspaceId/notifications/$notificationId'
+      path: '/$notificationId'
+      fullPath: '/api/v1/$workspaceId/notifications/$notificationId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdNotificationsNotificationIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdNotificationsRoute
     }
     '/api/v1/$workspaceId/budgets/overview': {
       id: '/api/v1/$workspaceId/budgets/overview'
@@ -1897,7 +1898,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface appWorkspaceIdRouteRouteChildren {
-  appWorkspaceIdMessagesRoute: typeof appWorkspaceIdMessagesRoute
+  appWorkspaceIdNotificationsRoute: typeof appWorkspaceIdNotificationsRoute
   appWorkspaceIdSmartTaggingRoute: typeof appWorkspaceIdSmartTaggingRoute
   appWorkspaceIdTransactionsRoute: typeof appWorkspaceIdTransactionsRoute
   appWorkspaceIdIndexRoute: typeof appWorkspaceIdIndexRoute
@@ -1911,7 +1912,7 @@ interface appWorkspaceIdRouteRouteChildren {
 }
 
 const appWorkspaceIdRouteRouteChildren: appWorkspaceIdRouteRouteChildren = {
-  appWorkspaceIdMessagesRoute: appWorkspaceIdMessagesRoute,
+  appWorkspaceIdNotificationsRoute: appWorkspaceIdNotificationsRoute,
   appWorkspaceIdSmartTaggingRoute: appWorkspaceIdSmartTaggingRoute,
   appWorkspaceIdTransactionsRoute: appWorkspaceIdTransactionsRoute,
   appWorkspaceIdIndexRoute: appWorkspaceIdIndexRoute,
@@ -2160,23 +2161,25 @@ const ApiV1WorkspaceIdBudgetsRouteWithChildren =
     ApiV1WorkspaceIdBudgetsRouteChildren,
   )
 
-interface ApiV1WorkspaceIdMessagesRouteChildren {
-  ApiV1WorkspaceIdMessagesMessageIdRoute: typeof ApiV1WorkspaceIdMessagesMessageIdRoute
-  ApiV1WorkspaceIdMessagesCountRoute: typeof ApiV1WorkspaceIdMessagesCountRoute
-  ApiV1WorkspaceIdMessagesReadAllRoute: typeof ApiV1WorkspaceIdMessagesReadAllRoute
+interface ApiV1WorkspaceIdNotificationsRouteChildren {
+  ApiV1WorkspaceIdNotificationsNotificationIdRoute: typeof ApiV1WorkspaceIdNotificationsNotificationIdRoute
+  ApiV1WorkspaceIdNotificationsCountRoute: typeof ApiV1WorkspaceIdNotificationsCountRoute
+  ApiV1WorkspaceIdNotificationsReadAllRoute: typeof ApiV1WorkspaceIdNotificationsReadAllRoute
 }
 
-const ApiV1WorkspaceIdMessagesRouteChildren: ApiV1WorkspaceIdMessagesRouteChildren =
+const ApiV1WorkspaceIdNotificationsRouteChildren: ApiV1WorkspaceIdNotificationsRouteChildren =
   {
-    ApiV1WorkspaceIdMessagesMessageIdRoute:
-      ApiV1WorkspaceIdMessagesMessageIdRoute,
-    ApiV1WorkspaceIdMessagesCountRoute: ApiV1WorkspaceIdMessagesCountRoute,
-    ApiV1WorkspaceIdMessagesReadAllRoute: ApiV1WorkspaceIdMessagesReadAllRoute,
+    ApiV1WorkspaceIdNotificationsNotificationIdRoute:
+      ApiV1WorkspaceIdNotificationsNotificationIdRoute,
+    ApiV1WorkspaceIdNotificationsCountRoute:
+      ApiV1WorkspaceIdNotificationsCountRoute,
+    ApiV1WorkspaceIdNotificationsReadAllRoute:
+      ApiV1WorkspaceIdNotificationsReadAllRoute,
   }
 
-const ApiV1WorkspaceIdMessagesRouteWithChildren =
-  ApiV1WorkspaceIdMessagesRoute._addFileChildren(
-    ApiV1WorkspaceIdMessagesRouteChildren,
+const ApiV1WorkspaceIdNotificationsRouteWithChildren =
+  ApiV1WorkspaceIdNotificationsRoute._addFileChildren(
+    ApiV1WorkspaceIdNotificationsRouteChildren,
   )
 
 interface ApiV1WorkspaceIdSubscriptionsDetectRouteChildren {
@@ -2380,7 +2383,8 @@ const rootRouteChildren: RootRouteChildren = {
   SplitsJoinTokenRoute: SplitsJoinTokenRouteWithChildren,
   ApiV1WorkspaceIdBudgetsRoute: ApiV1WorkspaceIdBudgetsRouteWithChildren,
   ApiV1WorkspaceIdCurrenciesRoute: ApiV1WorkspaceIdCurrenciesRoute,
-  ApiV1WorkspaceIdMessagesRoute: ApiV1WorkspaceIdMessagesRouteWithChildren,
+  ApiV1WorkspaceIdNotificationsRoute:
+    ApiV1WorkspaceIdNotificationsRouteWithChildren,
   ApiV1WorkspaceIdSubscriptionsRoute:
     ApiV1WorkspaceIdSubscriptionsRouteWithChildren,
   ApiV1WorkspaceIdTagRulesRoute: ApiV1WorkspaceIdTagRulesRouteWithChildren,

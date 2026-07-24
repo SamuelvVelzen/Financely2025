@@ -1,9 +1,9 @@
 import type {
   ICreateBudgetInput,
-  ICreateMessageInput,
+  ICreateNotificationInput,
   ICreateTagInput,
   ICreateTransactionInput,
-  IMessage,
+  INotification,
   ISubscription,
   ITag,
   ITransaction,
@@ -459,11 +459,11 @@ export function buildOptimisticSubscription(
   };
 }
 
-export function buildOptimisticMessage(
-  input: ICreateMessageInput,
+export function buildOptimisticNotification(
+  input: ICreateNotificationInput,
   userId: string,
   tempId = crypto.randomUUID(),
-): IMessage {
+): INotification {
   return {
     id: tempId,
     userId,

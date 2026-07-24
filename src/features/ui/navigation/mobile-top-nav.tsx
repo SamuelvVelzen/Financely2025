@@ -1,7 +1,7 @@
 import { ROUTES } from "@/config/routes";
 import { getAuthRedirectPath } from "@/features/auth/sanitize-auth-redirect";
-import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
-import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
+import { useUnreadCount } from "@/features/notification/hooks/useUnreadCount";
+import { formatUnreadBadgeLabel } from "@/features/notification/utils/format-unread-badge-label";
 import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
 import { cn } from "@/features/util/cn";
 import { WorkspaceSwitcherDropdown } from "@/features/workspace/components/workspace-switcher-dropdown";
@@ -94,7 +94,7 @@ export function MobileTopNav() {
             }}
           />
           <DropdownItem
-            text="Messages"
+            text="Notifications"
             icon={
               <div className="relative">
                 <HiOutlineBell className="size-5" />
@@ -107,7 +107,7 @@ export function MobileTopNav() {
             }
             clicked={() => {
               navigate({
-                to: "/$workspaceId/messages",
+                to: "/$workspaceId/notifications",
                 params: workspaceParams,
               });
             }}

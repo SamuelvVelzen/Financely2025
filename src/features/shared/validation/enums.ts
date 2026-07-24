@@ -19,7 +19,7 @@ export const PaymentMethodSchema = z.enum([...PAYMENT_METHOD_VALUES]);
 
 export const TransactionTypeSchema = GeneratedTransactionTypeSchema;
 
-export const MessageTypeSchema = z.enum([
+export const NotificationTypeSchema = z.enum([
   "INFO",
   "SUCCESS",
   "WARNING",
@@ -30,7 +30,7 @@ export const TimePrecisionSchema = z.enum(["DateTime", "DateOnly"]);
 
 export type { ICurrency, IPaymentMethod };
 export type ITransactionType = z.infer<typeof TransactionTypeSchema>;
-export type IMessageType = z.infer<typeof MessageTypeSchema>;
+export type INotificationType = z.infer<typeof NotificationTypeSchema>;
 export type ITimePrecision = z.infer<typeof TimePrecisionSchema>;
 
 export { getCurrencyOptionsFromConfig as getCurrencyOptions };

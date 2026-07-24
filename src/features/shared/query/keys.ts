@@ -73,7 +73,7 @@ export const queryKeys = {
     },
   ) => ["incomes", workspaceId, params] as const,
 
-  messages: (
+  notifications: (
     workspaceId: number,
     params?: {
       page?: number;
@@ -81,11 +81,11 @@ export const queryKeys = {
       read?: boolean;
       type?: "INFO" | "SUCCESS" | "WARNING" | "ERROR";
     },
-  ) => ["messages", workspaceId, params] as const,
-  message: (workspaceId: number, messageId: string) =>
-    ["messages", workspaceId, messageId] as const,
+  ) => ["notifications", workspaceId, params] as const,
+  notification: (workspaceId: number, notificationId: string) =>
+    ["notifications", workspaceId, notificationId] as const,
   unreadCount: (workspaceId: number) =>
-    ["messages", workspaceId, "unread-count"] as const,
+    ["notifications", workspaceId, "unread-count"] as const,
 
   budgets: (
     workspaceId: number,

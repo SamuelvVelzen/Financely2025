@@ -13,7 +13,7 @@ import {
   type ITransactionsQuery,
   type IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
-import { MessageService } from "@/features/message/services/message.service";
+import { NotificationService } from "@/features/notification/services/notification.service";
 import { SubscriptionDetectionService } from "@/features/subscription/services/subscription-detection.service";
 import { SubscriptionService } from "@/features/subscription/services/subscription.service";
 import { prisma } from "@/features/util/prisma";
@@ -397,7 +397,7 @@ export class TransactionService {
 
     if (candidates.length > 0) {
       const candidate = candidates[0];
-      await MessageService.createMessage(userId, workspaceId, {
+      await NotificationService.createNotification(userId, workspaceId, {
         title: "Recurring transaction detected",
         content: `"${candidate.displayName}" looks like a ${candidate.frequency} subscription (${candidate.occurrences} occurrences). Would you like to track it?`,
         type: "INFO",
@@ -558,7 +558,7 @@ export class TransactionService {
       })
         .then(async (candidates) => {
           if (candidates.length > 0) {
-            await MessageService.createMessage(userId, workspaceId, {
+            await NotificationService.createNotification(userId, workspaceId, {
               title: "Recurring transactions detected",
               content: `We found ${candidates.length} potential subscription${candidates.length > 1 ? "s" : ""} in your imported transactions. Review them to start tracking.`,
               type: "INFO",

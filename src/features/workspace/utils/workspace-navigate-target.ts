@@ -63,7 +63,7 @@ export function buildWorkspaceNavigateTarget(
   const singleSegmentRoutes = [
     "transactions",
     "tags",
-    "messages",
+    "notifications",
     "subscriptions",
   ] as const;
 

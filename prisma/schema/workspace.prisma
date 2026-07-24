@@ -12,7 +12,7 @@ model Workspace {
 
   transactions           Transaction[]
   tags                   Tag[]
-  messages               Message[]
+  notifications          Notification[]
   budgets                Budget[]
   subscriptions          Subscription[]
   subscriptionDismissals SubscriptionDismissal[]

@@ -1,5 +1,5 @@
 import { withWorkspaceAuth } from "@/features/auth/workspace-context";
-import { MessageFactory } from "@/features/message/services/message.factory";
+import { NotificationFactory } from "@/features/notification/services/notification.factory";
 import {
   ApiError,
   createErrorResponse,
@@ -131,7 +131,7 @@ export async function POST({
 
       // Create message for import result (don't await, fire and forget)
       if (result.created.length > 0) {
-        MessageFactory.createTransactionImportMessage(
+        NotificationFactory.createTransactionImportNotification(
           userId,
           workspaceId,
           result.created.length,

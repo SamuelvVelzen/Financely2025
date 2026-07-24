@@ -77,7 +77,7 @@ export class WorkspaceService {
       (await prisma.transaction.count({ where: { workspaceId } })) +
       (await prisma.tag.count({ where: { workspaceId } })) +
       (await prisma.budget.count({ where: { workspaceId } })) +
-      (await prisma.message.count({ where: { workspaceId } })) +
+      (await prisma.notification.count({ where: { workspaceId } })) +
       (await prisma.subscription.count({ where: { workspaceId } })) +
       (await prisma.subscriptionDismissal.count({ where: { workspaceId } }));
 

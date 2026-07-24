@@ -12,13 +12,13 @@ export {
   CurrencySchema,
   PaymentMethodSchema,
   TransactionTypeSchema,
-  MessageTypeSchema,
+  NotificationTypeSchema,
   TimePrecisionSchema,
   getCurrencyOptions,
   type ICurrency,
   type IPaymentMethod,
   type ITransactionType,
-  type IMessageType,
+  type INotificationType,
   type ITimePrecision,
 } from "@/features/shared/validation/enums";
 
@@ -187,21 +187,21 @@ export {
 } from "@/features/users/validation/schemas";
 
 export {
-  MessageActionSchema,
-  MessageSchema,
-  CreateMessageInputSchema,
-  UpdateMessageInputSchema,
-  MessagesQuerySchema,
-  MessagesResponseSchema,
+  NotificationActionSchema,
+  NotificationSchema,
+  CreateNotificationInputSchema,
+  UpdateNotificationInputSchema,
+  NotificationsQuerySchema,
+  NotificationsResponseSchema,
   UnreadCountResponseSchema,
-  type IMessage,
-  type IMessageAction,
-  type ICreateMessageInput,
-  type IUpdateMessageInput,
-  type IMessagesQuery,
-  type IMessagesResponse,
+  type INotification,
+  type INotificationAction,
+  type ICreateNotificationInput,
+  type IUpdateNotificationInput,
+  type INotificationsQuery,
+  type INotificationsResponse,
   type IUnreadCountResponse,
-} from "@/features/message/validation/schemas";
+} from "@/features/notification/validation/schemas";
 
 export {
   BudgetPresetSchema,

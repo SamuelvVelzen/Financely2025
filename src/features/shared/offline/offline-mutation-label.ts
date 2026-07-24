@@ -106,10 +106,10 @@ export function summarizeOfflineMutation(
     return { title: "Create tag rule" };
   }
 
-  if (endpoint.includes("/messages") && record.method === "POST") {
+  if (endpoint.includes("/notifications") && record.method === "POST") {
     const title = body?.title;
     return {
-      title: "Create message",
+      title: "Create notification",
       detail: typeof title === "string" ? title : undefined,
     };
   }

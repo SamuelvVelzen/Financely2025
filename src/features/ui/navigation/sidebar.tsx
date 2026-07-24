@@ -1,7 +1,7 @@
 import { ROUTES } from "@/config/routes";
 import { getAuthRedirectPath } from "@/features/auth/sanitize-auth-redirect";
-import { useUnreadCount } from "@/features/message/hooks/useUnreadCount";
-import { formatUnreadBadgeLabel } from "@/features/message/utils/format-unread-badge-label";
+import { useUnreadCount } from "@/features/notification/hooks/useUnreadCount";
+import { formatUnreadBadgeLabel } from "@/features/notification/utils/format-unread-badge-label";
 import { useProfileAvatar } from "@/features/users/hooks/useProfileAvatar";
 import { cn } from "@/features/util/cn";
 import { WorkspaceSwitcherDropdown } from "@/features/workspace/components/workspace-switcher-dropdown";
@@ -130,13 +130,13 @@ export function Sidebar() {
 
       {/* Bottom Navigation */}
       <nav
-        aria-label="Account and messages"
+        aria-label="Account and notifications"
         className="mt-auto">
         <div className={"h-px w-full border-t border-border my-2"}></div>
         <NavItem
-          to="/$workspaceId/messages"
+          to="/$workspaceId/notifications"
           params={workspaceParams}
-          label="Messages"
+          label="Notifications"
           icon={HiOutlineBell}
           badge={
             unreadCount > 0 ? formatUnreadBadgeLabel(unreadCount) : undefined
