@@ -50,12 +50,6 @@ const variantConfig: Record<
     text: "text-primary",
     icon: HiInformationCircle,
   },
-  secondary: {
-    bg: "bg-secondary/5",
-    border: "border-secondary",
-    text: "text-secondary",
-    icon: HiInformationCircle,
-  },
 };
 
 export function Alert({

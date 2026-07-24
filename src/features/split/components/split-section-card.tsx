@@ -1,7 +1,7 @@
 import { cn } from "@/features/util/cn";
 import type { ReactNode } from "react";
 
-type ISplitSectionCardVariant = "primary" | "secondary";
+type ISplitSectionCardVariant = "primary" | "default";
 
 type ISplitSectionCardProps = {
   variant?: ISplitSectionCardVariant;
@@ -19,14 +19,14 @@ const variantClasses: Record<
     section: "border-primary/20 bg-primary/5",
     icon: "bg-primary/15 text-primary",
   },
-  secondary: {
+  default: {
     section: "border-border bg-surface/50",
-    icon: "bg-secondary/15 text-secondary",
+    icon: "bg-surface-hover text-text-muted",
   },
 };
 
 export function SplitSectionCard({
-  variant = "secondary",
+  variant = "default",
   icon,
   title,
   description,

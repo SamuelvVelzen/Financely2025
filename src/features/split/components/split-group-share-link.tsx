@@ -76,7 +76,7 @@ export function SplitGroupShareLink({
           </p>
           <IconButton
             size="sm"
-            variant="secondary"
+            variant="default"
             ariaLabel="Copy invite link"
             clicked={() => void handleCopy()}
             className="shrink-0">
@@ -86,7 +86,7 @@ export function SplitGroupShareLink({
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button
-            variant="secondary"
+            variant="default"
             clicked={() => void handleCopy()}
             className="flex-1">
             <HiClipboardDocument className="size-4" />
@@ -104,7 +104,7 @@ export function SplitGroupShareLink({
         </div>
 
         <Button
-          variant="secondary"
+          variant="default"
           size="sm"
           clicked={() => setResetOpen(true)}
           className="self-start">

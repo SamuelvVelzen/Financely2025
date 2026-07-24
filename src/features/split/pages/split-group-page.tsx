@@ -203,7 +203,7 @@ export function SplitGroupPage() {
 
             <div className="flex flex-col gap-2">
               <Button
-                variant="secondary"
+                variant="default"
                 clicked={() => {
                   setEditingSettlement(undefined);
                   setSettleOpen(true);

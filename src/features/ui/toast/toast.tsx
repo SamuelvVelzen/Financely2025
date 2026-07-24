@@ -50,12 +50,6 @@ const variantConfig: Record<
     text: "text-primary",
     icon: HiCheckCircle,
   },
-  secondary: {
-    bg: "bg-secondary/5",
-    border: "border-secondary",
-    text: "text-secondary",
-    icon: HiInformationCircle,
-  },
 };
 
 function getAnimationClasses(

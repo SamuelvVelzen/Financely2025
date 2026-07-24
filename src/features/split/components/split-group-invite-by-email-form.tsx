@@ -34,7 +34,7 @@ export function SplitGroupInviteByEmailForm({ groupId }: { groupId: string }) {
 
   return (
     <SplitSectionCard
-      variant="secondary"
+      variant="default"
       icon={<HiEnvelope className="size-5" />}
       title="Invite by email"
       description="Add Financely users directly. If they do not have an account yet, they will join automatically when they sign up.">

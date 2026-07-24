@@ -6,7 +6,7 @@ type ILogoProps = {
 
 export function Logo({ className = "" }: ILogoProps) {
   return (
-    <div className={cn("size-10 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center flex-shrink-0", className)}>
+    <div className={cn("size-10 bg-gradient-to-br from-primary to-primary-hover rounded-2xl flex items-center justify-center flex-shrink-0", className)}>
       <svg
         className="size-6 text-white"
         fill="currentColor"

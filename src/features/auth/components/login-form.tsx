@@ -208,7 +208,7 @@ export function LoginForm() {
               {showResendButton && (
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant="default"
                   clicked={handleResendVerification}
                   disabled={resendLoading}
                   className="w-full"

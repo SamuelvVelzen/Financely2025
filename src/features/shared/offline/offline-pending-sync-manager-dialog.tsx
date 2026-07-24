@@ -168,7 +168,7 @@ export function OfflinePendingSyncManagerDialog({
       footerButtons={[
         {
           children: "Close",
-          variant: "secondary",
+          variant: "default",
           clicked: () => onOpenChange(false),
         },
         {

@@ -29,7 +29,7 @@ export function SplitExpenseShareStepper({
       aria-label={ariaLabel}>
       <IconButton
         size="sm"
-        variant="secondary"
+        variant="default"
         ariaLabel={`Decrease ${ariaLabel}`}
         disabled={disabled || count <= 0}
         clicked={() => onChange(String(Math.max(0, count - 1)))}>
@@ -44,7 +44,7 @@ export function SplitExpenseShareStepper({
       </span>
       <IconButton
         size="sm"
-        variant="secondary"
+        variant="default"
         ariaLabel={`Increase ${ariaLabel}`}
         disabled={disabled}
         clicked={() => onChange(String(count + 1))}>

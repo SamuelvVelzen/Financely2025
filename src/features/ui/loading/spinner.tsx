@@ -16,7 +16,6 @@ const VARIANT_TO_COLOR = {
   warning: "color-mix(in srgb, var(--color-warning) 80%, black 20%)",
   success: "color-mix(in srgb, var(--color-success) 80%, black 20%)",
   primary: "color-mix(in srgb, var(--color-primary) 80%, black 20%)",
-  secondary: "color-mix(in srgb, var(--color-secondary) 80%, black 20%)",
 };
 
 // Pre-calculated constants for better performance

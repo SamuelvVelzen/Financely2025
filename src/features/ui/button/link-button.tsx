@@ -17,7 +17,6 @@ const filledVariantClasses: { [key in IVariant]: string } = {
   info: "text-info",
   warning: "text-warning",
   success: "text-success",
-  secondary: "text-secondary",
 };
 
 const outlinedVariantClasses: { [key in IVariant]: string } = {
@@ -31,8 +30,6 @@ const outlinedVariantClasses: { [key in IVariant]: string } = {
     "text-warning border-warning/30 hover:bg-warning/15 hover:text-warning",
   success:
     "text-success border-success/30 hover:bg-success/15 hover:text-success",
-  secondary:
-    "text-secondary border-secondary/30 hover:bg-secondary/15 hover:text-secondary",
 };
 
 export function LinkButton({

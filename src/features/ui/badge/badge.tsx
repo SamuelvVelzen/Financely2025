@@ -50,7 +50,6 @@ const variantClasses: {
   warning: { backgroundColor: "bg-warning", textColor: "text-white" },
   success: { backgroundColor: "bg-success", textColor: "text-white" },
   primary: { backgroundColor: "bg-primary", textColor: "text-white" },
-  secondary: { backgroundColor: "bg-secondary", textColor: "text-white" },
 };
 
 export function Badge({

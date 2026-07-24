@@ -14,8 +14,7 @@ export type IVariant =
   | "info"
   | "warning"
   | "success"
-  | "primary"
-  | "secondary";
+  | "primary";
 
 export type IButtonProps = {
   buttonContent?: string | ReactNode;
@@ -72,8 +71,6 @@ export const Button = forwardRef<HTMLButtonElement, IButtonProps>(function Butto
       "bg-success hover:bg-success-hover text-white border-success disabled:hover:bg-success disabled:hover:border-success",
     primary:
       "bg-primary hover:bg-primary-hover text-white border-primary disabled:hover:bg-primary disabled:hover:border-primary",
-    secondary:
-      "bg-secondary hover:bg-secondary-hover text-white border-secondary disabled:hover:bg-secondary disabled:hover:border-secondary",
   };
 
   const baseClasses =

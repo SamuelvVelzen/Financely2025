@@ -123,7 +123,7 @@ export function SplitGuestViewPage() {
       <main className="p-4 max-w-lg mx-auto space-y-6 pb-28">
         <SplitBalanceSummary balances={data.balances} />
         {canSettle ? (
-          <Button variant="secondary" clicked={() => setSettleOpen(true)} className="w-full">
+          <Button variant="primary" clicked={() => setSettleOpen(true)} className="w-full">
             Settle up
           </Button>
         ) : null}
