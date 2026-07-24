@@ -1,25 +1,14 @@
-import {
-  formatDecimal,
-  getLocaleSeparators,
-  parseLocalizedDecimal,
-} from "@/features/currency/utils/currencyhelpers";
+import { getLocaleSeparators } from "@/features/currency/utils/currencyhelpers";
 import { cn } from "@/features/util/cn";
-import React, { useEffect, useMemo, useRef } from "react";
-
 import { LocaleHelpers } from "@/features/util/locale.helpers";
+import { useMemo } from "react";
+import { NumericFormat } from "react-number-format";
+
 import {
   BaseInput,
   type IBaseInputProps,
   type IDistributeOmitInputKey,
 } from "./input";
-
-const FRACTION_DIGITS = 2;
-
-type CaretInfo = {
-  integerDigits: number;
-  fractionDigits: number;
-  inFraction: boolean;
-};
 
 export type IDecimalInputProps = IDistributeOmitInputKey<
   IBaseInputProps,
@@ -30,12 +19,28 @@ export type IDecimalInputProps = IDistributeOmitInputKey<
   onValueChange?: (value: string) => void;
 };
 
-type CaretSyncTask = {
-  frameId: number | null;
-  remainingRuns: number;
-  position: number;
-  value: string;
-};
+function toNumericString(
+  fieldValue: string | number | null | undefined
+): string {
+  if (typeof fieldValue === "number") {
+    return Number.isFinite(fieldValue) ? String(fieldValue) : "";
+  }
+  if (typeof fieldValue === "string" && fieldValue.length > 0) {
+    return fieldValue;
+  }
+  return "";
+}
+
+function padToTwoDecimals(value: string): string {
+  if (!value) {
+    return "";
+  }
+  const numberValue = Number(value);
+  if (!Number.isFinite(numberValue)) {
+    return value;
+  }
+  return numberValue.toFixed(2);
+}
 
 export function DecimalInput({
   locale,
@@ -46,9 +51,6 @@ export function DecimalInput({
   onChange,
   ...props
 }: IDecimalInputProps) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const caretSyncTaskRef = useRef<CaretSyncTask | null>(null);
-
   const resolvedLocale = useMemo(() => {
     return locale ?? LocaleHelpers.getLocale();
   }, [locale]);
@@ -57,69 +59,6 @@ export function DecimalInput({
     () => getLocaleSeparators(resolvedLocale),
     [resolvedLocale]
   );
-
-  useEffect(() => {
-    return () => {
-      const task = caretSyncTaskRef.current;
-      if (task?.frameId) {
-        cancelAnimationFrame(task.frameId);
-      }
-      caretSyncTaskRef.current = null;
-    };
-  }, []);
-
-  const scheduleCaretSync = (value: string, position: number) => {
-    if (caretSyncTaskRef.current?.frameId) {
-      cancelAnimationFrame(caretSyncTaskRef.current.frameId);
-    }
-
-    const task: CaretSyncTask = {
-      frameId: null,
-      remainingRuns: 3,
-      position,
-      value,
-    };
-    caretSyncTaskRef.current = task;
-
-    const run = () => {
-      const currentTask = caretSyncTaskRef.current;
-      if (!currentTask) {
-        return;
-      }
-
-      currentTask.frameId = null;
-
-      const input = inputRef.current;
-      if (!input || document.activeElement !== input) {
-        caretSyncTaskRef.current = null;
-        return;
-      }
-
-      if (input.value !== currentTask.value) {
-        if (currentTask.remainingRuns > 0) {
-          currentTask.remainingRuns -= 1;
-          currentTask.frameId = requestAnimationFrame(run);
-        } else {
-          caretSyncTaskRef.current = null;
-        }
-        return;
-      }
-
-      input.setSelectionRange(
-        Math.min(currentTask.position, input.value.length),
-        Math.min(currentTask.position, input.value.length)
-      );
-
-      if (currentTask.remainingRuns > 0) {
-        currentTask.remainingRuns -= 1;
-        currentTask.frameId = requestAnimationFrame(run);
-      } else {
-        caretSyncTaskRef.current = null;
-      }
-    };
-
-    task.frameId = requestAnimationFrame(run);
-  };
 
   return (
     <BaseInput
@@ -130,389 +69,66 @@ export function DecimalInput({
             value: string | number;
             onChange: (value: string | number | undefined) => void;
           }))}
+      type="text"
       inputMode="decimal"
       renderField={({ field, inputProps }) => {
-        const { onChange: inputOnChange, ...restInputProps } = inputProps;
-        // Get value from field (works for both form and controlled modes)
-        const fieldValue = field.value as string | number | null | undefined;
-        const previousNormalized =
-          typeof fieldValue === "string" && fieldValue.length > 0
-            ? fieldValue
-            : typeof fieldValue === "number"
-              ? fieldValue.toString()
-              : "";
-        const formattedValue = formatDecimal(previousNormalized, {
-          locale: resolvedLocale,
-        });
+        const numericValue = toNumericString(
+          field.value as string | number | null | undefined
+        );
 
-        const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-          const target = event.target;
-          const caretPosition =
-            target.selectionStart !== null
-              ? target.selectionStart
-              : target.value.length;
+        const {
+          className,
+          type: _type,
+          inputMode: _inputMode,
+          value: _value,
+          defaultValue: _defaultValue,
+          onChange: _onChange,
+          onBlur: inputOnBlur,
+          ...restInputProps
+        } = inputProps;
 
-          const caretInfo = computeCaretInfo(
-            target.value,
-            caretPosition,
-            separators
-          );
-
-          const nativeEvent = event.nativeEvent as InputEvent;
-          const insertData =
-            nativeEvent.inputType === "insertText" ? nativeEvent.data : null;
-          const removalInfo =
-            nativeEvent.inputType === "deleteContentBackward"
-              ? getRemovedCharInfo(formattedValue, target.value)
-              : null;
-
-          let effectiveNormalized = parseLocalizedDecimal(target.value, {
-            locale: resolvedLocale,
-          });
-          let caretInfoForNext = caretInfo;
-
-          if (insertData && insertData.length === 1 && isDigit(insertData)) {
-            const caretBeforeInsert = Math.max(
-              0,
-              caretPosition - insertData.length
-            );
-            const caretInfoBefore = computeCaretInfo(
-              target.value,
-              caretBeforeInsert,
-              separators
-            );
-            const baseNormalized =
-              previousNormalized || `0.${"0".repeat(FRACTION_DIGITS)}`;
-            effectiveNormalized = replaceDigitAtCaret(
-              baseNormalized,
-              caretInfoBefore,
-              insertData
-            );
-            caretInfoForNext = advanceCaretInfo(
-              caretInfoBefore,
-              effectiveNormalized
-            );
-          } else if (
-            removalInfo &&
-            !isDigit(removalInfo.char) &&
-            removalInfo.index !== null
-          ) {
-            const digitOrdinal = countDigitsUpToIndex(
-              formattedValue,
-              removalInfo.index
-            );
-            if (digitOrdinal > 0) {
-              effectiveNormalized = removeDigitAtOrdinal(
-                previousNormalized,
-                digitOrdinal
-              );
-              caretInfoForNext = {
-                integerDigits: Math.max(digitOrdinal - 1, 0),
-                fractionDigits: 0,
-                inFraction: false,
-              };
-            }
-          }
-
-          const nextFormattedValue = formatDecimal(effectiveNormalized, {
-            locale: resolvedLocale,
-          });
-
-          const nextCaretPosition = computeFormattedCaretPosition(
-            nextFormattedValue,
-            separators,
-            caretInfoForNext
-          );
-
-          scheduleCaretSync(nextFormattedValue, nextCaretPosition);
-
-          // Call field.onChange (works for both form and controlled modes)
-          // In form mode: updates react-hook-form state
-          // In controlled mode: calls the controlled onChange handler
-          field.onChange(effectiveNormalized);
-
-          // Call onValueChange callback if provided
-          onValueChange?.(effectiveNormalized);
-
-          // Call input's onChange if provided (for additional handlers)
-          inputOnChange?.(event);
+        const commit = (nextValue: string) => {
+          field.onChange(nextValue as never);
+          onValueChange?.(nextValue);
         };
 
         return (
-          <input
+          <NumericFormat
             {...restInputProps}
-            className={cn("text-right min-w-[10ch]", restInputProps.className)}
-            placeholder={`${placeholder || "0"}${separators.decimal}00`}
+            type="text"
             inputMode="decimal"
-            value={formattedValue}
-            ref={(node) => {
-              inputRef.current = node;
-              // field.ref might be a function or undefined in controlled mode
+            autoComplete="off"
+            className={cn("text-right min-w-[10ch]", className)}
+            placeholder={`${placeholder ?? "0"}${separators.decimal}00`}
+            value={numericValue}
+            valueIsNumericString
+            thousandSeparator={separators.group}
+            decimalSeparator={separators.decimal}
+            allowedDecimalSeparators={[separators.decimal, ".", ","]}
+            decimalScale={2}
+            allowNegative={false}
+            getInputRef={(node: HTMLInputElement | null) => {
               if (typeof field.ref === "function") {
                 field.ref(node);
               }
             }}
-            onChange={handleChange}
+            onValueChange={(values, sourceInfo) => {
+              if (sourceInfo.source === "prop") {
+                return;
+              }
+              commit(values.value);
+            }}
+            onBlur={(event) => {
+              const padded = padToTwoDecimals(numericValue);
+              if (padded !== numericValue) {
+                commit(padded);
+              }
+              inputOnBlur?.(event);
+              field.onBlur();
+            }}
           />
         );
       }}
     />
   );
-}
-
-function computeCaretInfo(
-  value: string,
-  caretPosition: number,
-  separators: { decimal: string; group: string }
-): CaretInfo {
-  let caretIntegerDigits = 0;
-  let caretFractionDigits = 0;
-  let hasDecimal = false;
-  let decimalIndex = -1;
-
-  for (let i = 0; i < value.length; i++) {
-    const char = value[i];
-    if (isDigit(char)) {
-      if (i < caretPosition) {
-        if (hasDecimal) {
-          caretFractionDigits++;
-        } else {
-          caretIntegerDigits++;
-        }
-      }
-    } else if (!hasDecimal && isDecimalChar(char, separators)) {
-      hasDecimal = true;
-      decimalIndex = i;
-    }
-  }
-
-  const caretInFraction =
-    hasDecimal &&
-    (caretPosition > decimalIndex || caretPosition === value.length);
-
-  return {
-    integerDigits: caretIntegerDigits,
-    fractionDigits: caretFractionDigits,
-    inFraction: caretInFraction,
-  };
-}
-
-function getRemovedCharInfo(previousValue: string, nextValue: string) {
-  if (nextValue.length >= previousValue.length) {
-    return null;
-  }
-  const lengthDifference = previousValue.length - nextValue.length;
-  if (lengthDifference > 1) {
-    return null;
-  }
-  let index = 0;
-  while (
-    index < nextValue.length &&
-    previousValue[index] === nextValue[index]
-  ) {
-    index++;
-  }
-  return {
-    char: previousValue[index] ?? "",
-    index,
-  };
-}
-
-function computeFormattedCaretPosition(
-  formattedValue: string,
-  separators: { decimal: string; group: string },
-  caretInfo: CaretInfo
-): number {
-  if (!formattedValue) {
-    return 0;
-  }
-
-  const decimalIndex = formattedValue.indexOf(separators.decimal);
-
-  if (decimalIndex === -1) {
-    return formattedValue.length;
-  }
-
-  if (caretInfo.inFraction) {
-    const desiredFractionDigits = Math.min(
-      caretInfo.fractionDigits,
-      FRACTION_DIGITS
-    );
-    return Math.min(
-      decimalIndex + 1 + desiredFractionDigits,
-      formattedValue.length
-    );
-  }
-
-  const totalIntegerDigits = countDigitsBeforeDecimal(
-    formattedValue,
-    decimalIndex
-  );
-  const desiredIntegerDigits = Math.min(
-    caretInfo.integerDigits,
-    totalIntegerDigits
-  );
-
-  if (desiredIntegerDigits <= 0) {
-    return findFirstDigitIndex(formattedValue);
-  }
-
-  let digitsSeen = 0;
-  for (let i = 0; i < decimalIndex; i++) {
-    if (isDigit(formattedValue[i])) {
-      digitsSeen++;
-      if (digitsSeen === desiredIntegerDigits) {
-        return i + 1;
-      }
-    }
-  }
-
-  return decimalIndex;
-}
-
-function countDigitsBeforeDecimal(value: string, decimalIndex: number): number {
-  let count = 0;
-  for (let i = 0; i < value.length; i++) {
-    if (i >= decimalIndex && decimalIndex !== -1) {
-      break;
-    }
-    if (isDigit(value[i])) {
-      count++;
-    }
-  }
-  return count;
-}
-
-function findFirstDigitIndex(value: string): number {
-  for (let i = 0; i < value.length; i++) {
-    if (isDigit(value[i])) {
-      return i;
-    }
-  }
-  return 0;
-}
-
-function isDigit(char: string): boolean {
-  return /\d/.test(char);
-}
-
-function isDecimalChar(
-  char: string,
-  separators: { decimal: string; group: string }
-): boolean {
-  if (!char) {
-    return false;
-  }
-  if (char === separators.decimal) {
-    return true;
-  }
-  return char === ".";
-}
-
-function countDigitsUpToIndex(value: string, index: number): number {
-  let count = 0;
-  for (let i = 0; i < value.length && i < index; i++) {
-    if (isDigit(value[i])) {
-      count++;
-    }
-  }
-  return count;
-}
-
-function replaceDigitAtCaret(
-  normalized: string,
-  caretInfo: CaretInfo,
-  digit: string
-): string {
-  const [integerPartRaw = "0", fractionPartRaw = ""] = normalized.split(".");
-  const integerDigits = integerPartRaw.split("");
-  const fractionDigits = fractionPartRaw
-    .padEnd(FRACTION_DIGITS, "0")
-    .split("")
-    .slice(0, FRACTION_DIGITS);
-
-  if (caretInfo.inFraction) {
-    const idx = Math.min(caretInfo.fractionDigits, FRACTION_DIGITS - 1);
-    fractionDigits[idx] = digit;
-  } else {
-    const idx = caretInfo.integerDigits;
-    if (idx < integerDigits.length) {
-      integerDigits[idx] = digit;
-    } else {
-      integerDigits.push(digit);
-    }
-  }
-
-  const nextInteger = normalizeIntegerDigits(integerDigits);
-  const nextFraction = fractionDigits
-    .join("")
-    .padEnd(FRACTION_DIGITS, "0")
-    .slice(0, FRACTION_DIGITS);
-
-  return `${nextInteger}.${nextFraction}`;
-}
-
-function advanceCaretInfo(
-  caretInfo: CaretInfo,
-  normalized: string
-): CaretInfo {
-  const [integerPartRaw = "0"] = normalized.split(".");
-  const totalIntegerDigits = integerPartRaw.length;
-
-  if (caretInfo.inFraction) {
-    const nextFractionDigits = Math.min(
-      caretInfo.fractionDigits + 1,
-      FRACTION_DIGITS
-    );
-    return {
-      ...caretInfo,
-      fractionDigits: nextFractionDigits,
-    };
-  }
-
-  const nextIntegerDigits = Math.min(
-    caretInfo.integerDigits + 1,
-    totalIntegerDigits
-  );
-
-  return {
-    integerDigits: nextIntegerDigits,
-    fractionDigits: 0,
-    inFraction: false,
-  };
-}
-
-function removeDigitAtOrdinal(value: string, ordinal: number): string {
-  if (ordinal <= 0) {
-    return value;
-  }
-  const [integerPartRaw, fractionPartRaw = ""] = value.split(".");
-  const integerDigits = integerPartRaw.split("");
-  const fractionDigits = fractionPartRaw
-    .padEnd(FRACTION_DIGITS, "0")
-    .split("")
-    .slice(0, FRACTION_DIGITS);
-
-  if (ordinal <= integerDigits.length) {
-    integerDigits.splice(ordinal - 1, 1);
-  } else {
-    const fractionalOrdinal = ordinal - integerDigits.length;
-    if (fractionalOrdinal >= 1 && fractionalOrdinal <= fractionDigits.length) {
-      fractionDigits.splice(fractionalOrdinal - 1, 1);
-      fractionDigits.push("0");
-    }
-  }
-
-  const nextInteger = normalizeIntegerDigits(integerDigits);
-  const nextFraction = fractionDigits
-    .join("")
-    .padEnd(FRACTION_DIGITS, "0")
-    .slice(0, FRACTION_DIGITS);
-
-  return `${nextInteger}.${nextFraction}`;
-}
-
-function normalizeIntegerDigits(digits: string[]): string {
-  const joined = digits.join("").replace(/^0+(?=\d)/, "");
-  return joined.length > 0 ? joined : "0";
 }
