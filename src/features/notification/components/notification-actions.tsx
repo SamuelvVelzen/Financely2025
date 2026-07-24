@@ -7,7 +7,10 @@ type INotificationActionsProps = {
   notificationId: string;
 };
 
-export function NotificationActions({ actions, notificationId }: INotificationActionsProps) {
+export function NotificationActions({
+  actions,
+  notificationId,
+}: INotificationActionsProps) {
   const { handleAction } = useNotificationActions();
 
   if (!actions || actions.length === 0) {
@@ -15,7 +18,7 @@ export function NotificationActions({ actions, notificationId }: INotificationAc
   }
 
   return (
-    <div className="flex flex-wrap gap-2 mt-4">
+    <div className="flex flex-wrap gap-2 mt-3">
       {actions.map((action, index) => (
         <Button
           key={index}
