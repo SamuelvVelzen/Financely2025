@@ -96,7 +96,7 @@ describe("RecordSettlementDialog", () => {
       />,
     );
 
-    await user.type(screen.getByLabelText("Amount (EUR)"), "25.50");
+    await user.type(screen.getByLabelText("Amount"), "25.50");
     await user.click(screen.getByRole("button", { name: "Record payment" }));
 
     await waitFor(() => {

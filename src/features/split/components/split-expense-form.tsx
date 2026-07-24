@@ -163,6 +163,7 @@ export function SplitExpenseForm({
           label="Amount"
           value={amount}
           onChange={(v) => setAmount(String(v ?? ""))}
+          currency={currency}
           className="flex-1 min-w-0"
           disabled={disabled}
         />

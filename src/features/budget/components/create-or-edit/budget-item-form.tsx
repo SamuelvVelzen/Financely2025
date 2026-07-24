@@ -81,6 +81,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
   const preset = form.watch("general.preset") as string;
   const startDateStr = form.watch("general.startDate") as string;
   const endDateStr = form.watch("general.endDate") as string;
+  const budgetCurrency = form.watch("general.currency") as string;
   const isPerMonth = preset === "yearly-per-month";
 
   const months = useMemo(() => {
@@ -523,6 +524,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           <div className="w-28 shrink-0">
             <DecimalInput
               name={`budget.items.${index}.expectedAmount`}
+              currency={budgetCurrency}
               onValueChange={(val) =>
                 handleMasterChange(itemKey, index, String(val ?? ""))
               }
@@ -614,6 +616,7 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
                       )}>
                       <DecimalInput
                         name={`budget.items.${index}.monthlyAmounts.${mi}.expectedAmount`}
+                        currency={budgetCurrency}
                         className={isOverridden ? "text-primary border-primary" : ""}
                         onFocus={
                           !isOverridden
@@ -673,7 +676,10 @@ export function BudgetItemForm({ selectedTagIds = [] }: IBudgetItemFormProps) {
           <div className="font-medium truncate">{tagName}</div>
         </div>
         <div className="w-32">
-          <DecimalInput name={`budget.items.${index}.expectedAmount`} />
+          <DecimalInput
+            name={`budget.items.${index}.expectedAmount`}
+            currency={budgetCurrency}
+          />
         </div>
         <IconButton
           size="sm"

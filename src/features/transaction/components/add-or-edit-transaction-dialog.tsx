@@ -174,6 +174,7 @@ export function AddOrEditTransactionDialog({
   const watchedDescription = form.watch("description");
   const watchedPaymentMethod = form.watch("paymentMethod");
   const watchedPrimaryTagId = form.watch("primaryTagId");
+  const watchedCurrency = form.watch("currency");
   const debouncedName = useDebouncedValue(watchedName, 300);
   const watchedTagIds = form.watch("tagIds") ?? [];
   const additionalTagCount = watchedTagIds.length;
@@ -595,6 +596,7 @@ export function AddOrEditTransactionDialog({
                 <DecimalInput
                   name="amount"
                   label="Amount"
+                  currency={watchedCurrency}
                   disabled={pending}
                   required
                 />

@@ -233,6 +233,7 @@ export function ReviewStepContent({
                 <BodyCell>
                   <DecimalInput
                     value={candidate.data.amount || ""}
+                    currency={candidate.data.currency || defaultCurrency}
                     onChange={(v) => {
                       updateCandidate(candidate.rowIndex, {
                         amount: String(v ?? ""),

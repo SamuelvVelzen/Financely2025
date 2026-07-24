@@ -24,6 +24,8 @@ export type LocaleSeparators = {
   group: string;
 };
 
+export type CurrencyDisplay = "symbol" | "narrowSymbol";
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -39,6 +41,47 @@ function coerceNumber(
   }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getCurrencyPart(
+  currency: string,
+  locale: string,
+  currencyDisplay: CurrencyDisplay
+): string | undefined {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    currencyDisplay,
+  })
+    .formatToParts(1)
+    .find((part) => part.type === "currency")?.value;
+}
+
+/**
+ * Prefer a distinctive glyph. ICU often returns the ISO code for `symbol`
+ * (e.g. LAK, NGN); `narrowSymbol` usually has the real sign (₭, ₦).
+ */
+export function getCurrencyDisplay(
+  currency: string,
+  locale?: string
+): CurrencyDisplay {
+  const resolvedLocale = locale ?? LocaleHelpers.getLocale();
+
+  try {
+    const symbol = getCurrencyPart(currency, resolvedLocale, "symbol");
+    if (symbol && symbol !== currency) {
+      return "symbol";
+    }
+
+    const narrow = getCurrencyPart(currency, resolvedLocale, "narrowSymbol");
+    if (narrow && narrow !== currency) {
+      return "narrowSymbol";
+    }
+  } catch {
+    // Invalid currency code — fall through.
+  }
+
+  return "symbol";
 }
 
 export function getLocaleSeparators(locale: string): LocaleSeparators {
@@ -60,6 +103,93 @@ export function getDecimalSeparator(locale?: string): string {
   return getLocaleSeparators(resolvedLocale).decimal;
 }
 
+export type CurrencyAffixes = {
+  prefix: string;
+  suffix: string;
+};
+
+/**
+ * Locale-aware currency symbol placement for inputs (e.g. "$" prefix vs " €" suffix).
+ */
+export function getCurrencyAffixes(
+  currency: string,
+  locale?: string
+): CurrencyAffixes {
+  const resolvedLocale = locale ?? LocaleHelpers.getLocale();
+
+  try {
+    const parts = new Intl.NumberFormat(resolvedLocale, {
+      style: "currency",
+      currency,
+      currencyDisplay: getCurrencyDisplay(currency, resolvedLocale),
+    }).formatToParts(1234.5);
+
+    const currencyIndex = parts.findIndex((part) => part.type === "currency");
+    if (currencyIndex === -1) {
+      return { prefix: "", suffix: ` ${currency}` };
+    }
+
+    const firstNumberIndex = parts.findIndex(
+      (part) =>
+        part.type === "integer" ||
+        part.type === "minusSign" ||
+        part.type === "decimal"
+    );
+
+    if (firstNumberIndex === -1) {
+      return { prefix: "", suffix: ` ${currency}` };
+    }
+
+    if (currencyIndex < firstNumberIndex) {
+      return {
+        prefix: parts
+          .slice(0, firstNumberIndex)
+          .map((part) => part.value)
+          .join(""),
+        suffix: "",
+      };
+    }
+
+    let lastNumberIndex = firstNumberIndex;
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const type = parts[i]?.type;
+      if (
+        type === "fraction" ||
+        type === "integer" ||
+        type === "decimal" ||
+        type === "group"
+      ) {
+        lastNumberIndex = i;
+        break;
+      }
+    }
+
+    return {
+      prefix: "",
+      suffix: parts
+        .slice(lastNumberIndex + 1)
+        .map((part) => part.value)
+        .join(""),
+    };
+  } catch {
+    return { prefix: "", suffix: ` ${currency}` };
+  }
+}
+
+function getCurrencyNumberFormat(
+  currency: string,
+  locale: string,
+  fractionDigits: { min: number; max: number }
+): Intl.NumberFormat {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    currencyDisplay: getCurrencyDisplay(currency, locale),
+    minimumFractionDigits: fractionDigits.min,
+    maximumFractionDigits: fractionDigits.max,
+  });
+}
+
 /**
  * Format amount with currency using browser locale
  * @param amount - Amount as string (e.g., "1234.56")
@@ -70,25 +200,17 @@ export function formatCurrency(amount: string, currency: string): string {
   try {
     const numAmount = parseFloat(amount);
     const minorUnits = getCurrencyMinorUnits(currency);
+    const locale = LocaleHelpers.getLocale();
+    const formatter = getCurrencyNumberFormat(currency, locale, {
+      min: minorUnits,
+      max: minorUnits,
+    });
 
-    // Handle invalid amounts
     if (isNaN(numAmount)) {
-      return new Intl.NumberFormat(LocaleHelpers.getLocale(), {
-        style: "currency",
-        currency: currency,
-        minimumFractionDigits: minorUnits,
-        maximumFractionDigits: minorUnits,
-      }).format(0);
+      return formatter.format(0);
     }
 
-    const locale = LocaleHelpers.getLocale();
-
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: currency,
-      minimumFractionDigits: minorUnits,
-      maximumFractionDigits: minorUnits,
-    }).format(numAmount);
+    return formatter.format(numAmount);
   } catch (_err) {
     return `${amount} ${currency}`;
   }

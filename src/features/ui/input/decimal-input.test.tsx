@@ -7,19 +7,25 @@ import { describe, expect, it } from "vitest";
 
 function ControlledDecimalInput({
   locale = "en-US",
+  currency,
   initialValue = "",
 }: {
   locale?: string;
+  currency?: string;
   initialValue?: string;
 }) {
   const [value, setValue] = useState(initialValue);
   return (
-    <DecimalInput
-      locale={locale}
-      label="Amount"
-      value={value}
-      onChange={(next) => setValue(String(next ?? ""))}
-    />
+    <>
+      <DecimalInput
+        locale={locale}
+        currency={currency}
+        label="Amount"
+        value={value}
+        onChange={(next) => setValue(String(next ?? ""))}
+      />
+      <div data-testid="stored-value">{value}</div>
+    </>
   );
 }
 
@@ -34,6 +40,38 @@ describe("DecimalInput", () => {
 
     await waitFor(() => {
       expect(input).toHaveValue("300,000");
+    });
+  });
+
+  it("shows USD with NumericFormat prefix", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <ControlledDecimalInput locale="en-US" currency="USD" />
+    );
+
+    const input = screen.getByLabelText("Amount");
+    await user.click(input);
+    await user.keyboard("12.5");
+    await user.tab();
+
+    await waitFor(() => {
+      expect(input).toHaveValue("$12.50");
+    });
+  });
+
+  it("shows VND with NumericFormat prefix and no cents", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <ControlledDecimalInput locale="en-US" currency="VND" />
+    );
+
+    const input = screen.getByLabelText("Amount");
+    await user.click(input);
+    await user.keyboard("3131");
+    await user.tab();
+
+    await waitFor(() => {
+      expect(input).toHaveValue("₫3,131");
     });
   });
 
@@ -82,6 +120,65 @@ describe("DecimalInput", () => {
 
     await waitFor(() => {
       expect(input).toHaveValue("12.50");
+    });
+  });
+
+  it("keeps 25,0 as a decimal in nl-NL EUR (comma decimal)", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <ControlledDecimalInput locale="nl-NL" currency="EUR" />
+    );
+
+    const input = screen.getByLabelText("Amount") as HTMLInputElement;
+    await user.click(input);
+    await user.keyboard("25,0");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("stored-value")).toHaveTextContent("25.0");
+      expect(input.value).toMatch(/25,0/);
+      expect(input.value).not.toMatch(/250/);
+    });
+
+    await user.tab();
+    await waitFor(() => {
+      expect(screen.getByTestId("stored-value")).toHaveTextContent("25.00");
+      expect(input.value).toMatch(/25,00/);
+    });
+  });
+
+  it("treats typed period as decimal alias in nl-NL EUR", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <ControlledDecimalInput locale="nl-NL" currency="EUR" />
+    );
+
+    const input = screen.getByLabelText("Amount") as HTMLInputElement;
+    await user.click(input);
+    // Numpad / en-layout key often emits `.` even when locale decimal is `,`.
+    await user.keyboard("25.0");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("stored-value")).toHaveTextContent("25.0");
+      expect(input.value).toMatch(/25,0/);
+      expect(input.value).not.toMatch(/250/);
+    });
+  });
+
+  it("formats large EUR amounts with thousand separators in de-DE", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <ControlledDecimalInput locale="de-DE" currency="EUR" />
+    );
+
+    const input = screen.getByLabelText("Amount") as HTMLInputElement;
+    await user.click(input);
+    await user.keyboard("1234.5");
+    await user.tab();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("stored-value")).toHaveTextContent("1234.50");
+      expect(input.value).toMatch(/1\.234,50/);
+      expect(input.value).toContain("€");
     });
   });
 });

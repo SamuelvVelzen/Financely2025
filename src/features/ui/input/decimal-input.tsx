@@ -1,7 +1,11 @@
-import { getLocaleSeparators } from "@/features/currency/utils/currencyhelpers";
+import { getCurrencyMinorUnits } from "@/features/currency/config/currencies";
+import {
+  getCurrencyAffixes,
+  getLocaleSeparators,
+} from "@/features/currency/utils/currencyhelpers";
 import { cn } from "@/features/util/cn";
 import { LocaleHelpers } from "@/features/util/locale.helpers";
-import { useMemo } from "react";
+import { useMemo, type FocusEvent } from "react";
 import { NumericFormat } from "react-number-format";
 
 import {
@@ -15,6 +19,8 @@ export type IDecimalInputProps = IDistributeOmitInputKey<
   "type" | "inputMode" | "renderField" | "placeholder"
 > & {
   locale?: string;
+  /** ISO 4217 code — shows currency via NumericFormat prefix/suffix. */
+  currency?: string;
   placeholder?: number;
   onValueChange?: (value: string) => void;
 };
@@ -31,7 +37,7 @@ function toNumericString(
   return "";
 }
 
-function padToTwoDecimals(value: string): string {
+function padToFractionDigits(value: string, fractionDigits: number): string {
   if (!value) {
     return "";
   }
@@ -39,11 +45,12 @@ function padToTwoDecimals(value: string): string {
   if (!Number.isFinite(numberValue)) {
     return value;
   }
-  return numberValue.toFixed(2);
+  return numberValue.toFixed(fractionDigits);
 }
 
 export function DecimalInput({
   locale,
+  currency,
   onValueChange,
   placeholder,
   name,
@@ -59,6 +66,19 @@ export function DecimalInput({
     () => getLocaleSeparators(resolvedLocale),
     [resolvedLocale]
   );
+
+  const fractionDigits = currency ? getCurrencyMinorUnits(currency) : 2;
+
+  const affixes = useMemo(() => {
+    if (!currency) {
+      return { prefix: undefined, suffix: undefined };
+    }
+    const { prefix, suffix } = getCurrencyAffixes(currency, resolvedLocale);
+    return {
+      prefix: prefix || undefined,
+      suffix: suffix || undefined,
+    };
+  }, [currency, resolvedLocale]);
 
   return (
     <BaseInput
@@ -92,40 +112,58 @@ export function DecimalInput({
           onValueChange?.(nextValue);
         };
 
+        const sharedClassName = cn(
+          "text-right min-w-[10ch]",
+          currency ? "min-w-[12ch]" : null,
+          className
+        );
+
+        const sharedPlaceholder = `${placeholder ?? "0"}${
+          fractionDigits > 0
+            ? `${separators.decimal}${"0".repeat(fractionDigits)}`
+            : ""
+        }`;
+
+        const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+          const padded = padToFractionDigits(numericValue, fractionDigits);
+          if (padded !== numericValue) {
+            commit(padded);
+          }
+          inputOnBlur?.(event);
+          field.onBlur();
+        };
+
+        const getInputRef = (node: HTMLInputElement | null) => {
+          if (typeof field.ref === "function") {
+            field.ref(node);
+          }
+        };
+
         return (
           <NumericFormat
             {...restInputProps}
             type="text"
             inputMode="decimal"
             autoComplete="off"
-            className={cn("text-right min-w-[10ch]", className)}
-            placeholder={`${placeholder ?? "0"}${separators.decimal}00`}
+            className={sharedClassName}
+            placeholder={sharedPlaceholder}
             value={numericValue}
             valueIsNumericString
             thousandSeparator={separators.group}
             decimalSeparator={separators.decimal}
             allowedDecimalSeparators={[separators.decimal, ".", ","]}
-            decimalScale={2}
+            decimalScale={fractionDigits}
             allowNegative={false}
-            getInputRef={(node: HTMLInputElement | null) => {
-              if (typeof field.ref === "function") {
-                field.ref(node);
-              }
-            }}
+            prefix={affixes.prefix}
+            suffix={affixes.suffix}
+            getInputRef={getInputRef}
             onValueChange={(values, sourceInfo) => {
               if (sourceInfo.source === "prop") {
                 return;
               }
               commit(values.value);
             }}
-            onBlur={(event) => {
-              const padded = padToTwoDecimals(numericValue);
-              if (padded !== numericValue) {
-                commit(padded);
-              }
-              inputOnBlur?.(event);
-              field.onBlur();
-            }}
+            onBlur={handleBlur}
           />
         );
       }}

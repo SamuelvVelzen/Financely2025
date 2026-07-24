@@ -284,9 +284,10 @@ export function RecordSettlementDialog({
         </>
       )}
       <DecimalInput
-        label={`Amount (${currency})`}
+        label="Amount"
         value={amount}
         onChange={(value) => setAmount(String(value ?? ""))}
+        currency={currency}
       />
       {isEditMode ? (
         <DateInput

@@ -235,8 +235,7 @@ export function SplitExpenseSplitSection({
         : `${percentRemaining > 0 ? percentRemaining.toFixed(2) : Math.abs(percentRemaining).toFixed(2)}% ${percentRemaining > 0 ? "left" : "over"}`;
   }
 
-  const inputSuffix =
-    splitMode === "exact" ? currency : splitMode === "percent" ? "%" : undefined;
+  const inputSuffix = splitMode === "percent" ? "%" : undefined;
 
   return (
     <div className="space-y-3">
@@ -328,6 +327,7 @@ export function SplitExpenseSplitSection({
                 value={isParticipant ? (shareInputs[member.id] ?? "") : ""}
                 onChange={(v) => setShareInput(member.id, String(v ?? ""))}
                 disabled={disabled || !isParticipant}
+                currency={splitMode === "exact" ? currency : undefined}
                 className="w-28 shrink-0"
                 aria-label={`${member.displayName} ${splitMode === "exact" ? "amount" : "percent"}`}
               />
