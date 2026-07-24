@@ -141,16 +141,6 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
     );
   };
 
-  // Calculate filter count
-  const filterCount = useMemo(() => {
-    return searchQuery.trim().length > 0 ? 1 : 0;
-  }, [searchQuery]);
-
-  const handleStickyFiltersClick = () => {
-    // Scroll to top to show the search input
-    expandedHeaderRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   const handleCreateTag = useCallback(() => {
     setSelectedTag(undefined);
     setShowTagRulesPanel(false);
@@ -342,8 +332,6 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
         actions={actions}
         isReorderMode={isReorderMode}
         isSticky={isSticky}
-        filterCount={filterCount}
-        onFiltersClick={handleStickyFiltersClick}
       />
 
       <Container>

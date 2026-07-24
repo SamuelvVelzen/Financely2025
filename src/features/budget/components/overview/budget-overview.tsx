@@ -82,16 +82,6 @@ export function BudgetOverview() {
     undefined
   );
 
-  // Calculate filter count
-  const filterCount = useMemo(() => {
-    return searchQuery.trim().length > 0 ? 1 : 0;
-  }, [searchQuery]);
-
-  const handleStickyFiltersClick = () => {
-    // Scroll to top to show the search input
-    expandedHeaderRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   const handleCreateBudget = useCallback(() => {
     navigate({
       to: "/$workspaceId/budgets/new",
@@ -157,8 +147,6 @@ export function BudgetOverview() {
         onSearchChange={setSearchQuery}
         actions={actions}
         isSticky={isSticky}
-        filterCount={filterCount}
-        onFiltersClick={handleStickyFiltersClick}
       />
 
       <Container>
