@@ -18,18 +18,20 @@ export function SplitSettlementList({
   viewer,
   onEdit,
   onDelete,
+  emptyText = "No settlements recorded yet.",
 }: {
   settlements: ISplitSettlement[];
   currency: string;
   viewer?: { userId: string; memberId: string; role: string };
   onEdit?: (settlement: ISplitSettlement) => void;
   onDelete?: (settlement: ISplitSettlement) => void;
+  emptyText?: string;
 }) {
   if (settlements.length === 0) {
     return (
       <EmptyPage
         icon={HiBanknotes}
-        emptyText="No settlements recorded yet."
+        emptyText={emptyText}
       />
     );
   }

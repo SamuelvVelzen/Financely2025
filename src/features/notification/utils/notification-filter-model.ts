@@ -25,11 +25,17 @@ export interface INotificationFilterState {
    * - otherwise filter to that type
    */
   type: INotificationType | undefined;
+
+  /**
+   * Free-text search over title and content (client-side).
+   */
+  searchQuery: string;
 }
 
 export const DEFAULT_NOTIFICATION_FILTER_STATE: INotificationFilterState = {
   status: "all",
   type: undefined,
+  searchQuery: "",
 };
 
 const VALID_STATUSES: INotificationStatusFilter[] = ["all", "unread", "read"];
@@ -64,6 +70,7 @@ export function normalizeFilterState(
   return {
     status: normalizeStatus(state.status),
     type: normalizeType(state.type),
+    searchQuery: typeof state.searchQuery === "string" ? state.searchQuery : "",
   };
 }
 
@@ -71,14 +78,22 @@ export function areFilterStatesEqual(
   a: INotificationFilterState,
   b: INotificationFilterState,
 ): boolean {
-  return a.status === b.status && a.type === b.type;
+  return (
+    a.status === b.status &&
+    a.type === b.type &&
+    a.searchQuery === b.searchQuery
+  );
 }
 
 export function hasActiveFilters(
   state: INotificationFilterState,
   defaultState: INotificationFilterState = DEFAULT_NOTIFICATION_FILTER_STATE,
 ): boolean {
-  return state.status !== defaultState.status || state.type !== undefined;
+  return (
+    state.status !== defaultState.status ||
+    state.type !== undefined ||
+    state.searchQuery.trim().length > 0
+  );
 }
 
 /**
@@ -88,9 +103,11 @@ export function hasActiveFilters(
 export function serializeFilterStateToQuery(
   state: INotificationFilterState,
 ): INotificationFilterQueryParams {
+  const trimmedSearch = state.searchQuery.trim();
   return {
     status: state.status === "all" ? undefined : state.status,
     type: state.type,
+    q: trimmedSearch || undefined,
   };
 }
 
@@ -121,6 +138,11 @@ export function deserializeFilterStateFromQuery(
   const type = getParam("type");
   if (type && VALID_TYPES.includes(type as INotificationType)) {
     state.type = type as INotificationType;
+  }
+
+  const q = getParam("q");
+  if (q) {
+    state.searchQuery = q;
   }
 
   return state;

@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { AddOrEditSplitGroupDialog } from "@/features/split/components/add-or-edit-split-group-dialog";
 import type { ISplitGroupDialogTarget } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
 import { SplitGroupList } from "@/features/split/components/split-group-list";
 import { SplitsOverviewHeader } from "@/features/split/components/splits-overview-header";
 import { useDeleteSplitGroup } from "@/features/split/hooks/use-split-groups";
+import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { Container } from "@/features/ui/container/container";
@@ -13,6 +14,9 @@ import { useToast } from "@/features/ui/toast";
 
 export function SplitsPage() {
   const navigate = useNavigate();
+  const expandedHeaderRef = useRef<HTMLDivElement>(null);
+  const [isSticky, setExpandedHeaderElement] = useScrollPosition();
+  const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<
     ISplitGroupDialogTarget | undefined
@@ -24,6 +28,12 @@ export function SplitsPage() {
   const defaultCurrency = useDefaultCurrency(workspaceId);
   const deleteGroup = useDeleteSplitGroup();
   const toast = useToast();
+
+  useEffect(() => {
+    if (expandedHeaderRef.current) {
+      setExpandedHeaderElement(expandedHeaderRef.current);
+    }
+  }, [setExpandedHeaderElement]);
 
   const openCreateDialog = () => {
     setEditingGroup(undefined);
@@ -60,9 +70,16 @@ export function SplitsPage() {
 
   return (
     <>
-      <SplitsOverviewHeader onCreateClick={openCreateDialog} />
+      <div ref={expandedHeaderRef} className="h-0" />
+      <SplitsOverviewHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onCreateClick={openCreateDialog}
+        isSticky={isSticky}
+      />
       <Container>
         <SplitGroupList
+          searchQuery={searchQuery}
           onCreateClick={openCreateDialog}
           onEdit={openEditDialog}
           onDelete={setDeletingGroup}

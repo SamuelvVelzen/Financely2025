@@ -6,6 +6,8 @@ import { HiArrowPath } from "react-icons/hi2";
 
 export type ISubscriptionsTabContentProps = {
   subscriptions: ISubscription[];
+  hasAnySubscriptions?: boolean;
+  searchQuery?: string;
   onToggleActive: (subscription: ISubscription) => void;
   onDelete: (subscription: ISubscription) => void;
   onDetect: () => void;
@@ -14,12 +16,23 @@ export type ISubscriptionsTabContentProps = {
 
 export function SubscriptionsTabContent({
   subscriptions,
+  hasAnySubscriptions = false,
+  searchQuery = "",
   onToggleActive,
   onDelete,
   onDetect,
   onTransactionClick,
 }: ISubscriptionsTabContentProps) {
   if (subscriptions.length === 0) {
+    if (hasAnySubscriptions || searchQuery.trim()) {
+      return (
+        <EmptyPage
+          icon={HiArrowPath}
+          emptyText="No subscriptions match your search."
+        />
+      );
+    }
+
     return (
       <EmptyPage
         icon={HiArrowPath}

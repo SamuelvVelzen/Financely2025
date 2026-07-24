@@ -12,10 +12,15 @@ import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
 import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
-import { useCallback, useState } from "react";
+import { matchesSearchQuery } from "@/features/util/matches-search-query";
+import { useCallback, useMemo, useState } from "react";
 import { HiArrowUturnLeft, HiNoSymbol } from "react-icons/hi2";
 
-export function DismissedTabContent() {
+export function DismissedTabContent({
+  searchQuery = "",
+}: {
+  searchQuery?: string;
+}) {
   const toast = useToast();
   const {
     data: dismissalsData,
@@ -29,7 +34,17 @@ export function DismissedTabContent() {
   const [restoreConfirmDismissal, setRestoreConfirmDismissal] =
     useState<ISubscriptionDismissal | null>(null);
 
-  const dismissals = dismissalsData?.data ?? [];
+  const dismissals = useMemo(
+    () => dismissalsData?.data ?? [],
+    [dismissalsData?.data],
+  );
+  const filteredDismissals = useMemo(
+    () =>
+      dismissals.filter((dismissal) =>
+        matchesSearchQuery(searchQuery, dismissal.normalizedName),
+      ),
+    [dismissals, searchQuery],
+  );
 
   const handleRestoreClick = useCallback(
     (dismissal: ISubscriptionDismissal) => {
@@ -86,6 +101,15 @@ export function DismissedTabContent() {
     );
   }
 
+  if (filteredDismissals.length === 0) {
+    return (
+      <EmptyPage
+        icon={HiNoSymbol}
+        emptyText="No dismissed subscriptions match your search."
+      />
+    );
+  }
+
   return (
     <div className="space-y-2">
       <p className="text-sm text-text-muted mb-4">
@@ -93,7 +117,7 @@ export function DismissedTabContent() {
         they appear in detection results again.
       </p>
       <List
-        data={dismissals}
+        data={filteredDismissals}
         getItemKey={(d) => d.id}>
         {(dismissal) => (
           <ListItem

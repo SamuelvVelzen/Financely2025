@@ -24,6 +24,8 @@ import { Tabs } from "@/features/ui/tab/tabs";
 import { useToast } from "@/features/ui/toast";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import { useQueryClient } from "@tanstack/react-query";
+import { matchesSearchQuery } from "@/features/util/matches-search-query";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SubscriptionDetectionDialog } from "./subscription-detection-dialog";
 import { SubscriptionOverviewHeader } from "./subscription-overview-header";
@@ -34,6 +36,8 @@ export function SubscriptionsPage() {
   const queryClient = useQueryClient();
   const expandedHeaderRef = useRef<HTMLDivElement>(null);
   const [isSticky, setExpandedHeaderElement] = useScrollPosition();
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
   const {
     data: subscriptionsData,
     isLoading,
@@ -51,7 +55,17 @@ export function SubscriptionsPage() {
   const [selectedTransaction, setSelectedTransaction] = useState<
     ITransaction | undefined
   >(undefined);
-  const subscriptions = subscriptionsData?.data ?? [];
+  const subscriptions = useMemo(
+    () => subscriptionsData?.data ?? [],
+    [subscriptionsData?.data],
+  );
+  const filteredSubscriptions = useMemo(
+    () =>
+      subscriptions.filter((subscription) =>
+        matchesSearchQuery(debouncedSearchQuery, subscription.name),
+      ),
+    [subscriptions, debouncedSearchQuery],
+  );
 
   useEffect(() => {
     if (expandedHeaderRef.current) {
@@ -134,6 +148,8 @@ export function SubscriptionsPage() {
       <div ref={expandedHeaderRef} className="h-0" />
 
       <SubscriptionOverviewHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
         actions={actions}
         isSticky={isSticky}
       />
@@ -156,7 +172,9 @@ export function SubscriptionsPage() {
 
             <TabContent value="subscriptions">
               <SubscriptionsTabContent
-                subscriptions={subscriptions}
+                subscriptions={filteredSubscriptions}
+                hasAnySubscriptions={subscriptions.length > 0}
+                searchQuery={debouncedSearchQuery}
                 onToggleActive={handleToggleActive}
                 onDelete={setDeleteTarget}
                 onDetect={() => setIsDetectDialogOpen(true)}
@@ -165,7 +183,7 @@ export function SubscriptionsPage() {
             </TabContent>
 
             <TabContent value="dismissed">
-              <DismissedTabContent />
+              <DismissedTabContent searchQuery={debouncedSearchQuery} />
             </TabContent>
           </Tabs>
         )}

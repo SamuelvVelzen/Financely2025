@@ -5,7 +5,10 @@ import { EmptyPage } from "@/features/ui/container/empty-container";
 import { QueryErrorState } from "@/features/ui/container/query-error-state";
 import { List } from "@/features/ui/list/list";
 import { Loading } from "@/features/ui/loading";
+import { matchesSearchQuery } from "@/features/util/matches-search-query";
+import { useDebouncedValue } from "@/features/util/use-debounced-value";
 import { useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { HiUsers } from "react-icons/hi2";
 
 type ISplitGroupRow = ISplitGroupDialogTarget & {
@@ -16,16 +19,40 @@ type ISplitGroupRow = ISplitGroupDialogTarget & {
 };
 
 export function SplitGroupList({
+  searchQuery = "",
   onCreateClick,
   onEdit,
   onDelete,
 }: {
+  searchQuery?: string;
   onCreateClick: () => void;
   onEdit?: (group: ISplitGroupDialogTarget) => void;
   onDelete?: (group: ISplitGroupDialogTarget) => void;
 }) {
   const navigate = useNavigate();
   const { data, isLoading, error, refetch } = useSplitGroups();
+  const debouncedSearchQuery = useDebouncedValue(searchQuery, 300);
+
+  const groups: ISplitGroupRow[] = useMemo(
+    () =>
+      (data?.groups ?? []).map((group) => ({
+        id: group.id as string,
+        name: group.name as string,
+        memberCount: group.memberCount as number,
+        expenseCount: group.expenseCount as number,
+        defaultCurrency: group.defaultCurrency as string,
+        role: group.role as string,
+        isCreator: group.isCreator as boolean,
+        viewerNetAmount: group.viewerNetAmount as string | undefined,
+      })),
+    [data?.groups],
+  );
+
+  const filteredGroups = useMemo(
+    () =>
+      groups.filter((group) => matchesSearchQuery(debouncedSearchQuery, group.name)),
+    [groups, debouncedSearchQuery],
+  );
 
   if (isLoading) {
     return (
@@ -45,17 +72,6 @@ export function SplitGroupList({
     );
   }
 
-  const groups: ISplitGroupRow[] = (data?.groups ?? []).map((group) => ({
-    id: group.id as string,
-    name: group.name as string,
-    memberCount: group.memberCount as number,
-    expenseCount: group.expenseCount as number,
-    defaultCurrency: group.defaultCurrency as string,
-    role: group.role as string,
-    isCreator: group.isCreator as boolean,
-    viewerNetAmount: group.viewerNetAmount as string | undefined,
-  }));
-
   if (groups.length === 0) {
     return (
       <EmptyPage
@@ -69,8 +85,17 @@ export function SplitGroupList({
     );
   }
 
+  if (filteredGroups.length === 0) {
+    return (
+      <EmptyPage
+        emptyText="No split groups match your search."
+        icon={HiUsers}
+      />
+    );
+  }
+
   return (
-    <List data={groups}>
+    <List data={filteredGroups}>
       {(group) => (
         <SplitGroupListItem
           key={group.id}

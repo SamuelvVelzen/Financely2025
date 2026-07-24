@@ -14,6 +14,7 @@ export const notificationStatusFilterSchema = z.enum([
 export const notificationFilterQuerySchema = z.object({
   status: notificationStatusFilterSchema.optional(),
   type: NotificationTypeSchema.optional(),
+  q: z.string().optional(),
 });
 
 export type INotificationStatusFilter = z.infer<

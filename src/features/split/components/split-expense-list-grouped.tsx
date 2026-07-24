@@ -13,18 +13,20 @@ export function SplitExpenseListGrouped({
   viewer,
   onEdit,
   onDelete,
+  emptyText = "No expenses yet. Add one to get started.",
 }: {
   expenses: ISplitExpense[];
   groupCurrency: string;
   viewer?: { userId: string; memberId: string; role: string };
   onEdit?: (expense: ISplitExpense) => void;
   onDelete?: (expense: ISplitExpense) => void;
+  emptyText?: string;
 }) {
   if (expenses.length === 0) {
     return (
       <EmptyPage
         icon={HiReceiptPercent}
-        emptyText="No expenses yet. Add one to get started."
+        emptyText={emptyText}
       />
     );
   }

@@ -20,6 +20,7 @@ export type IUseNotificationFiltersReturn = {
   setFilterState: (state: Partial<INotificationFilterState>) => void;
   setStatus: (status: INotificationStatusFilter) => void;
   setType: (type: INotificationType | undefined) => void;
+  setSearchQuery: (searchQuery: string) => void;
   clearAllFilters: () => void;
   hasActiveFilters: boolean;
 };
@@ -66,6 +67,13 @@ export function useNotificationFilters({
     [applyState],
   );
 
+  const setSearchQuery = useCallback(
+    (searchQuery: string) => {
+      applyState({ searchQuery });
+    },
+    [applyState],
+  );
+
   const clearAllFilters = useCallback(() => {
     applyState(DEFAULT_NOTIFICATION_FILTER_STATE);
   }, [applyState]);
@@ -75,6 +83,7 @@ export function useNotificationFilters({
     setFilterState,
     setStatus,
     setType,
+    setSearchQuery,
     clearAllFilters,
     hasActiveFilters: checkHasActiveFilters(filterState),
   };
