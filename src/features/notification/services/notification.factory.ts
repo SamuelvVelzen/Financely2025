@@ -1,7 +1,19 @@
 import type { INotificationAction } from "@/features/shared/validation/schemas";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
+import {
+  BUDGET_NEAR_LIMIT_TITLE,
+  BUDGET_OVER_LIMIT_TITLE,
+} from "../utils/budget-threshold-notification-titles";
 import { NOTIFICATION_RELATED_TYPE } from "../utils/notification-related-type";
 import { NotificationService } from "./notification.service";
+
+type IBudgetThresholdNotificationParams = {
+  budgetId: string;
+  budgetName: string;
+  percentage: number;
+  spentLabel: string;
+  limitLabel: string;
+};
 
 /**
  * Notification Factory
@@ -18,6 +30,34 @@ export class NotificationFactory {
       content: `We found ${count} potential subscription${count !== 1 ? "s" : ""} in your transactions.`,
       type: "INFO",
       relatedType: NOTIFICATION_RELATED_TYPE.subscription,
+    });
+  }
+
+  static async createBudgetNearLimitNotification(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    params: IBudgetThresholdNotificationParams,
+  ): Promise<void> {
+    await NotificationService.createNotification(userId, workspaceId, {
+      title: BUDGET_NEAR_LIMIT_TITLE,
+      content: `"${params.budgetName}" is at ${params.percentage}% of its expense budget (${params.spentLabel} of ${params.limitLabel}).`,
+      type: "WARNING",
+      relatedId: params.budgetId,
+      relatedType: NOTIFICATION_RELATED_TYPE.budget,
+    });
+  }
+
+  static async createBudgetOverspendNotification(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    params: IBudgetThresholdNotificationParams,
+  ): Promise<void> {
+    await NotificationService.createNotification(userId, workspaceId, {
+      title: BUDGET_OVER_LIMIT_TITLE,
+      content: `"${params.budgetName}" is over budget at ${params.percentage}% (${params.spentLabel} of ${params.limitLabel}).`,
+      type: "ERROR",
+      relatedId: params.budgetId,
+      relatedType: NOTIFICATION_RELATED_TYPE.budget,
     });
   }
 

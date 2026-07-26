@@ -40,11 +40,24 @@ const CTA_BY_RELATED_TYPE: Record<
 function ctaForRelatedType(
   relatedType: INotificationRelatedType,
   workspaceId: IWorkspaceId,
+  relatedId: string | null | undefined,
 ): INotificationCta {
   const meta = CTA_BY_RELATED_TYPE[relatedType];
+  const basePath = `/${workspaceIdToUrlSegment(workspaceId)}/${meta.pathSuffix}`;
+
+  if (
+    relatedType === NOTIFICATION_RELATED_TYPE.budget &&
+    relatedId
+  ) {
+    return {
+      label: "View budget",
+      path: `${basePath}/${relatedId}`,
+    };
+  }
+
   return {
     label: meta.label,
-    path: `/${workspaceIdToUrlSegment(workspaceId)}/${meta.pathSuffix}`,
+    path: basePath,
   };
 }
 
@@ -67,11 +80,17 @@ function legacyCtasFromStoredActions(
  * Falls back to stored navigate actions for older rows.
  */
 export function resolveNotificationCtas(
-  notification: Pick<INotification, "relatedType" | "actions">,
+  notification: Pick<INotification, "relatedType" | "relatedId" | "actions">,
   workspaceId: IWorkspaceId,
 ): INotificationCta[] {
   if (isNotificationRelatedType(notification.relatedType)) {
-    return [ctaForRelatedType(notification.relatedType, workspaceId)];
+    return [
+      ctaForRelatedType(
+        notification.relatedType,
+        workspaceId,
+        notification.relatedId,
+      ),
+    ];
   }
   return legacyCtasFromStoredActions(notification.actions);
 }

@@ -13,6 +13,7 @@ import {
   type ITransactionsQuery,
   type IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
+import { notifyBudgetThresholdsIfNeeded } from "@/features/notification/services/notify-budget-thresholds";
 import { NotificationService } from "@/features/notification/services/notification.service";
 import { NOTIFICATION_RELATED_TYPE } from "@/features/notification/utils/notification-related-type";
 import { SubscriptionDetectionService } from "@/features/subscription/services/subscription-detection.service";
@@ -377,7 +378,21 @@ export class TransactionService {
       );
     }
 
+    if (validated.type === "EXPENSE") {
+      this.triggerBudgetThresholdCheck(userId, workspaceId);
+    }
+
     return this.parseTransaction(transaction);
+  }
+
+  /**
+   * Fire-and-forget budget near/over notifications after expense writes.
+   */
+  private static triggerBudgetThresholdCheck(
+    userId: string,
+    workspaceId: IWorkspaceId,
+  ): void {
+    void notifyBudgetThresholdsIfNeeded(userId, workspaceId).catch(() => {});
   }
 
   /**
@@ -559,6 +574,13 @@ export class TransactionService {
           }
         })
         .catch(() => {});
+
+      const createdExpense = created.some(
+        (transaction) => transaction.type === "EXPENSE",
+      );
+      if (createdExpense) {
+        this.triggerBudgetThresholdCheck(userId, workspaceId);
+      }
     }
 
     return {
@@ -716,7 +738,14 @@ export class TransactionService {
       include: TRANSACTION_INCLUDE,
     });
 
-    return this.parseTransaction(transaction);
+    const parsed = this.parseTransaction(transaction);
+    const affectsExpenseBudget =
+      existing.type === "EXPENSE" || parsed.type === "EXPENSE";
+    if (affectsExpenseBudget) {
+      this.triggerBudgetThresholdCheck(userId, workspaceId);
+    }
+
+    return parsed;
   }
 
   /**
