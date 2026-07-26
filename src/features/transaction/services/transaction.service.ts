@@ -14,6 +14,7 @@ import {
   type IUpdateTransactionInput,
 } from "@/features/shared/validation/schemas";
 import { NotificationService } from "@/features/notification/services/notification.service";
+import { NOTIFICATION_RELATED_TYPE } from "@/features/notification/utils/notification-related-type";
 import { SubscriptionDetectionService } from "@/features/subscription/services/subscription-detection.service";
 import { SubscriptionService } from "@/features/subscription/services/subscription.service";
 import { prisma } from "@/features/util/prisma";
@@ -401,15 +402,7 @@ export class TransactionService {
         title: "Recurring transaction detected",
         content: `"${candidate.displayName}" looks like a ${candidate.frequency} subscription (${candidate.occurrences} occurrences). Would you like to track it?`,
         type: "INFO",
-        actions: [
-          {
-            label: "Review Subscriptions",
-            type: "navigate",
-            path: `/${workspaceId}/subscriptions`,
-            variant: "primary",
-          },
-        ],
-        relatedType: "subscription",
+        relatedType: NOTIFICATION_RELATED_TYPE.subscription,
       });
     }
   }
@@ -561,15 +554,7 @@ export class TransactionService {
               title: "Recurring transactions detected",
               content: `We found ${candidates.length} potential subscription${candidates.length > 1 ? "s" : ""} in your imported transactions. Review them to start tracking.`,
               type: "INFO",
-              actions: [
-                {
-                  label: "Review Subscriptions",
-                  type: "navigate",
-                  path: `/${workspaceId}/subscriptions`,
-                  variant: "primary",
-                },
-              ],
-              relatedType: "subscription",
+              relatedType: NOTIFICATION_RELATED_TYPE.subscription,
             });
           }
         })

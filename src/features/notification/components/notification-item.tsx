@@ -103,10 +103,7 @@ export function NotificationItem({ notification }: INotificationItemProps) {
               </div>
             </div>
 
-            <NotificationActions
-              actions={notification.actions}
-              notificationId={notification.id}
-            />
+            <NotificationActions notification={notification} />
           </div>
         </div>
       </ListItem>

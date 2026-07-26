@@ -1,10 +1,11 @@
 import type { INotificationAction } from "@/features/shared/validation/schemas";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
+import { NOTIFICATION_RELATED_TYPE } from "../utils/notification-related-type";
 import { NotificationService } from "./notification.service";
 
 /**
  * Notification Factory
- * Helper functions for creating common notification types (workspace-scoped).
+ * Creates workspace-scoped notifications with relatedType intent (UI owns CTAs).
  */
 export class NotificationFactory {
   static async createSubscriptionFoundNotification(
@@ -12,20 +13,11 @@ export class NotificationFactory {
     workspaceId: IWorkspaceId,
     count: number,
   ): Promise<void> {
-    const actions: INotificationAction[] = [
-      {
-        label: "View Subscriptions",
-        type: "navigate",
-        path: `/${workspaceId}/subscriptions`,
-        variant: "primary",
-      },
-    ];
-
     await NotificationService.createNotification(userId, workspaceId, {
       title: "Subscriptions Found",
       content: `We found ${count} potential subscription${count !== 1 ? "s" : ""} in your transactions.`,
       type: "INFO",
-      actions,
+      relatedType: NOTIFICATION_RELATED_TYPE.subscription,
     });
   }
 
@@ -40,20 +32,11 @@ export class NotificationFactory {
       ((currentAmount - previousAmount) / previousAmount) * 100,
     );
 
-    const actions: INotificationAction[] = [
-      {
-        label: "View Transactions",
-        type: "navigate",
-        path: `/${workspaceId}/transactions`,
-        variant: "primary",
-      },
-    ];
-
     await NotificationService.createNotification(userId, workspaceId, {
       title: "High Monthly Expenses",
       content: `Your expenses this month (${currency} ${currentAmount.toFixed(2)}) are ${percentage}% higher than last month (${currency} ${previousAmount.toFixed(2)}).`,
       type: "WARNING",
-      actions,
+      relatedType: NOTIFICATION_RELATED_TYPE.transactions,
     });
   }
 
@@ -64,15 +47,6 @@ export class NotificationFactory {
     failureCount: number,
     importId?: string,
   ): Promise<void> {
-    const actions: INotificationAction[] = [
-      {
-        label: "View Transactions",
-        type: "navigate",
-        path: `/${workspaceId}/transactions`,
-        variant: "primary",
-      },
-    ];
-
     let content = `Successfully imported ${successCount} transaction${successCount !== 1 ? "s" : ""}.`;
     if (failureCount > 0) {
       content += ` ${failureCount} transaction${failureCount !== 1 ? "s" : ""} failed to import.`;
@@ -82,9 +56,8 @@ export class NotificationFactory {
       title: "Import Complete",
       content,
       type: failureCount > 0 ? "WARNING" : "SUCCESS",
-      actions,
       relatedId: importId,
-      relatedType: "import",
+      relatedType: NOTIFICATION_RELATED_TYPE.import,
     });
   }
 
@@ -94,12 +67,15 @@ export class NotificationFactory {
     title: string,
     content: string,
     type: "INFO" | "SUCCESS" | "WARNING" | "ERROR" = "INFO",
+    relatedType?: string,
+    /** @deprecated Prefer relatedType — kept for rare custom CTAs */
     actions?: INotificationAction[],
   ): Promise<void> {
     await NotificationService.createNotification(userId, workspaceId, {
       title,
       content,
       type,
+      relatedType,
       actions,
     });
   }

@@ -1,21 +1,32 @@
-import type { INotificationAction } from "@/features/shared/validation/schemas";
+import type { INotification } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
-import { useNotificationActions } from "../hooks/useNotificationActions";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { useNavigate } from "@tanstack/react-router";
+import { useMarkAsRead } from "../hooks/useNotifications";
+import { resolveNotificationCtas } from "../utils/resolve-notification-ctas";
 
 type INotificationActionsProps = {
-  actions: INotificationAction[] | null;
-  notificationId: string;
+  notification: INotification;
 };
 
 export function NotificationActions({
-  actions,
-  notificationId,
+  notification,
 }: INotificationActionsProps) {
-  const { handleAction } = useNotificationActions();
+  const workspaceId = useActiveWorkspaceId();
+  const navigate = useNavigate();
+  const markAsRead = useMarkAsRead();
+  const ctas = resolveNotificationCtas(notification, workspaceId);
 
-  if (!actions || actions.length === 0) {
+  if (ctas.length === 0) {
     return null;
   }
+
+  const handleCta = async (path: string) => {
+    if (!notification.read) {
+      await markAsRead.mutateAsync(notification.id);
+    }
+    navigate({ to: path });
+  };
 
   return (
     <div
@@ -23,19 +34,15 @@ export function NotificationActions({
       role="presentation"
       onClick={(e) => e.stopPropagation()}
       onKeyDown={(e) => e.stopPropagation()}>
-      {actions.map((action, index) => (
+      {ctas.map((cta) => (
         <Button
-          key={index}
-          variant={
-            action.variant === "primary"
-              ? "primary"
-              : action.variant === "danger"
-                ? "danger"
-                : "default"
-          }
+          key={cta.path}
+          variant="primary"
           size="sm"
-          clicked={() => handleAction(action, notificationId)}
-          buttonContent={action.label}
+          clicked={() => {
+            void handleCta(cta.path);
+          }}
+          buttonContent={cta.label}
         />
       ))}
     </div>

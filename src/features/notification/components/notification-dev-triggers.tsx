@@ -9,7 +9,6 @@ import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-
 import { Button, type IVariant } from "@/features/ui/button/button";
 import { Container } from "@/features/ui/container/container";
 import { useToast } from "@/features/ui/toast";
-import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
 import { useState } from "react";
 
 const TYPE_BUTTON_VARIANT: Record<INotificationType, IVariant> = {
@@ -29,7 +28,6 @@ const TYPE_ENTRIES = Object.entries(NOTIFICATION_TYPE_META) as [
  * Rendered only when `import.meta.env.DEV` is true.
  */
 export function NotificationDevTriggers() {
-  const workspaceId = useActiveWorkspaceId();
   const createNotification = useCreateNotification();
   const toast = useToast();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
@@ -44,7 +42,7 @@ export function NotificationDevTriggers() {
     setPendingKey(type);
     try {
       const result = await createNotification.mutateAsync(
-        buildSampleNotificationInput(type, workspaceId),
+        buildSampleNotificationInput(type),
       );
       if (!isOfflineMutationPlaceholder(result)) {
         toast.success(`${NOTIFICATION_TYPE_META[type].label} notification added`);
@@ -59,7 +57,7 @@ export function NotificationDevTriggers() {
   const createPack = async () => {
     setPendingKey("pack");
     try {
-      const pack = buildSampleNotificationPack(workspaceId);
+      const pack = buildSampleNotificationPack();
       for (const input of pack) {
         await createNotification.mutateAsync(input);
       }
