@@ -408,7 +408,6 @@ export class TransactionService {
             path: `/${workspaceId}/subscriptions`,
             variant: "primary",
           },
-          { label: "Dismiss", type: "dismiss" },
         ],
         relatedType: "subscription",
       });
@@ -569,7 +568,6 @@ export class TransactionService {
                   path: `/${workspaceId}/subscriptions`,
                   variant: "primary",
                 },
-                { label: "Dismiss", type: "dismiss" },
               ],
               relatedType: "subscription",
             });

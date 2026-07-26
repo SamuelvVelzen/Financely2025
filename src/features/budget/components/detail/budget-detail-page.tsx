@@ -194,6 +194,14 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
     });
   };
 
+  const handleAddAlertTagToBudget = (tagId: string) => {
+    navigate({
+      to: "/$workspaceId/budgets/$budgetId/edit",
+      params: { workspaceId: workspaceRouteParam, budgetId },
+      search: { addTagId: tagId },
+    });
+  };
+
   if (budgetLoading || comparisonLoading) {
     return (
       <Container>
@@ -250,6 +258,7 @@ export function BudgetDetailPage({ budgetId }: IBudgetDetailPageProps) {
               currency={comparison.budget.currency}
               alerts={selectedBreakdown ? [] : comparison.alerts}
               periodViewLabel={periodViewLabel}
+              onAddAlertTagToBudget={handleAddAlertTagToBudget}
             />
 
             <BudgetDetailTagsContainer

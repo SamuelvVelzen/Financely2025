@@ -43,6 +43,7 @@ export interface ITabGroupRef {
   goNext: () => void;
   goBack: () => void;
   getTabs: () => string[];
+  setTab: (value: string) => void;
 }
 
 export const TabGroup = forwardRef<
@@ -127,6 +128,7 @@ export const TabGroup = forwardRef<
     goNext,
     goBack,
     getTabs,
+    setTab: setValue,
   }));
 
   // Use internalValue as value

@@ -19,11 +19,6 @@ export class NotificationFactory {
         path: `/${workspaceId}/subscriptions`,
         variant: "primary",
       },
-      {
-        label: "Dismiss",
-        type: "dismiss",
-        variant: "default",
-      },
     ];
 
     await NotificationService.createNotification(userId, workspaceId, {
@@ -52,11 +47,6 @@ export class NotificationFactory {
         path: `/${workspaceId}/transactions`,
         variant: "primary",
       },
-      {
-        label: "Dismiss",
-        type: "dismiss",
-        variant: "default",
-      },
     ];
 
     await NotificationService.createNotification(userId, workspaceId, {
@@ -80,11 +70,6 @@ export class NotificationFactory {
         type: "navigate",
         path: `/${workspaceId}/transactions`,
         variant: "primary",
-      },
-      {
-        label: "Dismiss",
-        type: "dismiss",
-        variant: "default",
       },
     ];
 
@@ -115,13 +100,7 @@ export class NotificationFactory {
       title,
       content,
       type,
-      actions: actions || [
-        {
-          label: "Dismiss",
-          type: "dismiss",
-          variant: "default",
-        },
-      ],
+      actions,
     });
   }
 }

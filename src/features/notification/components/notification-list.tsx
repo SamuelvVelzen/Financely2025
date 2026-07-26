@@ -1,7 +1,11 @@
 import type { INotification } from "@/features/shared/validation/schemas";
 import { EmptyPage } from "@/features/ui/container/empty-container";
+import { List } from "@/features/ui/list/list";
+import { ListItem } from "@/features/ui/list/list-item";
 import { SkeletonText } from "@/features/ui/skeleton";
+import { cn } from "@/features/util/cn";
 import { HiOutlineBell } from "react-icons/hi2";
+import { groupNotificationsByDate } from "../utils/group-notifications-by-date";
 import { NotificationItem } from "./notification-item";
 
 type INotificationListProps = {
@@ -17,18 +21,20 @@ export function NotificationList({
 }: INotificationListProps) {
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <List>
         {[1, 2, 3].map((i) => (
-          <div
+          <ListItem
             key={i}
-            className="flex gap-3 rounded-2xl border border-border p-4">
-            <div className="size-9 shrink-0 rounded-full bg-surface-hover animate-pulse" />
-            <div className="flex-1">
-              <SkeletonText lines={3} />
+            className="items-start py-3">
+            <div className="flex w-full min-w-0 gap-3">
+              <div className="mt-0.5 size-5 shrink-0 animate-pulse rounded bg-surface-hover" />
+              <div className="min-w-0 flex-1">
+                <SkeletonText lines={2} />
+              </div>
             </div>
-          </div>
+          </ListItem>
         ))}
-      </div>
+      </List>
     );
   }
 
@@ -41,13 +47,28 @@ export function NotificationList({
     );
   }
 
+  const dateGroups = groupNotificationsByDate(notifications);
+
   return (
-    <div className="space-y-3">
-      {notifications.map((notification) => (
-        <NotificationItem
-          key={notification.id}
-          notification={notification}
-        />
+    <div className="overflow-hidden">
+      {dateGroups.map((group, groupIndex) => (
+        <div
+          key={group.date}
+          className={cn("mb-4", groupIndex > 0 && "mt-6")}>
+          <div className="mb-2 px-4 py-2">
+            <h3 className="text-sm font-semibold text-text-muted">
+              {group.dateHeader}
+            </h3>
+          </div>
+
+          <List
+            data={group.notifications}
+            getItemKey={(notification) => notification.id}>
+            {(notification) => (
+              <NotificationItem notification={notification} />
+            )}
+          </List>
+        </div>
       ))}
     </div>
   );

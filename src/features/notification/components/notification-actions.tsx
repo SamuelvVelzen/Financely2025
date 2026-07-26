@@ -18,7 +18,11 @@ export function NotificationActions({
   }
 
   return (
-    <div className="flex flex-wrap gap-2 mt-3">
+    <div
+      className="mt-2 flex flex-wrap gap-2"
+      role="presentation"
+      onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => e.stopPropagation()}>
       {actions.map((action, index) => (
         <Button
           key={index}

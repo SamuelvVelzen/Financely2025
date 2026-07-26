@@ -16,6 +16,7 @@ type IBudgetSummaryContainerProps = {
   currency: IBudgetComparison["budget"]["currency"];
   alerts: IBudgetAlert[];
   periodViewLabel?: string | null;
+  onAddAlertTagToBudget?: (tagId: string) => void;
 };
 
 export function BudgetSummaryContainer({
@@ -23,6 +24,7 @@ export function BudgetSummaryContainer({
   totals,
   alerts,
   periodViewLabel,
+  onAddAlertTagToBudget,
 }: IBudgetSummaryContainerProps) {
   const incomeExpected = parseFloat(totals.income.expected);
   const incomeActual = parseFloat(totals.income.actual);
@@ -111,9 +113,11 @@ export function BudgetSummaryContainer({
         </div>
       </section>
 
-      {alerts.length > 0 && (
+      {alerts.length > 0 && onAddAlertTagToBudget && (
         <BudgetAlerts
           alerts={alerts}
+          currency={currency}
+          onAddToBudget={onAddAlertTagToBudget}
           className="mb-4"
         />
       )}

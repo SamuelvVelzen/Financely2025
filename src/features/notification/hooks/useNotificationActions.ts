@@ -22,12 +22,16 @@ export function useNotificationActions() {
   ): Promise<void> => {
     switch (action.type) {
       case "navigate":
+        if (notificationId) {
+          await markAsRead.mutateAsync(notificationId);
+        }
         if (action.path) {
           navigate({ to: action.path });
         }
         break;
 
       case "dismiss":
+        // Dismiss = mark as read (keeps the notification). Delete removes it.
         if (notificationId) {
           await markAsRead.mutateAsync(notificationId);
         }

@@ -54,6 +54,8 @@ import { BudgetTagSelector } from "./budget-tag-selector";
 
 type IBudgetCreateOrEditPageProps = {
   budgetId?: string;
+  /** When set (edit mode), pre-select this tag and open the Budget tab so the user can enter an amount. */
+  addTagId?: string;
 };
 
 const TABS = ["general", "tags", "budget"] as const;
@@ -406,6 +408,7 @@ function transformFormDataToApiInput(
 
 export function BudgetCreateOrEditPage({
   budgetId,
+  addTagId,
 }: IBudgetCreateOrEditPageProps) {
   const navigate = useNavigate();
   const workspaceId = useActiveWorkspaceId();
@@ -418,7 +421,9 @@ export function BudgetCreateOrEditPage({
   const toast = useToast();
   const [pending, setPending] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const [currentTab, setCurrentTab] = useState<ITabValue>(TABS[0]);
+  const [currentTab, setCurrentTab] = useState<ITabValue>(
+    addTagId ? "budget" : TABS[0],
+  );
 
   const form = useFinForm<IBudgetFormData>({
     resolver: zodResolver(BudgetFormSchema),
@@ -462,10 +467,29 @@ export function BudgetCreateOrEditPage({
   }, [isEditMode, form, defaultCurrency]);
 
   useEffect(() => {
-    if (isEditMode && budget) {
-      form.reset(transformBudgetToFormData(budget));
+    if (!isEditMode || !budget) {
+      return;
     }
-  }, [isEditMode, budget, form]);
+
+    const formData = transformBudgetToFormData(budget);
+    form.reset(formData);
+
+    if (addTagId && !formData.tags.selectedTagIds.includes(addTagId)) {
+      form.setValue(
+        "tags.selectedTagIds",
+        [...formData.tags.selectedTagIds, addTagId],
+        { shouldDirty: true },
+      );
+    }
+
+    if (addTagId) {
+      // TabGroup may already be mounted; force Budget tab for amount entry.
+      // setTab triggers onChangeTab → currentTab stays in sync.
+      queueMicrotask(() => {
+        tabGroupRef.current?.setTab("budget");
+      });
+    }
+  }, [isEditMode, budget, form, addTagId]);
 
   const handleBack = useCallback(() => {
     if (hasUnsavedChanges) {
@@ -645,7 +669,7 @@ export function BudgetCreateOrEditPage({
         <Container>
           <TabGroup
             ref={tabGroupRef}
-            defaultValue={TABS[0]}
+            defaultValue={addTagId ? "budget" : TABS[0]}
             tabs={TABS_ARRAY}
             onChangeTab={(previousTab, newTab) => {
               setCurrentTab(newTab as ITabValue);

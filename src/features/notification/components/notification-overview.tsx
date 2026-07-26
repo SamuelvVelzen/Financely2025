@@ -1,3 +1,4 @@
+import { NotificationDevTriggers } from "@/features/notification/components/notification-dev-triggers";
 import { NotificationList } from "@/features/notification/components/notification-list";
 import { NotificationOverviewHeader } from "@/features/notification/components/notification-overview-header";
 import { useNotificationFilters } from "@/features/notification/hooks/useNotificationFilters";
@@ -176,6 +177,8 @@ export function NotificationOverview({
         isMarkingAllAsRead={markAllAsRead.isPending}
         onMarkAllAsRead={handleMarkAllAsRead}
       />
+
+      <NotificationDevTriggers />
 
       <Container>
         {error && !isLoading ? (
