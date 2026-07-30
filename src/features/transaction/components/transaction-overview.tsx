@@ -43,10 +43,13 @@ const PAGE_SIZE = 20;
 
 interface ITransactionOverviewProps {
   initialState?: Partial<ITransactionFilterState>;
+  /** Open the create-transaction dialog once (e.g. PWA shortcut). */
+  autoOpenCreate?: boolean;
 }
 
 export function TransactionOverview({
   initialState,
+  autoOpenCreate = false,
 }: ITransactionOverviewProps) {
   const navigate = useNavigate();
   const workspaceId = useActiveWorkspaceId();
@@ -172,7 +175,8 @@ export function TransactionOverview({
   const { mutate: deleteTransaction } = useDeleteTransaction();
   const toast = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] =
+    useState(autoOpenCreate);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [isDetectDialogOpen, setIsDetectDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<
@@ -189,6 +193,10 @@ export function TransactionOverview({
     setIsTransactionDialogOpen(true);
   }, []);
 
+  useEffect(() => {
+    if (!autoOpenCreate) return;
+    handleCreateTransaction();
+  }, [autoOpenCreate, handleCreateTransaction]);
   const handleStickyFiltersClick = () => {
     if (isMobile) {
       // On mobile, open the filter sheet

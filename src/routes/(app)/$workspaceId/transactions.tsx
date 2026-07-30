@@ -2,11 +2,20 @@ import { transactionFilterQuerySchema } from "@/features/transaction/utils/trans
 import { createFileRoute } from "@tanstack/react-router";
 import { TransactionsPage } from "@/features/transaction/pages/transactions-page";
 
+function parseCreateSearchFlag(value: unknown): true | undefined {
+  if (value === true || value === "true" || value === "1") {
+    return true;
+  }
+  return undefined;
+}
+
 export const Route = createFileRoute("/(app)/$workspaceId/transactions")({
   component: TransactionsPage,
   validateSearch: (search: Record<string, unknown>) => {
     const validated = transactionFilterQuerySchema.parse(search);
-    return validated;
+    const create = parseCreateSearchFlag(search.create);
+    // Omit `create` when unset so navigations that only pass filters stay typed.
+    return create ? { ...validated, create } : validated;
   },
   head: () => ({
     meta: [

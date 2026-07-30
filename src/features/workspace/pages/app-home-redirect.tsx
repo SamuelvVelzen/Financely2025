@@ -6,29 +6,34 @@ import { Loading } from "@/features/ui/loading";
 import { AddOrEditWorkspaceDialog } from "@/features/workspace/components/add-or-edit-workspace-dialog";
 import { ACTIVE_WORKSPACE_STORAGE_KEY } from "@/features/workspace/constants";
 import { parseWorkspaceIdParam } from "@/features/workspace/workspace-id";
-import {
-  consumeUserWorkspaceNavigation,
-  markHomeRedirectStarted,
-} from "@/features/workspace/utils/workspace-navigation-guard";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { consumeUserWorkspaceNavigation } from "@/features/workspace/utils/workspace-navigation-guard";
+import { getPwaShortcutDestination } from "@/features/shared/pwa/pwa-shortcut-destination";
+import { getRouteApi, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { HiOutlineRectangleStack } from "react-icons/hi2";
+
+const homeRouteApi = getRouteApi("/(app)/");
 
 export function AppHomeRedirect() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { go } = homeRouteApi.useSearch();
   const { data: me, isPending: mePending } = useMe();
   const { data: settings, isPending: settingsPending } = useUserSettings();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  /** Prevents duplicate navigates for the same shortcut while query data refetches. */
+  const lastRedirectKeyRef = useRef<string | null>(null);
 
   const isLoading = mePending || settingsPending;
   const hasNoWorkspaces = !isLoading && me != null && me.workspaces.length === 0;
 
   const handleWorkspaceCreated = (created?: IWorkspaceSummary) => {
     if (created) {
+      const destination = getPwaShortcutDestination(String(created.id), go);
       void navigate({
-        to: "/$workspaceId",
-        params: { workspaceId: String(created.id) },
+        to: destination.to,
+        params: destination.params,
+        ...(destination.search ? { search: destination.search } : {}),
         replace: true,
       });
     }
@@ -36,13 +41,17 @@ export function AppHomeRedirect() {
 
   useEffect(() => {
     if (pathname !== "/") {
+      lastRedirectKeyRef.current = null;
       return;
     }
     if (consumeUserWorkspaceNavigation()) {
       return;
     }
     if (mePending || settingsPending || !me?.workspaces?.length) return;
-    if (!markHomeRedirectStarted()) return;
+
+    const redirectKey = go ?? "";
+    if (lastRedirectKeyRef.current === redirectKey) return;
+
     const workspaces = me.workspaces;
     const workspaceIds = workspaces.map((w) => w.id);
 
@@ -61,12 +70,15 @@ export function AppHomeRedirect() {
       storedId !== null && workspaceIds.includes(storedId) ? storedId : null;
 
     const workspaceId = fromSettings ?? fromStorage ?? workspaces[0]!.id;
+    const destination = getPwaShortcutDestination(String(workspaceId), go);
+    lastRedirectKeyRef.current = redirectKey;
     void navigate({
-      to: "/$workspaceId",
-      params: { workspaceId: String(workspaceId) },
+      to: destination.to,
+      params: destination.params,
+      ...(destination.search ? { search: destination.search } : {}),
       replace: true,
     });
-  }, [pathname, mePending, settingsPending, me, settings, navigate]);
+  }, [pathname, mePending, settingsPending, me, settings, navigate, go]);
 
   if (isLoading) {
     return (

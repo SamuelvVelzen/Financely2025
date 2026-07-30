@@ -31,5 +31,59 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "New transaction",
+      "short_name": "New",
+      "description": "Add a transaction right away",
+      "url": "/?go=new-transaction",
+      "icons": [
+        {
+          "src": "/icons/shortcut-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "short_name": "Transactions",
+      "description": "Open transactions for your workspace",
+      "url": "/?go=transactions",
+      "icons": [
+        {
+          "src": "/icons/shortcut-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Budgets",
+      "short_name": "Budgets",
+      "description": "Open budgets for your workspace",
+      "url": "/?go=budgets",
+      "icons": [
+        {
+          "src": "/icons/shortcut-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Splits",
+      "short_name": "Splits",
+      "description": "Open expense splits",
+      "url": "/splits",
+      "icons": [
+        {
+          "src": "/icons/shortcut-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
