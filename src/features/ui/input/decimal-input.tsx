@@ -5,7 +5,7 @@ import {
 } from "@/features/currency/utils/currencyhelpers";
 import { cn } from "@/features/util/cn";
 import { LocaleHelpers } from "@/features/util/locale.helpers";
-import { useMemo, type FocusEvent } from "react";
+import { useMemo, useState, type FocusEvent } from "react";
 import { NumericFormat } from "react-number-format";
 
 import {
@@ -22,6 +22,8 @@ export type IDecimalInputProps = IDistributeOmitInputKey<
   /** ISO 4217 code — shows currency via NumericFormat prefix/suffix. */
   currency?: string;
   placeholder?: number;
+  /** When set, values above this are rejected while typing. */
+  max?: number;
   onValueChange?: (value: string) => void;
 };
 
@@ -53,6 +55,7 @@ export function DecimalInput({
   currency,
   onValueChange,
   placeholder,
+  max,
   name,
   value,
   onChange,
@@ -68,6 +71,7 @@ export function DecimalInput({
   );
 
   const fractionDigits = currency ? getCurrencyMinorUnits(currency) : 2;
+  const [formatKey, setFormatKey] = useState(0);
 
   const affixes = useMemo(() => {
     if (!currency) {
@@ -79,6 +83,9 @@ export function DecimalInput({
       suffix: suffix || undefined,
     };
   }, [currency, resolvedLocale]);
+
+  const roundedMax =
+    max != null && Number.isFinite(max) ? Math.round(max * 100) / 100 : undefined;
 
   return (
     <BaseInput
@@ -108,8 +115,20 @@ export function DecimalInput({
         } = inputProps;
 
         const commit = (nextValue: string) => {
-          field.onChange(nextValue as never);
-          onValueChange?.(nextValue);
+          let committed = nextValue;
+          if (
+            roundedMax != null &&
+            nextValue !== "" &&
+            Number.isFinite(Number(nextValue)) &&
+            Number(nextValue) > roundedMax + 1e-9
+          ) {
+            committed = String(roundedMax);
+            // Remount when parent value is already at max — otherwise
+            // NumericFormat can keep showing the rejected over-max text.
+            setFormatKey((key) => key + 1);
+          }
+          field.onChange(committed as never);
+          onValueChange?.(committed);
         };
 
         const sharedClassName = cn(
@@ -128,6 +147,12 @@ export function DecimalInput({
           const padded = padToFractionDigits(numericValue, fractionDigits);
           if (padded !== numericValue) {
             commit(padded);
+          } else if (
+            roundedMax != null &&
+            numericValue !== "" &&
+            Number(numericValue) > roundedMax + 1e-9
+          ) {
+            commit(numericValue);
           }
           inputOnBlur?.(event);
           field.onBlur();
@@ -142,6 +167,7 @@ export function DecimalInput({
         return (
           <NumericFormat
             {...restInputProps}
+            key={formatKey}
             type="text"
             inputMode="decimal"
             autoComplete="off"
@@ -156,6 +182,16 @@ export function DecimalInput({
             allowNegative={false}
             prefix={affixes.prefix}
             suffix={affixes.suffix}
+            isAllowed={(values) => {
+              if (roundedMax == null) {
+                return true;
+              }
+              const { floatValue } = values;
+              if (floatValue == null) {
+                return true;
+              }
+              return floatValue <= roundedMax + 1e-9;
+            }}
             getInputRef={getInputRef}
             onValueChange={(values, sourceInfo) => {
               if (sourceInfo.source === "prop") {

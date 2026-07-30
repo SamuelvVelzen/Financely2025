@@ -3,23 +3,22 @@ import type {
   IRefundAllocationSuggestion,
   ITransaction,
 } from "@/features/shared/validation/schemas";
+import { AllocateRefundAllocationRow } from "@/features/transaction/components/allocate-refund-allocation-row";
+import { AllocateRefundSuggestionRow } from "@/features/transaction/components/allocate-refund-suggestion-row";
 import {
   useRefundAllocationSuggestions,
   useReplaceRefundAllocations,
 } from "@/features/transaction/hooks/useTransactions";
-import { Button } from "@/features/ui/button/button";
-import { IconButton } from "@/features/ui/button/icon-button";
+import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
-import { DecimalInput } from "@/features/ui/input/decimal-input";
+import { List } from "@/features/ui/list/list";
 import { useToast } from "@/features/ui/toast";
-import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useEffect, useMemo, useState } from "react";
-import { HiPlus, HiTrash } from "react-icons/hi2";
 
 type IDraftAllocation = {
-  expenseTransactionId: string;
+  counterpartId: string;
   name: string;
-  expenseNet: string;
+  available: string;
   amount: string;
 };
 
@@ -27,49 +26,108 @@ type IAllocateRefundDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction: ITransaction | null;
+  onSaved?: (transaction: ITransaction) => void;
+  onOpenTransaction?: (transactionId: string) => void;
 };
 
 function toDraftFromTransaction(
   transaction: ITransaction,
 ): IDraftAllocation[] {
-  return (transaction.refundAllocations ?? []).map((allocation) => ({
-    expenseTransactionId: allocation.expenseTransactionId,
-    name: allocation.expenseTransaction?.name ?? "Expense",
-    expenseNet: allocation.expenseTransaction?.amount ?? allocation.amount,
-    amount: allocation.amount,
-  }));
+  if (transaction.type === "INCOME") {
+    return (transaction.refundAllocations ?? []).map((allocation) => {
+      const expenseAmount = parseFloat(
+        allocation.expenseTransaction?.amount ?? allocation.amount,
+      );
+      const current = parseFloat(allocation.amount);
+      // Gross expense is the hard cap; current link still counts toward that.
+      const available = Number.isFinite(expenseAmount)
+        ? expenseAmount.toString()
+        : allocation.amount;
+      return {
+        counterpartId: allocation.expenseTransactionId,
+        name: allocation.expenseTransaction?.name ?? "Expense",
+        available,
+        amount: Number.isFinite(current) ? current.toString() : allocation.amount,
+      };
+    });
+  }
+
+  return (transaction.expenseRefundAllocations ?? []).map((allocation) => {
+    const refundAmount = parseFloat(
+      allocation.refundTransaction?.amount ?? allocation.amount,
+    );
+    const current = parseFloat(allocation.amount);
+    const available = Number.isFinite(refundAmount)
+      ? refundAmount.toString()
+      : allocation.amount;
+    return {
+      counterpartId: allocation.refundTransactionId,
+      name: allocation.refundTransaction?.name ?? "Refund",
+      available,
+      amount: Number.isFinite(current) ? current.toString() : allocation.amount,
+    };
+  });
 }
 
 export function AllocateRefundDialog({
   open,
   onOpenChange,
   transaction,
+  onSaved,
+  onOpenTransaction,
 }: IAllocateRefundDialogProps) {
   const toast = useToast();
   const replaceMutation = useReplaceRefundAllocations();
   const [drafts, setDrafts] = useState<IDraftAllocation[]>([]);
+  const [draftToRemove, setDraftToRemove] = useState<IDraftAllocation | null>(
+    null,
+  );
 
+  const isIncome = transaction?.type === "INCOME";
+  const isExpense = transaction?.type === "EXPENSE";
   const transactionId = transaction?.id ?? null;
   const suggestionsQuery = useRefundAllocationSuggestions(
     transactionId,
-    open && transaction?.type === "INCOME",
+    open && (isIncome || isExpense),
   );
 
   useEffect(() => {
     if (open && transaction) {
       setDrafts(toDraftFromTransaction(transaction));
+      setDraftToRemove(null);
     }
   }, [open, transaction]);
 
-  const refundAmount = parseFloat(transaction?.amount ?? "0");
+  const sourceAmount = parseFloat(transaction?.amount ?? "0");
   const allocatedTotal = drafts.reduce(
     (sum, draft) => sum + (parseFloat(draft.amount) || 0),
     0,
   );
-  const remaining = Math.round((refundAmount - allocatedTotal) * 100) / 100;
+  const remaining = Math.round((sourceAmount - allocatedTotal) * 100) / 100;
+
+  const getMaxForDraft = (counterpartId: string) => {
+    const othersTotal = drafts
+      .filter((draft) => draft.counterpartId !== counterpartId)
+      .reduce((sum, draft) => sum + (parseFloat(draft.amount) || 0), 0);
+    const row = drafts.find((draft) => draft.counterpartId === counterpartId);
+    const counterpartCap = parseFloat(row?.available ?? "0");
+    return Math.max(
+      0,
+      Math.min(
+        Number.isFinite(counterpartCap) ? counterpartCap : sourceAmount,
+        sourceAmount - othersTotal,
+      ),
+    );
+  };
+
+  const hasOverMaxDraft = drafts.some((draft) => {
+    const amount = parseFloat(draft.amount) || 0;
+    const maxForRow = Math.round(getMaxForDraft(draft.counterpartId) * 100) / 100;
+    return amount > maxForRow + 0.001;
+  });
 
   const suggestionList = useMemo(() => {
-    const selected = new Set(drafts.map((d) => d.expenseTransactionId));
+    const selected = new Set(drafts.map((d) => d.counterpartId));
     return (suggestionsQuery.data?.suggestions ?? []).filter(
       (suggestion) => !selected.has(suggestion.id),
     );
@@ -86,50 +144,123 @@ export function AllocateRefundDialog({
     setDrafts((current) => [
       ...current,
       {
-        expenseTransactionId: suggestion.id,
+        counterpartId: suggestion.id,
         name: suggestion.name,
-        expenseNet: suggestion.expenseNet,
+        available: suggestion.expenseNet,
         amount: maxAmount.toString(),
       },
     ]);
   };
 
-  const updateAmount = (expenseTransactionId: string, amount: string) => {
-    setDrafts((current) =>
-      current.map((draft) =>
-        draft.expenseTransactionId === expenseTransactionId
-          ? { ...draft, amount }
+  const updateAmount = (counterpartId: string, amount: string) => {
+    setDrafts((current) => {
+      const othersTotal = current
+        .filter((draft) => draft.counterpartId !== counterpartId)
+        .reduce((sum, draft) => sum + (parseFloat(draft.amount) || 0), 0);
+      const row = current.find((draft) => draft.counterpartId === counterpartId);
+      const counterpartCap = parseFloat(row?.available ?? "0");
+      const maxForRow = Math.max(
+        0,
+        Math.min(
+          Number.isFinite(counterpartCap) ? counterpartCap : sourceAmount,
+          sourceAmount - othersTotal,
+        ),
+      );
+      const roundedMax = Math.round(maxForRow * 100) / 100;
+
+      let nextAmount = amount;
+      if (amount !== "") {
+        const parsed = parseFloat(amount);
+        if (Number.isFinite(parsed) && parsed > roundedMax) {
+          nextAmount = roundedMax.toString();
+        }
+      }
+
+      return current.map((draft) =>
+        draft.counterpartId === counterpartId
+          ? { ...draft, amount: nextAmount }
           : draft,
-      ),
-    );
+      );
+    });
   };
 
-  const removeDraft = (expenseTransactionId: string) => {
+  const confirmRemoveDraft = () => {
+    if (!draftToRemove) {
+      return;
+    }
     setDrafts((current) =>
       current.filter(
-        (draft) => draft.expenseTransactionId !== expenseTransactionId,
+        (draft) => draft.counterpartId !== draftToRemove.counterpartId,
       ),
     );
+    setDraftToRemove(null);
   };
 
   const handleSave = async () => {
     if (!transaction) {
       return;
     }
-    if (remaining < -0.001) {
-      toast.error("Reduce allocation amounts so they do not exceed the refund.");
+
+    const clampedDrafts = drafts.map((draft) => {
+      const maxForRow = Math.round(getMaxForDraft(draft.counterpartId) * 100) / 100;
+      const parsed = parseFloat(draft.amount);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        return { ...draft, amount: "0" };
+      }
+      return {
+        ...draft,
+        amount: Math.min(parsed, maxForRow).toString(),
+      };
+    });
+
+    const clampedTotal = clampedDrafts.reduce(
+      (sum, draft) => sum + (parseFloat(draft.amount) || 0),
+      0,
+    );
+    const clampedRemaining =
+      Math.round((sourceAmount - clampedTotal) * 100) / 100;
+
+    if (clampedRemaining < -0.001) {
+      toast.error(
+        isIncome
+          ? "Reduce allocation amounts so they do not exceed the refund."
+          : "Reduce allocation amounts so they do not exceed the expense.",
+      );
+      setDrafts(clampedDrafts);
       return;
     }
 
+    const overCounterpart = clampedDrafts.some((draft) => {
+      const maxForRow = Math.round(getMaxForDraft(draft.counterpartId) * 100) / 100;
+      return (parseFloat(draft.amount) || 0) > maxForRow + 0.001;
+    });
+    if (overCounterpart) {
+      toast.error("One or more allocations exceed the allowed maximum.");
+      setDrafts(clampedDrafts);
+      return;
+    }
+
+    setDrafts(clampedDrafts);
+
     try {
-      await replaceMutation.mutateAsync({
+      const updated = await replaceMutation.mutateAsync({
         transactionId: transaction.id,
-        allocations: drafts.map((draft) => ({
-          expenseTransactionId: draft.expenseTransactionId,
-          amount: draft.amount,
-        })),
+        allocations: isIncome
+          ? clampedDrafts
+              .filter((draft) => (parseFloat(draft.amount) || 0) > 0)
+              .map((draft) => ({
+                expenseTransactionId: draft.counterpartId,
+                amount: draft.amount,
+              }))
+          : clampedDrafts
+              .filter((draft) => (parseFloat(draft.amount) || 0) > 0)
+              .map((draft) => ({
+                refundTransactionId: draft.counterpartId,
+                amount: draft.amount,
+              })),
       });
       toast.success("Allocations were saved successfully.");
+      onSaved?.(updated);
       onOpenChange(false);
     } catch (error) {
       toast.error(
@@ -138,140 +269,153 @@ export function AllocateRefundDialog({
     }
   };
 
-  if (!transaction || transaction.type !== "INCOME") {
+  if (!transaction || (!isIncome && !isExpense)) {
     return null;
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Allocate refund"
-      size="lg"
-      content={
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-text-muted">
-            Link this income to one or more expenses. Allocated amounts reduce
-            those expense categories in budgets; any remainder stays as income.
-          </p>
+    <>
+      <Dialog
+        open={open}
+        onOpenChange={onOpenChange}
+        title={isIncome ? "Allocate refund" : "Link refunds"}
+        size="lg"
+        content={
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-text-muted">
+              {isIncome
+                ? "Link this income to one or more expenses. Allocated amounts reduce those expense categories in budgets; any remainder stays as income."
+                : "Link one or more refund incomes to this expense. Allocated amounts reduce this expense in budgets."}
+            </p>
 
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div>
-              <span className="text-text-muted">Refund </span>
-              <Currency
-                amount={transaction.amount}
-                currency={transaction.currency}
-                type="INCOME"
-                className="font-semibold"
-              />
+            <div className="flex flex-wrap gap-4 text-sm">
+              <div>
+                <span className="text-text-muted">
+                  {isIncome ? "Refund " : "Expense "}
+                </span>
+                <Currency
+                  amount={transaction.amount}
+                  currency={transaction.currency}
+                  type={transaction.type}
+                  className="font-semibold"
+                />
+              </div>
+              <div>
+                <span className="text-text-muted">Remaining </span>
+                <span
+                  className={
+                    remaining < 0
+                      ? "font-semibold text-danger"
+                      : "font-semibold"
+                  }>
+                  {remaining}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className="text-text-muted">Remaining </span>
-              <span
-                className={
-                  remaining < 0 ? "font-semibold text-danger" : "font-semibold"
-                }>
-                {remaining}
-              </span>
-            </div>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold">Current allocations</h3>
-            {drafts.length === 0 ? (
-              <p className="text-sm text-text-muted">No allocations yet.</p>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {drafts.map((draft) => (
-                  <li
-                    key={draft.expenseTransactionId}
-                    className="flex flex-wrap items-center gap-2 rounded-md border border-border p-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{draft.name}</div>
-                      <div className="text-xs text-text-muted">
-                        Available up to {draft.expenseNet}
-                      </div>
-                    </div>
-                    <div className="w-28">
-                      <DecimalInput
-                        value={draft.amount}
-                        currency={transaction.currency}
-                        onChange={(value) =>
-                          updateAmount(
-                            draft.expenseTransactionId,
-                            value == null ? "" : String(value),
-                          )
-                        }
-                        aria-label={`Allocation amount for ${draft.name}`}
-                      />
-                    </div>
-                    <IconButton
-                      ariaLabel={`Remove allocation for ${draft.name}`}
-                      clicked={() => removeDraft(draft.expenseTransactionId)}
-                      icon={<HiTrash className="size-4" />}
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold">Current allocations</h3>
+              {drafts.length === 0 ? (
+                <p className="text-sm text-text-muted">No allocations yet.</p>
+              ) : (
+                <List
+                  className="max-h-56 overflow-y-auto"
+                  data={drafts}
+                  getItemKey={(draft) => draft.counterpartId}>
+                  {(draft) => (
+                    <AllocateRefundAllocationRow
+                      name={draft.name}
+                      amount={draft.amount}
+                      currency={transaction.currency}
+                      maxAmount={getMaxForDraft(draft.counterpartId)}
+                      onAmountChange={(amount) =>
+                        updateAmount(draft.counterpartId, amount)
+                      }
+                      onRemove={() => setDraftToRemove(draft)}
+                      onOpen={
+                        onOpenTransaction
+                          ? () => onOpenTransaction(draft.counterpartId)
+                          : undefined
+                      }
                     />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                  )}
+                </List>
+              )}
+            </div>
 
-          <div className="flex flex-col gap-2">
-            <h3 className="text-sm font-semibold">Suggestions</h3>
-            {suggestionsQuery.isLoading ? (
-              <p className="text-sm text-text-muted">Loading suggestions…</p>
-            ) : suggestionList.length === 0 ? (
-              <p className="text-sm text-text-muted">
-                No matching expenses with remaining amount.
-              </p>
-            ) : (
-              <ul className="flex max-h-56 flex-col gap-2 overflow-y-auto">
-                {suggestionList.map((suggestion) => (
-                  <li
-                    key={suggestion.id}
-                    className="flex items-center gap-2 rounded-md border border-border/60 p-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">
-                        {suggestion.name}
-                      </div>
-                      <div className="text-xs text-text-muted">
-                        {DateFormatHelpers.formatIsoStringToString(
-                          suggestion.transactionDate,
-                          "DateOnly",
-                        )}{" "}
-                        · net {suggestion.expenseNet} {suggestion.currency}
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      clicked={() => addSuggestion(suggestion)}
-                      disabled={remaining <= 0}>
-                      <HiPlus className="size-4" />
-                      Add
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold">Suggestions</h3>
+              {suggestionsQuery.isLoading ? (
+                <p className="text-sm text-text-muted">Loading suggestions…</p>
+              ) : suggestionList.length === 0 ? (
+                <p className="text-sm text-text-muted">
+                  {isIncome
+                    ? "No matching expenses with remaining amount."
+                    : "No matching refunds with remaining amount."}
+                </p>
+              ) : (
+                <List
+                  className="max-h-56 overflow-y-auto"
+                  data={suggestionList}
+                  getItemKey={(suggestion) => suggestion.id}>
+                  {(suggestion) => (
+                    <AllocateRefundSuggestionRow
+                      suggestion={suggestion}
+                      disabled={remaining <= 0}
+                      onAdd={() => addSuggestion(suggestion)}
+                      onOpen={
+                        onOpenTransaction
+                          ? () => onOpenTransaction(suggestion.id)
+                          : undefined
+                      }
+                    />
+                  )}
+                </List>
+              )}
+            </div>
           </div>
-        </div>
-      }
-      footerButtons={[
-        {
-          children: "Cancel",
-          variant: "default",
-          clicked: () => onOpenChange(false),
-        },
-        {
-          children: replaceMutation.isPending ? "Saving…" : "Save",
-          variant: "primary",
-          clicked: () => {
-            void handleSave();
+        }
+        footerButtons={[
+          {
+            children: "Cancel",
+            variant: "default",
+            clicked: () => onOpenChange(false),
           },
-          disabled: replaceMutation.isPending || remaining < -0.001,
-        },
-      ]}
-    />
+          {
+            children: replaceMutation.isPending ? "Saving…" : "Save",
+            variant: "primary",
+            clicked: () => {
+              void handleSave();
+            },
+            disabled:
+              replaceMutation.isPending ||
+              remaining < -0.001 ||
+              hasOverMaxDraft,
+          },
+        ]}
+      />
+
+      <DeleteDialog
+        open={draftToRemove != null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            setDraftToRemove(null);
+          }
+        }}
+        title="Remove allocation"
+        content={`Are you sure you want to remove the allocation for "${draftToRemove?.name}"?`}
+        footerButtons={[
+          {
+            buttonContent: "Cancel",
+            clicked: () => setDraftToRemove(null),
+          },
+          {
+            buttonContent: "Remove",
+            variant: "danger",
+            clicked: confirmRemoveDraft,
+          },
+        ]}
+      />
+    </>
   );
 }

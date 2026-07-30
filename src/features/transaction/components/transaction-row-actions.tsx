@@ -16,8 +16,7 @@ export function TransactionRowActions({
   onDelete,
   onAllocateRefund,
 }: ITransactionRowActionsProps) {
-  const canAllocate =
-    transaction.type === "INCOME" && !!onAllocateRefund;
+  const canAllocate = !!onAllocateRefund;
 
   if (!onEdit && !onDelete && !canAllocate) {
     return null;
@@ -40,7 +39,11 @@ export function TransactionRowActions({
         {canAllocate && (
           <DropdownItem
             icon={<HiArrowUturnLeft className="size-4" />}
-            text="Allocate refund"
+            text={
+              transaction.type === "EXPENSE"
+                ? "Link refund"
+                : "Allocate refund"
+            }
             clicked={() => onAllocateRefund(transaction)}
           />
         )}

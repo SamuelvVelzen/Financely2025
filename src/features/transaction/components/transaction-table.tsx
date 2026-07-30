@@ -1,9 +1,9 @@
-import { Currency } from "@/features/currency/components/currency";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useIntersectionObserver } from "@/features/shared/hooks/useIntersectionObserver";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
+import { TransactionAmount } from "@/features/transaction/components/transaction-amount";
 import { TransactionRefundBadge } from "@/features/transaction/components/transaction-refund-badge";
 import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
 import { TagBadge } from "@/features/tag/components/tag-badge";
@@ -170,12 +170,9 @@ export function TransactionTable({
                 </div>
               </BodyCell>
               <BodyCell size={cellSize}>
-                <Currency
-                  amount={transaction.amount}
-                  type={transaction.type}
-                  currency={transaction.currency}
+                <TransactionAmount
+                  transaction={transaction}
                   searchQuery={searchQuery}
-                  className="font-semibold"
                 />
               </BodyCell>
               <BodyCell

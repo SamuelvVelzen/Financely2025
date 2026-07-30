@@ -36,6 +36,7 @@ import { HiArrowsRightLeft } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../utils/export-csv";
 import { AddOrEditTransactionDialog } from "./add-or-edit-transaction-dialog";
 import { AllocateRefundDialog } from "./allocate-refund-dialog";
+import { OpenTransactionByIdDialog } from "./open-transaction-by-id-dialog";
 import { TransactionListGrouped } from "./transaction-list-grouped";
 import { TransactionOverviewHeader } from "./transaction-overview-header";
 import { TransactionTable } from "./transaction-table";
@@ -188,6 +189,7 @@ export function TransactionOverview({
   const [allocateRefundTransaction, setAllocateRefundTransaction] = useState<
     ITransaction | null
   >(null);
+  const [expenseToOpenId, setExpenseToOpenId] = useState<string | null>(null);
 
   // Tags for filter dropdown
   const { data: tagsData } = useTags();
@@ -414,6 +416,16 @@ export function TransactionOverview({
           }
         }}
         transaction={allocateRefundTransaction}
+        onSaved={(updated) => setAllocateRefundTransaction(updated)}
+        onOpenTransaction={setExpenseToOpenId}
+      />
+      <OpenTransactionByIdDialog
+        transactionId={expenseToOpenId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setExpenseToOpenId(null);
+          }
+        }}
       />
       <DeleteDialog
         title={`Delete ${selectedTransaction?.type === "EXPENSE" ? "Expense" : "Income"}`}

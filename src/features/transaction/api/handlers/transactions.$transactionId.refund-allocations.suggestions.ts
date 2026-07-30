@@ -38,7 +38,9 @@ export async function GET({
     }
     if (
       error instanceof Error &&
-      error.message === "Refund suggestions require an income transaction"
+      (error.message === "Refund suggestions require an income transaction" ||
+        error.message ===
+          "Refund suggestions require an income or expense transaction")
     ) {
       return createErrorResponse(
         new ApiError(ErrorCodes.VALIDATION_ERROR, error.message, 400),

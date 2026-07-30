@@ -86,6 +86,16 @@ export const ReplaceRefundAllocationsInputSchema = z.object({
   ),
 });
 
+/** Replace refund links from an expense transaction (counterpart = income). */
+export const ReplaceExpenseRefundAllocationsInputSchema = z.object({
+  allocations: z.array(
+    z.object({
+      refundTransactionId: z.string().min(1),
+      amount: DecimalStringSchema,
+    }),
+  ),
+});
+
 export const RefundAllocationSuggestionSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -234,6 +244,9 @@ export type ITransactionRefundAllocation = z.infer<
 >;
 export type IReplaceRefundAllocationsInput = z.infer<
   typeof ReplaceRefundAllocationsInputSchema
+>;
+export type IReplaceExpenseRefundAllocationsInput = z.infer<
+  typeof ReplaceExpenseRefundAllocationsInputSchema
 >;
 export type IRefundAllocationSuggestion = z.infer<
   typeof RefundAllocationSuggestionSchema

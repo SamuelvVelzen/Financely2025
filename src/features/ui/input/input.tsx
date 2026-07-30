@@ -120,10 +120,6 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
     const renderInputContent = (
       currentField: ControllerRenderProps<Record<string, unknown>, string>
     ) => {
-      const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        currentField.onChange(e);
-      };
-
       const hasError = shouldShowError && !!error?.message;
       const ariaDescribedBy = getFieldAriaDescribedBy({
         showError: hasError,
@@ -150,13 +146,7 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
             )}
             {renderField ? (
               renderField({
-                field: {
-                  value: currentField.value,
-                  onChange: handleChange,
-                  onBlur: currentField.onBlur,
-                  name: currentField.name,
-                  ref: currentField.ref,
-                } as ControllerRenderProps<Record<string, unknown>, string>,
+                field: currentField,
                 inputProps: {
                   type,
                   id: inputId,
@@ -198,7 +188,9 @@ export const BaseInput = forwardRef<HTMLInputElement, IBaseInputProps>(
                 }}
                 {...(mode === "controlled" ? props : formModeProps)}
                 value={String(currentField.value ?? "")}
-                onChange={handleChange}
+                onChange={(e) => {
+                  currentField.onChange(e);
+                }}
                 onBlur={currentField.onBlur}
               />
             )}

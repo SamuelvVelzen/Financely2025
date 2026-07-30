@@ -1,7 +1,7 @@
-import { Currency } from "@/features/currency/components/currency";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useIntersectionObserver } from "@/features/shared/hooks/useIntersectionObserver";
 import type { ITransaction } from "@/features/shared/validation/schemas";
+import { TransactionAmount } from "@/features/transaction/components/transaction-amount";
 import { TransactionRefundBadge } from "@/features/transaction/components/transaction-refund-badge";
 import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
@@ -104,13 +104,10 @@ export function TransactionListGrouped({
                   </div>
 
                   <div className="flex items-center gap-2 shrink-0">
-                    {/* Amount */}
-                    <Currency
-                      amount={transaction.amount}
-                      type={transaction.type}
-                      currency={transaction.currency}
+                    <TransactionAmount
+                      transaction={transaction}
                       searchQuery={searchQuery}
-                      className={cn("font-semibold text-lg")}
+                      className="text-lg"
                     />
 
                     {(onEdit || onDelete || onAllocateRefund) && (

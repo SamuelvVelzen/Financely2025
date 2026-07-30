@@ -18,6 +18,7 @@ import type {
   ICurrency,
   IPaginatedTransactionsResponse,
   IRefundAllocationSuggestionsResponse,
+  IReplaceExpenseRefundAllocationsInput,
   IReplaceRefundAllocationsInput,
   ITransaction,
   ITransactionsQuery,
@@ -117,7 +118,9 @@ export async function removeTagFromTransaction(
 export async function replaceRefundAllocations(
   workspaceId: IWorkspaceId,
   transactionId: string,
-  allocations: IReplaceRefundAllocationsInput["allocations"],
+  allocations:
+    | IReplaceRefundAllocationsInput["allocations"]
+    | IReplaceExpenseRefundAllocationsInput["allocations"],
 ): Promise<ITransaction> {
   return apiPut<ITransaction>(
     workspaceApiV1Path(

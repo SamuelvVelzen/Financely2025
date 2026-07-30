@@ -775,7 +775,9 @@ export function useReplaceRefundAllocations() {
     Error,
     {
       transactionId: string;
-      allocations: { expenseTransactionId: string; amount: string }[];
+      allocations:
+        | { expenseTransactionId: string; amount: string }[]
+        | { refundTransactionId: string; amount: string }[];
     }
   >({
     mutationFn: ({ transactionId, allocations }) =>

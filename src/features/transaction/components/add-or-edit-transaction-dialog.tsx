@@ -14,6 +14,7 @@ import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-me
 import {
   useCreateExpense,
   useCreateIncome,
+  useTransaction,
   useUpdateTransaction,
 } from "@/features/transaction/hooks/useTransactions";
 import { SubscriptionInfo } from "@/features/transaction/components/subscription-info";
@@ -133,6 +134,10 @@ export function AddOrEditTransactionDialog({
   const [tagSuggestion, setTagSuggestion] = useState<ITagSuggestions | null>(null);
   const [userEditedTags, setUserEditedTags] = useState(false);
   const [isAllocateRefundOpen, setIsAllocateRefundOpen] = useState(false);
+  const [workingTransaction, setWorkingTransaction] = useState<
+    ITransaction | undefined
+  >(transaction);
+  const [expenseToOpenId, setExpenseToOpenId] = useState<string | null>(null);
   if (open && uiSession.sessionKey !== dialogSessionKey) {
     setUiSession({
       sessionKey: dialogSessionKey,
@@ -142,12 +147,18 @@ export function AddOrEditTransactionDialog({
     setUserEditedTags(false);
     setTagSuggestion(null);
     setDatePickerOpen(false);
+    setWorkingTransaction(transaction);
+    setIsAllocateRefundOpen(false);
+    setExpenseToOpenId(null);
   }
   if (!open && uiSession.sessionKey !== "closed") {
     setUiSession({ sessionKey: "closed", hasTime: false, showAdvanced: false });
     setTagSuggestion(null);
     setDatePickerOpen(false);
     setUserEditedTags(false);
+    setWorkingTransaction(undefined);
+    setIsAllocateRefundOpen(false);
+    setExpenseToOpenId(null);
   }
   const hasTime = uiSession.hasTime;
   const showAdvanced = uiSession.showAdvanced;
@@ -158,10 +169,14 @@ export function AddOrEditTransactionDialog({
     setUiSession((prev) => ({ ...prev, showAdvanced: value }));
   };
   const pending = pendingAction !== null;
-  const isEditMode = !!transaction;
-  const { mutate: createExpense } = useCreateExpense();
-  const { mutate: createIncome } = useCreateIncome();
+  const isEditMode = !!workingTransaction;
+  const { mutate: createExpense, mutateAsync: createExpenseAsync } =
+    useCreateExpense();
+  const { mutate: createIncome, mutateAsync: createIncomeAsync } =
+    useCreateIncome();
   const { mutate: updateTransaction } = useUpdateTransaction();
+  const linkedTransactionQuery = useTransaction(expenseToOpenId);
+  const linkedTransaction = linkedTransactionQuery.data ?? undefined;
   const { data: tagsData } = useTags();
   const toast = useToast();
   const workspaceId = useNavWorkspaceId();
@@ -480,17 +495,18 @@ export function AddOrEditTransactionDialog({
     };
 
     try {
-      if (isEditMode && transaction) {
+      if (isEditMode && workingTransaction) {
         updateTransaction(
-          { transactionId: transaction.id, input: submitData },
+          { transactionId: workingTransaction.id, input: submitData },
           {
             onSuccess: (updated) => {
+              if (!isOfflineMutationPlaceholder(updated)) {
+                setWorkingTransaction(updated);
+                toast.success("Transaction updated successfully");
+              }
               resetFormToClosedState();
               setPendingAction(null);
               onOpenChange(false);
-              if (!isOfflineMutationPlaceholder(updated)) {
-                toast.success("Transaction updated successfully");
-              }
               onSuccess?.();
             },
             onError: (error) => {
@@ -561,6 +577,106 @@ export function AddOrEditTransactionDialog({
     } catch (err) {
       setPendingAction(null);
       throw err; // Let Form component handle the error
+    }
+  };
+
+  const applyCreatedTransactionToForm = (
+    created: ITransaction,
+    data: FormData,
+  ) => {
+    setWorkingTransaction(created);
+    form.reset({
+      name: created.name,
+      amount: created.amount,
+      currency: created.currency,
+      type: created.type,
+      transactionDate: created.transactionDate,
+      paymentMethod: created.paymentMethod,
+      description: created.description ?? "",
+      tagIds: created.tags.map((tag) => tag.id),
+      primaryTagId: created.primaryTag?.id ?? null,
+    });
+    setHasTime(created.timePrecision === "DateTime");
+    setShowAdvanced((data.tagIds?.length ?? 0) > 0);
+    setTagSuggestion(null);
+    setUserEditedTags(true);
+  };
+
+  const handleOpenAllocateRefund = async () => {
+    if (pending) {
+      return;
+    }
+
+    if (
+      workingTransaction?.type === "INCOME" ||
+      workingTransaction?.type === "EXPENSE"
+    ) {
+      setIsAllocateRefundOpen(true);
+      return;
+    }
+
+    const isValid = await form.trigger();
+    if (!isValid) {
+      return;
+    }
+
+    const data = form.getValues();
+    if (data.type !== "INCOME" && data.type !== "EXPENSE") {
+      return;
+    }
+
+    setPendingAction("close");
+    const transactionDateIso = data.transactionDate;
+    const timePrecision: "DateTime" | "DateOnly" = hasTime
+      ? "DateTime"
+      : "DateOnly";
+
+    const submitData = {
+      name: data.name.trim(),
+      amount: data.amount.trim(),
+      currency: CurrencySchema.parse(data.currency),
+      transactionDate: transactionDateIso,
+      timePrecision,
+      paymentMethod: data.paymentMethod,
+      description:
+        data.description && data.description.trim() !== ""
+          ? data.description.trim()
+          : null,
+      tagIds: data.tagIds || [],
+      primaryTagId: data.primaryTagId || null,
+    };
+
+    try {
+      const created =
+        data.type === "INCOME"
+          ? await createIncomeAsync(submitData)
+          : await createExpenseAsync(submitData);
+      if (isOfflineMutationPlaceholder(created)) {
+        setPendingAction(null);
+        toast.success(
+          data.type === "INCOME"
+            ? "Income created successfully"
+            : "Expense created successfully",
+        );
+        onSuccess?.();
+        return;
+      }
+      applyCreatedTransactionToForm(created, data);
+      setPendingAction(null);
+      toast.success(
+        data.type === "INCOME"
+          ? "Income created successfully"
+          : "Expense created successfully",
+      );
+      onSuccess?.();
+      setIsAllocateRefundOpen(true);
+    } catch {
+      setPendingAction(null);
+      toast.error(
+        data.type === "INCOME"
+          ? "Failed to create income"
+          : "Failed to create expense",
+      );
     }
   };
 
@@ -688,31 +804,61 @@ export function AddOrEditTransactionDialog({
                 placeholder="Add details..."
               />
 
-              {isEditMode && transaction?.subscription && (
+              {isEditMode && workingTransaction?.subscription && (
                 <SubscriptionInfo
-                  subscriptionId={transaction.subscription.id}
-                  subscriptionName={transaction.subscription.name}
-                  frequency={transaction.subscription.frequency}
-                  active={transaction.subscription.active}
-                  currentTransactionId={transaction.id}
+                  subscriptionId={workingTransaction.subscription.id}
+                  subscriptionName={workingTransaction.subscription.name}
+                  frequency={workingTransaction.subscription.frequency}
+                  active={workingTransaction.subscription.active}
+                  currentTransactionId={workingTransaction.id}
                 />
               )}
 
-              {isEditMode && transaction?.type === "INCOME" && (
+              {(transactionType === "INCOME" ||
+                transactionType === "EXPENSE") && (
                   <div className="rounded-md border border-border p-3">
                     <div className="mb-2 text-sm text-text-muted">
-                      Remaining to allocate:{" "}
-                      <span className="font-semibold text-text">
-                        {transaction.refundRemaining ?? transaction.amount}{" "}
-                        {transaction.currency}
-                      </span>
+                      {workingTransaction ? (
+                        transactionType === "INCOME" ? (
+                          <>
+                            Remaining to allocate:{" "}
+                            <span className="font-semibold text-text">
+                              {workingTransaction.refundRemaining ??
+                                workingTransaction.amount}{" "}
+                              {workingTransaction.currency}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            Net after refunds:{" "}
+                            <span className="font-semibold text-text">
+                              {workingTransaction.expenseNet ??
+                                workingTransaction.amount}{" "}
+                              {workingTransaction.currency}
+                            </span>
+                          </>
+                        )
+                      ) : transactionType === "INCOME" ? (
+                        "Link this income to expenses after creating it."
+                      ) : (
+                        "Link refund incomes to this expense after creating it."
+                      )}
                     </div>
                     <Button
                       size="sm"
                       variant="default"
-                      clicked={() => setIsAllocateRefundOpen(true)}>
+                      disabled={pending}
+                      clicked={() => {
+                        void handleOpenAllocateRefund();
+                      }}>
                       <HiArrowUturnLeft className="size-4" />
-                      Allocate refund
+                      {workingTransaction
+                        ? transactionType === "INCOME"
+                          ? "Allocate refund"
+                          : "Link refund"
+                        : transactionType === "INCOME"
+                          ? "Create & allocate refund"
+                          : "Create & link refund"}
                     </Button>
                   </div>
                 )}
@@ -774,8 +920,22 @@ export function AddOrEditTransactionDialog({
       <AllocateRefundDialog
         open={isAllocateRefundOpen}
         onOpenChange={setIsAllocateRefundOpen}
-        transaction={transaction ?? null}
+        transaction={workingTransaction ?? null}
+        onSaved={setWorkingTransaction}
+        onOpenTransaction={setExpenseToOpenId}
       />
+
+      {expenseToOpenId != null && linkedTransaction != null ? (
+        <AddOrEditTransactionDialog
+          open
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              setExpenseToOpenId(null);
+            }
+          }}
+          transaction={linkedTransaction}
+        />
+      ) : null}
     </>
   );
 }
