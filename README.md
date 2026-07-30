@@ -167,7 +167,7 @@ The post-build step `tsx scripts/generate-sw.ts` writes `sw.js` next to the clie
 **How it works**
 
 1. `scripts/generate-sw.ts` runs after `vite build` and emits Workbox `sw.js` into the client assets folder (TanStack Start does not yet integrate `vite-plugin-pwa` cleanly).
-2. `PwaRegister` registers the service worker in production and prompts when an update is waiting.
+2. `PwaUpdatePrompt` registers the service worker in production and prompts when an update is waiting.
 3. Successful React Query caches are persisted to IndexedDB via a small in-house key/value store (`idb-kv`) so lists survive reload while offline.
 4. `useFinMutation` runs with `networkMode: "always"` so mutations are not paused while offline.
 5. The API client queues failed or offline writes to the `financely-offline-mutations` IndexedDB store (per signed-in user).

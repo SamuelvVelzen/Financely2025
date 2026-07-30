@@ -4,7 +4,7 @@ import { OfflineMutationQueuedToastListener } from "@/features/shared/offline/of
 import { OfflineOutboxUserBinder } from "@/features/shared/offline/offline-outbox-user-binder";
 import { OfflineSignOutGate } from "@/features/shared/offline/offline-sign-out-gate";
 import { PwaInstallPrompt } from "@/features/shared/pwa/pwa-install-prompt";
-import { PwaRegister } from "@/features/shared/pwa/pwa-register";
+import { PwaUpdatePrompt } from "@/features/shared/pwa/pwa-update-prompt";
 import { QueryProvider } from "@/features/shared/query/client";
 import { ToastContainer, ToastProvider } from "@/features/ui/toast";
 import {
@@ -50,8 +50,8 @@ export function RootLayout() {
             <OfflineMutationQueuedToastListener />
             <OfflineSignOutGate />
             <OnlineStatusNotifier />
-            <PwaRegister />
             <Outlet />
+            <PwaUpdatePrompt />
             <PwaInstallPrompt />
             <ToastContainer />
           </ToastProvider>
