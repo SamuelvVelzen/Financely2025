@@ -46,15 +46,22 @@ export async function createTestTransaction(
   userId: string,
   workspaceId: number,
   name = "Test transaction",
+  options?: {
+    type?: TransactionType;
+    amount?: number;
+    currency?: string;
+    transactionDate?: Date;
+  },
 ) {
   return prisma.transaction.create({
     data: {
       userId,
       workspaceId,
-      type: TransactionType.EXPENSE,
-      amount: 42.5,
-      currency: "EUR",
-      transactionDate: new Date("2025-01-15T12:00:00.000Z"),
+      type: options?.type ?? TransactionType.EXPENSE,
+      amount: options?.amount ?? 42.5,
+      currency: options?.currency ?? "EUR",
+      transactionDate:
+        options?.transactionDate ?? new Date("2025-01-15T12:00:00.000Z"),
       name,
       paymentMethod: "CREDIT_CARD",
     },

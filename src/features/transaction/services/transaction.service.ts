@@ -21,6 +21,11 @@ import { SubscriptionService } from "@/features/subscription/services/subscripti
 import { prisma } from "@/features/util/prisma";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import { Prisma } from "@prisma/client";
+import {
+  parseAllocationsForTransaction,
+  TRANSACTION_REFUND_ALLOCATION_INCLUDE,
+  type IAllocationParseInput,
+} from "./refund-allocation-helpers";
 
 const TRANSACTION_INCLUDE = {
   tags: {
@@ -32,6 +37,7 @@ const TRANSACTION_INCLUDE = {
   subscription: {
     select: { id: true, name: true, frequency: true, active: true },
   },
+  ...TRANSACTION_REFUND_ALLOCATION_INCLUDE,
 } as const;
 
 /**
@@ -68,10 +74,13 @@ export class TransactionService {
       frequency: string;
       active: boolean;
     } | null;
+    refundAllocations?: IAllocationParseInput["refundAllocations"];
+    expenseRefundAllocations?: IAllocationParseInput["expenseRefundAllocations"];
     createdAt: Date;
     updatedAt: Date;
   }): ITransaction {
     const tags = tx.tags ?? [];
+    const allocationFields = parseAllocationsForTransaction(tx);
     return TransactionSchema.parse({
       id: tx.id,
       type: tx.type,
@@ -105,6 +114,7 @@ export class TransactionService {
             active: tx.subscription.active,
           }
         : null,
+      ...allocationFields,
       createdAt: tx.createdAt.toISOString(),
       updatedAt: tx.updatedAt.toISOString(),
     });

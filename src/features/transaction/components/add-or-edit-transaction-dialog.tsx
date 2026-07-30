@@ -17,6 +17,7 @@ import {
   useUpdateTransaction,
 } from "@/features/transaction/hooks/useTransactions";
 import { SubscriptionInfo } from "@/features/transaction/components/subscription-info";
+import { AllocateRefundDialog } from "@/features/transaction/components/allocate-refund-dialog";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -29,6 +30,7 @@ import { RadioGroup } from "@/features/ui/radio/radio-group";
 import { RadioItem } from "@/features/ui/radio/radio-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
+import { Button } from "@/features/ui/button/button";
 import { useToast } from "@/features/ui/toast";
 import {
   dateOnlyToIso,
@@ -44,6 +46,7 @@ import { type Resolver } from "react-hook-form";
 import {
   HiArrowTrendingDown,
   HiArrowTrendingUp,
+  HiArrowUturnLeft,
   HiChevronDown,
   HiChevronUp,
 } from "react-icons/hi2";
@@ -129,6 +132,7 @@ export function AddOrEditTransactionDialog({
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [tagSuggestion, setTagSuggestion] = useState<ITagSuggestions | null>(null);
   const [userEditedTags, setUserEditedTags] = useState(false);
+  const [isAllocateRefundOpen, setIsAllocateRefundOpen] = useState(false);
   if (open && uiSession.sessionKey !== dialogSessionKey) {
     setUiSession({
       sessionKey: dialogSessionKey,
@@ -693,6 +697,25 @@ export function AddOrEditTransactionDialog({
                   currentTransactionId={transaction.id}
                 />
               )}
+
+              {isEditMode && transaction?.type === "INCOME" && (
+                  <div className="rounded-md border border-border p-3">
+                    <div className="mb-2 text-sm text-text-muted">
+                      Remaining to allocate:{" "}
+                      <span className="font-semibold text-text">
+                        {transaction.refundRemaining ?? transaction.amount}{" "}
+                        {transaction.currency}
+                      </span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      clicked={() => setIsAllocateRefundOpen(true)}>
+                      <HiArrowUturnLeft className="size-4" />
+                      Allocate refund
+                    </Button>
+                  </div>
+                )}
             </div>
           </Form>
         }
@@ -746,6 +769,12 @@ export function AddOrEditTransactionDialog({
           closeDialog();
         }}
         onCancel={() => setShowUnsavedDialog(false)}
+      />
+
+      <AllocateRefundDialog
+        open={isAllocateRefundOpen}
+        onOpenChange={setIsAllocateRefundOpen}
+        transaction={transaction ?? null}
       />
     </>
   );

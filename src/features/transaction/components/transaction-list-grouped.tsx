@@ -2,6 +2,7 @@ import { Currency } from "@/features/currency/components/currency";
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useIntersectionObserver } from "@/features/shared/hooks/useIntersectionObserver";
 import type { ITransaction } from "@/features/shared/validation/schemas";
+import { TransactionRefundBadge } from "@/features/transaction/components/transaction-refund-badge";
 import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { groupTransactionsByDate } from "@/features/transaction/utils/group-transactions-by-date";
@@ -20,6 +21,7 @@ type ITransactionListGroupedProps = {
   showDescription?: boolean;
   onDelete?: (transaction: ITransaction) => void;
   onEdit?: (transaction: ITransaction) => void;
+  onAllocateRefund?: (transaction: ITransaction) => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => void;
@@ -31,6 +33,7 @@ export function TransactionListGrouped({
   showDescription = true,
   onDelete,
   onEdit,
+  onAllocateRefund,
   hasNextPage = false,
   isFetchingNextPage = false,
   fetchNextPage,
@@ -83,6 +86,7 @@ export function TransactionListGrouped({
                     <span className="text-text font-medium truncate">
                       {highlightText(transaction.name, searchQuery)}
                     </span>
+                    <TransactionRefundBadge transaction={transaction} />
                     {transaction.timePrecision === "DateTime" && (
                       <>
                         <span className="text-text-muted">•</span>
@@ -109,11 +113,12 @@ export function TransactionListGrouped({
                       className={cn("font-semibold text-lg")}
                     />
 
-                    {(onEdit || onDelete) && (
+                    {(onEdit || onDelete || onAllocateRefund) && (
                       <TransactionRowActions
                         transaction={transaction}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        onAllocateRefund={onAllocateRefund}
                       />
                     )}
                   </div>

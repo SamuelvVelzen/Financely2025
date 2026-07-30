@@ -30,13 +30,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   addTagToTransaction,
   createTransaction,
+  deleteRefundAllocation,
   deleteTransaction,
+  getRefundAllocationSuggestions,
   getTransaction,
   getTransactions,
   removeTagFromTransaction,
+  replaceRefundAllocations,
   updateTransaction,
 } from "../api/client";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+import type { IRefundAllocationSuggestionsResponse } from "@/features/shared/validation/schemas";
 
 function requireWorkspaceId(id: number | null): number {
   if (id == null) {
@@ -756,5 +760,96 @@ export function useInfiniteIncomes(
     initialPageParam: 1,
     staleTime: 30 * 1000,
     enabled,
+  });
+}
+
+/**
+ * Replace refund allocations for an income transaction
+ */
+export function useReplaceRefundAllocations() {
+  const queryClient = useQueryClient();
+  const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
+  return useFinMutation<
+    ITransaction,
+    Error,
+    {
+      transactionId: string;
+      allocations: { expenseTransactionId: string; amount: string }[];
+    }
+  >({
+    mutationFn: ({ transactionId, allocations }) =>
+      replaceRefundAllocations(
+        requireWorkspaceId(workspaceId),
+        transactionId,
+        allocations,
+      ),
+    invalidateQueries: [
+      () => queryKeys.transactions(wid),
+      () => queryKeys.incomes(wid),
+      () => queryKeys.expenses(wid),
+      () => queryKeys.budgets(wid),
+    ],
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.transaction(wid, data.id), data);
+    },
+  });
+}
+
+/**
+ * Delete a single refund allocation
+ */
+export function useDeleteRefundAllocation() {
+  const queryClient = useQueryClient();
+  const workspaceId = useNavWorkspaceId();
+  const wid = workspaceId!;
+  return useFinMutation<
+    ITransaction,
+    Error,
+    { transactionId: string; allocationId: string }
+  >({
+    mutationFn: ({ transactionId, allocationId }) =>
+      deleteRefundAllocation(
+        requireWorkspaceId(workspaceId),
+        transactionId,
+        allocationId,
+      ),
+    invalidateQueries: [
+      () => queryKeys.transactions(wid),
+      () => queryKeys.incomes(wid),
+      () => queryKeys.expenses(wid),
+      () => queryKeys.budgets(wid),
+    ],
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.transaction(wid, data.id), data);
+    },
+  });
+}
+
+/**
+ * Suggest expenses to allocate against a refund
+ */
+export function useRefundAllocationSuggestions(
+  transactionId: string | null,
+  enabled = true,
+) {
+  const workspaceId = useNavWorkspaceId();
+  const canFetch = workspaceId != null && !!transactionId && enabled;
+  return useFinQuery<IRefundAllocationSuggestionsResponse, Error>({
+    queryKey: canFetch
+      ? ([
+          "transactions",
+          workspaceId,
+          transactionId,
+          "refund-allocation-suggestions",
+        ] as const)
+      : (["transactions", "disabled", "refund-suggestions"] as const),
+    queryFn: () =>
+      getRefundAllocationSuggestions(
+        requireWorkspaceId(workspaceId),
+        transactionId!,
+      ),
+    staleTime: 15 * 1000,
+    enabled: canFetch,
   });
 }

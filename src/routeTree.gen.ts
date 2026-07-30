@@ -88,6 +88,7 @@ import { Route as ApiV1SplitsGuestTokenExpensesRouteImport } from './routes/api/
 import { Route as ApiV1MeWorkspacesWorkspaceIdSettingsRouteImport } from './routes/api/v1/me.workspaces.$workspaceId.settings'
 import { Route as ApiV1MeSplitsJoinTokenRouteImport } from './routes/api/v1/me.splits.join.$token'
 import { Route as ApiV1MeSplitsGroupsGroupIdRouteImport } from './routes/api/v1/me.splits.groups.$groupId'
+import { Route as ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteImport } from './routes/api/v1/$workspaceId/transactions.$transactionId.refund-allocations'
 import { Route as ApiV1WorkspaceIdTagsCsvMappingValidateRouteImport } from './routes/api/v1/$workspaceId/tags.csv-mapping.validate'
 import { Route as ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRouteImport } from './routes/api/v1/$workspaceId/subscriptions.dismissals.$dismissalId'
 import { Route as ApiV1WorkspaceIdSubscriptionsDetectDismissRouteImport } from './routes/api/v1/$workspaceId/subscriptions.detect.dismiss'
@@ -98,6 +99,8 @@ import { Route as ApiV1MeSplitsGroupsGroupIdExpensesRouteImport } from './routes
 import { Route as ApiV1MeSplitsGroupsGroupIdConvertPendingRouteImport } from './routes/api/v1/me.splits.groups.$groupId.convert-pending'
 import { Route as ApiV1MeSplitsGroupsGroupIdBalancesRouteImport } from './routes/api/v1/me.splits.groups.$groupId.balances'
 import { Route as ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRouteImport } from './routes/api/v1/$workspaceId/transactions.$transactionId.tags.$tagId'
+import { Route as ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRouteImport } from './routes/api/v1/$workspaceId/transactions.$transactionId.refund-allocations.suggestions'
+import { Route as ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRouteImport } from './routes/api/v1/$workspaceId/transactions.$transactionId.refund-allocations.$allocationId'
 import { Route as ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRouteImport } from './routes/api/v1/me.splits.groups.$groupId.settlements.$settlementId'
 import { Route as ApiV1MeSplitsGroupsGroupIdMembersMemberIdRouteImport } from './routes/api/v1/me.splits.groups.$groupId.members.$memberId'
 import { Route as ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRouteImport } from './routes/api/v1/me.splits.groups.$groupId.guest-link.rotate'
@@ -550,6 +553,12 @@ const ApiV1MeSplitsGroupsGroupIdRoute =
     path: '/$groupId',
     getParentRoute: () => ApiV1MeSplitsGroupsRoute,
   } as any)
+const ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRoute =
+  ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteImport.update({
+    id: '/refund-allocations',
+    path: '/refund-allocations',
+    getParentRoute: () => ApiV1WorkspaceIdTransactionsTransactionIdRoute,
+  } as any)
 const ApiV1WorkspaceIdTagsCsvMappingValidateRoute =
   ApiV1WorkspaceIdTagsCsvMappingValidateRouteImport.update({
     id: '/validate',
@@ -610,6 +619,24 @@ const ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute =
     path: '/tags/$tagId',
     getParentRoute: () => ApiV1WorkspaceIdTransactionsTransactionIdRoute,
   } as any)
+const ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRoute =
+  ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRouteImport.update(
+    {
+      id: '/suggestions',
+      path: '/suggestions',
+      getParentRoute: () =>
+        ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRoute,
+    } as any,
+  )
+const ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRoute =
+  ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRouteImport.update(
+    {
+      id: '/$allocationId',
+      path: '/$allocationId',
+      getParentRoute: () =>
+        ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRoute,
+    } as any,
+  )
 const ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute =
   ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRouteImport.update({
     id: '/$settlementId',
@@ -726,12 +753,15 @@ export interface FileRoutesByFullPath {
   '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteWithChildren
   '/api/v1/me/splits/groups/$groupId': typeof ApiV1MeSplitsGroupsGroupIdRouteWithChildren
   '/api/v1/me/splits/join/$token': typeof ApiV1MeSplitsJoinTokenRoute
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
   '/api/v1/splits/guest/$token/settlements': typeof ApiV1SplitsGuestTokenSettlementsRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
   '/api/v1/me/splits/groups/$groupId/balances': typeof ApiV1MeSplitsGroupsGroupIdBalancesRoute
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
@@ -820,12 +850,15 @@ export interface FileRoutesByTo {
   '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteWithChildren
   '/api/v1/me/splits/groups/$groupId': typeof ApiV1MeSplitsGroupsGroupIdRouteWithChildren
   '/api/v1/me/splits/join/$token': typeof ApiV1MeSplitsJoinTokenRoute
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
   '/api/v1/splits/guest/$token/settlements': typeof ApiV1SplitsGuestTokenSettlementsRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
   '/api/v1/me/splits/groups/$groupId/balances': typeof ApiV1MeSplitsGroupsGroupIdBalancesRoute
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
@@ -918,12 +951,15 @@ export interface FileRoutesById {
   '/api/v1/$workspaceId/subscriptions/detect/dismiss': typeof ApiV1WorkspaceIdSubscriptionsDetectDismissRoute
   '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId': typeof ApiV1WorkspaceIdSubscriptionsDismissalsDismissalIdRoute
   '/api/v1/$workspaceId/tags/csv-mapping/validate': typeof ApiV1WorkspaceIdTagsCsvMappingValidateRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteWithChildren
   '/api/v1/me/splits/groups/$groupId': typeof ApiV1MeSplitsGroupsGroupIdRouteWithChildren
   '/api/v1/me/splits/join/$token': typeof ApiV1MeSplitsJoinTokenRoute
   '/api/v1/me/workspaces/$workspaceId/settings': typeof ApiV1MeWorkspacesWorkspaceIdSettingsRoute
   '/api/v1/splits/guest/$token/expenses': typeof ApiV1SplitsGuestTokenExpensesRoute
   '/api/v1/splits/guest/$token/join': typeof ApiV1SplitsGuestTokenJoinRoute
   '/api/v1/splits/guest/$token/settlements': typeof ApiV1SplitsGuestTokenSettlementsRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRoute
+  '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions': typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRoute
   '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId': typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
   '/api/v1/me/splits/groups/$groupId/balances': typeof ApiV1MeSplitsGroupsGroupIdBalancesRoute
   '/api/v1/me/splits/groups/$groupId/convert-pending': typeof ApiV1MeSplitsGroupsGroupIdConvertPendingRoute
@@ -1016,12 +1052,15 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations'
     | '/api/v1/me/splits/groups/$groupId'
     | '/api/v1/me/splits/join/$token'
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
     | '/api/v1/splits/guest/$token/settlements'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
     | '/api/v1/me/splits/groups/$groupId/balances'
     | '/api/v1/me/splits/groups/$groupId/convert-pending'
@@ -1110,12 +1149,15 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations'
     | '/api/v1/me/splits/groups/$groupId'
     | '/api/v1/me/splits/join/$token'
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
     | '/api/v1/splits/guest/$token/settlements'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
     | '/api/v1/me/splits/groups/$groupId/balances'
     | '/api/v1/me/splits/groups/$groupId/convert-pending'
@@ -1207,12 +1249,15 @@ export interface FileRouteTypes {
     | '/api/v1/$workspaceId/subscriptions/detect/dismiss'
     | '/api/v1/$workspaceId/subscriptions/dismissals/$dismissalId'
     | '/api/v1/$workspaceId/tags/csv-mapping/validate'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations'
     | '/api/v1/me/splits/groups/$groupId'
     | '/api/v1/me/splits/join/$token'
     | '/api/v1/me/workspaces/$workspaceId/settings'
     | '/api/v1/splits/guest/$token/expenses'
     | '/api/v1/splits/guest/$token/join'
     | '/api/v1/splits/guest/$token/settlements'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId'
+    | '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions'
     | '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
     | '/api/v1/me/splits/groups/$groupId/balances'
     | '/api/v1/me/splits/groups/$groupId/convert-pending'
@@ -1804,6 +1849,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeSplitsGroupsGroupIdRouteImport
       parentRoute: typeof ApiV1MeSplitsGroupsRoute
     }
+    '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations': {
+      id: '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations'
+      path: '/refund-allocations'
+      fullPath: '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRoute
+    }
     '/api/v1/$workspaceId/tags/csv-mapping/validate': {
       id: '/api/v1/$workspaceId/tags/csv-mapping/validate'
       path: '/validate'
@@ -1873,6 +1925,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/$workspaceId/transactions/$transactionId/tags/$tagId'
       preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRouteImport
       parentRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRoute
+    }
+    '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions': {
+      id: '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions'
+      path: '/suggestions'
+      fullPath: '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/suggestions'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRoute
+    }
+    '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId': {
+      id: '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId'
+      path: '/$allocationId'
+      fullPath: '/api/v1/$workspaceId/transactions/$transactionId/refund-allocations/$allocationId'
+      preLoaderRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRouteImport
+      parentRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRoute
     }
     '/api/v1/me/splits/groups/$groupId/settlements/$settlementId': {
       id: '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
@@ -2321,12 +2387,33 @@ const ApiV1WorkspaceIdTagsRouteChildren: ApiV1WorkspaceIdTagsRouteChildren = {
 const ApiV1WorkspaceIdTagsRouteWithChildren =
   ApiV1WorkspaceIdTagsRoute._addFileChildren(ApiV1WorkspaceIdTagsRouteChildren)
 
+interface ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteChildren {
+  ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRoute
+  ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRoute
+}
+
+const ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteChildren: ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteChildren =
+  {
+    ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRoute:
+      ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsAllocationIdRoute,
+    ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRoute:
+      ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsSuggestionsRoute,
+  }
+
+const ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteWithChildren =
+  ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRoute._addFileChildren(
+    ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteChildren,
+  )
+
 interface ApiV1WorkspaceIdTransactionsTransactionIdRouteChildren {
+  ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteWithChildren
   ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute: typeof ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute
 }
 
 const ApiV1WorkspaceIdTransactionsTransactionIdRouteChildren: ApiV1WorkspaceIdTransactionsTransactionIdRouteChildren =
   {
+    ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRoute:
+      ApiV1WorkspaceIdTransactionsTransactionIdRefundAllocationsRouteWithChildren,
     ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute:
       ApiV1WorkspaceIdTransactionsTransactionIdTagsTagIdRoute,
   }

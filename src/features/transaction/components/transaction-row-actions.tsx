@@ -1,20 +1,25 @@
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
-import { HiPencil, HiTrash } from "react-icons/hi2";
+import { HiArrowUturnLeft, HiPencil, HiTrash } from "react-icons/hi2";
 
 type ITransactionRowActionsProps = {
   transaction: ITransaction;
   onEdit?: (transaction: ITransaction) => void;
   onDelete?: (transaction: ITransaction) => void;
+  onAllocateRefund?: (transaction: ITransaction) => void;
 };
 
 export function TransactionRowActions({
   transaction,
   onEdit,
   onDelete,
+  onAllocateRefund,
 }: ITransactionRowActionsProps) {
-  if (!onEdit && !onDelete) {
+  const canAllocate =
+    transaction.type === "INCOME" && !!onAllocateRefund;
+
+  if (!onEdit && !onDelete && !canAllocate) {
     return null;
   }
 
@@ -30,6 +35,13 @@ export function TransactionRowActions({
             icon={<HiPencil className="size-4" />}
             text="Edit"
             clicked={() => onEdit(transaction)}
+          />
+        )}
+        {canAllocate && (
+          <DropdownItem
+            icon={<HiArrowUturnLeft className="size-4" />}
+            text="Allocate refund"
+            clicked={() => onAllocateRefund(transaction)}
           />
         )}
         {onDelete && (

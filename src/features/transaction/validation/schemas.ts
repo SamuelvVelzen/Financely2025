@@ -24,6 +24,35 @@ export const TransactionSubscriptionInfoSchema = z.object({
   active: z.boolean(),
 });
 
+export const TransactionRefundAllocationSchema = z.object({
+  id: z.string(),
+  refundTransactionId: z.string(),
+  expenseTransactionId: z.string(),
+  amount: DecimalStringSchema,
+  createdAt: ISODateStringSchema,
+  updatedAt: ISODateStringSchema,
+  expenseTransaction: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      amount: DecimalStringSchema,
+      currency: CurrencySchema,
+      transactionDate: ISODateStringSchema,
+      type: TransactionTypeSchema,
+    })
+    .optional(),
+  refundTransaction: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      amount: DecimalStringSchema,
+      currency: CurrencySchema,
+      transactionDate: ISODateStringSchema,
+      type: TransactionTypeSchema,
+    })
+    .optional(),
+});
+
 export const TransactionSchema = z.object({
   id: z.string(),
   type: TransactionTypeSchema,
@@ -38,8 +67,38 @@ export const TransactionSchema = z.object({
   tags: z.array(TransactionTagSchema),
   primaryTag: TransactionTagSchema.nullable().optional(),
   subscription: TransactionSubscriptionInfoSchema.nullable().optional(),
+  refundAllocations: z.array(TransactionRefundAllocationSchema).optional(),
+  expenseRefundAllocations: z
+    .array(TransactionRefundAllocationSchema)
+    .optional(),
+  refundRemaining: DecimalStringSchema.optional(),
+  expenseNet: DecimalStringSchema.optional(),
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
+});
+
+export const ReplaceRefundAllocationsInputSchema = z.object({
+  allocations: z.array(
+    z.object({
+      expenseTransactionId: z.string().min(1),
+      amount: DecimalStringSchema,
+    }),
+  ),
+});
+
+export const RefundAllocationSuggestionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  amount: DecimalStringSchema,
+  currency: CurrencySchema,
+  transactionDate: ISODateStringSchema,
+  expenseNet: DecimalStringSchema,
+  primaryTag: TransactionTagSchema.nullable().optional(),
+});
+
+export const RefundAllocationSuggestionsResponseSchema = z.object({
+  suggestions: z.array(RefundAllocationSuggestionSchema),
+  refundRemaining: DecimalStringSchema,
 });
 
 export const CreateTransactionInputSchema = z.object({
@@ -170,6 +229,18 @@ export const CsvImportResponseSchema = z.object({
 });
 
 export type ITransaction = z.infer<typeof TransactionSchema>;
+export type ITransactionRefundAllocation = z.infer<
+  typeof TransactionRefundAllocationSchema
+>;
+export type IReplaceRefundAllocationsInput = z.infer<
+  typeof ReplaceRefundAllocationsInputSchema
+>;
+export type IRefundAllocationSuggestion = z.infer<
+  typeof RefundAllocationSuggestionSchema
+>;
+export type IRefundAllocationSuggestionsResponse = z.infer<
+  typeof RefundAllocationSuggestionsResponseSchema
+>;
 export type ICreateTransactionInput = z.infer<
   typeof CreateTransactionInputSchema
 >;

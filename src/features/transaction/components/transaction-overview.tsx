@@ -35,6 +35,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiArrowsRightLeft } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../utils/export-csv";
 import { AddOrEditTransactionDialog } from "./add-or-edit-transaction-dialog";
+import { AllocateRefundDialog } from "./allocate-refund-dialog";
 import { TransactionListGrouped } from "./transaction-list-grouped";
 import { TransactionOverviewHeader } from "./transaction-overview-header";
 import { TransactionTable } from "./transaction-table";
@@ -179,9 +180,14 @@ export function TransactionOverview({
     useState(autoOpenCreate);
   const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [isDetectDialogOpen, setIsDetectDialogOpen] = useState(false);
+  const [isAllocateRefundDialogOpen, setIsAllocateRefundDialogOpen] =
+    useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<
     ITransaction | undefined
   >(undefined);
+  const [allocateRefundTransaction, setAllocateRefundTransaction] = useState<
+    ITransaction | null
+  >(null);
 
   // Tags for filter dropdown
   const { data: tagsData } = useTags();
@@ -210,6 +216,11 @@ export function TransactionOverview({
   const handleEditTransaction = (transaction: ITransaction) => {
     setSelectedTransaction(transaction);
     setIsTransactionDialogOpen(true);
+  };
+
+  const handleAllocateRefund = (transaction: ITransaction) => {
+    setAllocateRefundTransaction(transaction);
+    setIsAllocateRefundDialogOpen(true);
   };
 
   const handleDeleteClick = (transaction: ITransaction) => {
@@ -368,6 +379,7 @@ export function TransactionOverview({
               showDescription={showDescriptions}
               onDelete={handleDeleteClick}
               onEdit={handleEditTransaction}
+              onAllocateRefund={handleAllocateRefund}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
@@ -378,6 +390,7 @@ export function TransactionOverview({
               searchQuery={searchQuery}
               onDelete={handleDeleteClick}
               onEdit={handleEditTransaction}
+              onAllocateRefund={handleAllocateRefund}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
@@ -392,6 +405,16 @@ export function TransactionOverview({
         transaction={selectedTransaction}
       />
 
+      <AllocateRefundDialog
+        open={isAllocateRefundDialogOpen}
+        onOpenChange={(open) => {
+          setIsAllocateRefundDialogOpen(open);
+          if (!open) {
+            setAllocateRefundTransaction(null);
+          }
+        }}
+        transaction={allocateRefundTransaction}
+      />
       <DeleteDialog
         title={`Delete ${selectedTransaction?.type === "EXPENSE" ? "Expense" : "Income"}`}
         content={`Are you sure you want to delete the ${selectedTransaction?.type === "EXPENSE" ? "expense" : "income"} "${selectedTransaction?.name}"? This action cannot be undone.`}

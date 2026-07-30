@@ -1,0 +1,60 @@
+import { withWorkspaceAuth } from "@/features/auth/workspace-context";
+import {
+  ApiError,
+  createErrorResponse,
+  ErrorCodes,
+} from "@/features/shared/api/errors";
+import { ReplaceRefundAllocationsInputSchema } from "@/features/shared/validation/schemas";
+import { json } from "@tanstack/react-start";
+import { RefundAllocationService } from "../../services/refund-allocation.service";
+
+/**
+ * PUT /api/v1/:workspaceId/transactions/:transactionId/refund-allocations
+ * Replace all refund allocations for an income transaction
+ */
+export async function PUT({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { workspaceId: string; transactionId: string };
+}) {
+  try {
+    return await withWorkspaceAuth(
+      params.workspaceId,
+      async ({ userId, workspaceId }) => {
+        const body = await request.json();
+        const input = ReplaceRefundAllocationsInputSchema.parse(body);
+        const result = await RefundAllocationService.replaceAllocations(
+          userId,
+          workspaceId,
+          params.transactionId,
+          input,
+        );
+        return json(result);
+      },
+    );
+  } catch (error) {
+    if (error instanceof Error && error.message === "Transaction not found") {
+      return createErrorResponse(
+        new ApiError(ErrorCodes.NOT_FOUND, "Transaction not found", 404),
+      );
+    }
+    if (
+      error instanceof Error &&
+      (error.message === "Refund allocations require an income transaction" ||
+        error.message === "Duplicate expense allocations are not allowed" ||
+        error.message === "Allocation amount must be greater than zero" ||
+        error.message === "Allocations exceed refund amount" ||
+        error.message === "One or more expense transactions not found" ||
+        error.message === "Allocations must target expense transactions" ||
+        error.message === "Refund and expense currencies must match" ||
+        error.message.startsWith("Allocations exceed expense amount"))
+    ) {
+      return createErrorResponse(
+        new ApiError(ErrorCodes.VALIDATION_ERROR, error.message, 400),
+      );
+    }
+    return createErrorResponse(error);
+  }
+}

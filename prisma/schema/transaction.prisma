@@ -36,6 +36,8 @@ model Transaction {
   splitExpenseShareId String?     @unique
   splitExpenseShare   SplitExpenseShare? @relation(fields: [splitExpenseShareId], references: [id], onDelete: SetNull)
   splitSyncDetachedAt DateTime?
+  refundAllocations        TransactionRefundAllocation[] @relation("RefundAllocations")
+  expenseRefundAllocations TransactionRefundAllocation[] @relation("ExpenseRefundAllocations")
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -44,4 +46,19 @@ model Transaction {
   @@index([workspaceId, transactionDate])
   @@index([workspaceId, type, transactionDate])
   @@index([subscriptionId])
+}
+
+model TransactionRefundAllocation {
+  id                   String   @id @default(cuid())
+  refundTransactionId  String
+  expenseTransactionId String
+  amount               Decimal
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  refundTransaction  Transaction @relation("RefundAllocations", fields: [refundTransactionId], references: [id], onDelete: Cascade)
+  expenseTransaction Transaction @relation("ExpenseRefundAllocations", fields: [expenseTransactionId], references: [id], onDelete: Cascade)
+
+  @@unique([refundTransactionId, expenseTransactionId])
+  @@index([expenseTransactionId])
 }

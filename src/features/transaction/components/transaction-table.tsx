@@ -4,6 +4,7 @@ import { useIntersectionObserver } from "@/features/shared/hooks/useIntersection
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
+import { TransactionRefundBadge } from "@/features/transaction/components/transaction-refund-badge";
 import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
 import { TagBadge } from "@/features/tag/components/tag-badge";
 import { Badge } from "@/features/ui/badge/badge";
@@ -21,6 +22,7 @@ type ITransactionTableProps = {
   searchQuery: string;
   onDelete?: (transaction: ITransaction) => void;
   onEdit?: (transaction: ITransaction) => void;
+  onAllocateRefund?: (transaction: ITransaction) => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => void;
@@ -38,6 +40,7 @@ export function TransactionTable({
   searchQuery,
   onDelete,
   onEdit,
+  onAllocateRefund,
   hasNextPage = false,
   isFetchingNextPage = false,
   fetchNextPage,
@@ -163,6 +166,7 @@ export function TransactionTable({
                       <HiArrowPath className="size-3" />
                     </Badge>
                   )}
+                  <TransactionRefundBadge transaction={transaction} />
                 </div>
               </BodyCell>
               <BodyCell size={cellSize}>
@@ -213,6 +217,7 @@ export function TransactionTable({
                   transaction={transaction}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  onAllocateRefund={onAllocateRefund}
                 />
               </BodyCell>
             </TableRow>

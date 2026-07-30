@@ -31,9 +31,13 @@ import {
   convertAmount,
 } from "@/features/currency/services/conversion.service";
 import { ExchangeRateService } from "@/features/currency/services/exchange-rate.service";
+import {
+  parseAllocationsForTransaction,
+  TRANSACTION_REFUND_ALLOCATION_INCLUDE,
+} from "@/features/transaction/services/refund-allocation-helpers";
 import { prisma } from "@/features/util/prisma";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
-import { Prisma } from "@prisma/client";
+import { Prisma, TransactionType } from "@prisma/client";
 
 const BUDGET_ITEMS_INCLUDE = {
   items: {
@@ -110,6 +114,106 @@ function getTransactionAmountInCurrency(
     return numericAmount;
   }
   return convertAmount(numericAmount, fromCurrency, toCurrency, rates) ?? numericAmount;
+}
+
+/** Budget contribution after refund allocations (hybrid netting). */
+function getTransactionBudgetContribution(
+  tx: ITransaction,
+  budgetCurrency: string,
+  ratesByDate: ReturnType<typeof buildRatesByDateMap>,
+): number {
+  const amountForBudget =
+    tx.type === "INCOME"
+      ? (tx.refundRemaining ?? tx.amount)
+      : tx.type === "EXPENSE"
+        ? (tx.expenseNet ?? tx.amount)
+        : tx.amount;
+
+  return getTransactionAmountInCurrency(
+    amountForBudget,
+    tx.currency,
+    budgetCurrency,
+    tx.transactionDate,
+    ratesByDate,
+  );
+}
+
+function parseBudgetTransaction(tx: {
+  id: string;
+  type: string;
+  amount: { toString(): string };
+  currency: string;
+  transactionDate: Date;
+  timePrecision: string;
+  name: string;
+  description: string | null;
+  externalId: string | null;
+  paymentMethod: string;
+  tags: Array<{
+    id: string;
+    name: string;
+    color: string | null;
+    emoticon: string | null;
+  }>;
+  primaryTag: {
+    id: string;
+    name: string;
+    color: string | null;
+    emoticon: string | null;
+  } | null;
+  subscription: {
+    id: string;
+    name: string;
+    frequency: string;
+    active: boolean;
+  } | null;
+  refundAllocations?: Parameters<
+    typeof parseAllocationsForTransaction
+  >[0]["refundAllocations"];
+  expenseRefundAllocations?: Parameters<
+    typeof parseAllocationsForTransaction
+  >[0]["expenseRefundAllocations"];
+  createdAt: Date;
+  updatedAt: Date;
+}): ITransaction {
+  const allocationFields = parseAllocationsForTransaction(tx);
+  return TransactionSchema.parse({
+    id: tx.id,
+    type: tx.type,
+    amount: tx.amount.toString(),
+    currency: tx.currency,
+    transactionDate: tx.transactionDate.toISOString(),
+    timePrecision: tx.timePrecision,
+    name: tx.name,
+    description: tx.description,
+    externalId: tx.externalId,
+    paymentMethod: tx.paymentMethod,
+    tags: tx.tags.map((tag) => ({
+      id: tag.id,
+      name: tag.name,
+      color: tag.color,
+      emoticon: tag.emoticon,
+    })),
+    primaryTag: tx.primaryTag
+      ? {
+          id: tx.primaryTag.id,
+          name: tx.primaryTag.name,
+          color: tx.primaryTag.color,
+          emoticon: tx.primaryTag.emoticon,
+        }
+      : null,
+    subscription: tx.subscription
+      ? {
+          id: tx.subscription.id,
+          name: tx.subscription.name,
+          frequency: tx.subscription.frequency,
+          active: tx.subscription.active,
+        }
+      : null,
+    ...allocationFields,
+    createdAt: tx.createdAt.toISOString(),
+    updatedAt: tx.updatedAt.toISOString(),
+  });
 }
 
 function parseBudgetItem(item: IPrismaBudgetItem) {
@@ -505,46 +609,12 @@ export class BudgetService {
         subscription: {
           select: { id: true, name: true, frequency: true, active: true },
         },
+        ...TRANSACTION_REFUND_ALLOCATION_INCLUDE,
       },
     });
 
     const parsedTransactions: ITransaction[] = transactions.map((tx) =>
-      TransactionSchema.parse({
-        id: tx.id,
-        type: tx.type,
-        amount: tx.amount.toString(),
-        currency: tx.currency,
-        transactionDate: tx.transactionDate.toISOString(),
-        timePrecision: tx.timePrecision,
-        name: tx.name,
-        description: tx.description,
-        externalId: tx.externalId,
-        paymentMethod: tx.paymentMethod,
-        tags: tx.tags.map((tag) => ({
-          id: tag.id,
-          name: tag.name,
-          color: tag.color,
-          emoticon: tag.emoticon,
-        })),
-        primaryTag: tx.primaryTag
-          ? {
-              id: tx.primaryTag.id,
-              name: tx.primaryTag.name,
-              color: tx.primaryTag.color,
-              emoticon: tx.primaryTag.emoticon,
-            }
-          : null,
-        subscription: tx.subscription
-          ? {
-              id: tx.subscription.id,
-              name: tx.subscription.name,
-              frequency: tx.subscription.frequency,
-              active: tx.subscription.active,
-            }
-          : null,
-        createdAt: tx.createdAt.toISOString(),
-        updatedAt: tx.updatedAt.toISOString(),
-      }),
+      parseBudgetTransaction(tx),
     );
 
     const transactionDateKeys = [
@@ -557,13 +627,7 @@ export class BudgetService {
     const ratesByDate = buildRatesByDateMap(ratesForDates);
 
     const getBudgetAmount = (tx: ITransaction): number =>
-      getTransactionAmountInCurrency(
-        tx.amount,
-        tx.currency,
-        budget.currency,
-        tx.transactionDate,
-        ratesByDate,
-      );
+      getTransactionBudgetContribution(tx, budget.currency, ratesByDate);
 
     // Build key -> transactions map (key = tagId for tagged, or misc:EXPENSE/misc:INCOME for misc) and alert map
     const tagTransactionMap = new Map<string, ITransaction[]>();
@@ -847,6 +911,7 @@ export class BudgetService {
         where: {
           userId,
           workspaceId,
+          type: TransactionType.EXPENSE,
           transactionDate: {
             gte: new Date(budget.startDate),
             lte: new Date(budget.endDate),
@@ -856,6 +921,7 @@ export class BudgetService {
           primaryTag: {
             select: { id: true, name: true, color: true, emoticon: true },
           },
+          expenseRefundAllocations: true,
         },
       });
 
@@ -870,14 +936,28 @@ export class BudgetService {
         await ExchangeRateService.getRatesForDates(overviewDateKeys);
       const overviewRatesByDate = buildRatesByDateMap(overviewRatesForDates);
 
-      transactions.forEach((tx) => {
-        const amount = getTransactionAmountInCurrency(
-          tx.amount.toString(),
+      const getOverviewExpenseAmount = (tx: (typeof transactions)[number]) => {
+        const refunded = tx.expenseRefundAllocations.reduce(
+          (sum, a) => sum + parseFloat(a.amount.toString()),
+          0,
+        );
+        const net = Math.max(
+          0,
+          Math.round(
+            (parseFloat(tx.amount.toString()) - refunded) * 100,
+          ) / 100,
+        );
+        return getTransactionAmountInCurrency(
+          net.toString(),
           tx.currency,
           budget.currency,
           tx.transactionDate.toISOString(),
           overviewRatesByDate,
         );
+      };
+
+      transactions.forEach((tx) => {
+        const amount = getOverviewExpenseAmount(tx);
         if (tx.primaryTag) {
           const existing = tagSpendingMap.get(tx.primaryTag.id);
           if (existing) {
@@ -894,15 +974,7 @@ export class BudgetService {
       });
 
       const budgetActual = transactions.reduce(
-        (sum, tx) =>
-          sum +
-          getTransactionAmountInCurrency(
-            tx.amount.toString(),
-            tx.currency,
-            budget.currency,
-            tx.transactionDate.toISOString(),
-            overviewRatesByDate,
-          ),
+        (sum, tx) => sum + getOverviewExpenseAmount(tx),
         0,
       );
       totalActual += budgetActual;

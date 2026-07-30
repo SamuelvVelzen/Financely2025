@@ -113,7 +113,11 @@ export {
 
 export {
   TransactionSubscriptionInfoSchema,
+  TransactionRefundAllocationSchema,
   TransactionSchema,
+  ReplaceRefundAllocationsInputSchema,
+  RefundAllocationSuggestionSchema,
+  RefundAllocationSuggestionsResponseSchema,
   CreateTransactionInputSchema,
   UpdateTransactionInputSchema,
   TransactionsQuerySchema,
@@ -131,6 +135,10 @@ export {
   CsvImportRequestSchema,
   CsvImportResponseSchema,
   type ITransaction,
+  type ITransactionRefundAllocation,
+  type IReplaceRefundAllocationsInput,
+  type IRefundAllocationSuggestion,
+  type IRefundAllocationSuggestionsResponse,
   type ICreateTransactionInput,
   type IUpdateTransactionInput,
   type ITransactionsQuery,

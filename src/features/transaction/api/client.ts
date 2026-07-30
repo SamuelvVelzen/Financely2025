@@ -4,6 +4,7 @@ import {
   apiPatch,
   apiPost,
   apiPostFormData,
+  apiPut,
   buildQueryString,
 } from "@/features/shared/api/client";
 import type {
@@ -16,6 +17,8 @@ import type {
   ICsvUploadResponse,
   ICurrency,
   IPaginatedTransactionsResponse,
+  IRefundAllocationSuggestionsResponse,
+  IReplaceRefundAllocationsInput,
   ITransaction,
   ITransactionsQuery,
   IUpdateTransactionInput,
@@ -108,6 +111,45 @@ export async function removeTagFromTransaction(
       workspaceId,
       `transactions/${transactionId}/tags/${tagId}`
     )
+  );
+}
+
+export async function replaceRefundAllocations(
+  workspaceId: IWorkspaceId,
+  transactionId: string,
+  allocations: IReplaceRefundAllocationsInput["allocations"],
+): Promise<ITransaction> {
+  return apiPut<ITransaction>(
+    workspaceApiV1Path(
+      workspaceId,
+      `transactions/${transactionId}/refund-allocations`,
+    ),
+    { allocations },
+  );
+}
+
+export async function getRefundAllocationSuggestions(
+  workspaceId: IWorkspaceId,
+  transactionId: string,
+): Promise<IRefundAllocationSuggestionsResponse> {
+  return apiGet<IRefundAllocationSuggestionsResponse>(
+    workspaceApiV1Path(
+      workspaceId,
+      `transactions/${transactionId}/refund-allocations/suggestions`,
+    ),
+  );
+}
+
+export async function deleteRefundAllocation(
+  workspaceId: IWorkspaceId,
+  transactionId: string,
+  allocationId: string,
+): Promise<ITransaction> {
+  return apiDelete<ITransaction>(
+    workspaceApiV1Path(
+      workspaceId,
+      `transactions/${transactionId}/refund-allocations/${allocationId}`,
+    ),
   );
 }
 
