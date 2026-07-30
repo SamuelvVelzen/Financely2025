@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isIosDevice } from "./pwa-install-platform";
 import {
   dismissPwaInstallPrompt,
   isPwaInstallDismissed,
@@ -6,24 +7,38 @@ import {
   type IBeforeInstallPromptEvent,
 } from "./pwa-install-storage";
 
+const IOS_PROMPT_DELAY_MS = 1500;
+
+export type IPwaInstallPromptVariant = "native" | "ios";
+
 export function usePwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<IBeforeInstallPromptEvent | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [variant, setVariant] = useState<IPwaInstallPromptVariant | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (isStandaloneDisplayMode() || isPwaInstallDismissed()) return;
 
+    // iOS has no beforeinstallprompt — coach Share → Add to Home Screen.
+    if (isIosDevice()) {
+      const timeoutId = window.setTimeout(() => {
+        setVariant("ios");
+      }, IOS_PROMPT_DELAY_MS);
+      return () => {
+        window.clearTimeout(timeoutId);
+      };
+    }
+
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setDeferredPrompt(event as IBeforeInstallPromptEvent);
-      setIsVisible(true);
+      setVariant("native");
     };
 
     const onAppInstalled = () => {
       setDeferredPrompt(null);
-      setIsVisible(false);
+      setVariant(null);
       dismissPwaInstallPrompt();
     };
 
@@ -41,19 +56,24 @@ export function usePwaInstallPrompt() {
     await deferredPrompt.prompt();
     const choice = await deferredPrompt.userChoice;
     setDeferredPrompt(null);
-    setIsVisible(false);
+    setVariant(null);
     if (choice.outcome === "accepted" || choice.outcome === "dismissed") {
       dismissPwaInstallPrompt();
     }
   };
 
   const dismiss = () => {
-    setIsVisible(false);
+    setDeferredPrompt(null);
+    setVariant(null);
     dismissPwaInstallPrompt();
   };
 
+  const isVisible =
+    variant === "ios" || (variant === "native" && deferredPrompt != null);
+
   return {
-    isVisible: isVisible && deferredPrompt != null,
+    isVisible,
+    variant,
     install,
     dismiss,
   };
