@@ -16,6 +16,7 @@ export type ISplitExpenseFormValues = {
   splitMode: ISplitMode;
   /** Per-member input for exact amounts, percentages, or share weights. */
   shareInputs: Record<string, string>;
+  addToTransactions: boolean;
 };
 
 function toMinorUnits(amount: number, currency: string): number {
@@ -128,6 +129,7 @@ export function getEmptySplitExpenseFormValues(
     participantMemberIds: memberIds,
     splitMode: "equal",
     shareInputs: {},
+    addToTransactions: false,
   };
 }
 
@@ -165,6 +167,7 @@ export function getSplitExpenseFormValuesFromExpense(
     participantMemberIds,
     splitMode,
     shareInputs,
+    addToTransactions: expense.addToTransactions,
   };
 }
 
@@ -185,6 +188,7 @@ export function getFormValuesForAnotherExpense(
     paidByMemberId: submitted.paidByMemberId,
     participantMemberIds: submitted.participantMemberIds,
     splitMode: submitted.splitMode,
+    addToTransactions: submitted.addToTransactions,
     shareInputs:
       submitted.splitMode === "equal"
         ? {}

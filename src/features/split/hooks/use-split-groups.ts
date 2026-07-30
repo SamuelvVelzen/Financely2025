@@ -14,6 +14,7 @@ import {
   getSplitSummary,
   removeSplitMember,
   rotateGuestLink,
+  setSplitExpenseAddToTransactions,
   updateSplitExpense,
   updateSplitGroup,
   updateSplitSettlement,
@@ -242,6 +243,21 @@ export function useUpdateSplitExpense(groupId: string) {
       () => queryKeys.splitExpenses(groupId),
       () => queryKeys.splitBalances(groupId),
       () => queryKeys.splitSummary(),
+    ],
+  });
+}
+
+export function useSetSplitExpenseAddToTransactions(groupId: string) {
+  return useFinMutation({
+    mutationFn: ({
+      expenseId,
+      addToTransactions,
+    }: {
+      expenseId: string;
+      addToTransactions: boolean;
+    }) => setSplitExpenseAddToTransactions(groupId, expenseId, addToTransactions),
+    invalidateQueries: [
+      () => queryKeys.splitExpenses(groupId),
     ],
   });
 }

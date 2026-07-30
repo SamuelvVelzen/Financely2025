@@ -9,6 +9,7 @@ import {
   useDeleteSplitExpense,
   useDeleteSplitGroup,
   useDeleteSplitSettlement,
+  useSetSplitExpenseAddToTransactions,
   useSplitBalances,
   useSplitExpenses,
   useSplitGroup,
@@ -47,6 +48,7 @@ export function SplitGroupPage() {
   const { data: balances, isLoading: balancesLoading } =
     useSplitBalances(groupId);
   const deleteExpense = useDeleteSplitExpense(groupId);
+  const setExpenseAddToTransactions = useSetSplitExpenseAddToTransactions(groupId);
   const deleteSettlement = useDeleteSplitSettlement(groupId);
   const deleteGroup = useDeleteSplitGroup();
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
@@ -72,6 +74,22 @@ export function SplitGroupPage() {
   const openEditExpense = (expense: ISplitExpense) => {
     setEditingExpense(expense);
     setExpenseDialogOpen(true);
+  };
+
+  const handleToggleExpenseAddToTransactions = async (expense: ISplitExpense) => {
+    try {
+      await setExpenseAddToTransactions.mutateAsync({
+        expenseId: expense.id,
+        addToTransactions: !expense.addToTransactions,
+      });
+      toast.success(
+        expense.addToTransactions
+          ? "Removed from your transactions"
+          : "Added to your transactions",
+      );
+    } catch {
+      toast.error("Could not update personal transaction");
+    }
   };
 
   const handleExpenseDialogOpenChange = (open: boolean) => {
@@ -244,6 +262,7 @@ export function SplitGroupPage() {
               viewer={viewer}
               onEditExpense={openEditExpense}
               onDeleteExpense={setDeletingExpense}
+              onToggleExpenseAddToTransactions={handleToggleExpenseAddToTransactions}
               onEditSettlement={openEditSettlement}
               onDeleteSettlement={setDeletingSettlement}
             />

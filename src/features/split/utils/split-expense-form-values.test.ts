@@ -14,6 +14,7 @@ const sampleExpense: ISplitExpense = {
   conversionStatus: "converted",
   expenseDate: "2026-07-01T12:00:00.000Z",
   splitMode: "equal",
+  addToTransactions: false,
   paidByMemberId: "member-1",
   paidByDisplayName: "Sam",
   createdByUserId: "user-1",
@@ -26,6 +27,7 @@ const sampleExpense: ISplitExpense = {
       shareAmount: "12.25",
       shareGroupAmount: "0.60",
       status: "active",
+      addToTransactions: false,
     },
     {
       id: "share-2",
@@ -34,6 +36,7 @@ const sampleExpense: ISplitExpense = {
       shareAmount: "12.25",
       shareGroupAmount: "0.60",
       status: "active",
+      addToTransactions: false,
     },
   ],
   createdAt: "2026-07-01T12:00:00.000Z",
@@ -50,6 +53,7 @@ describe("split expense form values", () => {
       participantMemberIds: ["member-1", "member-2"],
       splitMode: "equal",
       shareInputs: {},
+      addToTransactions: false,
     });
   });
 
@@ -75,11 +79,15 @@ describe("split expense form values", () => {
         "member-1": "20.00",
         "member-2": "4.50",
       },
+      addToTransactions: false,
     });
   });
 
   it("keeps split settings when adding another expense", () => {
-    const submitted = getSplitExpenseFormValuesFromExpense(sampleExpense);
+    const submitted = getSplitExpenseFormValuesFromExpense({
+      ...sampleExpense,
+      addToTransactions: true,
+    });
     expect(
       getFormValuesForAnotherExpense(submitted, "EUR", [
         "member-1",
@@ -94,6 +102,7 @@ describe("split expense form values", () => {
       participantMemberIds: ["member-1", "member-2"],
       splitMode: "equal",
       shareInputs: {},
+      addToTransactions: true,
     });
   });
 });

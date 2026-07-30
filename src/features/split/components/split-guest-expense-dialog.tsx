@@ -49,6 +49,7 @@ export function SplitGuestExpenseDialog({
         participantMemberIds: input.participantMemberIds,
         splitMode: input.splitMode,
         exactShares: getExactSharesForSubmit(input),
+        addToTransactions: input.addToTransactions,
         clientMutationId: crypto.randomUUID(),
       }),
     onSuccess: async () => {

@@ -11,6 +11,7 @@ export type ISplitExpense = {
   conversionStatus: string;
   expenseDate: string;
   splitMode: string;
+  addToTransactions: boolean;
   paidByMemberId: string;
   paidByDisplayName: string;
   createdByUserId: string | null;
@@ -23,6 +24,7 @@ export type ISplitExpense = {
     shareAmount: string;
     shareGroupAmount: string | null;
     status: string;
+    addToTransactions: boolean;
   }>;
   createdAt: string;
 };
@@ -49,6 +51,7 @@ export function buildOptimisticSplitExpense(
     conversionStatus: "pending",
     expenseDate: input.expenseDate,
     splitMode: input.splitMode,
+    addToTransactions: input.addToTransactions,
     paidByMemberId: input.paidByMemberId,
     paidByDisplayName: "You",
     createdByUserId: null,
@@ -61,6 +64,7 @@ export function buildOptimisticSplitExpense(
       shareAmount: s.shareAmount,
       shareGroupAmount: null,
       status: "active",
+      addToTransactions: false,
     })),
     createdAt: new Date().toISOString(),
   };

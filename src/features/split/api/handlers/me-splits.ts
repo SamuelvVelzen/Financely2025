@@ -9,6 +9,7 @@ import {
   CreateSplitExpenseInputSchema,
   CreateSplitGroupInputSchema,
   CreateSplitSettlementInputSchema,
+  SetSplitExpenseAddToTransactionsInputSchema,
   UpdateSplitExpenseInputSchema,
   UpdateSplitGroupInputSchema,
   UpdateSplitSettlementInputSchema,
@@ -232,6 +233,31 @@ export async function updateExpensePATCH({
         params.expenseId,
         userId,
         body,
+      );
+      return json(expense);
+    });
+  } catch (error) {
+    return handleSplitError(error);
+  }
+}
+
+export async function setExpenseAddToTransactionsPATCH({
+  request,
+  params,
+}: {
+  request: Request;
+  params: { groupId: string; expenseId: string };
+}) {
+  try {
+    return await withAuth(async (userId) => {
+      const body = SetSplitExpenseAddToTransactionsInputSchema.parse(
+        await request.json(),
+      );
+      const expense = await SplitExpenseService.setAddToTransactions(
+        params.groupId,
+        params.expenseId,
+        userId,
+        body.addToTransactions,
       );
       return json(expense);
     });

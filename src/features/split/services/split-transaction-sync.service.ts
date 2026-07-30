@@ -18,7 +18,7 @@ export class SplitTransactionSyncService {
     });
 
     if (!share) return;
-    if (share.status !== "active") {
+    if (share.status !== "active" || !share.addToTransactions) {
       await this.deletePristineTransactionForShare(shareId, tx);
       return;
     }

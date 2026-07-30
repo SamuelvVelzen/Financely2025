@@ -12,8 +12,21 @@ import type {
   IUpdateSplitExpenseInput,
 } from "../validation/schemas";
 
+type IMappedShare = {
+  id: string;
+  memberId: string;
+  displayName: string;
+  shareAmount: string;
+  shareGroupAmount: string | null;
+  status: string;
+  addToTransactions: boolean;
+};
+
 export class SplitExpenseService {
-  static async listExpensesForGroup(groupId: string) {
+  static async listExpensesForGroup(
+    groupId: string,
+    viewerMemberId?: string,
+  ) {
     const expenses = await prisma.splitExpense.findMany({
       where: { groupId },
       include: {
@@ -27,7 +40,44 @@ export class SplitExpenseService {
       orderBy: { expenseDate: "desc" },
     });
 
-    return expenses.map((e) => SplitExpenseService.mapExpense(e));
+    return expenses.map((e) => SplitExpenseService.mapExpense(e, viewerMemberId));
+  }
+
+  private static mapShares(
+    shares: Array<{
+      id: string;
+      memberId: string;
+      shareAmount: { toString(): string };
+      shareGroupAmount: { toString(): string } | null;
+      status: string;
+      addToTransactions: boolean;
+      member: { id: string; displayName: string };
+    }>,
+  ): IMappedShare[] {
+    return shares.map((s) => ({
+      id: s.id,
+      memberId: s.memberId,
+      displayName: s.member.displayName,
+      shareAmount: s.shareAmount.toString(),
+      shareGroupAmount: s.shareGroupAmount?.toString() ?? null,
+      status: s.status,
+      addToTransactions: s.addToTransactions,
+    }));
+  }
+
+  private static viewerAddToTransactions(
+    shares: IMappedShare[],
+    viewerMemberId?: string,
+  ): boolean {
+    if (viewerMemberId == null) {
+      return false;
+    }
+    return (
+      shares.find(
+        (share) =>
+          share.memberId === viewerMemberId && share.status === "active",
+      )?.addToTransactions ?? false
+    );
   }
 
   private static mapExpense(
@@ -41,10 +91,13 @@ export class SplitExpenseService {
         shareAmount: { toString(): string };
         shareGroupAmount: { toString(): string } | null;
         status: string;
+        addToTransactions: boolean;
         member: { id: string; displayName: string };
       }>;
     },
+    viewerMemberId?: string,
   ) {
+    const shares = this.mapShares(e.shares);
     return {
       id: e.id,
       description: e.description,
@@ -54,25 +107,19 @@ export class SplitExpenseService {
       conversionStatus: e.conversionStatus,
       expenseDate: e.expenseDate.toISOString(),
       splitMode: e.splitMode,
+      addToTransactions: this.viewerAddToTransactions(shares, viewerMemberId),
       paidByMemberId: e.paidByMemberId,
       paidByDisplayName: e.paidByMember.displayName,
       createdByUserId: e.createdByUserId,
       clientMutationId: e.clientMutationId,
-      shares: e.shares.map((s) => ({
-        id: s.id,
-        memberId: s.memberId,
-        displayName: s.member.displayName,
-        shareAmount: s.shareAmount.toString(),
-        shareGroupAmount: s.shareGroupAmount?.toString() ?? null,
-        status: s.status,
-      })),
+      shares,
       createdAt: e.createdAt.toISOString(),
     };
   }
 
   static async listExpenses(groupId: string, userId: string) {
-    await requireActiveMemberForUser(groupId, userId);
-    return this.listExpensesForGroup(groupId);
+    const member = await requireActiveMemberForUser(groupId, userId);
+    return this.listExpensesForGroup(groupId, member.id);
   }
 
   static async createExpenseForMember(
@@ -86,7 +133,7 @@ export class SplitExpenseService {
         where: { clientMutationId: input.clientMutationId },
       });
       if (existing) {
-        return this.getExpenseById(existing.id, groupId);
+        return this.getExpenseById(existing.id, groupId, actorMemberId);
       }
     }
 
@@ -131,6 +178,8 @@ export class SplitExpenseService {
               shareAmount: s.shareAmount,
               shareGroupAmount: s.shareGroupAmount,
               status: "active",
+              addToTransactions:
+                input.addToTransactions && s.memberId === actorMemberId,
             })),
           },
         },
@@ -154,7 +203,7 @@ export class SplitExpenseService {
 
     await SplitTransactionSyncService.syncSharesForExpense(expense.id);
 
-    return this.getExpenseById(expense.id, groupId);
+    return this.getExpenseById(expense.id, groupId, actorMemberId);
   }
 
   static async createExpense(
@@ -193,16 +242,31 @@ export class SplitExpenseService {
     const splitMode = parseSplitMode(input.splitMode ?? expense.splitMode);
     const paidByMemberId = input.paidByMemberId ?? expense.paidByMemberId;
     const existingShares = await prisma.splitExpenseShare.findMany({
-      where: { expenseId, status: "active" },
-      select: { memberId: true, shareAmount: true },
+      where: { expenseId },
+      select: {
+        id: true,
+        memberId: true,
+        shareAmount: true,
+        status: true,
+        addToTransactions: true,
+      },
     });
     const participantMemberIds =
-      input.participantMemberIds ?? existingShares.map((s) => s.memberId);
+      input.participantMemberIds ??
+      existingShares
+        .filter((s) => s.status === "active")
+        .map((s) => s.memberId);
 
-    const storedExactShares = existingShares.map((s) => ({
-      memberId: s.memberId,
-      shareAmount: s.shareAmount.toString(),
-    }));
+    const storedExactShares = existingShares
+      .filter((s) => s.status === "active")
+      .map((s) => ({
+        memberId: s.memberId,
+        shareAmount: s.shareAmount.toString(),
+      }));
+
+    const addToTransactionsByMemberId = new Map(
+      existingShares.map((s) => [s.memberId, s.addToTransactions]),
+    );
 
     // Prefer client share inputs. Otherwise recompute from saved money amounts
     // (percent/share weights are not persisted separately).
@@ -228,6 +292,12 @@ export class SplitExpenseService {
     });
 
     await prisma.$transaction(async (tx) => {
+      for (const share of existingShares) {
+        await SplitTransactionSyncService.deletePristineTransactionForShare(
+          share.id,
+          tx,
+        );
+      }
       await tx.splitExpenseShare.deleteMany({ where: { expenseId } });
 
       await tx.splitExpense.update({
@@ -249,6 +319,10 @@ export class SplitExpenseService {
               shareAmount: s.shareAmount,
               shareGroupAmount: s.shareGroupAmount,
               status: "active",
+              addToTransactions:
+                s.memberId === member.id && input.addToTransactions !== undefined
+                  ? input.addToTransactions
+                  : (addToTransactionsByMemberId.get(s.memberId) ?? false),
             })),
           },
         },
@@ -268,7 +342,37 @@ export class SplitExpenseService {
 
     await SplitTransactionSyncService.syncSharesForExpense(expenseId);
 
-    return this.getExpenseById(expenseId, groupId);
+    return this.getExpenseById(expenseId, groupId, member.id);
+  }
+
+  static async setAddToTransactions(
+    groupId: string,
+    expenseId: string,
+    userId: string,
+    addToTransactions: boolean,
+  ) {
+    const member = await requireActiveMemberForUser(groupId, userId);
+    const share = await prisma.splitExpenseShare.findFirst({
+      where: {
+        expenseId,
+        memberId: member.id,
+        status: "active",
+        expense: { groupId },
+      },
+    });
+
+    if (!share) {
+      throw new Error("You are not a participant on this expense");
+    }
+
+    await prisma.splitExpenseShare.update({
+      where: { id: share.id },
+      data: { addToTransactions },
+    });
+
+    await SplitTransactionSyncService.upsertTransactionForShare(share.id);
+
+    return this.getExpenseById(expenseId, groupId, member.id);
   }
 
   static async deleteExpense(
@@ -318,6 +422,10 @@ export class SplitExpenseService {
       where: { id: groupId },
     });
 
+    const addToTransactionsByMemberId = new Map(
+      expense.shares.map((s) => [s.memberId, s.addToTransactions]),
+    );
+
     const conversion = await SplitCurrencyService.convertExpense({
       amount: expense.amount.toString(),
       currency: expense.currency,
@@ -334,6 +442,12 @@ export class SplitExpenseService {
     });
 
     await prisma.$transaction(async (tx) => {
+      for (const share of expense.shares) {
+        await SplitTransactionSyncService.deletePristineTransactionForShare(
+          share.id,
+          tx,
+        );
+      }
       await tx.splitExpenseShare.deleteMany({ where: { expenseId } });
       await tx.splitExpense.update({
         where: { id: expenseId },
@@ -348,11 +462,15 @@ export class SplitExpenseService {
               shareAmount: s.shareAmount,
               shareGroupAmount: s.shareGroupAmount,
               status: "active",
+              addToTransactions:
+                addToTransactionsByMemberId.get(s.memberId) ?? false,
             })),
           },
         },
       });
     });
+
+    await SplitTransactionSyncService.syncSharesForExpense(expenseId);
 
     return this.getExpenseById(expenseId, groupId);
   }
@@ -371,7 +489,11 @@ export class SplitExpenseService {
     return { converted: pending.length };
   }
 
-  private static async getExpenseById(expenseId: string, groupId: string) {
+  private static async getExpenseById(
+    expenseId: string,
+    groupId: string,
+    viewerMemberId?: string,
+  ) {
     const expense = await prisma.splitExpense.findFirstOrThrow({
       where: { id: expenseId, groupId },
       include: {
@@ -383,6 +505,7 @@ export class SplitExpenseService {
       },
     });
 
+    const shares = this.mapShares(expense.shares);
     return {
       id: expense.id,
       groupId: expense.groupId,
@@ -393,18 +516,12 @@ export class SplitExpenseService {
       conversionStatus: expense.conversionStatus,
       expenseDate: expense.expenseDate.toISOString(),
       splitMode: expense.splitMode,
+      addToTransactions: this.viewerAddToTransactions(shares, viewerMemberId),
       paidByMemberId: expense.paidByMemberId,
       paidByDisplayName: expense.paidByMember.displayName,
       createdByUserId: expense.createdByUserId,
       clientMutationId: expense.clientMutationId,
-      shares: expense.shares.map((s) => ({
-        id: s.id,
-        memberId: s.memberId,
-        displayName: s.member.displayName,
-        shareAmount: s.shareAmount.toString(),
-        shareGroupAmount: s.shareGroupAmount?.toString() ?? null,
-        status: s.status,
-      })),
+      shares,
       createdAt: expense.createdAt.toISOString(),
     };
   }

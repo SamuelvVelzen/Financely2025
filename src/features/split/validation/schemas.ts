@@ -52,6 +52,7 @@ export const CreateSplitExpenseInputSchema = z.object({
   participantMemberIds: z.array(z.string().min(1)).min(1),
   splitMode: SplitModeSchema.default("equal"),
   exactShares: z.array(ExactShareInputSchema).optional(),
+  addToTransactions: z.boolean().default(false),
   clientMutationId: z.string().uuid().optional(),
 });
 
@@ -64,6 +65,11 @@ export const UpdateSplitExpenseInputSchema = z.object({
   participantMemberIds: z.array(z.string().min(1)).min(1).optional(),
   splitMode: SplitModeSchema.optional(),
   exactShares: z.array(ExactShareInputSchema).optional(),
+  addToTransactions: z.boolean().optional(),
+});
+
+export const SetSplitExpenseAddToTransactionsInputSchema = z.object({
+  addToTransactions: z.boolean(),
 });
 
 export const CreateSplitSettlementInputSchema = z.object({
@@ -141,6 +147,9 @@ export type ICreateSplitExpenseInput = z.infer<
 >;
 export type IUpdateSplitExpenseInput = z.infer<
   typeof UpdateSplitExpenseInputSchema
+>;
+export type ISetSplitExpenseAddToTransactionsInput = z.infer<
+  typeof SetSplitExpenseAddToTransactionsInputSchema
 >;
 export type ICreateSplitSettlementInput = z.infer<
   typeof CreateSplitSettlementInputSchema

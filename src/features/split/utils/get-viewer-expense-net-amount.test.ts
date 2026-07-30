@@ -14,6 +14,7 @@ const baseExpense: ISplitExpense = {
   conversionStatus: "converted",
   expenseDate: "2026-01-01T00:00:00.000Z",
   splitMode: "equal",
+  addToTransactions: false,
   paidByMemberId: "alice",
   paidByDisplayName: "Alice",
   createdByUserId: "u1",
@@ -26,6 +27,7 @@ const baseExpense: ISplitExpense = {
       shareAmount: "50.00",
       shareGroupAmount: "50.00",
       status: "active",
+      addToTransactions: false,
     },
     {
       id: "s2",
@@ -34,6 +36,7 @@ const baseExpense: ISplitExpense = {
       shareAmount: "50.00",
       shareGroupAmount: "50.00",
       status: "active",
+      addToTransactions: false,
     },
   ],
   createdAt: "2026-01-01T00:00:00.000Z",

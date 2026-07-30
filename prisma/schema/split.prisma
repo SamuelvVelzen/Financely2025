@@ -74,28 +74,29 @@ model SplitExpense {
   conversionStatus String   @default("pending")
   exchangeRateDate DateTime?
   exchangeRate     Decimal?
-  description      String
-  expenseDate      DateTime
-  splitMode        String   @default("equal")
-  createdByUserId  String?
-  clientMutationId String?  @unique
-  shares           SplitExpenseShare[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  description        String
+  expenseDate        DateTime
+  splitMode          String   @default("equal")
+  createdByUserId    String?
+  clientMutationId   String?  @unique
+  shares             SplitExpenseShare[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@index([groupId, expenseDate])
 }
 
 model SplitExpenseShare {
-  id               String           @id @default(cuid())
-  expenseId        String
-  memberId         String
-  status           SplitShareStatus @default(active)
-  shareAmount      Decimal
-  shareGroupAmount Decimal?
-  expense          SplitExpense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  member           SplitGroupMember @relation(fields: [memberId], references: [id], onDelete: Restrict)
-  transaction      Transaction?
+  id                String           @id @default(cuid())
+  expenseId         String
+  memberId          String
+  status            SplitShareStatus @default(active)
+  shareAmount       Decimal
+  shareGroupAmount  Decimal?
+  addToTransactions Boolean          @default(false)
+  expense           SplitExpense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  member            SplitGroupMember @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  transaction       Transaction?
 
   @@unique([expenseId, memberId])
 }

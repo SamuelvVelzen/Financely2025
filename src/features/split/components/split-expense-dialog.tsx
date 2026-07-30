@@ -113,6 +113,7 @@ export function SplitExpenseDialog({
             participantMemberIds: values.participantMemberIds,
             splitMode: values.splitMode,
             exactShares: getExactSharesForSubmit(values),
+            addToTransactions: values.addToTransactions,
           },
         });
         if (!isOfflineMutationPlaceholder(updated)) {
@@ -142,6 +143,7 @@ export function SplitExpenseDialog({
         participantMemberIds: values.participantMemberIds,
         splitMode: values.splitMode,
         exactShares: getExactSharesForSubmit(values),
+        addToTransactions: values.addToTransactions,
         clientMutationId: crypto.randomUUID(),
       });
 
@@ -177,6 +179,7 @@ export function SplitExpenseDialog({
       expenses={expenses}
       members={members}
       disabled={isPending}
+      showAddToTransactions
       onSubmit={(values) => void handleSubmit(values)}
     />
   ) : null;

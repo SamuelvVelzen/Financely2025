@@ -6,7 +6,12 @@ import { Dropdown } from "@/features/ui/dropdown/dropdown";
 import { DropdownItem } from "@/features/ui/dropdown/dropdown-item";
 import { ListItem } from "@/features/ui/list/list-item";
 import { cn } from "@/features/util/cn";
-import { HiPencil, HiTrash } from "react-icons/hi2";
+import {
+  HiBanknotes,
+  HiNoSymbol,
+  HiPencil,
+  HiTrash,
+} from "react-icons/hi2";
 
 export function SplitExpenseListItem({
   expense,
@@ -15,6 +20,7 @@ export function SplitExpenseListItem({
   canEdit,
   onEdit,
   onDelete,
+  onToggleAddToTransactions,
 }: {
   expense: ISplitExpense;
   groupCurrency: string;
@@ -22,6 +28,7 @@ export function SplitExpenseListItem({
   canEdit: boolean;
   onEdit: (expense: ISplitExpense) => void;
   onDelete: (expense: ISplitExpense) => void;
+  onToggleAddToTransactions?: (expense: ISplitExpense) => void;
 }) {
   const viewerNet =
     viewerMemberId != null
@@ -29,6 +36,14 @@ export function SplitExpenseListItem({
       : null;
   const showViewerNet = viewerNet != null && Math.abs(viewerNet) > 0.005;
   const viewerOwes = showViewerNet && viewerNet < 0;
+  const viewerIsParticipant =
+    viewerMemberId != null &&
+    expense.shares.some(
+      (share) => share.memberId === viewerMemberId && share.status === "active",
+    );
+  const showPersonalTransactionToggle =
+    viewerIsParticipant && onToggleAddToTransactions != null;
+  const showActions = canEdit || showPersonalTransactionToggle;
 
   return (
     <ListItem
@@ -46,6 +61,9 @@ export function SplitExpenseListItem({
             ) : null}
             {expense.conversionStatus === "pending" ? (
               <Badge variant="warning">Pending conversion</Badge>
+            ) : null}
+            {viewerIsParticipant && expense.addToTransactions ? (
+              <Badge variant="default">In my transactions</Badge>
             ) : null}
           </div>
         </div>
@@ -75,23 +93,44 @@ export function SplitExpenseListItem({
               />
             ) : null}
           </div>
-          {canEdit ? (
+          {showActions ? (
             <div
               role="presentation"
               onClick={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}>
               <Dropdown size="sm">
-                <DropdownItem
-                  icon={<HiPencil className="size-4" />}
-                  text="Edit"
-                  clicked={() => onEdit(expense)}
-                />
-                <DropdownItem
-                  icon={<HiTrash className="size-4" />}
-                  text="Delete"
-                  clicked={() => onDelete(expense)}
-                  className="text-danger hover:bg-danger/10"
-                />
+                {showPersonalTransactionToggle ? (
+                  <DropdownItem
+                    icon={
+                      expense.addToTransactions ? (
+                        <HiNoSymbol className="size-4" />
+                      ) : (
+                        <HiBanknotes className="size-4" />
+                      )
+                    }
+                    text={
+                      expense.addToTransactions
+                        ? "Remove from my transactions"
+                        : "Add to my transactions"
+                    }
+                    clicked={() => onToggleAddToTransactions(expense)}
+                  />
+                ) : null}
+                {canEdit ? (
+                  <>
+                    <DropdownItem
+                      icon={<HiPencil className="size-4" />}
+                      text="Edit"
+                      clicked={() => onEdit(expense)}
+                    />
+                    <DropdownItem
+                      icon={<HiTrash className="size-4" />}
+                      text="Delete"
+                      clicked={() => onDelete(expense)}
+                      className="text-danger hover:bg-danger/10"
+                    />
+                  </>
+                ) : null}
               </Dropdown>
             </div>
           ) : null}

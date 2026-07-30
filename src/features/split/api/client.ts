@@ -88,6 +88,17 @@ export async function updateSplitExpense(
   );
 }
 
+export async function setSplitExpenseAddToTransactions(
+  groupId: string,
+  expenseId: string,
+  addToTransactions: boolean,
+) {
+  return apiPatch<Record<string, unknown>>(
+    `${BASE}/groups/${groupId}/expenses/${expenseId}/add-to-transactions`,
+    { addToTransactions },
+  );
+}
+
 export async function deleteSplitExpense(groupId: string, expenseId: string) {
   return apiDelete<{ success: boolean }>(
     `${BASE}/groups/${groupId}/expenses/${expenseId}`,

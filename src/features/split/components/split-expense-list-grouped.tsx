@@ -13,6 +13,7 @@ export function SplitExpenseListGrouped({
   viewer,
   onEdit,
   onDelete,
+  onToggleAddToTransactions,
   emptyText = "No expenses yet. Add one to get started.",
 }: {
   expenses: ISplitExpense[];
@@ -20,6 +21,7 @@ export function SplitExpenseListGrouped({
   viewer?: { userId: string; memberId: string; role: string };
   onEdit?: (expense: ISplitExpense) => void;
   onDelete?: (expense: ISplitExpense) => void;
+  onToggleAddToTransactions?: (expense: ISplitExpense) => void;
   emptyText?: string;
 }) {
   if (expenses.length === 0) {
@@ -58,6 +60,7 @@ export function SplitExpenseListGrouped({
                 }
                 onEdit={onEdit ?? (() => {})}
                 onDelete={onDelete ?? (() => {})}
+                onToggleAddToTransactions={onToggleAddToTransactions}
               />
             )}
           </List>

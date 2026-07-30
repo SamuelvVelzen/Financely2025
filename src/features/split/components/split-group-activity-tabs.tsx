@@ -21,6 +21,7 @@ export function SplitGroupActivityTabs({
   viewer,
   onEditExpense,
   onDeleteExpense,
+  onToggleExpenseAddToTransactions,
   onEditSettlement,
   onDeleteSettlement,
 }: {
@@ -32,6 +33,7 @@ export function SplitGroupActivityTabs({
   viewer?: { userId: string; memberId: string; role: string };
   onEditExpense?: (expense: ISplitExpense) => void;
   onDeleteExpense?: (expense: ISplitExpense) => void;
+  onToggleExpenseAddToTransactions?: (expense: ISplitExpense) => void;
   onEditSettlement?: (settlement: ISplitSettlement) => void;
   onDeleteSettlement?: (settlement: ISplitSettlement) => void;
 }) {
@@ -100,6 +102,7 @@ export function SplitGroupActivityTabs({
             viewer={viewer}
             onEdit={onEditExpense}
             onDelete={onDeleteExpense}
+            onToggleAddToTransactions={onToggleExpenseAddToTransactions}
             emptyText={
               debouncedSearchQuery.trim() && expenses.length > 0
                 ? "No expenses match your search."

@@ -103,6 +103,7 @@ import { Route as ApiV1MeSplitsGroupsGroupIdMembersMemberIdRouteImport } from '.
 import { Route as ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRouteImport } from './routes/api/v1/me.splits.groups.$groupId.guest-link.rotate'
 import { Route as ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRouteImport } from './routes/api/v1/me.splits.groups.$groupId.expenses.$expenseId'
 import { Route as ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRouteImport } from './routes/api/v1/me.splits.groups.$groupId.expenses.$expenseId.convert'
+import { Route as ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRouteImport } from './routes/api/v1/me.splits.groups.$groupId.expenses.$expenseId.add-to-transactions'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -639,6 +640,14 @@ const ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute =
     path: '/convert',
     getParentRoute: () => ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRoute,
   } as any)
+const ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRoute =
+  ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRouteImport.update(
+    {
+      id: '/add-to-transactions',
+      path: '/add-to-transactions',
+      getParentRoute: () => ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
@@ -733,6 +742,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/me/splits/groups/$groupId/guest-link/rotate': typeof ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute
   '/api/v1/me/splits/groups/$groupId/members/$memberId': typeof ApiV1MeSplitsGroupsGroupIdMembersMemberIdRoute
   '/api/v1/me/splits/groups/$groupId/settlements/$settlementId': typeof ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute
+  '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRoute
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute
 }
 export interface FileRoutesByTo {
@@ -826,6 +836,7 @@ export interface FileRoutesByTo {
   '/api/v1/me/splits/groups/$groupId/guest-link/rotate': typeof ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute
   '/api/v1/me/splits/groups/$groupId/members/$memberId': typeof ApiV1MeSplitsGroupsGroupIdMembersMemberIdRoute
   '/api/v1/me/splits/groups/$groupId/settlements/$settlementId': typeof ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute
+  '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRoute
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute
 }
 export interface FileRoutesById {
@@ -923,6 +934,7 @@ export interface FileRoutesById {
   '/api/v1/me/splits/groups/$groupId/guest-link/rotate': typeof ApiV1MeSplitsGroupsGroupIdGuestLinkRotateRoute
   '/api/v1/me/splits/groups/$groupId/members/$memberId': typeof ApiV1MeSplitsGroupsGroupIdMembersMemberIdRoute
   '/api/v1/me/splits/groups/$groupId/settlements/$settlementId': typeof ApiV1MeSplitsGroupsGroupIdSettlementsSettlementIdRoute
+  '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRoute
   '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert': typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute
 }
 export interface FileRouteTypes {
@@ -1020,6 +1032,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/splits/groups/$groupId/guest-link/rotate'
     | '/api/v1/me/splits/groups/$groupId/members/$memberId'
     | '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
+    | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions'
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1113,6 +1126,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/splits/groups/$groupId/guest-link/rotate'
     | '/api/v1/me/splits/groups/$groupId/members/$memberId'
     | '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
+    | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions'
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert'
   id:
     | '__root__'
@@ -1209,6 +1223,7 @@ export interface FileRouteTypes {
     | '/api/v1/me/splits/groups/$groupId/guest-link/rotate'
     | '/api/v1/me/splits/groups/$groupId/members/$memberId'
     | '/api/v1/me/splits/groups/$groupId/settlements/$settlementId'
+    | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions'
     | '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/convert'
   fileRoutesById: FileRoutesById
 }
@@ -1894,6 +1909,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRouteImport
       parentRoute: typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRoute
     }
+    '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions': {
+      id: '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions'
+      path: '/add-to-transactions'
+      fullPath: '/api/v1/me/splits/groups/$groupId/expenses/$expenseId/add-to-transactions'
+      preLoaderRoute: typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRouteImport
+      parentRoute: typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRoute
+    }
   }
 }
 
@@ -1992,11 +2014,14 @@ const ApiV1MeWorkspacesRouteWithChildren =
   ApiV1MeWorkspacesRoute._addFileChildren(ApiV1MeWorkspacesRouteChildren)
 
 interface ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRouteChildren {
+  ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRoute: typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRoute
   ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute: typeof ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute
 }
 
 const ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRouteChildren: ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdRouteChildren =
   {
+    ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRoute:
+      ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdAddToTransactionsRoute,
     ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute:
       ApiV1MeSplitsGroupsGroupIdExpensesExpenseIdConvertRoute,
   }

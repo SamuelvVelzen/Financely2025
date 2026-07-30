@@ -5,6 +5,7 @@ import { getSplitExpenseRecommendedCurrencies } from "@/features/split/utils/spl
 import type { ISplitExpenseFormValues } from "@/features/split/utils/split-expense-form-values";
 import type { ISplitMode } from "@/features/split/utils/split-mode";
 import type { ISplitExpense } from "@/features/split/offline/split-offline-optimistic";
+import { Checkbox } from "@/features/ui/checkbox/checkbox";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { TextInput } from "@/features/ui/input/text-input";
@@ -67,6 +68,7 @@ export function SplitExpenseForm({
   expenses,
   members,
   disabled,
+  showAddToTransactions = false,
   onSubmit,
 }: {
   formId: string;
@@ -75,6 +77,7 @@ export function SplitExpenseForm({
   expenses: ISplitExpense[];
   members: IMember[];
   disabled?: boolean;
+  showAddToTransactions?: boolean;
   onSubmit: (values: ISplitExpenseFormValues) => void | Promise<void>;
 }) {
   const [description, setDescription] = useState(initialValues.description);
@@ -87,6 +90,9 @@ export function SplitExpenseForm({
   );
   const [splitMode, setSplitMode] = useState<ISplitMode>(initialValues.splitMode);
   const [shareInputs, setShareInputs] = useState(initialValues.shareInputs);
+  const [addToTransactions, setAddToTransactions] = useState(
+    initialValues.addToTransactions,
+  );
   const [hasTime, setHasTime] = useState(true);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
@@ -137,6 +143,7 @@ export function SplitExpenseForm({
       participantMemberIds: participantIds,
       splitMode,
       shareInputs,
+      addToTransactions,
     });
   };
 
@@ -217,6 +224,15 @@ export function SplitExpenseForm({
         onSplitModeChange={setSplitMode}
         onShareInputsChange={setShareInputs}
       />
+      {showAddToTransactions ? (
+        <Checkbox
+          label="Add to my personal transactions"
+          hint="Only adds this for you. Other members can opt in from the expense."
+          checked={addToTransactions}
+          onChange={(event) => setAddToTransactions(event.target.checked)}
+          disabled={disabled}
+        />
+      ) : null}
       <button type="submit" className="sr-only" disabled={!canSubmit}>
         Submit
       </button>
