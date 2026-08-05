@@ -3,8 +3,9 @@ builder = "RAILPACK"
 buildCommand = "yarn install --frozen-lockfile && yarn build"
 
 [deploy]
-preDeployCommand = ["npx prisma migrate deploy"]
-startCommand = "yarn start"
+# SQLite lives on a volume mounted at /data. Volumes are not available during
+# Railway pre-deploy, so migrate runs here at start instead.
+startCommand = "npx prisma migrate deploy && yarn start"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"

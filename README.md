@@ -218,7 +218,8 @@ Config is in [`railway.toml`](railway.toml). The app expects a **persistent volu
 | `RESEND_API_KEY` / `EMAIL_FROM` | required for auth emails |
 | `ENABLE_*` / `VITE_ENABLE_*` | match chosen auth methods |
 
-4. Deploy. `preDeployCommand` runs `prisma migrate deploy`; `startCommand` runs `yarn start`.
+4. Deploy. On start the service runs `prisma migrate deploy`, then `yarn start`.
+   (Migrate is in the start command because Railway volumes are not mounted during pre-deploy.)
 5. **One-shot seed** (do not put this on every deploy). In a Railway shell:
 
 ```bash
