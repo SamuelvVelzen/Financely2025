@@ -42,6 +42,6 @@ export function checkSeedEnvironment(
   return {
     allowed: false,
     errorMessage:
-      "Refusing to run seed in production. This script creates a demo user with well-known credentials (dev@gmail.com / devdevdev).",
+      "Refusing to run seed in production. Set SEED_ALLOW_IN_PRODUCTION=true with SEED_USER_EMAIL and SEED_USER_PASSWORD (12+ chars, not the demo defaults).",
   };
 }

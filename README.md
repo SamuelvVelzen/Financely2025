@@ -25,9 +25,7 @@ npm install
 
 ### Database Setup
 
-This project uses [Prisma](https://www.prisma.io) with SQLite for local development. The database file is stored in `data/dev.db`.
-
-**Note:** SQLite is used for local development only. Production deployments will use a server database (e.g., PostgreSQL). Switching providers only requires changing the `provider` in `prisma/schema.prisma` and re-running migrations.
+This project uses [Prisma](https://www.prisma.io) with **SQLite** for local development and production (single-instance deploys with a persistent volume).
 
 #### Initial Setup
 
@@ -193,30 +191,50 @@ To learn more about the technologies used, take a look at the following resource
 
 ## Build and Deploy
 
-Build the application:
+The production server uses [Nitro](https://nitro.build/) (TanStack Start’s recommended Node host). Build and start:
 
 ```bash
 yarn build
-# or
-npm run build
+yarn start
+# → node .output/server/index.mjs
 ```
 
-The `build` script automatically generates the Prisma Client before building.
+`yarn build` generates the Prisma Client, builds with Vite + Nitro, then writes the service worker via `scripts/generate-sw.ts`.
 
-Start the production server:
+### Railway (SQLite)
+
+Config is in [`railway.toml`](railway.toml). The app expects a **persistent volume** so the SQLite file survives redeploys.
+
+1. Create a Railway service from this repo (EU region recommended).
+2. Attach a volume (e.g. mount `/data`).
+3. Set environment variables (see [`.env.example`](.env.example)):
+
+| Variable | Example |
+| --- | --- |
+| `DATABASE_URL` | `file:/data/financely.db` |
+| `NODE_ENV` | `production` |
+| `BETTER_AUTH_SECRET` | strong random 32+ bytes |
+| `BETTER_AUTH_URL` | `https://financely.vanvelzen.dev` |
+| `RESEND_API_KEY` / `EMAIL_FROM` | required for auth emails |
+| `ENABLE_*` / `VITE_ENABLE_*` | match chosen auth methods |
+
+4. Deploy. `preDeployCommand` runs `prisma migrate deploy`; `startCommand` runs `yarn start`.
+5. **One-shot seed** (do not put this on every deploy). In a Railway shell:
 
 ```bash
-yarn start
-# or
-npm start
+SEED_ALLOW_IN_PRODUCTION=true \
+SEED_USER_EMAIL=you@example.com \
+SEED_USER_PASSWORD='your-long-password' \
+SEED_USER_FIRST_NAME=Sam \
+SEED_USER_LAST_NAME=Ney \
+NODE_ENV=production \
+yarn seed
 ```
 
-### Production Database
+Then **unset** `SEED_ALLOW_IN_PRODUCTION` so it cannot be re-run accidentally. Production seed creates your admin (Personal workspace only), default tags, a few sample transactions, and one “Sample trip” split group.
 
-For production, you'll need to:
+### Custom domain (Cloudflare)
 
-1. Update `prisma/schema.prisma` to change the `provider` from `sqlite` to your target database (e.g., `postgresql`)
-2. Update `DATABASE_URL` in your production environment variables
-3. Run migrations: `yarn prisma:migrate`
-
-The schema is designed to be provider-agnostic, so switching databases should only require changing the provider configuration.
+1. In Railway, attach custom domain `financely.vanvelzen.dev`.
+2. In Cloudflare DNS for `vanvelzen.dev`: `CNAME financely` → the Railway target.
+3. Keep apex `vanvelzen.dev` on Cloudflare Pages unchanged.
