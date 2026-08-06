@@ -8,87 +8,10 @@ import {
 import {
   CsvImportRequestSchema,
   CsvImportResponseSchema,
-  type ICreateTransactionInput,
 } from "@/features/shared/validation/schemas";
 import { json } from "@tanstack/react-start";
-import { parsePrimaryTag, parseTags } from "../../services/csv.service";
+import { resolveTagNamesForImport } from "../../services/csv.service";
 import { TransactionService } from "../../services/transaction.service";
-import type { IWorkspaceId } from "@/features/workspace/workspace-id";
-
-/**
- * Check if a string is a valid CUID (tag ID format)
- */
-function isTagId(value: string): boolean {
-  // CUIDs are typically 25 characters, alphanumeric
-  return /^[a-z0-9]{25}$/.test(value);
-}
-
-/**
- * Resolve tag names to tagIds for a transaction
- */
-async function resolveTransactionTags(
-  transaction: ICreateTransactionInput,
-  userId: string,
-  workspaceId: IWorkspaceId,
-): Promise<ICreateTransactionInput> {
-  const resolved = { ...transaction };
-
-  // Resolve tagIds if they contain tag names
-  if (transaction.tagIds && transaction.tagIds.length > 0) {
-    const tagNames: string[] = [];
-    const existingTagIds: string[] = [];
-
-    // Separate tag names from tag IDs
-    for (const item of transaction.tagIds) {
-      if (isTagId(item)) {
-        existingTagIds.push(item);
-      } else {
-        tagNames.push(item);
-      }
-    }
-
-    // Resolve tag names to IDs
-    if (tagNames.length > 0 && transaction.type) {
-      try {
-        const resolvedTagIds = await parseTags(
-          tagNames.join(","),
-          userId,
-          workspaceId,
-          transaction.type
-        );
-        resolved.tagIds = [...existingTagIds, ...resolvedTagIds];
-      } catch (error) {
-        // If tag resolution fails, keep existing tagIds and log error
-        console.error("Failed to resolve tag names:", error);
-        resolved.tagIds = existingTagIds;
-      }
-    } else {
-      resolved.tagIds = existingTagIds;
-    }
-  }
-
-  // Resolve primaryTagId if it's a tag name
-  if (transaction.primaryTagId && !isTagId(transaction.primaryTagId)) {
-    if (transaction.type) {
-      try {
-        resolved.primaryTagId = await parsePrimaryTag(
-          transaction.primaryTagId,
-          userId,
-          workspaceId,
-          transaction.type
-        );
-      } catch (error) {
-        // If tag resolution fails, set to null and log error
-        console.error("Failed to resolve primary tag name:", error);
-        resolved.primaryTagId = null;
-      }
-    } else {
-      resolved.primaryTagId = null;
-    }
-  }
-
-  return resolved;
-}
 
 /**
  * POST /api/v1/:workspaceId/transactions/csv-import
@@ -108,11 +31,11 @@ export async function POST({
       const body = await request.json();
       const validated = CsvImportRequestSchema.parse(body);
 
-      // Resolve tag names to tagIds before importing
-      const transactionsWithResolvedTags = await Promise.all(
-        validated.transactions.map((transaction) =>
-          resolveTransactionTags(transaction, userId, workspaceId)
-        )
+      // Resolve all unique tag names once before importing
+      const transactionsWithResolvedTags = await resolveTagNamesForImport(
+        validated.transactions,
+        userId,
+        workspaceId,
       );
 
       // Re-validate all transactions using the bulk create service

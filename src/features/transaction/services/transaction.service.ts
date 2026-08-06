@@ -27,6 +27,9 @@ import {
   type IAllocationParseInput,
 } from "./refund-allocation-helpers";
 
+/** Chunk size for bulk transaction creates (CSV import / bulk API). */
+export const BATCH_SIZE = 100;
+
 const TRANSACTION_INCLUDE = {
   tags: {
     select: { id: true, name: true, color: true, emoticon: true },
@@ -434,8 +437,8 @@ export class TransactionService {
 
   /**
    * Bulk create transactions
-   * Processes each transaction individually to allow partial success
-   * Returns created transactions and errors with indices
+   * Prefetches tags/subscriptions, validates in memory, then inserts in chunks
+   * to allow partial success while avoiding N+1 queries.
    */
   static async bulkCreateTransactions(
     userId: string,
@@ -447,24 +450,75 @@ export class TransactionService {
     const created: ITransaction[] = [];
     const errors: Array<{ index: number; message: string }> = [];
 
+    type IPreparedItem = {
+      index: number;
+      validatedItem: ICreateTransactionInput;
+      timePrecision: "DateTime" | "DateOnly";
+      transactionDate: Date;
+      subscriptionId: string | null;
+    };
+
+    const prepared: IPreparedItem[] = [];
+
+    // Collect unique tag IDs for one prefetch
+    const allTagIds = new Set<string>();
+    for (const item of validated) {
+      try {
+        const validatedItem = CreateTransactionInputSchema.parse(item);
+        for (const tagId of validatedItem.tagIds ?? []) {
+          allTagIds.add(tagId);
+        }
+        if (validatedItem.primaryTagId) {
+          allTagIds.add(validatedItem.primaryTagId);
+        }
+      } catch {
+        // Individual validation errors handled in the prepare loop below
+      }
+    }
+
+    const [tags, subscriptions] = await Promise.all([
+      allTagIds.size > 0
+        ? prisma.tag.findMany({
+            where: {
+              id: { in: [...allTagIds] },
+              userId,
+              workspaceId,
+            },
+            select: {
+              id: true,
+              transactionType: true,
+            },
+          })
+        : Promise.resolve([]),
+      prisma.subscription.findMany({
+        where: {
+          userId,
+          workspaceId,
+          active: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          currency: true,
+          amount: true,
+        },
+      }),
+    ]);
+
+    const tagById = new Map(tags.map((tag) => [tag.id, tag]));
+
     for (let index = 0; index < validated.length; index++) {
       const item = validated[index];
 
       try {
-        // Validate individual item
         const validatedItem = CreateTransactionInputSchema.parse(item);
 
-        // Verify tags belong to user
         if (validatedItem.tagIds && validatedItem.tagIds.length > 0) {
-          const tagCount = await prisma.tag.count({
-            where: {
-              id: { in: validatedItem.tagIds },
-              userId,
-              workspaceId,
-            },
-          });
-
-          if (tagCount !== validatedItem.tagIds.length) {
+          const missingTag = validatedItem.tagIds.some(
+            (tagId) => !tagById.has(tagId),
+          );
+          if (missingTag) {
             errors.push({
               index,
               message: "One or more tags not found",
@@ -473,16 +527,8 @@ export class TransactionService {
           }
         }
 
-        // Verify primaryTagId belongs to user and matches transaction type
         if (validatedItem.primaryTagId) {
-          const primaryTag = await prisma.tag.findFirst({
-            where: {
-              id: validatedItem.primaryTagId,
-              userId,
-              workspaceId,
-            },
-          });
-
+          const primaryTag = tagById.get(validatedItem.primaryTagId);
           if (!primaryTag) {
             errors.push({
               index,
@@ -491,7 +537,6 @@ export class TransactionService {
             continue;
           }
 
-          // Validate transaction type match
           if (
             primaryTag.transactionType !== null &&
             primaryTag.transactionType !== validatedItem.type
@@ -505,15 +550,12 @@ export class TransactionService {
           }
         }
 
-        // Determine timePrecision and transactionDate (same logic as createTransaction)
         const timePrecision =
           validatedItem.timePrecision ??
           (validatedItem.externalId ? "DateTime" : "DateOnly");
 
-        // Parse transactionDate and normalize based on precision
         const transactionDate = new Date(validatedItem.transactionDate);
 
-        // Validate: if DateOnly, ensure time is placeholder
         if (timePrecision === "DateOnly") {
           const timeStr = transactionDate.toISOString().split("T")[1];
           if (timeStr !== "12:00:00.000Z") {
@@ -521,49 +563,85 @@ export class TransactionService {
           }
         }
 
-        const autoFlagSubId = await SubscriptionService.tryAutoFlag(
-          userId,
-          workspaceId,
+        const subscriptionId = SubscriptionService.matchSubscriptionId(
+          subscriptions,
           validatedItem.name,
           validatedItem.type,
           validatedItem.currency,
           validatedItem.amount,
         );
 
-        const transaction = await prisma.transaction.create({
-          data: {
-            userId,
-            workspaceId,
-            type: validatedItem.type,
-            amount: validatedItem.amount,
-            currency: validatedItem.currency,
-            transactionDate,
-            timePrecision,
-            name: validatedItem.name,
-            description: validatedItem.description ?? null,
-            notes: validatedItem.notes ?? null,
-            externalId: validatedItem.externalId ?? null,
-            paymentMethod: validatedItem.paymentMethod,
-            primaryTagId: validatedItem.primaryTagId ?? null,
-            subscriptionId: autoFlagSubId,
-            tags: validatedItem.tagIds
-              ? {
-                  connect: validatedItem.tagIds.map((id) => ({ id })),
-                }
-              : undefined,
-          },
-          include: TRANSACTION_INCLUDE,
+        prepared.push({
+          index,
+          validatedItem,
+          timePrecision,
+          transactionDate,
+          subscriptionId,
         });
-
-        created.push(this.parseTransaction(transaction));
       } catch (error) {
-        // Handle validation errors or other errors
         const message =
           error instanceof Error ? error.message : "Unknown error occurred";
         errors.push({
           index,
           message,
         });
+      }
+    }
+
+    const createFromPrepared = (item: IPreparedItem) =>
+      prisma.transaction.create({
+        data: {
+          userId,
+          workspaceId,
+          type: item.validatedItem.type,
+          amount: item.validatedItem.amount,
+          currency: item.validatedItem.currency,
+          transactionDate: item.transactionDate,
+          timePrecision: item.timePrecision,
+          name: item.validatedItem.name,
+          description: item.validatedItem.description ?? null,
+          notes: item.validatedItem.notes ?? null,
+          externalId: item.validatedItem.externalId ?? null,
+          paymentMethod: item.validatedItem.paymentMethod,
+          primaryTagId: item.validatedItem.primaryTagId ?? null,
+          subscriptionId: item.subscriptionId,
+          tags: item.validatedItem.tagIds
+            ? {
+                connect: item.validatedItem.tagIds.map((id) => ({ id })),
+              }
+            : undefined,
+        },
+        include: TRANSACTION_INCLUDE,
+      });
+
+    for (let offset = 0; offset < prepared.length; offset += BATCH_SIZE) {
+      const chunk = prepared.slice(offset, offset + BATCH_SIZE);
+
+      try {
+        const chunkResults = await prisma.$transaction(
+          chunk.map((item) => createFromPrepared(item)),
+        );
+
+        for (const transaction of chunkResults) {
+          created.push(this.parseTransaction(transaction));
+        }
+      } catch {
+        // Chunk failed as a unit — fall back to per-item creates for partial success
+        for (const item of chunk) {
+          try {
+            const transaction = await createFromPrepared(item);
+            created.push(this.parseTransaction(transaction));
+          } catch (error) {
+            const message =
+              error instanceof Error
+                ? error.message
+                : "Unknown error occurred";
+            errors.push({
+              index: item.index,
+              message,
+            });
+          }
+        }
       }
     }
 

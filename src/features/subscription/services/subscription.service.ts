@@ -272,25 +272,29 @@ export class SubscriptionService {
     });
   }
 
-  static async tryAutoFlag(
-    userId: string,
-    workspaceId: IWorkspaceId,
+  /**
+   * Match a transaction to an already-loaded subscription (in-memory).
+   * Used by bulk import to avoid N subscription queries.
+   */
+  static matchSubscriptionId(
+    subscriptions: Array<{
+      id: string;
+      name: string;
+      type: string;
+      currency: string;
+      amount: { toNumber(): number };
+    }>,
     transactionName: string,
     transactionType: string,
     transactionCurrency: string,
     transactionAmount: string,
-  ): Promise<string | null> {
-    const subscriptions = await prisma.subscription.findMany({
-      where: {
-        userId,
-        workspaceId,
-        active: true,
-        type: transactionType as "EXPENSE" | "INCOME",
-        currency: transactionCurrency,
-      },
-    });
+  ): string | null {
+    const candidates = subscriptions.filter(
+      (sub) =>
+        sub.type === transactionType && sub.currency === transactionCurrency,
+    );
 
-    if (subscriptions.length === 0) return null;
+    if (candidates.length === 0) return null;
 
     const normalizedInput = transactionName
       .toLowerCase()
@@ -304,7 +308,7 @@ export class SubscriptionService {
 
     const txAmount = parseFloat(transactionAmount);
 
-    for (const sub of subscriptions) {
+    for (const sub of candidates) {
       const subNormalized = sub.name
         .toLowerCase()
         .trim()
@@ -324,6 +328,33 @@ export class SubscriptionService {
     }
 
     return null;
+  }
+
+  static async tryAutoFlag(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    transactionName: string,
+    transactionType: string,
+    transactionCurrency: string,
+    transactionAmount: string,
+  ): Promise<string | null> {
+    const subscriptions = await prisma.subscription.findMany({
+      where: {
+        userId,
+        workspaceId,
+        active: true,
+        type: transactionType as "EXPENSE" | "INCOME",
+        currency: transactionCurrency,
+      },
+    });
+
+    return this.matchSubscriptionId(
+      subscriptions,
+      transactionName,
+      transactionType,
+      transactionCurrency,
+      transactionAmount,
+    );
   }
 
   private static parseSubscription(subscription: {

@@ -41,7 +41,6 @@ import {
 // Constants
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 export const MAX_ROWS = 10000;
-export const BATCH_SIZE = 100;
 
 // Field name heuristics for auto-detection
 const FIELD_NAME_PATTERNS: Record<string, string[]> = {
@@ -850,6 +849,199 @@ export async function parsePrimaryTag(
     // Otherwise, return null (don't fail the import)
     return null;
   }
+}
+
+/**
+ * CUIDs are typically 25 characters, alphanumeric
+ */
+function isTagId(value: string): boolean {
+  return /^[a-z0-9]{25}$/.test(value);
+}
+
+/**
+ * Resolve tag names to IDs for an entire CSV import batch.
+ * Loads workspace tags once, creates any missing names, then maps onto each transaction.
+ */
+export async function resolveTagNamesForImport(
+  transactions: ICreateTransactionInput[],
+  userId: string,
+  workspaceId: IWorkspaceId,
+): Promise<ICreateTransactionInput[]> {
+  type TagNeed = {
+    name: string;
+    transactionType: ITransactionType;
+    /** Primary tags must match name + type; other tags match by name only. */
+    primary: boolean;
+  };
+
+  const needs: TagNeed[] = [];
+
+  for (const transaction of transactions) {
+    if (!transaction.type) continue;
+
+    if (transaction.tagIds) {
+      for (const item of transaction.tagIds) {
+        if (!isTagId(item)) {
+          needs.push({
+            name: item.trim(),
+            transactionType: transaction.type,
+            primary: false,
+          });
+        }
+      }
+    }
+
+    if (transaction.primaryTagId && !isTagId(transaction.primaryTagId)) {
+      needs.push({
+        name: transaction.primaryTagId.trim(),
+        transactionType: transaction.type,
+        primary: true,
+      });
+    }
+  }
+
+  if (needs.length === 0) {
+    return transactions;
+  }
+
+  const existingTags = await prisma.tag.findMany({
+    where: { userId, workspaceId },
+    select: { id: true, name: true, transactionType: true },
+  });
+
+  // name → first matching tag (for non-primary resolution)
+  const tagIdByName = new Map<string, string>();
+  // name\0type → tag id (for primary resolution)
+  const tagIdByNameAndType = new Map<string, string>();
+
+  for (const tag of existingTags) {
+    if (!tagIdByName.has(tag.name)) {
+      tagIdByName.set(tag.name, tag.id);
+    }
+    if (tag.transactionType) {
+      tagIdByNameAndType.set(`${tag.name}\0${tag.transactionType}`, tag.id);
+    }
+  }
+
+  const ensureTag = async (
+    name: string,
+    transactionType: ITransactionType,
+    primary: boolean,
+  ): Promise<string | null> => {
+    if (!name) return null;
+
+    if (primary) {
+      const key = `${name}\0${transactionType}`;
+      const existing = tagIdByNameAndType.get(key);
+      if (existing) return existing;
+
+      // Prefer an existing same-name tag with matching type, else create
+      const byName = existingTags.find(
+        (tag) =>
+          tag.name === name &&
+          (tag.transactionType === transactionType ||
+            tag.transactionType === null),
+      );
+      if (byName && byName.transactionType === transactionType) {
+        tagIdByNameAndType.set(key, byName.id);
+        return byName.id;
+      }
+
+      try {
+        const newTag = await TagService.createTag(userId, workspaceId, {
+          name,
+          transactionType,
+        });
+        tagIdByName.set(name, newTag.id);
+        tagIdByNameAndType.set(key, newTag.id);
+        existingTags.push({
+          id: newTag.id,
+          name,
+          transactionType,
+        });
+        return newTag.id;
+      } catch {
+        const retry = await prisma.tag.findFirst({
+          where: { userId, workspaceId, name, transactionType },
+          select: { id: true },
+        });
+        if (retry) {
+          tagIdByName.set(name, retry.id);
+          tagIdByNameAndType.set(key, retry.id);
+          return retry.id;
+        }
+        return null;
+      }
+    }
+
+    const existing = tagIdByName.get(name);
+    if (existing) return existing;
+
+    try {
+      const newTag = await TagService.createTag(userId, workspaceId, {
+        name,
+        transactionType,
+      });
+      tagIdByName.set(name, newTag.id);
+      tagIdByNameAndType.set(`${name}\0${transactionType}`, newTag.id);
+      existingTags.push({
+        id: newTag.id,
+        name,
+        transactionType,
+      });
+      return newTag.id;
+    } catch {
+      const retry = await prisma.tag.findFirst({
+        where: { userId, workspaceId, name },
+        select: { id: true },
+      });
+      if (retry) {
+        tagIdByName.set(name, retry.id);
+        return retry.id;
+      }
+      return null;
+    }
+  };
+
+  // Deduplicate needs while preserving create order
+  const seenNeedKeys = new Set<string>();
+  for (const need of needs) {
+    const key = `${need.primary ? "p" : "t"}\0${need.name}\0${need.transactionType}`;
+    if (seenNeedKeys.has(key) || !need.name) continue;
+    seenNeedKeys.add(key);
+    await ensureTag(need.name, need.transactionType, need.primary);
+  }
+
+  return transactions.map((transaction) => {
+    const resolved = { ...transaction };
+
+    if (transaction.tagIds && transaction.tagIds.length > 0) {
+      const resolvedIds: string[] = [];
+      for (const item of transaction.tagIds) {
+        if (isTagId(item)) {
+          resolvedIds.push(item);
+        } else {
+          const id = tagIdByName.get(item.trim());
+          if (id) resolvedIds.push(id);
+        }
+      }
+      resolved.tagIds = resolvedIds;
+    }
+
+    if (transaction.primaryTagId && !isTagId(transaction.primaryTagId)) {
+      if (transaction.type) {
+        const key = `${transaction.primaryTagId.trim()}\0${transaction.type}`;
+        resolved.primaryTagId =
+          tagIdByNameAndType.get(key) ??
+          tagIdByName.get(transaction.primaryTagId.trim()) ??
+          null;
+      } else {
+        resolved.primaryTagId = null;
+      }
+    }
+
+    return resolved;
+  });
 }
 
 /**
