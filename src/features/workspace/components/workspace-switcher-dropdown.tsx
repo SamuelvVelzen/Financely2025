@@ -17,6 +17,7 @@ import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-
 import { useDeleteWorkspace } from "@/features/workspace/hooks/useWorkspaces";
 import { buildWorkspaceNavigateTarget } from "@/features/workspace/utils/workspace-navigate-target";
 import { markUserWorkspaceNavigation } from "@/features/workspace/utils/workspace-navigation-guard";
+import { setPendingWorkspaceSetup } from "@/features/workspace/utils/pending-workspace-setup";
 import {
   parseWorkspaceIdParam,
   workspaceIdToUrlSegment,
@@ -106,6 +107,7 @@ export function WorkspaceSwitcherDropdown({
       void queryClient.invalidateQueries({ queryKey: queryKeys.me() });
       setIsCreateDialogOpen(false);
       if (created) {
+        setPendingWorkspaceSetup({ id: created.id, name: created.name });
         navigateToWorkspace(created.id);
       }
     },

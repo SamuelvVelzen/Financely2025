@@ -4,6 +4,7 @@ import { Sidebar } from "@/features/ui/navigation/sidebar";
 import { SidebarProvider } from "@/features/ui/navigation/sidebar-provider";
 import { ThemeProvider } from "@/features/ui/ThemeProvider";
 import { UserSettingsSync } from "@/features/users/components/user-settings-sync";
+import { WorkspaceSetupDialogHost } from "@/features/workspace/components/workspace-setup-dialog-host";
 import { Outlet } from "@tanstack/react-router";
 
 export const MAIN_CONTENT_ID = "main-content";
@@ -30,6 +31,7 @@ export function AppLayout() {
             <Outlet />
           </main>
           <MobileBottomNav />
+          <WorkspaceSetupDialogHost />
         </SidebarProvider>
       </ThemeProvider>
     </div>

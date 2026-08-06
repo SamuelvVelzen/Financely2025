@@ -1,3 +1,4 @@
+import { isSplitsAddonEnabled } from "@/features/split/addons/splits-addon";
 import { ROUTES } from "@/config/routes";
 import { getAuthRedirectPath } from "@/features/auth/sanitize-auth-redirect";
 import { useUnreadCount } from "@/features/notification/hooks/useUnreadCount";
@@ -102,13 +103,15 @@ export function Sidebar() {
               icon={HiArrowsRightLeft}
             />
           </li>
-          <li>
-            <NavItem
-              to="/splits"
-              label="Splits"
-              icon={HiUsers}
-            />
-          </li>
+          {isSplitsAddonEnabled() ? (
+            <li>
+              <NavItem
+                to="/splits"
+                label="Splits"
+                icon={HiUsers}
+              />
+            </li>
+          ) : null}
           <li>
             <NavItem
               to="/$workspaceId/subscriptions"

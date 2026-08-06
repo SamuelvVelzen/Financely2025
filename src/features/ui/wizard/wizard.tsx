@@ -37,7 +37,7 @@ export function Wizard({
   const currentPage = pages[displayedStep];
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === pages.length - 1;
-  const canSkipCurrentPage = currentPage?.skippable
+  const canSkipCurrentPage = currentPage?.skippable ?? true;
 
   const handleBack = useCallback(() => {
     if (!isFirstStep) {

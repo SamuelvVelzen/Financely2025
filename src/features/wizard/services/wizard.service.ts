@@ -1,3 +1,4 @@
+import { WIZARD_IDS } from "@/features/wizard/wizard-ids";
 import { prisma } from "@/features/util/prisma";
 
 /**
@@ -117,7 +118,9 @@ export class WizardService {
   }
 
   /**
-   * Check if a wizard is completed
+   * Check if a wizard is completed.
+   * For onboarding, also accept legacy `"first-user"` completion from the brief
+   * rename window so those users are not re-forced through setup.
    */
   static async isWizardCompleted(
     userId: string,
@@ -135,7 +138,26 @@ export class WizardService {
       },
     });
 
-    return progress?.completed ?? false;
+    if (progress?.completed) {
+      return true;
+    }
+
+    if (wizardId === WIZARD_IDS.ONBOARDING) {
+      const legacy = await prisma.wizardProgress.findUnique({
+        where: {
+          userId_wizardId: {
+            userId,
+            wizardId: WIZARD_IDS.FIRST_USER_LEGACY,
+          },
+        },
+        select: {
+          completed: true,
+        },
+      });
+      return legacy?.completed ?? false;
+    }
+
+    return false;
   }
 
   /**

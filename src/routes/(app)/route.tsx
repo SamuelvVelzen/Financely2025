@@ -1,8 +1,9 @@
 import { getAuthRedirectPath } from "@/features/auth/sanitize-auth-redirect";
 import { PermissionHelpers } from "@/features/auth/permission.helpers";
-import { checkOnboardingComplete } from "@/features/transaction/components/wizard/onboarding/onboarding.server";
-import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AppLayout } from "@/features/shared/pages/app-layout";
+import { checkOnboardingComplete } from "@/features/wizard/wizard.server";
+import { isWizardPathExemptFromOnboardingGate } from "@/features/wizard/wizard-ids";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/(app)")({
   beforeLoad: async ({ location }) => {
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/(app)")({
       });
     }
 
-    if (!location.pathname.startsWith("/onboarding")) {
+    if (!isWizardPathExemptFromOnboardingGate(location.pathname)) {
       const isOnboardingComplete = await checkOnboardingComplete();
       if (!isOnboardingComplete) {
         throw redirect({

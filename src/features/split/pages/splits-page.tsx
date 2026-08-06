@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { isSplitsAddonEnabled } from "@/features/split/addons/splits-addon";
 import { AddOrEditSplitGroupDialog } from "@/features/split/components/add-or-edit-split-group-dialog";
 import type { ISplitGroupDialogTarget } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
 import { SplitGroupList } from "@/features/split/components/split-group-list";
@@ -35,9 +36,11 @@ export function SplitsPage() {
     }
   }, [setExpandedHeaderElement]);
 
-  const openCreateDialog = () => {
-    setEditingGroup(undefined);
-    setDialogOpen(true);
+  const openCreateWizard = () => {
+    if (!isSplitsAddonEnabled()) {
+      return;
+    }
+    void navigate({ to: "/wizards/split-group" });
   };
 
   const openEditDialog = (group: ISplitGroupDialogTarget) => {
@@ -74,13 +77,13 @@ export function SplitsPage() {
       <SplitsOverviewHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onCreateClick={openCreateDialog}
+        onCreateClick={openCreateWizard}
         isSticky={isSticky}
       />
       <Container>
         <SplitGroupList
           searchQuery={searchQuery}
-          onCreateClick={openCreateDialog}
+          onCreateClick={openCreateWizard}
           onEdit={openEditDialog}
           onDelete={setDeletingGroup}
         />

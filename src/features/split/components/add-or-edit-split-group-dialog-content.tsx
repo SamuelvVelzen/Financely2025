@@ -1,4 +1,3 @@
-import { CurrencySelect } from "@/features/currency/components/currency-select";
 import {
   getEmptySplitGroupFormValues,
   getSplitGroupFormValuesFromGroup,
@@ -6,6 +5,7 @@ import {
   type ISplitGroupFormValues,
   type ISplitGroupWizardStep,
 } from "@/features/split/components/add-or-edit-split-group-dialog-shared";
+import { SplitGroupDetailsForm } from "@/features/split/components/split-group-details-form";
 import { SplitGroupMembersStep } from "@/features/split/components/split-group-members-step";
 import {
   useCreateSplitGroup,
@@ -14,80 +14,10 @@ import {
 } from "@/features/split/hooks/use-split-groups";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
-import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
 import { Dialog } from "@/features/ui/dialog/dialog/dialog";
-import { TextInput } from "@/features/ui/input/text-input";
 import { useToast } from "@/features/ui/toast";
 import { useId, useState } from "react";
-
-function SplitGroupDetailsForm({
-  formId,
-  initialValues,
-  canChangeCurrency,
-  isEditMode,
-  disabled,
-  onSubmit,
-}: {
-  formId: string;
-  initialValues: ISplitGroupFormValues;
-  canChangeCurrency: boolean;
-  isEditMode: boolean;
-  disabled?: boolean;
-  onSubmit: (values: ISplitGroupFormValues) => void;
-}) {
-  const workspaceId = useNavWorkspaceId();
-  const [name, setName] = useState(initialValues.name);
-  const [currency, setCurrency] = useState(initialValues.defaultCurrency);
-
-  const trimmedName = name.trim();
-  const hasChanges =
-    trimmedName !== initialValues.name.trim() ||
-    (canChangeCurrency && currency !== initialValues.defaultCurrency);
-  const canSubmit =
-    trimmedName.length > 0 &&
-    (isEditMode || hasChanges) &&
-    !disabled;
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!canSubmit) {
-      return;
-    }
-    onSubmit({ name: trimmedName, defaultCurrency: currency });
-  };
-
-  return (
-    <form id={formId} onSubmit={handleSubmit} className="space-y-4 p-4">
-      <TextInput
-        label="Group name"
-        value={name}
-        onChange={(v) => setName(String(v ?? ""))}
-        placeholder="Barcelona trip"
-        disabled={disabled}
-      />
-      <CurrencySelect
-        label="Balance currency"
-        value={currency}
-        onChange={(v) => {
-          if (typeof v === "string") {
-            setCurrency(v);
-          }
-        }}
-        workspaceId={workspaceId}
-        disabled={!canChangeCurrency || disabled}
-        hint={
-          canChangeCurrency
-            ? "Used to settle balances between members"
-            : "Currency cannot be changed after the first expense"
-        }
-      />
-      <button type="submit" className="sr-only" disabled={!canSubmit}>
-        Submit
-      </button>
-    </form>
-  );
-}
 
 export function AddOrEditSplitGroupDialogContent({
   open,

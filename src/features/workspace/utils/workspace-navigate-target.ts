@@ -13,6 +13,8 @@ type IWorkspaceNavigateTarget = {
 const NON_WORKSPACE_ROOT_SEGMENTS = new Set<string>([
   ROUTES.ACCOUNT.slice(1),
   ROUTES.ONBOARDING.slice(1),
+  "wizards",
+  "splits",
 ]);
 
 /**

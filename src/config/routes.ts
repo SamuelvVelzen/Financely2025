@@ -9,6 +9,7 @@ export const ROUTES = {
   REGISTER: "/register",
   ACCOUNT: "/account",
   ONBOARDING: "/onboarding",
+  SPLIT_GROUP_WIZARD: "/wizards/split-group",
 } as const;
 
 export type Route = (typeof ROUTES)[keyof typeof ROUTES];

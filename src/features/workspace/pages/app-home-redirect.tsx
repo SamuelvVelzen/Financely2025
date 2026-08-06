@@ -5,7 +5,11 @@ import { EmptyPage } from "@/features/ui/container/empty-container";
 import { Loading } from "@/features/ui/loading";
 import { AddOrEditWorkspaceDialog } from "@/features/workspace/components/add-or-edit-workspace-dialog";
 import { ACTIVE_WORKSPACE_STORAGE_KEY } from "@/features/workspace/constants";
-import { parseWorkspaceIdParam } from "@/features/workspace/workspace-id";
+import {
+  parseWorkspaceIdParam,
+  workspaceIdToRouteParam,
+} from "@/features/workspace/workspace-id";
+import { setPendingWorkspaceSetup } from "@/features/workspace/utils/pending-workspace-setup";
 import { consumeUserWorkspaceNavigation } from "@/features/workspace/utils/workspace-navigation-guard";
 import { getPwaShortcutDestination } from "@/features/shared/pwa/pwa-shortcut-destination";
 import { getRouteApi, useNavigate, useRouterState } from "@tanstack/react-router";
@@ -29,11 +33,10 @@ export function AppHomeRedirect() {
 
   const handleWorkspaceCreated = (created?: IWorkspaceSummary) => {
     if (created) {
-      const destination = getPwaShortcutDestination(String(created.id), go);
+      setPendingWorkspaceSetup({ id: created.id, name: created.name });
       void navigate({
-        to: destination.to,
-        params: destination.params,
-        ...(destination.search ? { search: destination.search } : {}),
+        to: "/$workspaceId",
+        params: { workspaceId: workspaceIdToRouteParam(created.id) },
         replace: true,
       });
     }
