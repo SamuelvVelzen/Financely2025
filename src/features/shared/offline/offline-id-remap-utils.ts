@@ -18,3 +18,18 @@ export function applyIdRemapsToValue(
   }
   return value;
 }
+
+/** Replace client entity ids embedded in API path segments. */
+export function applyIdRemapsToEndpoint(
+  endpoint: string,
+  remaps: ReadonlyMap<string, string>,
+): string {
+  let result = endpoint;
+  for (const [from, to] of remaps) {
+    if (!from || from === to) continue;
+    if (result.includes(from)) {
+      result = result.split(from).join(to);
+    }
+  }
+  return result;
+}

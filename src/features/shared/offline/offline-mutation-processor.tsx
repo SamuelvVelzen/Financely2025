@@ -85,7 +85,7 @@ export function OfflineMutationProcessor() {
             return;
           }
 
-          const maxAttempts = options.manual ? MAX_MANUAL_REPLAY_ATTEMPTS : 1;
+          const maxAttempts = options.manual ? MAX_MANUAL_REPLAY_ATTEMPTS : 3;
           let replayed = false;
 
           for (let attempt = 1; attempt <= maxAttempts; attempt++) {

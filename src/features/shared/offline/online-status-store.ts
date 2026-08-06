@@ -18,6 +18,11 @@ function setOnline(next: boolean): void {
   }
 }
 
+/** Test/e2e helper — prefer navigator override + offline/online events in real browsers. */
+export function setOnlineForTests(next: boolean): void {
+  setOnline(next);
+}
+
 /** Called when a mutation fails with a network error while navigator.onLine is true. */
 export function reportNetworkFailure(): void {
   setOnline(false);
@@ -58,9 +63,22 @@ export function subscribeOnlineStatus(callback: () => void): () => void {
 
 export function getIsOnline(): boolean {
   if (typeof navigator === "undefined") return true;
+  // Honor navigator first so e2e/API-offline overrides and DevTools offline work
+  // even before window online/offline listeners are attached.
+  if (!navigator.onLine) return false;
   return isOnline;
 }
 
 export function getServerSnapshotIsOnline(): boolean {
   return true;
+}
+
+if (typeof window !== "undefined") {
+  ensureListeners();
+  // Used by Playwright offline helpers to force the module flag in sync with navigator
+  (
+    window as Window & {
+      __financelySetOnlineForTests?: (next: boolean) => void;
+    }
+  ).__financelySetOnlineForTests = setOnlineForTests;
 }

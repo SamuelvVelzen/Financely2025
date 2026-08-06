@@ -51,6 +51,8 @@ export function useFinQuery<
   return useQuery<TQueryFnData, TError, TData, TQueryKey>({
     refetchOnWindowFocus: true,
     placeholderData: keepPreviousData,
+    // Prefer cached data when offline so optimistic seeds are not stuck in loading/error
+    networkMode: "offlineFirst",
     ...options,
   });
 }
@@ -149,6 +151,12 @@ export function useFinMutation<
             successTitle: hints?.title,
             successMessage: hints?.message,
           });
+          if (e.clientEntityId) {
+            return {
+              ...OFFLINE_MUTATION_PLACEHOLDER,
+              id: e.clientEntityId,
+            } as TData;
+          }
           return OFFLINE_MUTATION_PLACEHOLDER as TData;
         }
         throw e;
@@ -218,6 +226,7 @@ export function useFinInfiniteQuery<
   >({
     refetchOnWindowFocus: true,
     placeholderData: keepPreviousData,
+    networkMode: "offlineFirst",
     queryFn: ({ pageParam }) =>
       userQueryFn({ pageParam: pageParam as TPageParam }),
     ...restOptions,

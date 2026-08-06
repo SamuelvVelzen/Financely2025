@@ -54,7 +54,7 @@ export function SplitGroupList({
     [groups, debouncedSearchQuery],
   );
 
-  if (isLoading) {
+  if (isLoading && groups.length === 0) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loading text="Loading split groups" />
@@ -62,7 +62,8 @@ export function SplitGroupList({
     );
   }
 
-  if (error) {
+  // Prefer cached/optimistic groups when a refetch fails (e.g. offline)
+  if (error && groups.length === 0) {
     return (
       <QueryErrorState
         title="Unable to load split groups"

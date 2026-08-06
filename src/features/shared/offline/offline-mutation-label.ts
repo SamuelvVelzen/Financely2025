@@ -106,6 +106,26 @@ export function summarizeOfflineMutation(
     return { title: "Create tag rule" };
   }
 
+  if (endpoint.includes("/splits") && record.method === "POST") {
+    if (endpoint.includes("/expenses")) {
+      const description = body?.description;
+      return {
+        title: "Create split expense",
+        detail:
+          typeof description === "string" && description.trim() !== ""
+            ? description
+            : undefined,
+      };
+    }
+    return { title: "Create split group", detail: name };
+  }
+  if (endpoint.includes("/splits/") && record.method === "PATCH") {
+    return { title: "Update split", detail: name };
+  }
+  if (endpoint.includes("/splits/") && record.method === "DELETE") {
+    return { title: "Delete split" };
+  }
+
   if (endpoint.includes("/notifications") && record.method === "POST") {
     const title = body?.title;
     return {

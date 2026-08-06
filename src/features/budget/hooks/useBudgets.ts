@@ -16,6 +16,7 @@ import {
   updateInDataListCaches,
 } from "@/features/shared/offline/optimistic-cache";
 import { getOfflineOutboxUserId } from "@/features/shared/offline/offline-mutation-outbox";
+import { setPendingClientEntityId } from "@/features/shared/offline/optimistic-entity-context";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
@@ -69,12 +70,20 @@ export function useCreateBudget() {
       () => queryKeys.budgetsOverview(workspaceId),
     ],
     onMutate: async (input) => {
+      const tempId = crypto.randomUUID();
+      setPendingClientEntityId(tempId);
       const prefix = ["budgets", workspaceId] as const;
       const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
-      prependToDataListCaches(
-        queryClient,
-        [prefix],
-        buildOptimisticBudget(input, getOfflineOutboxUserId() ?? "local"),
+      const optimistic = buildOptimisticBudget(
+        input,
+        getOfflineOutboxUserId() ?? "local",
+        tempId,
+      );
+      prependToDataListCaches(queryClient, [prefix], optimistic);
+      // Seed detail so offline navigation to edit/detail works before sync
+      queryClient.setQueryData(
+        queryKeys.budget(workspaceId, tempId),
+        optimistic,
       );
       return { snapshot };
     },

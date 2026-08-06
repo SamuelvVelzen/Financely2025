@@ -6,6 +6,7 @@ import {
   snapshotForPrefixes,
   updateInDataListCaches,
 } from "@/features/shared/offline/optimistic-cache";
+import { setPendingClientEntityId } from "@/features/shared/offline/optimistic-entity-context";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -90,12 +91,14 @@ export function useCreateTagRule() {
       () => queryKeys.tagRuleDiscoveries(wid),
     ],
     onMutate: async (input) => {
+      const tempId = crypto.randomUUID();
+      setPendingClientEntityId(tempId);
       const prefix = ["tag-rules", wid] as const;
       const snapshot = await snapshotForPrefixes(queryClient, [prefix]);
       prependToDataListCaches(
         queryClient,
         [prefix],
-        buildOptimisticTagRule(input),
+        buildOptimisticTagRule(input, tempId),
       );
       return { snapshot };
     },

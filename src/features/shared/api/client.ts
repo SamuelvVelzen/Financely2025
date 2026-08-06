@@ -83,14 +83,14 @@ async function queueOfflineMutation(input: {
   if (!userId) {
     throw offlineSignInRequiredError();
   }
-  const queueId = await enqueueOfflineMutation({
+  const queued = await enqueueOfflineMutation({
     userId,
     method: input.method,
     endpoint: input.endpoint,
     body: input.body,
     formData: input.formData,
   });
-  throw new OfflineMutationQueuedError(queueId);
+  throw new OfflineMutationQueuedError(queued.id, queued.clientEntityId);
 }
 
 function shouldQueueBeforeRequest(): boolean {

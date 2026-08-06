@@ -34,7 +34,7 @@ const { count, size, warnings } = await generateSW({
   ],
   globIgnores: ["**/sw.js", "**/workbox-*.js"],
   swDest,
-  // Keep false so the client can confirm before activating (see PwaRegister).
+  // Keep false so the client can confirm before activating (see PwaUpdatePrompt).
   skipWaiting: false,
   clientsClaim: true,
   cleanupOutdatedCaches: true,

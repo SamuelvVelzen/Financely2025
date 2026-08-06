@@ -51,9 +51,9 @@ export function SplitBalanceSummary({ balances }: { balances: IBalanceData }) {
           </>
         )}
       </div>
-      {balances.simplifiedDebts.length > 0 ? (
+      {(balances.simplifiedDebts ?? []).length > 0 ? (
         <ul className="border-t border-border pt-4 space-y-2">
-          {balances.simplifiedDebts.map((debt) => (
+          {(balances.simplifiedDebts ?? []).map((debt) => (
             <li key={`${debt.fromMemberId}-${debt.toMemberId}`} className="text-sm text-text-muted">
               {debt.fromDisplayName} owes {debt.toDisplayName}{" "}
               <Currency amount={debt.amount} currency={currency} />

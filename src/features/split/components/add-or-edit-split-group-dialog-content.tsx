@@ -12,6 +12,7 @@ import {
   useSplitGroup,
   useUpdateSplitGroup,
 } from "@/features/split/hooks/use-split-groups";
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
@@ -173,6 +174,21 @@ export function AddOrEditSplitGroupDialogContent({
         name: values.name,
         defaultCurrency: values.defaultCurrency,
       });
+      if (isOfflineMutationPlaceholder(created)) {
+        const offlineId =
+          created &&
+          typeof created === "object" &&
+          "id" in created &&
+          typeof (created as { id: unknown }).id === "string"
+            ? (created as { id: string }).id
+            : null;
+        if (offlineId) {
+          goToMembersStep(offlineId);
+        } else {
+          handleClose();
+        }
+        return;
+      }
       toast.success("Group created");
       goToMembersStep(created.id as string);
     } catch {

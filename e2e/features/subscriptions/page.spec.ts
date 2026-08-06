@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { readWorkspaceId } from "../helpers/env";
+import { readWorkspaceId } from "../../helpers/env";
 
 test.describe("subscriptions", () => {
   test("subscriptions page loads", async ({ page }) => {

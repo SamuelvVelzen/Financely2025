@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createQueryIdbPersister } from "./create-query-idb-persister";
 
 const CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24; // 24 hours
@@ -31,7 +31,7 @@ function makeQueryClient() {
 }
 
 let browserQueryClient: QueryClient | undefined = undefined;
-let didRestorePersistedClient = false;
+let persistRestorePromise: Promise<void> | undefined = undefined;
 
 /**
  * Get or create the QueryClient
@@ -50,37 +50,64 @@ function getQueryClient() {
   }
 }
 
+function ensurePersistedClientRestored(queryClient: QueryClient): Promise<void> {
+  if (typeof window === "undefined") {
+    return Promise.resolve();
+  }
+  if (persistRestorePromise) {
+    return persistRestorePromise;
+  }
+
+  const persister = createQueryIdbPersister(PERSIST_KEY);
+  const [unsubscribe, restorePromise] = persistQueryClient({
+    queryClient,
+    persister,
+    maxAge: CACHE_MAX_AGE_MS,
+    dehydrateOptions: {
+      shouldDehydrateQuery: (query) => query.state.status === "success",
+    },
+  });
+
+  persistRestorePromise = restorePromise
+    .catch((error: unknown) => {
+      console.warn("[query] Failed to restore persisted cache", error);
+    })
+    .then(() => undefined);
+
+  // Keep unsubscribe available for HMR / full remounts via the shared promise lifetime
+  void persistRestorePromise.finally(() => {
+    // no-op: persistence subscription stays for the page lifetime
+    void unsubscribe;
+  });
+
+  return persistRestorePromise;
+}
+
 /**
  * QueryClientProvider wrapper with IndexedDB persistence for offline reads.
  */
 export function QueryProvider({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient();
+  // Wait for IndexedDB hydrate before rendering so restore cannot wipe optimistic writes
+  const [persistReady, setPersistReady] = useState(
+    typeof window === "undefined",
+  );
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (didRestorePersistedClient) return;
-    didRestorePersistedClient = true;
-
-    const persister = createQueryIdbPersister(PERSIST_KEY);
-    const [unsubscribe, restorePromise] = persistQueryClient({
-      queryClient,
-      persister,
-      maxAge: CACHE_MAX_AGE_MS,
-      dehydrateOptions: {
-        shouldDehydrateQuery: (query) => query.state.status === "success",
-      },
+    let cancelled = false;
+    void ensurePersistedClientRestored(queryClient).finally(() => {
+      if (!cancelled) {
+        setPersistReady(true);
+      }
     });
-
-    void restorePromise.catch((error: unknown) => {
-      console.warn("[query] Failed to restore persisted cache", error);
-    });
-
-    return unsubscribe;
+    return () => {
+      cancelled = true;
+    };
   }, [queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
+      {persistReady ? children : null}
       {import.meta.env.DEV ? (
         <ReactQueryDevtools initialIsOpen={false} />
       ) : null}

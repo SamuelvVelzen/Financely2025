@@ -23,6 +23,8 @@ import {
   buildOptimisticSplitExpense,
   type ISplitExpense,
 } from "@/features/split/offline/split-offline-optimistic";
+import { OFFLINE_MUTATION_DEFAULT_DETAIL } from "@/features/shared/offline/offline-mutation-errors";
+import { setPendingClientEntityId } from "@/features/shared/offline/optimistic-entity-context";
 import { useFinMutation, useFinQuery } from "@/features/shared/query/core";
 import { queryKeys } from "@/features/shared/query/keys";
 import type {
@@ -93,9 +95,68 @@ export function useCreateSplitGroup() {
   return useFinMutation({
     mutationFn: (input: ICreateSplitGroupInput) => createSplitGroup(input),
     invalidateQueries: [() => queryKeys.splitGroups(), () => queryKeys.splitSummary()],
+    onMutate: async (input) => {
+      const tempId = crypto.randomUUID();
+      const memberId = `optimistic-member-${tempId}`;
+      setPendingClientEntityId(tempId);
+      const key = queryKeys.splitGroups();
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<{ groups: Array<{ id: string; name: string }> }>(key);
+      const listEntry = {
+        id: tempId,
+        name: input.name,
+        defaultCurrency: input.defaultCurrency,
+        expenseCount: 0,
+        memberCount: 1,
+        role: "admin",
+        isCreator: true,
+      };
+      queryClient.setQueryData(key, (old: { groups?: Array<Record<string, unknown>> } | undefined) => ({
+        groups: [listEntry, ...(old?.groups ?? [])],
+      }));
+      // Seed detail caches so offline navigation to the new group works
+      queryClient.setQueryData(queryKeys.splitGroup(tempId), {
+        id: tempId,
+        name: input.name,
+        defaultCurrency: input.defaultCurrency,
+        expenseCount: 0,
+        memberCount: 1,
+        isCreator: true,
+        currentMemberId: memberId,
+        currentMemberRole: "admin",
+        guestAccessToken: null,
+        members: [
+          {
+            id: memberId,
+            displayName: "You",
+            status: "active",
+            role: "admin",
+          },
+        ],
+      });
+      queryClient.setQueryData(queryKeys.splitExpenses(tempId), { expenses: [] });
+      queryClient.setQueryData(queryKeys.splitSettlements(tempId), {
+        settlements: [],
+      });
+      queryClient.setQueryData(queryKeys.splitBalances(tempId), {
+        currency: input.defaultCurrency,
+        viewerNetAmount: "0",
+        simplifiedDebts: [],
+      });
+      return { previous, tempId };
+    },
+    onError: (_err, _input, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(queryKeys.splitGroups(), context.previous);
+      }
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.splitGroups() });
     },
+    getOfflineQueuedToast: (input) => ({
+      title: `Group "${input.name}" created successfully`,
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 
@@ -137,6 +198,7 @@ export function useCreateSplitExpense(groupId: string) {
         { ...input, clientMutationId },
         clientMutationId,
       );
+      setPendingClientEntityId(optimistic.id);
       const key = queryKeys.splitExpenses(groupId);
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<{ expenses: ISplitExpense[] }>(key);
@@ -153,6 +215,10 @@ export function useCreateSplitExpense(groupId: string) {
         );
       }
     },
+    getOfflineQueuedToast: () => ({
+      title: "Expense added",
+      message: OFFLINE_MUTATION_DEFAULT_DETAIL,
+    }),
   });
 }
 

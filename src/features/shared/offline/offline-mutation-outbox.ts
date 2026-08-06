@@ -1,4 +1,8 @@
 import { bodyReferencesEntityId } from "./offline-mutation-body-utils";
+import {
+  applyIdRemapsToEndpoint,
+  applyIdRemapsToValue,
+} from "./offline-id-remap-utils";
 import { takePendingClientEntityId } from "./optimistic-entity-context";
 import { getPendingOutboxInvalidations } from "./mutation-outbox-context";
 
@@ -249,19 +253,36 @@ export async function updateOfflineMutationRecord(
   });
 }
 
-export async function rewriteQueuedMutationBodies(
+export async function rewriteQueuedMutations(
   userId: string,
   remaps: ReadonlyMap<string, string>,
-  applyRemaps: (value: unknown) => unknown,
 ): Promise<void> {
   const rows = await listOfflineMutationsForUser(userId);
   for (const row of rows) {
-    if (row.contentType === "multipart" || row.body === undefined) continue;
-    const nextBody = applyRemaps(row.body);
-    if (JSON.stringify(nextBody) !== JSON.stringify(row.body)) {
-      await updateOfflineMutationRecord({ ...row, body: nextBody });
+    const nextEndpoint = applyIdRemapsToEndpoint(row.endpoint, remaps);
+    let nextBody = row.body;
+    if (row.contentType !== "multipart" && row.body !== undefined) {
+      nextBody = applyIdRemapsToValue(row.body, remaps);
+    }
+    const bodyChanged =
+      JSON.stringify(nextBody) !== JSON.stringify(row.body);
+    if (nextEndpoint !== row.endpoint || bodyChanged) {
+      await updateOfflineMutationRecord({
+        ...row,
+        endpoint: nextEndpoint,
+        body: nextBody,
+      });
     }
   }
+}
+
+/** @deprecated Use rewriteQueuedMutations */
+export async function rewriteQueuedMutationBodies(
+  userId: string,
+  remaps: ReadonlyMap<string, string>,
+  _applyRemaps?: (value: unknown) => unknown,
+): Promise<void> {
+  await rewriteQueuedMutations(userId, remaps);
 }
 
 export async function enqueueOfflineMutation(input: {
@@ -270,7 +291,7 @@ export async function enqueueOfflineMutation(input: {
   endpoint: string;
   body?: unknown;
   formData?: FormData;
-}): Promise<string> {
+}): Promise<{ id: string; clientEntityId?: string }> {
   const invalidateBases = getPendingOutboxInvalidations().map((row) => [...row]);
   const clientEntityId = takePendingClientEntityId() ?? undefined;
 
@@ -297,7 +318,10 @@ export async function enqueueOfflineMutation(input: {
         Date.now() - row.createdAt < 3000,
     );
   if (recentDuplicate) {
-    return recentDuplicate.id;
+    return {
+      id: recentDuplicate.id,
+      clientEntityId: recentDuplicate.clientEntityId,
+    };
   }
 
   const id = crypto.randomUUID();
@@ -321,7 +345,7 @@ export async function enqueueOfflineMutation(input: {
     const tx = db.transaction(STORE, "readwrite");
     tx.oncomplete = () => {
       notifyOutboxChanged();
-      resolve(id);
+      resolve({ id, clientEntityId });
     };
     tx.onerror = () => reject(tx.error ?? new Error("enqueue failed"));
     tx.objectStore(STORE).add(record);

@@ -1,7 +1,10 @@
 export class OfflineMutationQueuedError extends Error {
   readonly isOfflineQueued = true as const;
 
-  constructor(public readonly queueId: string) {
+  constructor(
+    public readonly queueId: string,
+    public readonly clientEntityId?: string,
+  ) {
     super("offline_queued");
     this.name = "OfflineMutationQueuedError";
   }

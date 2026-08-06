@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { readWorkspaceId } from "../helpers/env";
+import { readWorkspaceId } from "../../helpers/env";
 
 test.describe("budgets", () => {
   test("budgets page loads and can start create", async ({ page }) => {

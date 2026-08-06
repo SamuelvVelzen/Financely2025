@@ -158,7 +158,7 @@ export function SplitGroupPage() {
     });
   };
 
-  if (groupLoading) {
+  if (groupLoading && !group) {
     return (
       <Container>
         <Skeleton className="h-10 w-48 mb-6" />

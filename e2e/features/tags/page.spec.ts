@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { readWorkspaceId } from "../helpers/env";
+import { readWorkspaceId } from "../../helpers/env";
 
 test.describe("tags", () => {
   test("tags page loads with seeded tags", async ({ page }) => {

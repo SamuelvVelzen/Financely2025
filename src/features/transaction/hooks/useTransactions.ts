@@ -465,13 +465,32 @@ export function useCreateExpense() {
       () => queryKeys.transactions(wid),
     ],
     onMutate: async (input) => {
+      const tempId = crypto.randomUUID();
+      setPendingClientEntityId(tempId);
       const prefixes = transactionListPrefixes(wid);
       const snapshot = await snapshotForPrefixes(queryClient, prefixes);
-      prependToPaginatedCaches(
-        queryClient,
-        prefixes,
-        buildOptimisticTransaction({ ...input, type: "EXPENSE" }),
+      const optimistic = buildOptimisticTransaction(
+        { ...input, type: "EXPENSE" },
+        tempId,
+        (tagId) => {
+          const tag = resolveTagSnapshotFromCaches(queryClient, wid, tagId);
+          return (
+            tag ?? {
+              id: tagId,
+              name: "Unsynced tag",
+              color: null,
+              emoticon: null,
+              order: 0,
+              transactionType: "EXPENSE",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
+          );
+        },
       );
+      prependToPaginatedCaches(queryClient, prefixes, optimistic, {
+        seedInfiniteKeysIfEmpty: [defaultTransactionInfiniteSeedKey(wid)],
+      });
       return { snapshot };
     },
     getOfflineQueuedToast: () => ({
@@ -643,13 +662,32 @@ export function useCreateIncome() {
       () => queryKeys.transactions(wid),
     ],
     onMutate: async (input) => {
+      const tempId = crypto.randomUUID();
+      setPendingClientEntityId(tempId);
       const prefixes = transactionListPrefixes(wid);
       const snapshot = await snapshotForPrefixes(queryClient, prefixes);
-      prependToPaginatedCaches(
-        queryClient,
-        prefixes,
-        buildOptimisticTransaction({ ...input, type: "INCOME" }),
+      const optimistic = buildOptimisticTransaction(
+        { ...input, type: "INCOME" },
+        tempId,
+        (tagId) => {
+          const tag = resolveTagSnapshotFromCaches(queryClient, wid, tagId);
+          return (
+            tag ?? {
+              id: tagId,
+              name: "Unsynced tag",
+              color: null,
+              emoticon: null,
+              order: 0,
+              transactionType: "INCOME",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
+          );
+        },
       );
+      prependToPaginatedCaches(queryClient, prefixes, optimistic, {
+        seedInfiniteKeysIfEmpty: [defaultTransactionInfiniteSeedKey(wid)],
+      });
       return { snapshot };
     },
     getOfflineQueuedToast: () => ({
