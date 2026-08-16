@@ -1,7 +1,7 @@
 import type {
   IStepConfig,
   IStepNavigation,
-} from "@/features/ui/dialog/multi-step-dialog";
+} from "@/features/ui/wizard/multi-step-types";
 import { MappingStepContent } from "./mapping-step-content";
 import {
   useTransactionImportContext,

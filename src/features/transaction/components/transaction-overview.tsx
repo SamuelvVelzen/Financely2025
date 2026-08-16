@@ -9,7 +9,6 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { SubscriptionDetectionDialog } from "@/features/subscription/components/subscription-detection-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
-import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
 import { useTransactionFilterProps } from "@/features/transaction/hooks/use-transaction-filter-props";
 import { useTransactionViewMode } from "@/features/transaction/hooks/use-transaction-view-mode";
 import { useTransactionFilters } from "@/features/transaction/hooks/useTransactionFilters";
@@ -179,7 +178,6 @@ export function TransactionOverview({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] =
     useState(autoOpenCreate);
-  const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [isDetectDialogOpen, setIsDetectDialogOpen] = useState(false);
   const [isAllocateRefundDialogOpen, setIsAllocateRefundDialogOpen] =
     useState(false);
@@ -275,8 +273,11 @@ export function TransactionOverview({
   }, [transactions]);
 
   const handleCsvImportClick = useCallback(() => {
-    setIsCsvImportDialogOpen(true);
-  }, []);
+    navigate({
+      to: "/$workspaceId/transactions/import",
+      params: { workspaceId: workspaceRouteParam },
+    });
+  }, [navigate, workspaceRouteParam]);
 
   // Group filter props using hook
   const filterProps = useTransactionFilterProps(
@@ -443,11 +444,6 @@ export function TransactionOverview({
             variant: "danger",
           },
         ]}
-      />
-
-      <TransactionCsvImportDialog
-        open={isCsvImportDialogOpen}
-        onOpenChange={setIsCsvImportDialogOpen}
       />
 
       <SubscriptionDetectionDialog

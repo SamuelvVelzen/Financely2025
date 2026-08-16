@@ -1,7 +1,7 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import type { ITransaction } from "@/features/shared/validation/schemas";
 import { AddOrEditTransactionDialog } from "@/features/transaction/components/add-or-edit-transaction-dialog";
-import { TransactionCsvImportDialog } from "@/features/transaction/components/transaction-import/transaction-csv-import-dialog";
+import { TransactionCsvImportPage } from "@/features/transaction/components/transaction-import/transaction-csv-import-page";
 import { TransactionListGrouped } from "@/features/transaction/components/transaction-list-grouped";
 import { TransactionTable } from "@/features/transaction/components/transaction-table";
 import { TransactionViewControls } from "@/features/transaction/components/transaction-view-controls";
@@ -18,6 +18,7 @@ import { Text } from "@/features/ui/typography/text";
 import { Title } from "@/features/ui/typography/title";
 import { useMemo, useState } from "react";
 import { HiArrowDownTray, HiArrowsRightLeft, HiCheck, HiPlus } from "react-icons/hi2";
+
 export function TransactionSetup() {
   const {
     data,
@@ -29,7 +30,7 @@ export function TransactionSetup() {
   const { mutate: deleteTransaction } = useDeleteTransaction();
   const toast = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [layout, setLayout] = useState<ITransactionLayoutMode>("list");
   const [showDescriptions, setShowDescriptions] = useState(true);
@@ -90,6 +91,27 @@ export function TransactionSetup() {
     );
   }
 
+  if (isImporting) {
+    return (
+      <div>
+        <div className="text-center mb-6">
+          <Title className="text-2xl mb-2">Import transactions</Title>
+          <Text
+            isMuted
+            className="max-w-md mx-auto">
+            Upload a bank statement export and map the columns. You can refine
+            transactions later.
+          </Text>
+        </div>
+        <TransactionCsvImportPage
+          embedded
+          onEmbeddedSuccess={() => setIsImporting(false)}
+          onEmbeddedCancel={() => setIsImporting(false)}
+        />
+      </div>
+    );
+  }
+
   const hasTransactions = transactions.length > 0;
 
   return (
@@ -140,7 +162,7 @@ export function TransactionSetup() {
 
           <button
             type="button"
-            onClick={() => setIsCsvImportDialogOpen(true)}
+            onClick={() => setIsImporting(true)}
             className="group flex flex-col items-center gap-4 p-6 rounded-2xl border border-border bg-surface hover:border-primary/50 hover:bg-primary/5 transition-all text-center cursor-pointer">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
               <HiArrowDownTray className="size-6 text-primary" />
@@ -167,7 +189,7 @@ export function TransactionSetup() {
               Add Transaction
             </Button>
             <Button
-              clicked={() => setIsCsvImportDialogOpen(true)}
+              clicked={() => setIsImporting(true)}
               variant="default"
               size="md"
               className="gap-2">
@@ -212,13 +234,6 @@ export function TransactionSetup() {
         onOpenChange={setIsDialogOpen}
         transaction={selectedTransaction}
       />
-
-      {isCsvImportDialogOpen && (
-        <TransactionCsvImportDialog
-          open={isCsvImportDialogOpen}
-          onOpenChange={setIsCsvImportDialogOpen}
-        />
-      )}
 
       <DeleteDialog
         title={`Delete ${selectedTransaction?.type === "EXPENSE" ? "Expense" : "Income"}`}

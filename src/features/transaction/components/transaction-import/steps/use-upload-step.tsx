@@ -1,7 +1,7 @@
 import type {
   IStepConfig,
   IStepNavigation,
-} from "@/features/ui/dialog/multi-step-dialog";
+} from "@/features/ui/wizard/multi-step-types";
 import { useToast } from "@/features/ui/toast";
 import { useUploadCsvFile } from "../../../hooks/useCsvImport";
 import { UploadStepContent } from "./upload-step-content";

@@ -3,11 +3,6 @@ import type {
   ITagCsvFieldMapping,
 } from "@/features/shared/validation/schemas";
 import { Button } from "@/features/ui/button/button";
-import {
-  MultiStepDialog,
-  type IStepConfig,
-  type IStepNavigation,
-} from "@/features/ui/dialog/multi-step-dialog";
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { FileUploadInput } from "@/features/ui/input/file-upload-input";
@@ -16,9 +11,18 @@ import { BodyCell } from "@/features/ui/table/body-cell";
 import { HeaderCell } from "@/features/ui/table/header-cell";
 import { SelectableTable } from "@/features/ui/table/selectable-table";
 import { TableRow } from "@/features/ui/table/table-row";
+import { useToast } from "@/features/ui/toast";
 import { Label } from "@/features/ui/typography/label";
+import { MultiStepPage } from "@/features/ui/wizard/multi-step-page";
+import type {
+  IStepConfig,
+  IStepNavigation,
+} from "@/features/ui/wizard/multi-step-types";
 import { cn } from "@/features/util/cn";
-import { useMemo, useState, type ReactElement } from "react";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
+import { useNavigate } from "@tanstack/react-router";
+import { useCallback, useMemo, useState, type ReactElement } from "react";
 import {
   useGetTagCsvMapping,
   useImportTagCsv,
@@ -27,13 +31,19 @@ import {
   useValidateTagCsvMapping,
 } from "../hooks/useTagCsvImport";
 
-interface TagCsvImportDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
-}
+type ITagCsvImportPageProps = {
+  /**
+   * Embed inside another surface: hide page chrome, skip route blocking,
+   * and call callbacks instead of navigating away.
+   */
+  embedded?: boolean;
+  onEmbeddedSuccess?: () => void;
+  onEmbeddedCancel?: () => void;
+};
 
-type Step = "upload" | "mapping" | "review" | "confirm";
+type IStep = "upload" | "mapping" | "review" | "confirm";
+
+const STEP_ORDER = ["upload", "mapping", "review", "confirm"] as const;
 
 const TAG_FIELDS = [
   { name: "name", label: "Name", required: true, description: "Tag name" },
@@ -51,11 +61,16 @@ const TAG_FIELDS = [
   },
 ];
 
-export function TagCsvImportDialog({
-  open,
-  onOpenChange,
-  onSuccess,
-}: TagCsvImportDialogProps) {
+export function TagCsvImportPage({
+  embedded = false,
+  onEmbeddedSuccess,
+  onEmbeddedCancel,
+}: ITagCsvImportPageProps) {
+  const navigate = useNavigate();
+  const toast = useToast();
+  const workspaceId = useActiveWorkspaceId();
+  const workspaceRouteParam = workspaceIdToRouteParam(workspaceId);
+
   const [file, setFile] = useState<File | null>(null);
   const [columns, setColumns] = useState<string[]>([]);
   const [manualMapping, setManualMapping] =
@@ -69,7 +84,6 @@ export function TagCsvImportDialog({
     string | null
   >(null);
 
-  // Form for mapping step controls
   type MappingFormData = {
     mappings: Record<string, string>;
   };
@@ -82,7 +96,7 @@ export function TagCsvImportDialog({
 
   const uploadMutation = useUploadTagCsvFile();
   const mappingQuery = useGetTagCsvMapping(
-    columns.length > 0 ? columns : undefined
+    columns.length > 0 ? columns : undefined,
   );
   const detectedMapping = mappingQuery.data;
   const mapping = useMemo(
@@ -133,7 +147,7 @@ export function TagCsvImportDialog({
     validateMutation.isPending ||
     importMutation.isPending;
 
-  const resetAllState = () => {
+  const resetAllState = useCallback(() => {
     setFile(null);
     setColumns([]);
     setManualMapping(null);
@@ -142,7 +156,31 @@ export function TagCsvImportDialog({
     setLastAutoSelectKey(null);
     setLastSyncedMappingFormKey(null);
     mappingForm.reset({ mappings: {} });
-  };
+  }, [mappingForm]);
+
+  const goToTags = useCallback(() => {
+    navigate({
+      to: "/$workspaceId/tags",
+      params: { workspaceId: workspaceRouteParam },
+      ignoreBlocker: true,
+    });
+  }, [navigate, workspaceRouteParam]);
+
+  const handleLeave = useCallback(() => {
+    if (embedded) {
+      onEmbeddedCancel?.();
+      return;
+    }
+    goToTags();
+  }, [embedded, onEmbeddedCancel, goToTags]);
+
+  const handleComplete = useCallback(() => {
+    if (embedded) {
+      onEmbeddedSuccess?.();
+      return;
+    }
+    goToTags();
+  }, [embedded, onEmbeddedSuccess, goToTags]);
 
   const hasUnsavedChanges = useMemo(() => {
     const mappingHasValues = Object.values(mapping).some(Boolean);
@@ -183,7 +221,7 @@ export function TagCsvImportDialog({
     }
   };
 
-  const handleValidateMapping = async (goToStep: (step: Step) => void) => {
+  const handleValidateMapping = async (goToStep: (step: IStep) => void) => {
     try {
       const result = await validateMutation.mutateAsync(mapping);
       if (result.valid) {
@@ -211,8 +249,6 @@ export function TagCsvImportDialog({
     setSelectedRows(new Set(validIndices));
   };
 
-  // handleEditField is no longer needed - form handles it
-
   const handleConfirmImport = async () => {
     const tagsToImport: ICreateTagInput[] = [];
 
@@ -229,15 +265,15 @@ export function TagCsvImportDialog({
 
     try {
       await importMutation.mutateAsync(tagsToImport);
-      onSuccess?.();
+      toast.success(`Successfully imported ${tagsToImport.length} tags`);
       resetAllState();
-      onOpenChange(false);
+      handleComplete();
     } catch (error) {
       console.error("Import failed:", error);
     }
   };
 
-  const renderUploadStep = (_navigation: IStepNavigation<Step>) => (
+  const renderUploadStep = (_navigation: IStepNavigation<IStep>) => (
     <div className="space-y-4">
       <div>
         <FileUploadInput
@@ -257,7 +293,7 @@ export function TagCsvImportDialog({
     </div>
   );
 
-  const renderMappingStep = (_navigation: IStepNavigation<Step>) => (
+  const renderMappingStep = (_navigation: IStepNavigation<IStep>) => (
     <div className="space-y-4">
       <p className="text-sm text-text-muted">
         Map CSV columns to tag fields. Required fields are marked with an
@@ -277,7 +313,7 @@ export function TagCsvImportDialog({
               <Label required={field.required}>{field.label}</Label>
               <Form
                 form={mappingForm}
-                onSubmit={() => { }}>
+                onSubmit={() => {}}>
                 <SelectDropdown
                   name={`mappings.${field.name}`}
                   options={columnOptions}
@@ -306,7 +342,7 @@ export function TagCsvImportDialog({
     </div>
   );
 
-  const renderReviewStep = (_navigation: IStepNavigation<Step>) => {
+  const renderReviewStep = (_navigation: IStepNavigation<IStep>) => {
     if (parseQuery.isLoading) {
       return <div className="text-center py-8">Parsing CSV...</div>;
     }
@@ -369,16 +405,16 @@ export function TagCsvImportDialog({
                 rowIndex={candidate.rowIndex}
                 className={cn(
                   "border-t border-border",
-                  candidate.status === "invalid" && "bg-danger/5"
+                  candidate.status === "invalid" && "bg-danger/5",
                 )}>
                 <BodyCell>
                   <span
                     className={cn(
                       "px-2 py-1 rounded text-xs",
                       candidate.status === "valid" &&
-                      "bg-success/20 text-success",
+                        "bg-success/20 text-success",
                       candidate.status === "invalid" &&
-                      "bg-danger/20 text-danger"
+                        "bg-danger/20 text-danger",
                     )}>
                     {candidate.status}
                   </span>
@@ -446,7 +482,7 @@ export function TagCsvImportDialog({
     );
   };
 
-  const renderConfirmStep = (_navigation: IStepNavigation<Step>) => {
+  const renderConfirmStep = (_navigation: IStepNavigation<IStep>) => {
     const selectedCount = selectedRows.size;
     const totalCount = candidates.length;
 
@@ -470,12 +506,11 @@ export function TagCsvImportDialog({
     );
   };
 
-  const steps: Record<Step, IStepConfig<Step>> = {
+  const steps: Record<IStep, IStepConfig<IStep>> = {
     upload: {
       title: "Upload CSV File",
-      size: "lg",
       content: renderUploadStep,
-      footerButtons: (navigation: IStepNavigation<Step>) => [
+      footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
           clicked: () => {
             if (!file) {
@@ -495,15 +530,15 @@ export function TagCsvImportDialog({
               });
           },
           disabled: !file,
+          variant: "primary",
           buttonContent: "Next",
         },
       ],
     },
     mapping: {
       title: "Map Fields",
-      size: "full",
       content: renderMappingStep,
-      footerButtons: (navigation: IStepNavigation<Step>) => [
+      footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
           clicked: () => navigation.goToStep("upload"),
           buttonContent: "Back",
@@ -526,9 +561,8 @@ export function TagCsvImportDialog({
     },
     review: {
       title: "Review Tags",
-      size: "full",
       content: renderReviewStep,
-      footerButtons: (navigation: IStepNavigation<Step>) => [
+      footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
           clicked: () => navigation.goToStep("mapping"),
           buttonContent: "Back",
@@ -547,9 +581,8 @@ export function TagCsvImportDialog({
     },
     confirm: {
       title: "Confirm Import",
-      size: "lg",
       content: renderConfirmStep,
-      footerButtons: (navigation: IStepNavigation<Step>) => [
+      footerButtons: (navigation: IStepNavigation<IStep>) => [
         {
           clicked: () => navigation.goToStep("review"),
           buttonContent: "Back",
@@ -571,14 +604,17 @@ export function TagCsvImportDialog({
   };
 
   return (
-    <MultiStepDialog
+    <MultiStepPage
+      title="Import tags"
+      backAriaLabel="Back to tags"
       steps={steps}
+      stepOrder={STEP_ORDER}
       initialStep="upload"
-      open={open}
-      onOpenChange={onOpenChange}
-      hasUnsavedChanges={() => hasUnsavedChanges}
-      onReset={resetAllState}
+      embedded={embedded}
+      hasUnsavedChanges={hasUnsavedChanges}
       dismissible={!isBusy}
+      onReset={resetAllState}
+      onLeave={handleLeave}
     />
   );
 }

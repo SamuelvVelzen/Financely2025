@@ -1,22 +1,12 @@
+import type {
+  IStepConfig,
+  IStepNavigation,
+} from "@/features/ui/wizard/multi-step-types";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Dialog } from "./dialog/dialog";
-import type { IDialogProps } from "./dialog/types";
 import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 
-export interface IStepNavigation<StepType extends string> {
-  currentStep: StepType;
-  goToStep: (step: StepType) => void;
-}
-
-export interface IStepConfig<StepType extends string> {
-  title: string;
-  size: IDialogProps["size"];
-  headerActions?: IDialogProps["headerActions"];
-  content: (navigation: IStepNavigation<StepType>) => React.ReactNode;
-  footerButtons: (
-    navigation: IStepNavigation<StepType>
-  ) => IDialogProps["footerButtons"];
-}
+export type { IStepConfig, IStepNavigation };
 
 export interface IMultiStepDialogProps<StepType extends string> {
   /** Step configurations */
@@ -116,7 +106,7 @@ export function MultiStepDialog<StepType extends string>({
         open={open}
         onOpenChange={handleDialogOpenChange}
         variant="modal"
-        size={currentStepConfig.size}
+        size={currentStepConfig.size ?? "lg"}
         dismissible={dismissible}
         onClose={onReset}
       />

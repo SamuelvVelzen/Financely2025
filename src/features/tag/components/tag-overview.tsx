@@ -27,7 +27,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineTag, HiPlus } from "react-icons/hi2";
 import { AddOrEditTagDialog } from "./add-or-edit-tag-dialog";
-import { TagCsvImportDialog } from "./tag-csv-import-dialog";
 import { TagList } from "./tag-list";
 import { TagOverviewHeader } from "./tag-overview-header";
 
@@ -91,7 +90,6 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const toast = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
-  const [isCsvImportDialogOpen, setIsCsvImportDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<ITag | undefined>(undefined);
   const [showTagRulesPanel, setShowTagRulesPanel] = useState(false);
   const [isReorderMode, setIsReorderMode] = useState(false);
@@ -278,11 +276,15 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
   const actions = useMemo(
     () => ({
       onCreateTag: handleCreateTag,
-      onCsvImportClick: () => setIsCsvImportDialogOpen(true),
+      onCsvImportClick: () =>
+        navigate({
+          to: "/$workspaceId/tags/import",
+          params: { workspaceId: workspaceRouteParam },
+        }),
       onToggleReorder: () => setIsReorderMode((prev) => !prev),
       onSmartTaggingClick: handleSmartTaggingClick,
     }),
-    [handleCreateTag, handleSmartTaggingClick],
+    [handleCreateTag, handleSmartTaggingClick, navigate, workspaceRouteParam],
   );
 
   const hasSearchFilter = searchTerm.length > 0;
@@ -507,13 +509,6 @@ export function TagOverview({ initialSearchQuery = "" }: ITagOverviewProps) {
         ]}
       />
 
-      <TagCsvImportDialog
-        open={isCsvImportDialogOpen}
-        onOpenChange={setIsCsvImportDialogOpen}
-        onSuccess={() => {
-          // Tags will be refetched automatically via query invalidation
-        }}
-      />
     </>
   );
 }

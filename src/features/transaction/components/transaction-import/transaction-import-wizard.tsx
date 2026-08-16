@@ -1,22 +1,24 @@
-import { MultiStepDialog } from "@/features/ui/dialog/multi-step-dialog";
-import {
-  type IStep,
-  useTransactionImportContext,
-} from "./steps/transaction-import-context";
+import { MultiStepPage } from "@/features/ui/wizard/multi-step-page";
 import { useConfirmStep } from "./steps/use-confirm-step";
 import { useMappingStep } from "./steps/use-mapping-step";
 import { useReviewStep } from "./steps/use-review-step";
 import { useUploadStep } from "./steps/use-upload-step";
+import {
+  type IStep,
+  useTransactionImportContext,
+} from "./steps/transaction-import-context";
 
-type ITransactionImportDialogContentProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+const STEP_ORDER = ["upload", "mapping", "review", "confirm"] as const;
+
+type ITransactionImportWizardProps = {
+  embedded?: boolean;
+  onLeave: () => void;
 };
 
-export function TransactionImportDialogContent({
-  open,
-  onOpenChange,
-}: ITransactionImportDialogContentProps) {
+export function TransactionImportWizard({
+  embedded = false,
+  onLeave,
+}: ITransactionImportWizardProps) {
   const ctx = useTransactionImportContext();
 
   const uploadStep = useUploadStep();
@@ -32,14 +34,17 @@ export function TransactionImportDialogContent({
   };
 
   return (
-    <MultiStepDialog
+    <MultiStepPage
+      title="Import transactions"
+      backAriaLabel="Back to transactions"
       steps={steps}
+      stepOrder={STEP_ORDER}
       initialStep="upload"
-      open={open}
-      onOpenChange={onOpenChange}
-      hasUnsavedChanges={() => ctx.hasUnsavedChanges}
-      onReset={ctx.resetAllState}
+      embedded={embedded}
+      hasUnsavedChanges={ctx.hasUnsavedChanges}
       dismissible={!ctx.isBusy}
+      onReset={ctx.resetAllState}
+      onLeave={onLeave}
       onStepChange={(_, nextStep) => {
         ctx.setCurrentStep(nextStep);
       }}

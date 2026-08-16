@@ -2,10 +2,10 @@ import type { ITagRule, ITransactionType } from "@/features/shared/validation/sc
 import { applyTagSuggestionsToCandidates } from "@/features/tag-rule/utils/apply-tag-suggestions-to-candidate";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Button } from "@/features/ui/button/button";
-import {
-  type IStepConfig,
-  type IStepNavigation,
-} from "@/features/ui/dialog/multi-step-dialog";
+import type {
+  IStepConfig,
+  IStepNavigation,
+} from "@/features/ui/wizard/multi-step-types";
 import { useCallback, useMemo, useState } from "react";
 import { HiOutlineQueueList } from "react-icons/hi2";
 import { ImportReviewTagRulesDialog } from "./import-review-tag-rules-dialog";
