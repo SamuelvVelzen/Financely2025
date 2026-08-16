@@ -69,6 +69,7 @@ export function TransactionImportProvider({
   const [selectedBank, setSelectedBank] = useState<BankEnum>("DEFAULT");
   const [currentStep, setCurrentStep] = useState<IStep>("upload");
   const [uploadResetCounter, setUploadResetCounter] = useState(0);
+  const [file, setFile] = useState<File | null>(null);
   const [lastAppliedSuggestedKey, setLastAppliedSuggestedKey] = useState<
     string | null
   >(null);
@@ -81,7 +82,6 @@ export function TransactionImportProvider({
       mappings: {},
     },
   });
-  const { isDirty: mappingFormDirty } = mappingForm.formState;
   const defaultCurrency = mappingForm.watch("defaultCurrency");
 
   const toast = useToast();
@@ -116,7 +116,7 @@ export function TransactionImportProvider({
     Object.entries(suggestedMapping).forEach(([field, column]) => {
       if (column) formMappings[field] = column;
     });
-    mappingForm.setValue("mappings", formMappings);
+    mappingForm.setValue("mappings", formMappings, { shouldDirty: false });
     setMapping(suggestedMapping);
     setLastAppliedSuggestedKey(suggestedMappingKey);
   }
@@ -131,6 +131,7 @@ export function TransactionImportProvider({
     setTransformResponse(null);
     setSelectedBank("DEFAULT");
     setCurrentStep("upload");
+    setFile(null);
     setLastAppliedSuggestedKey(null);
     setUploadResetCounter((counter) => counter + 1);
     mappingForm.reset({
@@ -139,28 +140,16 @@ export function TransactionImportProvider({
     });
   }, [mappingForm, resolvedDefaultCurrency]);
 
+  // Real import progress only — do not use mappingFormDirty (RHF register on
+  // mount marks the form dirty with no user input).
   const hasUnsavedChanges = useMemo(() => {
-    const mappingHasValues = Object.values(mapping).some(Boolean);
     return (
+      file !== null ||
       rows.length > 0 ||
       columns.length > 0 ||
-      mappingHasValues ||
-      candidates.length > 0 ||
-      selectedRows.size > 0 ||
-      currentPage !== 1 ||
-      selectedBank !== "DEFAULT" ||
-      mappingFormDirty
+      candidates.length > 0
     );
-  }, [
-    rows,
-    columns,
-    mapping,
-    candidates,
-    selectedRows,
-    currentPage,
-    selectedBank,
-    mappingFormDirty,
-  ]);
+  }, [file, rows, columns, candidates]);
 
   const handleMappingFieldChange = useCallback((field: string, column: string | null) => {
     if (mapping[field] !== column) {
@@ -192,7 +181,9 @@ export function TransactionImportProvider({
       ...prev,
       [field]: column,
     }));
-    mappingForm.setValue(`mappings.${field}`, column || "");
+    mappingForm.setValue(`mappings.${field}`, column || "", {
+      shouldDirty: true,
+    });
   };
 
   const handleResetToSuggested = (fieldName: string) => {
@@ -335,6 +326,8 @@ export function TransactionImportProvider({
     hasUnsavedChanges,
     isBusy,
     uploadResetCounter,
+    file,
+    setFile,
     setRows,
     setColumns,
     setMapping,

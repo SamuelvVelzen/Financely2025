@@ -1,4 +1,5 @@
 import {
+  BudgetSetup,
   GettingStarted,
   TagsSetup,
   TransactionSetup,
@@ -40,8 +41,8 @@ export function OnboardingPage() {
         skippable: false,
       },
       {
-        id: "user-settings",
-        content: <UserSettingsStep />,
+        id: "tags-setup",
+        content: <TagsSetup />,
         skippable: true,
       },
       {
@@ -49,20 +50,25 @@ export function OnboardingPage() {
         content: (
           <WorkspaceSettingsStep
             workspaceId={workspaceId}
-            title="Your workspace"
+            title="Workspace settings"
             description="Pick the currency for everyday transactions and budgets. Foreign currencies are available later for trips."
           />
         ),
         skippable: true,
       },
       {
-        id: "tags-setup",
-        content: <TagsSetup />,
+        id: "transaction-setup",
+        content: <TransactionSetup />,
         skippable: true,
       },
       {
-        id: "transaction-setup",
-        content: <TransactionSetup />,
+        id: "budget-setup",
+        content: <BudgetSetup />,
+        skippable: true,
+      },
+      {
+        id: "user-settings",
+        content: <UserSettingsStep />,
         skippable: true,
       },
       {

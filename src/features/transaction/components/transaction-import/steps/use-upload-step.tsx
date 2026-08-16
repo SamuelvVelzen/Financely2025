@@ -3,7 +3,6 @@ import type {
   IStepNavigation,
 } from "@/features/ui/dialog/multi-step-dialog";
 import { useToast } from "@/features/ui/toast";
-import { useState } from "react";
 import { useUploadCsvFile } from "../../../hooks/useCsvImport";
 import { UploadStepContent } from "./upload-step-content";
 import {
@@ -16,23 +15,10 @@ export function useUploadStep(): IStepConfig<IStep> {
     setColumns,
     setRows,
     setIsPending,
-    uploadResetCounter,
+    file,
+    setFile,
   } = useTransactionImportContext();
   const toast = useToast();
-
-  const [fileState, setFileState] = useState<{
-    resetCounter: number;
-    file: File | null;
-  }>({ resetCounter: uploadResetCounter, file: null });
-
-  if (fileState.resetCounter !== uploadResetCounter) {
-    setFileState({ resetCounter: uploadResetCounter, file: null });
-  }
-
-  const file = fileState.file;
-  const setFile = (nextFile: File | null) => {
-    setFileState({ resetCounter: uploadResetCounter, file: nextFile });
-  };
 
   const uploadMutation = useUploadCsvFile();
 

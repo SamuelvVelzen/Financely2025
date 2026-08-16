@@ -56,6 +56,13 @@ type IBudgetCreateOrEditPageProps = {
   budgetId?: string;
   /** When set (edit mode), pre-select this tag and open the Budget tab so the user can enter an amount. */
   addTagId?: string;
+  /**
+   * Embed inside another surface (e.g. onboarding wizard): hide page chrome,
+   * skip route blocking, and call callbacks instead of navigating away.
+   */
+  embedded?: boolean;
+  onEmbeddedSuccess?: (budget: IBudget) => void;
+  onEmbeddedCancel?: () => void;
 };
 
 const TABS = ["general", "tags", "budget"] as const;
@@ -409,6 +416,9 @@ function transformFormDataToApiInput(
 export function BudgetCreateOrEditPage({
   budgetId,
   addTagId,
+  embedded = false,
+  onEmbeddedSuccess,
+  onEmbeddedCancel,
 }: IBudgetCreateOrEditPageProps) {
   const navigate = useNavigate();
   const workspaceId = useActiveWorkspaceId();
@@ -435,9 +445,9 @@ export function BudgetCreateOrEditPage({
   const hasUnsavedChanges = form.formState.isDirty;
 
   const blocker = useBlocker({
-    shouldBlockFn: () => hasUnsavedChanges,
+    shouldBlockFn: () => !embedded && hasUnsavedChanges,
     withResolver: true,
-    enableBeforeUnload: hasUnsavedChanges,
+    enableBeforeUnload: !embedded && hasUnsavedChanges,
   });
 
   const tabState = useMemo(() => {
@@ -492,6 +502,15 @@ export function BudgetCreateOrEditPage({
   }, [isEditMode, budget, form, addTagId]);
 
   const handleBack = useCallback(() => {
+    if (embedded) {
+      if (hasUnsavedChanges) {
+        setShowUnsavedDialog(true);
+        return;
+      }
+      onEmbeddedCancel?.();
+      return;
+    }
+
     if (hasUnsavedChanges) {
       setShowUnsavedDialog(true);
       return;
@@ -508,7 +527,15 @@ export function BudgetCreateOrEditPage({
         params: { workspaceId: workspaceRouteParam },
       });
     }
-  }, [hasUnsavedChanges, isEditMode, budgetId, navigate, workspaceRouteParam]);
+  }, [
+    embedded,
+    hasUnsavedChanges,
+    isEditMode,
+    budgetId,
+    navigate,
+    workspaceRouteParam,
+    onEmbeddedCancel,
+  ]);
 
   const handleDiscardChanges = useCallback(() => {
     if (isEditMode && budget) {
@@ -518,6 +545,11 @@ export function BudgetCreateOrEditPage({
     }
 
     setShowUnsavedDialog(false);
+
+    if (embedded) {
+      onEmbeddedCancel?.();
+      return;
+    }
 
     if (isEditMode && budgetId) {
       navigate({
@@ -532,7 +564,16 @@ export function BudgetCreateOrEditPage({
         ignoreBlocker: true,
       });
     }
-  }, [isEditMode, budget, budgetId, form, navigate, workspaceRouteParam]);
+  }, [
+    isEditMode,
+    budget,
+    budgetId,
+    form,
+    navigate,
+    workspaceRouteParam,
+    embedded,
+    onEmbeddedCancel,
+  ]);
 
   const showBlockerDialog = blocker.status === "blocked";
   const showUnsavedChangesPrompt = showUnsavedDialog || showBlockerDialog;
@@ -571,10 +612,15 @@ export function BudgetCreateOrEditPage({
           updateBudget(
             { budgetId, input: submitData as IUpdateBudgetInput },
             {
-              onSuccess: (data) => {
+              onSuccess: (result) => {
                 setPending(false);
-                if (!isOfflineMutationPlaceholder(data)) {
+                if (!isOfflineMutationPlaceholder(result)) {
                   toast.success("Budget updated successfully");
+                }
+                if (embedded) {
+                  form.reset(getEmptyFormValues(defaultCurrency));
+                  onEmbeddedSuccess?.(result);
+                  return;
                 }
                 navigate({
                   to: "/$workspaceId/budgets/$budgetId",
@@ -587,14 +633,19 @@ export function BudgetCreateOrEditPage({
                 toast.error("Failed to update budget");
                 console.error("Failed to update budget:", error);
               },
-            }
+            },
           );
         } else {
           createBudget(submitData as ICreateBudgetInput, {
-            onSuccess: (data) => {
+            onSuccess: (result) => {
               setPending(false);
-              if (!isOfflineMutationPlaceholder(data)) {
+              if (!isOfflineMutationPlaceholder(result)) {
                 toast.success("Budget created successfully");
+              }
+              if (embedded) {
+                form.reset(getEmptyFormValues(defaultCurrency));
+                onEmbeddedSuccess?.(result);
+                return;
               }
               navigate({
                 to: "/$workspaceId/budgets",
@@ -615,10 +666,25 @@ export function BudgetCreateOrEditPage({
         toast.error("An unexpected error occurred");
       }
     },
-    [isEditMode, budgetId, createBudget, updateBudget, navigate, toast, workspaceRouteParam]
+    [
+      isEditMode,
+      budgetId,
+      createBudget,
+      updateBudget,
+      navigate,
+      toast,
+      workspaceRouteParam,
+      embedded,
+      form,
+      defaultCurrency,
+      onEmbeddedSuccess,
+    ],
   );
 
   if (isEditMode && budgetLoading) {
+    if (embedded) {
+      return <Loading text="Loading budget" />;
+    }
     return (
       <Container>
         <Loading text="Loading budget" />
@@ -627,6 +693,18 @@ export function BudgetCreateOrEditPage({
   }
 
   if (isEditMode && !budget) {
+    if (embedded) {
+      return (
+        <EmptyPage
+          icon={HiOutlineCurrencyEuro}
+          emptyText="Budget not found"
+          button={{
+            buttonContent: "Cancel",
+            clicked: handleBack,
+          }}
+        />
+      );
+    }
     return (
       <Container>
         <EmptyPage
@@ -646,27 +724,31 @@ export function BudgetCreateOrEditPage({
       <Form
         form={form}
         onSubmit={handleSubmit}
-        className="flex flex-col min-h-full">
-        <Container className="sticky top-0 z-10 bg-surface">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <IconButton
-                clicked={handleBack}
-                ariaLabel={
-                  isEditMode ? "Back to budget details" : "Back to budgets"
-                }>
-                <HiArrowLeft className="size-4" />
-              </IconButton>
-              <Title>
-                {isEditMode
-                  ? `Edit ${budget?.name ?? "Budget"}`
-                  : "Create Budget"}
-              </Title>
+        className={
+          embedded ? "flex flex-col" : "flex flex-col min-h-full"
+        }>
+        {!embedded && (
+          <Container className="sticky top-0 z-10 bg-surface">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <IconButton
+                  clicked={handleBack}
+                  ariaLabel={
+                    isEditMode ? "Back to budget details" : "Back to budgets"
+                  }>
+                  <HiArrowLeft className="size-4" />
+                </IconButton>
+                <Title>
+                  {isEditMode
+                    ? `Edit ${budget?.name ?? "Budget"}`
+                    : "Create Budget"}
+                </Title>
+              </div>
             </div>
-          </div>
-        </Container>
+          </Container>
+        )}
 
-        <Container>
+        <Container className={embedded ? "px-0" : undefined}>
           <TabGroup
             ref={tabGroupRef}
             defaultValue={addTagId ? "budget" : TABS[0]}
@@ -731,7 +813,12 @@ export function BudgetCreateOrEditPage({
           </TabGroup>
         </Container>
 
-        <Container className="sticky bottom-0 bg-surface flex gap-2 justify-between mt-auto mb-0">
+        <Container
+          className={
+            embedded
+              ? "px-0 sticky bottom-0 bg-surface flex gap-2 justify-between mt-6 mb-0"
+              : "sticky bottom-0 bg-surface flex gap-2 justify-between mt-auto mb-0"
+          }>
           {tabState.isFirstTab ? (
             <Button
               clicked={handleBack}

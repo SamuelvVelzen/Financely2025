@@ -44,6 +44,8 @@ export interface ITransactionImportContext {
   hasUnsavedChanges: boolean;
   isBusy: boolean;
   uploadResetCounter: number;
+  file: File | null;
+  setFile: (file: File | null) => void;
   setRows: (rows: Record<string, string>[]) => void;
   setColumns: (columns: string[]) => void;
   setMapping: React.Dispatch<React.SetStateAction<ICsvFieldMapping>>;
