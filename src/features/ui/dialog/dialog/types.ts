@@ -67,6 +67,12 @@ export interface IDialogProps
 }
 
 /**
+ * Overlay that shows a bottom sheet on mobile and a centered dialog on desktop.
+ * Same props as Dialog; `size`, `variant`, and `status` apply to the desktop dialog only.
+ */
+export type IResponsiveDialogProps = IDialogProps;
+
+/**
  * Props for DialogOverlay component
  */
 export interface IDialogOverlayProps extends IPropsWithClassName {

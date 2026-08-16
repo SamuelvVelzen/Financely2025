@@ -19,7 +19,7 @@ import {
 } from "@/features/transaction/hooks/useTransactions";
 import { SubscriptionInfo } from "@/features/transaction/components/subscription-info";
 import { AllocateRefundDialog } from "@/features/transaction/components/allocate-refund-dialog";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
@@ -684,7 +684,7 @@ export function AddOrEditTransactionDialog({
 
   return (
     <>
-      <Dialog
+      <ResponsiveDialog
         title={dialogTitle}
         disableInitialFocus
         content={

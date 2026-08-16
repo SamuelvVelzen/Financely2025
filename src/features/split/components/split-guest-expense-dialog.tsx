@@ -7,10 +7,8 @@ import {
   getExactSharesForSubmit,
   type ISplitExpenseFormValues,
 } from "@/features/split/utils/split-expense-form-values";
-import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { useFinMutation } from "@/features/shared/query/core";
-import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { useToast } from "@/features/ui/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useId } from "react";
@@ -34,7 +32,6 @@ export function SplitGuestExpenseDialog({
   members: IMember[];
   currentMemberId: string;
 }) {
-  const { isMobile } = useResponsive();
   const toast = useToast();
   const formId = useId();
   const queryClient = useQueryClient();
@@ -110,26 +107,8 @@ export function SplitGuestExpenseDialog({
     },
   ];
 
-  if (isMobile) {
-    return (
-      <BottomSheet
-        open={open}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            handleClose();
-            return;
-          }
-          onOpenChange(true);
-        }}
-        title="Add expense"
-        footerButtons={footerButtons}>
-        {form}
-      </BottomSheet>
-    );
-  }
-
   return (
-    <Dialog
+    <ResponsiveDialog
       open={open}
       onOpenChange={(nextOpen) => {
         if (!nextOpen) {

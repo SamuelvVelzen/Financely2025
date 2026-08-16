@@ -9,6 +9,7 @@ import {
   useState,
   useSyncExternalStore,
   type PropsWithChildren,
+  type ReactNode,
 } from "react";
 import { HiXMark } from "react-icons/hi2";
 import { createPortal } from "react-dom";
@@ -35,6 +36,8 @@ export interface IBottomSheetProps
   dismissible?: boolean;
   /** Title for header */
   title: string;
+  /** Optional actions rendered in the header, before the close button */
+  headerActions?: ReactNode;
   /** Footer buttons (array of button props) */
   footerButtons?: IButtonProps[];
   /** Custom style */
@@ -90,6 +93,7 @@ export function BottomSheet({
   onOpenChange,
   dismissible = true,
   title,
+  headerActions,
   footerButtons,
   ariaLabel,
   ariaLabelledBy,
@@ -556,35 +560,38 @@ export function BottomSheet({
         <div
           className={cn(
             "flex items-center justify-between gap-4 px-6 py-4 border-b border-border",
-            showDragHandle && "pt-0",
-            "cursor-grab active:cursor-grabbing touch-none select-none"
+            showDragHandle && "pt-0"
           )}
-          id={titleId}
-          role="button"
-          tabIndex={0}
-          aria-label="Drag sheet header"
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-            }
-          }}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}>
-          <div className="flex-1">
+          id={titleId}>
+          <div
+            className="flex-1 cursor-grab active:cursor-grabbing touch-none select-none"
+            role="button"
+            tabIndex={0}
+            aria-label="Drag sheet header"
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+              }
+            }}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}>
             <h2 className="text-xl font-semibold">{title}</h2>
           </div>
 
-          <IconButton clicked={handleClose}>
-            <HiXMark className="size-5" />
-          </IconButton>
+          <div className="flex items-center gap-2 shrink-0">
+            {headerActions}
+            <IconButton clicked={handleClose}>
+              <HiXMark className="size-5" />
+            </IconButton>
+          </div>
         </div>
 
         <div
           ref={contentRef}
           className={cn(
-            "px-6 py-4 overflow-y-auto",
+            "min-h-0 flex-1 px-6 py-4 overflow-y-auto",
             isDragging && "pointer-events-none overflow-hidden"
           )}
           style={{

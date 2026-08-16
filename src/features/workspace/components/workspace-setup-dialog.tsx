@@ -1,7 +1,7 @@
 import { WorkspaceSettingsStep } from "@/features/wizard/components/workspace-settings-step";
 import { useCompleteWizard } from "@/features/wizard/hooks/useWizardProgress";
 import { workspaceSetupWizardId } from "@/features/wizard/wizard-ids";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { Text } from "@/features/ui/typography/text";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import { Link } from "@tanstack/react-router";
@@ -36,7 +36,7 @@ export function WorkspaceSetupDialog({
   };
 
   return (
-    <Dialog
+    <ResponsiveDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) {

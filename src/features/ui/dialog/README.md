@@ -19,8 +19,46 @@ A comprehensive, accessible dialog system built with React 19, TypeScript, and T
 The dialog system is already available in `src/features/ui/dialog/`. Import components as needed:
 
 ```tsx
-import { Dialog, DialogTrigger, useDialog } from "@/features/ui/dialog";
+import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 ```
+
+## ResponsiveDialog (sheet on mobile, dialog on desktop)
+
+Short-form overlays should use `ResponsiveDialog` instead of choosing a surface. On mobile (`useResponsive().isMobile`) it renders the shared `BottomSheet` (drag handle, scrollable body, pinned footer). On tablet and desktop it renders the centered `Dialog`. Props match `Dialog` (`open`, `onOpenChange`, `title`, `content`/`children`, `footerButtons`, `dismissible`, `size`, unsaved-changes-friendly `onOpenChange`). `size`, `variant`, and `status` apply to the desktop dialog only.
+
+```tsx
+import { useState } from "react";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
+
+function CreateItemDialog({ open, onOpenChange }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <ResponsiveDialog
+      title="Create item"
+      open={open}
+      onOpenChange={onOpenChange}
+      size="md"
+      footerButtons={[
+        {
+          clicked: () => onOpenChange(false),
+          buttonContent: "Cancel",
+        },
+        {
+          variant: "primary",
+          clicked: () => onOpenChange(false),
+          buttonContent: "Save",
+        },
+      ]}
+      content={<p>Form fields go here.</p>}
+    />
+  );
+}
+```
+
+Keep `Dialog` for confirms (`DeleteDialog`, `UnsavedChangesDialog`) and large multi-step flows (`MultiStepDialog`). `BottomSheet` is the low-level mobile primitive; feature code should not call it directly.
 
 ## Basic Usage
 

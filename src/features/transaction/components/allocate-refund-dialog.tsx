@@ -10,7 +10,7 @@ import {
   useReplaceRefundAllocations,
 } from "@/features/transaction/hooks/useTransactions";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { List } from "@/features/ui/list/list";
 import { useToast } from "@/features/ui/toast";
 import { useEffect, useMemo, useState } from "react";
@@ -275,7 +275,7 @@ export function AllocateRefundDialog({
 
   return (
     <>
-      <Dialog
+      <ResponsiveDialog
         open={open}
         onOpenChange={onOpenChange}
         title={isIncome ? "Allocate refund" : "Link refunds"}

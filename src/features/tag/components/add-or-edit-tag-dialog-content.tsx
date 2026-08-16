@@ -12,7 +12,7 @@ import {
 } from "@/features/tag/components/add-or-edit-tag-dialog-shared";
 import { useCreateTag, useUpdateTag } from "@/features/tag/hooks/useTags";
 import { Button } from "@/features/ui/button/button";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
@@ -336,7 +336,7 @@ export function AddOrEditTagDialogContent({
 
   return (
     <>
-      <Dialog
+      <ResponsiveDialog
         title={dialogTitle}
         headerActions={
           <Button

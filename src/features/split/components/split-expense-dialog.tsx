@@ -12,9 +12,7 @@ import {
   getSplitExpenseFormValuesFromExpense,
   type ISplitExpenseFormValues,
 } from "@/features/split/utils/split-expense-form-values";
-import { useResponsive } from "@/features/shared/hooks/useResponsive";
-import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { useToast } from "@/features/ui/toast";
 import { useId, useMemo, useRef, useState } from "react";
 
@@ -41,7 +39,6 @@ export function SplitExpenseDialog({
   expense?: ISplitExpense;
   onSwitchToCreate?: () => void;
 }) {
-  const { isMobile } = useResponsive();
   const toast = useToast();
   const formId = useId();
   const afterSuccessRef = useRef<"close" | "addAnother">("close");
@@ -212,26 +209,8 @@ export function SplitExpenseDialog({
     },
   ];
 
-  if (isMobile) {
-    return (
-      <BottomSheet
-        open={open}
-        onOpenChange={(nextOpen) => {
-          if (!nextOpen) {
-            handleClose();
-            return;
-          }
-          onOpenChange(true);
-        }}
-        title={title}
-        footerButtons={footerButtons}>
-        {form}
-      </BottomSheet>
-    );
-  }
-
   return (
-    <Dialog
+    <ResponsiveDialog
       open={open}
       onOpenChange={(nextOpen) => {
         if (!nextOpen) {

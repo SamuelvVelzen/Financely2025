@@ -3,7 +3,7 @@ import {
   CreateWorkspaceBodySchema,
   type IWorkspaceSummary,
 } from "@/features/shared/validation/schemas";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
@@ -149,7 +149,7 @@ export function AddOrEditWorkspaceDialog({
 
   return (
     <>
-      <Dialog
+      <ResponsiveDialog
         title={isEditMode ? "Edit Workspace" : "Create Workspace"}
         disableInitialFocus
         content={

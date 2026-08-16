@@ -13,9 +13,7 @@ import {
   useUpdateSplitGroup,
 } from "@/features/split/hooks/use-split-groups";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
-import { useResponsive } from "@/features/shared/hooks/useResponsive";
-import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { useToast } from "@/features/ui/toast";
 import { useId, useState } from "react";
 
@@ -27,7 +25,6 @@ export function AddOrEditSplitGroupDialogContent({
   initialStep = "details",
   onSuccess,
 }: IAddOrEditSplitGroupDialogProps) {
-  const { isMobile } = useResponsive();
   const toast = useToast();
   const formId = useId();
   const isEditMode = group != null;
@@ -196,20 +193,8 @@ export function AddOrEditSplitGroupDialogContent({
 
   const content = step === "details" ? detailsForm : membersStep;
 
-  if (isMobile) {
-    return (
-      <BottomSheet
-        open={open}
-        onOpenChange={onOpenChange}
-        title={title}
-        footerButtons={footerButtons}>
-        {content}
-      </BottomSheet>
-    );
-  }
-
   return (
-    <Dialog
+    <ResponsiveDialog
       open={open}
       onOpenChange={onOpenChange}
       title={title}

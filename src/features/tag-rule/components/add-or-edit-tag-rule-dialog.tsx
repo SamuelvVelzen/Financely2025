@@ -11,7 +11,7 @@ import {
 } from "@/features/tag-rule/hooks/useTagRules";
 import type { IPendingTagRule } from "@/features/tag-rule/types/pending-tag-rule";
 import { TAG_RULE_MATCH_FIELD_OPTIONS } from "@/features/tag-rule/utils/match-fields";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
@@ -248,7 +248,7 @@ export function AddOrEditTagRuleDialog({
 
   return (
     <>
-      <Dialog
+      <ResponsiveDialog
         title={isEditMode ? "Edit tag rule" : "Add tag rule"}
         content={
           <Form form={form} onSubmit={handleSubmit} id={formId} className="space-y-4">

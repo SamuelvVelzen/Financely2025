@@ -5,10 +5,8 @@ import {
   useUpdateSplitSettlement,
 } from "@/features/split/hooks/use-split-groups";
 import type { ISplitSettlement } from "@/features/split/utils/group-split-settlements-by-date";
-import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { useFinMutation } from "@/features/shared/query/core";
-import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { DateInput } from "@/features/ui/input/date-input";
 import { DecimalInput } from "@/features/ui/input/decimal-input";
 import { Textarea } from "@/features/ui/input/textarea";
@@ -94,7 +92,6 @@ export function RecordSettlementDialog({
   isAdmin?: boolean;
   settlement?: ISplitSettlement;
 }) {
-  const { isMobile } = useResponsive();
   const toast = useToast();
   const queryClient = useQueryClient();
   const isEditMode = settlement != null;
@@ -323,20 +320,8 @@ export function RecordSettlementDialog({
     },
   ];
 
-  if (isMobile) {
-    return (
-      <BottomSheet
-        open={open}
-        onOpenChange={handleOpenChange}
-        title={title}
-        footerButtons={footerButtons}>
-        {form}
-      </BottomSheet>
-    );
-  }
-
   return (
-    <Dialog
+    <ResponsiveDialog
       open={open}
       onOpenChange={handleOpenChange}
       title={title}

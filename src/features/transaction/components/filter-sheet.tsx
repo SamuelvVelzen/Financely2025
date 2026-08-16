@@ -9,7 +9,7 @@ import type { IButtonProps } from "@/features/ui/button/button";
 import { CheckboxGroup, CheckboxItem } from "@/features/ui/checkbox";
 import type { IDateFilter } from "@/features/ui/datepicker/datepicker";
 import { Datepicker } from "@/features/ui/datepicker/datepicker";
-import { BottomSheet } from "@/features/ui/dialog/bottom-sheet";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { Form } from "@/features/ui/form/form";
 import type { IPriceRange } from "@/features/ui/input/range-input";
 import { RangeInput } from "@/features/ui/input/range-input";
@@ -221,7 +221,7 @@ export function FilterSheet({
   );
 
   return (
-    <BottomSheet
+    <ResponsiveDialog
       title="Filters"
       open={open}
       onOpenChange={onOpenChange}
@@ -252,6 +252,6 @@ export function FilterSheet({
       ) : (
         filterForm
       )}
-    </BottomSheet>
+    </ResponsiveDialog>
   );
 }

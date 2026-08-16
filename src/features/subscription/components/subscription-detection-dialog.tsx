@@ -6,7 +6,7 @@ import {
   useConfirmSubscription,
   useDismissCandidate,
 } from "@/features/subscription/hooks/useSubscriptions";
-import { Dialog } from "@/features/ui/dialog/dialog/dialog";
+import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { Loading } from "@/features/ui/loading";
 import { useToast } from "@/features/ui/toast";
 import { useCallback, useEffect, useState } from "react";
@@ -231,7 +231,7 @@ export function SubscriptionDetectionDialog({
   );
 
   return (
-    <Dialog
+    <ResponsiveDialog
       title="Detect Subscriptions"
       content={dialogContent}
       open={open}
