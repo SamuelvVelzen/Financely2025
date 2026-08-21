@@ -28,7 +28,8 @@ export const transactionFilterQuerySchema = z.object({
     .transform((val) => {
       if (!val) return undefined;
       return Array.isArray(val) ? val.join(",") : val;
-    }),
+    })
+    .optional(),
   
   // Payment method filter - comma-separated payment method values
   paymentMethods: z.string().optional(),

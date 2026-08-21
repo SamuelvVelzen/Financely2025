@@ -24,11 +24,11 @@ import { Route as ApiV1MeRouteImport } from './routes/api/v1/me'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as appWizardsSplitGroupRouteImport } from './routes/(app)/wizards.split-group'
 import { Route as appWizardsFirstUserRouteImport } from './routes/(app)/wizards.first-user'
-import { Route as appWorkspaceIdTransactionsRouteImport } from './routes/(app)/$workspaceId/transactions'
 import { Route as appWorkspaceIdSmartTaggingRouteImport } from './routes/(app)/$workspaceId/smart-tagging'
 import { Route as appWorkspaceIdNotificationsRouteImport } from './routes/(app)/$workspaceId/notifications'
 import { Route as SplitsJoinTokenIndexRouteImport } from './routes/splits.join.$token.index'
 import { Route as appSplitsGroupIdIndexRouteImport } from './routes/(app)/splits.$groupId.index'
+import { Route as appWorkspaceIdTransactionsIndexRouteImport } from './routes/(app)/$workspaceId/transactions.index'
 import { Route as appWorkspaceIdTagsIndexRouteImport } from './routes/(app)/$workspaceId/tags.index'
 import { Route as appWorkspaceIdSubscriptionsIndexRouteImport } from './routes/(app)/$workspaceId/subscriptions.index'
 import { Route as appWorkspaceIdBudgetsIndexRouteImport } from './routes/(app)/$workspaceId/budgets.index'
@@ -187,12 +187,6 @@ const appWizardsFirstUserRoute = appWizardsFirstUserRouteImport.update({
   path: '/wizards/first-user',
   getParentRoute: () => appRouteRoute,
 } as any)
-const appWorkspaceIdTransactionsRoute =
-  appWorkspaceIdTransactionsRouteImport.update({
-    id: '/transactions',
-    path: '/transactions',
-    getParentRoute: () => appWorkspaceIdRouteRoute,
-  } as any)
 const appWorkspaceIdSmartTaggingRoute =
   appWorkspaceIdSmartTaggingRouteImport.update({
     id: '/smart-tagging',
@@ -215,6 +209,12 @@ const appSplitsGroupIdIndexRoute = appSplitsGroupIdIndexRouteImport.update({
   path: '/splits/$groupId/',
   getParentRoute: () => appRouteRoute,
 } as any)
+const appWorkspaceIdTransactionsIndexRoute =
+  appWorkspaceIdTransactionsIndexRouteImport.update({
+    id: '/transactions/',
+    path: '/transactions/',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
+  } as any)
 const appWorkspaceIdTagsIndexRoute = appWorkspaceIdTagsIndexRouteImport.update({
   id: '/tags/',
   path: '/tags/',
@@ -316,9 +316,9 @@ const appWizardsWorkspaceSetupWorkspaceIdRoute =
   } as any)
 const appWorkspaceIdTransactionsImportRoute =
   appWorkspaceIdTransactionsImportRouteImport.update({
-    id: '/import',
-    path: '/import',
-    getParentRoute: () => appWorkspaceIdTransactionsRoute,
+    id: '/transactions/import',
+    path: '/transactions/import',
+    getParentRoute: () => appWorkspaceIdRouteRoute,
   } as any)
 const appWorkspaceIdTagsSmartTaggingRoute =
   appWorkspaceIdTagsSmartTaggingRouteImport.update({
@@ -719,7 +719,6 @@ export interface FileRoutesByFullPath {
   '/': typeof appIndexRoute
   '/$workspaceId/notifications': typeof appWorkspaceIdNotificationsRoute
   '/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
-  '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRouteWithChildren
   '/wizards/first-user': typeof appWizardsFirstUserRoute
   '/wizards/split-group': typeof appWizardsSplitGroupRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -749,6 +748,7 @@ export interface FileRoutesByFullPath {
   '/$workspaceId/budgets': typeof appWorkspaceIdBudgetsIndexRoute
   '/$workspaceId/subscriptions': typeof appWorkspaceIdSubscriptionsIndexRoute
   '/$workspaceId/tags': typeof appWorkspaceIdTagsIndexRoute
+  '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsIndexRoute
   '/splits/$groupId': typeof appSplitsGroupIdIndexRoute
   '/splits/join/$token/': typeof SplitsJoinTokenIndexRoute
   '/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
@@ -822,7 +822,6 @@ export interface FileRoutesByTo {
   '/': typeof appIndexRoute
   '/$workspaceId/notifications': typeof appWorkspaceIdNotificationsRoute
   '/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
-  '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRouteWithChildren
   '/wizards/first-user': typeof appWizardsFirstUserRoute
   '/wizards/split-group': typeof appWizardsSplitGroupRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -851,6 +850,7 @@ export interface FileRoutesByTo {
   '/$workspaceId/budgets': typeof appWorkspaceIdBudgetsIndexRoute
   '/$workspaceId/subscriptions': typeof appWorkspaceIdSubscriptionsIndexRoute
   '/$workspaceId/tags': typeof appWorkspaceIdTagsIndexRoute
+  '/$workspaceId/transactions': typeof appWorkspaceIdTransactionsIndexRoute
   '/splits/$groupId': typeof appSplitsGroupIdIndexRoute
   '/splits/join/$token': typeof SplitsJoinTokenIndexRoute
   '/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
@@ -927,7 +927,6 @@ export interface FileRoutesById {
   '/(app)/': typeof appIndexRoute
   '/(app)/$workspaceId/notifications': typeof appWorkspaceIdNotificationsRoute
   '/(app)/$workspaceId/smart-tagging': typeof appWorkspaceIdSmartTaggingRoute
-  '/(app)/$workspaceId/transactions': typeof appWorkspaceIdTransactionsRouteWithChildren
   '/(app)/wizards/first-user': typeof appWizardsFirstUserRoute
   '/(app)/wizards/split-group': typeof appWizardsSplitGroupRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -957,6 +956,7 @@ export interface FileRoutesById {
   '/(app)/$workspaceId/budgets/': typeof appWorkspaceIdBudgetsIndexRoute
   '/(app)/$workspaceId/subscriptions/': typeof appWorkspaceIdSubscriptionsIndexRoute
   '/(app)/$workspaceId/tags/': typeof appWorkspaceIdTagsIndexRoute
+  '/(app)/$workspaceId/transactions/': typeof appWorkspaceIdTransactionsIndexRoute
   '/(app)/splits/$groupId/': typeof appSplitsGroupIdIndexRoute
   '/splits/join/$token/': typeof SplitsJoinTokenIndexRoute
   '/(app)/$workspaceId/budgets/$budgetId/edit': typeof appWorkspaceIdBudgetsBudgetIdEditRoute
@@ -1033,7 +1033,6 @@ export interface FileRouteTypes {
     | '/'
     | '/$workspaceId/notifications'
     | '/$workspaceId/smart-tagging'
-    | '/$workspaceId/transactions'
     | '/wizards/first-user'
     | '/wizards/split-group'
     | '/api/auth/$'
@@ -1063,6 +1062,7 @@ export interface FileRouteTypes {
     | '/$workspaceId/budgets'
     | '/$workspaceId/subscriptions'
     | '/$workspaceId/tags'
+    | '/$workspaceId/transactions'
     | '/splits/$groupId'
     | '/splits/join/$token/'
     | '/$workspaceId/budgets/$budgetId/edit'
@@ -1136,7 +1136,6 @@ export interface FileRouteTypes {
     | '/'
     | '/$workspaceId/notifications'
     | '/$workspaceId/smart-tagging'
-    | '/$workspaceId/transactions'
     | '/wizards/first-user'
     | '/wizards/split-group'
     | '/api/auth/$'
@@ -1165,6 +1164,7 @@ export interface FileRouteTypes {
     | '/$workspaceId/budgets'
     | '/$workspaceId/subscriptions'
     | '/$workspaceId/tags'
+    | '/$workspaceId/transactions'
     | '/splits/$groupId'
     | '/splits/join/$token'
     | '/$workspaceId/budgets/$budgetId/edit'
@@ -1240,7 +1240,6 @@ export interface FileRouteTypes {
     | '/(app)/'
     | '/(app)/$workspaceId/notifications'
     | '/(app)/$workspaceId/smart-tagging'
-    | '/(app)/$workspaceId/transactions'
     | '/(app)/wizards/first-user'
     | '/(app)/wizards/split-group'
     | '/api/auth/$'
@@ -1270,6 +1269,7 @@ export interface FileRouteTypes {
     | '/(app)/$workspaceId/budgets/'
     | '/(app)/$workspaceId/subscriptions/'
     | '/(app)/$workspaceId/tags/'
+    | '/(app)/$workspaceId/transactions/'
     | '/(app)/splits/$groupId/'
     | '/splits/join/$token/'
     | '/(app)/$workspaceId/budgets/$budgetId/edit'
@@ -1464,13 +1464,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof appWizardsFirstUserRouteImport
       parentRoute: typeof appRouteRoute
     }
-    '/(app)/$workspaceId/transactions': {
-      id: '/(app)/$workspaceId/transactions'
-      path: '/transactions'
-      fullPath: '/$workspaceId/transactions'
-      preLoaderRoute: typeof appWorkspaceIdTransactionsRouteImport
-      parentRoute: typeof appWorkspaceIdRouteRoute
-    }
     '/(app)/$workspaceId/smart-tagging': {
       id: '/(app)/$workspaceId/smart-tagging'
       path: '/smart-tagging'
@@ -1498,6 +1491,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/splits/$groupId'
       preLoaderRoute: typeof appSplitsGroupIdIndexRouteImport
       parentRoute: typeof appRouteRoute
+    }
+    '/(app)/$workspaceId/transactions/': {
+      id: '/(app)/$workspaceId/transactions/'
+      path: '/transactions'
+      fullPath: '/$workspaceId/transactions'
+      preLoaderRoute: typeof appWorkspaceIdTransactionsIndexRouteImport
+      parentRoute: typeof appWorkspaceIdRouteRoute
     }
     '/(app)/$workspaceId/tags/': {
       id: '/(app)/$workspaceId/tags/'
@@ -1627,10 +1627,10 @@ declare module '@tanstack/react-router' {
     }
     '/(app)/$workspaceId/transactions/import': {
       id: '/(app)/$workspaceId/transactions/import'
-      path: '/import'
+      path: '/transactions/import'
       fullPath: '/$workspaceId/transactions/import'
       preLoaderRoute: typeof appWorkspaceIdTransactionsImportRouteImport
-      parentRoute: typeof appWorkspaceIdTransactionsRoute
+      parentRoute: typeof appWorkspaceIdRouteRoute
     }
     '/(app)/$workspaceId/tags/smart-tagging': {
       id: '/(app)/$workspaceId/tags/smart-tagging'
@@ -2083,32 +2083,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface appWorkspaceIdTransactionsRouteChildren {
-  appWorkspaceIdTransactionsImportRoute: typeof appWorkspaceIdTransactionsImportRoute
-}
-
-const appWorkspaceIdTransactionsRouteChildren: appWorkspaceIdTransactionsRouteChildren =
-  {
-    appWorkspaceIdTransactionsImportRoute:
-      appWorkspaceIdTransactionsImportRoute,
-  }
-
-const appWorkspaceIdTransactionsRouteWithChildren =
-  appWorkspaceIdTransactionsRoute._addFileChildren(
-    appWorkspaceIdTransactionsRouteChildren,
-  )
-
 interface appWorkspaceIdRouteRouteChildren {
   appWorkspaceIdNotificationsRoute: typeof appWorkspaceIdNotificationsRoute
   appWorkspaceIdSmartTaggingRoute: typeof appWorkspaceIdSmartTaggingRoute
-  appWorkspaceIdTransactionsRoute: typeof appWorkspaceIdTransactionsRouteWithChildren
   appWorkspaceIdIndexRoute: typeof appWorkspaceIdIndexRoute
   appWorkspaceIdBudgetsNewRoute: typeof appWorkspaceIdBudgetsNewRoute
   appWorkspaceIdTagsImportRoute: typeof appWorkspaceIdTagsImportRoute
   appWorkspaceIdTagsSmartTaggingRoute: typeof appWorkspaceIdTagsSmartTaggingRoute
+  appWorkspaceIdTransactionsImportRoute: typeof appWorkspaceIdTransactionsImportRoute
   appWorkspaceIdBudgetsIndexRoute: typeof appWorkspaceIdBudgetsIndexRoute
   appWorkspaceIdSubscriptionsIndexRoute: typeof appWorkspaceIdSubscriptionsIndexRoute
   appWorkspaceIdTagsIndexRoute: typeof appWorkspaceIdTagsIndexRoute
+  appWorkspaceIdTransactionsIndexRoute: typeof appWorkspaceIdTransactionsIndexRoute
   appWorkspaceIdBudgetsBudgetIdEditRoute: typeof appWorkspaceIdBudgetsBudgetIdEditRoute
   appWorkspaceIdBudgetsBudgetIdIndexRoute: typeof appWorkspaceIdBudgetsBudgetIdIndexRoute
 }
@@ -2116,14 +2102,15 @@ interface appWorkspaceIdRouteRouteChildren {
 const appWorkspaceIdRouteRouteChildren: appWorkspaceIdRouteRouteChildren = {
   appWorkspaceIdNotificationsRoute: appWorkspaceIdNotificationsRoute,
   appWorkspaceIdSmartTaggingRoute: appWorkspaceIdSmartTaggingRoute,
-  appWorkspaceIdTransactionsRoute: appWorkspaceIdTransactionsRouteWithChildren,
   appWorkspaceIdIndexRoute: appWorkspaceIdIndexRoute,
   appWorkspaceIdBudgetsNewRoute: appWorkspaceIdBudgetsNewRoute,
   appWorkspaceIdTagsImportRoute: appWorkspaceIdTagsImportRoute,
   appWorkspaceIdTagsSmartTaggingRoute: appWorkspaceIdTagsSmartTaggingRoute,
+  appWorkspaceIdTransactionsImportRoute: appWorkspaceIdTransactionsImportRoute,
   appWorkspaceIdBudgetsIndexRoute: appWorkspaceIdBudgetsIndexRoute,
   appWorkspaceIdSubscriptionsIndexRoute: appWorkspaceIdSubscriptionsIndexRoute,
   appWorkspaceIdTagsIndexRoute: appWorkspaceIdTagsIndexRoute,
+  appWorkspaceIdTransactionsIndexRoute: appWorkspaceIdTransactionsIndexRoute,
   appWorkspaceIdBudgetsBudgetIdEditRoute:
     appWorkspaceIdBudgetsBudgetIdEditRoute,
   appWorkspaceIdBudgetsBudgetIdIndexRoute:

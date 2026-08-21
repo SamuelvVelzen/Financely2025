@@ -3,7 +3,7 @@ import { deserializeFilterStateFromQuery } from "@/features/transaction/utils/tr
 import { useSearch } from "@tanstack/react-router";
 
 export function TransactionsPage() {
-  const search = useSearch({ from: "/(app)/$workspaceId/transactions" });
+  const search = useSearch({ from: "/(app)/$workspaceId/transactions/" });
   const autoOpenCreate = "create" in search && search.create === true;
   const filterSearch =
     "create" in search

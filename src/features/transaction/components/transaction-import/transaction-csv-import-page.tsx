@@ -28,6 +28,7 @@ export function TransactionCsvImportPage({
     navigate({
       to: "/$workspaceId/transactions",
       params: { workspaceId: workspaceRouteParam },
+      search: {},
       ignoreBlocker: true,
     });
   }, [navigate, workspaceRouteParam]);
