@@ -1,5 +1,4 @@
-import { cn } from "@/features/util/cn";
-import { type ReactNode, useCallback, useDeferredValue } from "react";
+import { type ReactNode, useCallback } from "react";
 import { HiArrowLeft, HiArrowRight, HiCheck } from "react-icons/hi2";
 import { Button } from "../button/button";
 import { Container } from "../container/container";
@@ -31,27 +30,27 @@ export function Wizard({
   onStepChange,
   onComplete,
 }: IWizardProps) {
-  const displayedStep = useDeferredValue(currentStep);
-  const isTransitioning = currentStep !== displayedStep;
-
-  const currentPage = pages[displayedStep];
-  const isFirstStep = currentStep === 0;
-  const isLastStep = currentStep === pages.length - 1;
+  const lastIndex = Math.max(pages.length - 1, 0);
+  const stepIndex =
+    pages.length === 0 ? 0 : Math.min(Math.max(currentStep, 0), lastIndex);
+  const currentPage = pages[stepIndex];
+  const isFirstStep = stepIndex === 0;
+  const isLastStep = stepIndex === lastIndex;
   const canSkipCurrentPage = currentPage?.skippable ?? true;
 
   const handleBack = useCallback(() => {
     if (!isFirstStep) {
-      onStepChange(currentStep - 1);
+      onStepChange(stepIndex - 1);
     }
-  }, [isFirstStep, currentStep, onStepChange]);
+  }, [isFirstStep, stepIndex, onStepChange]);
 
   const handleNext = useCallback(() => {
     if (isLastStep) {
       onComplete();
     } else {
-      onStepChange(currentStep + 1);
+      onStepChange(stepIndex + 1);
     }
-  }, [isLastStep, currentStep, onStepChange, onComplete]);
+  }, [isLastStep, stepIndex, onStepChange, onComplete]);
 
   if (!currentPage) {
     return null;
@@ -59,29 +58,25 @@ export function Wizard({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
-
-      {/* Progress indicator */}
       <Container className="rounded-t-none">
         <WizardProgress
-          currentStep={currentStep}
+          currentStep={stepIndex}
           totalSteps={pages.length}
         />
       </Container>
 
-      {/* Content area */}
-      <main
-        className={cn(
-          "flex-1 overflow-y-auto p-6 md:p-12",
-          "transition-opacity duration-150",
-          isTransitioning ? "opacity-0" : "opacity-100"
-        )}>
-        <div className="max-w-3xl mx-auto">{currentPage.content}</div>
+      <main className="flex-1 overflow-y-auto p-6 md:p-12">
+        <div
+          key={currentPage.id}
+          className="max-w-3xl mx-auto">
+          {currentPage.content}
+        </div>
       </main>
 
-      {/* Footer with navigation */}
-      <Container className="rounded-b-none mb-0" as="footer">
+      <Container
+        className="rounded-b-none mb-0"
+        as="footer">
         <div className="flex items-center justify-between container mx-auto">
-          {/* Back button in footer */}
           {!isFirstStep ? (
             <Button
               clicked={handleBack}
@@ -95,9 +90,7 @@ export function Wizard({
             <div />
           )}
 
-
           <div className="flex items-center gap-3">
-            {/* Skip current page button (only for skippable pages, not on last step) */}
             {canSkipCurrentPage && !isLastStep && (
               <Button
                 clicked={handleNext}
@@ -107,7 +100,6 @@ export function Wizard({
               </Button>
             )}
 
-            {/* Next/Complete button */}
             <Button
               clicked={handleNext}
               variant="primary"

@@ -7,6 +7,7 @@ import {
 } from "@/features/transaction/components/wizard/onboarding";
 import { Loading } from "@/features/ui/loading";
 import { type IWizardPage, Wizard } from "@/features/ui/wizard/wizard";
+import { useMe } from "@/features/users/hooks/useUser";
 import { UserSettingsStep } from "@/features/wizard/components/user-settings-step";
 import { WorkspaceSettingsStep } from "@/features/wizard/components/workspace-settings-step";
 import {
@@ -18,6 +19,7 @@ import {
   WIZARD_IDS,
   workspaceSetupWizardId,
 } from "@/features/wizard/wizard-ids";
+import { ActiveWorkspaceProvider } from "@/features/workspace/active-workspace-provider";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { useNavigate, useSearch } from "@tanstack/react-router";
@@ -29,6 +31,7 @@ export function OnboardingPage() {
   const { data: progress, isLoading } = useWizardProgress(
     WIZARD_IDS.ONBOARDING,
   );
+  const { isPending: mePending } = useMe();
   const updateProgress = useUpdateWizardProgress();
   const completeWizard = useCompleteWizard();
   const workspaceId = useNavWorkspaceId();
@@ -140,7 +143,7 @@ export function OnboardingPage() {
     navigate({ to: "/" });
   };
 
-  if (isLoading) {
+  if (isLoading || mePending) {
     return (
       <Loading
         text="Loading"
@@ -149,12 +152,24 @@ export function OnboardingPage() {
     );
   }
 
-  return (
+  const wizard = (
     <Wizard
       pages={pages}
       currentStep={currentStep}
       onStepChange={handleStepChange}
       onComplete={handleComplete}
     />
+  );
+
+  // /onboarding is outside /:workspaceId, but budget/import steps still
+  // call useActiveWorkspaceId. Provide the resolved nav workspace.
+  if (workspaceId == null) {
+    return wizard;
+  }
+
+  return (
+    <ActiveWorkspaceProvider workspaceId={workspaceId}>
+      {wizard}
+    </ActiveWorkspaceProvider>
   );
 }
