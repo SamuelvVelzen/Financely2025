@@ -26,6 +26,7 @@ import {
 import { Button } from "@/features/ui/button/button";
 import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
+import { focusFirstInvalidField } from "@/features/ui/form/focus-first-invalid-field";
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { DateInput } from "@/features/ui/input/date-input";
@@ -167,9 +168,12 @@ export function AddOrEditTransactionDialog({
     setTagSuggestion(null);
     setDatePickerOpen(false);
     setUserEditedTags(false);
-    setWorkingTransaction(undefined);
-    setIsAllocateRefundOpen(false);
-    setExpenseToOpenId(null);
+    const preserveAllocateRefund = isAllocateRefundOpen;
+    if (!preserveAllocateRefund) {
+      setWorkingTransaction(undefined);
+      setIsAllocateRefundOpen(false);
+      setExpenseToOpenId(null);
+    }
   }
   const hasTime = uiSession.hasTime;
   const showAdvanced = uiSession.showAdvanced;
@@ -652,11 +656,16 @@ export function AddOrEditTransactionDialog({
       workingTransaction?.type === "EXPENSE"
     ) {
       setIsAllocateRefundOpen(true);
+      onOpenChange(false);
       return;
     }
 
     const isValid = await form.trigger();
     if (!isValid) {
+      toast.error(
+        "Complete the required fields above before creating and linking.",
+      );
+      focusFirstInvalidField(form, { formElementId: formId });
       return;
     }
 
@@ -684,6 +693,7 @@ export function AddOrEditTransactionDialog({
           : null,
       tagIds: data.tagIds || [],
       primaryTagId: data.primaryTagId || null,
+      ledgerAccountId: data.ledgerAccountId || null,
     };
 
     try {
@@ -708,8 +718,10 @@ export function AddOrEditTransactionDialog({
           ? "Income created successfully"
           : "Expense created successfully",
       );
-      onSuccess?.();
       setIsAllocateRefundOpen(true);
+      resetFormToClosedState();
+      onOpenChange(false);
+      onSuccess?.();
     } catch {
       setPendingAction(null);
       toast.error(
@@ -979,7 +991,13 @@ export function AddOrEditTransactionDialog({
 
       <AllocateRefundDialog
         open={isAllocateRefundOpen}
-        onOpenChange={setIsAllocateRefundOpen}
+        onOpenChange={(nextOpen) => {
+          setIsAllocateRefundOpen(nextOpen);
+          if (!nextOpen) {
+            setWorkingTransaction(undefined);
+            setExpenseToOpenId(null);
+          }
+        }}
         transaction={workingTransaction ?? null}
         onSaved={setWorkingTransaction}
         onOpenTransaction={setExpenseToOpenId}
