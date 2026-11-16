@@ -66,9 +66,12 @@ Then remove `SEED_ALLOW_IN_PRODUCTION` from production env so seed cannot run ac
 ## Build and deploy
 
 ```bash
-yarn install
+corepack enable
+yarn install --immutable
 yarn build
 ```
+
+The repo uses **Yarn 4** (`packageManager` in `package.json`). Cloudflare’s default install must not modify `yarn.lock`; use `--immutable` (or equivalent) in CI.
 
 `yarn build` runs Prisma generate, Vite + Nitro build, and `scripts/generate-sw.ts` for the PWA service worker.
 

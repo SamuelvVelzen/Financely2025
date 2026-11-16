@@ -2,7 +2,7 @@
 
 [build]
 builder = "RAILPACK"
-buildCommand = "yarn install --frozen-lockfile && yarn build"
+buildCommand = "corepack enable && yarn install --immutable && yarn build"
 
 [deploy]
 # SQLite lives on a volume mounted at /data. Volumes are not available during

@@ -18,10 +18,11 @@ A financial management application built with TanStack Start.
 First, install dependencies:
 
 ```bash
+corepack enable
 yarn install
-# or
-npm install
 ```
+
+The repo pins **Yarn 4** via `packageManager` in `package.json` (`.yarn/releases/`).
 
 ### Database Setup
 
