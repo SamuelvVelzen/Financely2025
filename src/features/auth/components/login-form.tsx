@@ -240,12 +240,14 @@ export function LoginForm() {
             type="email"
             label="Email"
             placeholder="you@example.com"
+            autoComplete="username"
             disabled={loading}
           />
           <PasswordInput
             name="password"
             label="Password"
             placeholder="••••••••"
+            autoComplete="current-password"
             disabled={loading}
           />
 

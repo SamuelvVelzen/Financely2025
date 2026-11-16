@@ -110,7 +110,7 @@ export const auth = betterAuth({
         requireEmailVerification: true, // Always require email verification when email/password is enabled
         minPasswordLength: 8,
         maxPasswordLength: 128,
-        autoSignIn: true,
+        autoSignIn: false,
         sendResetPassword: async ({ user, url, token }) => {
           await EmailService.sendResetPasswordEmail({
             user: {

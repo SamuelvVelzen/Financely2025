@@ -9,12 +9,13 @@ import { Button } from "@/features/ui/button/button";
 import { Form } from "@/features/ui/form/form";
 import { useFinForm } from "@/features/ui/form/useForm";
 import { BaseInput } from "@/features/ui/input/input";
+import { PasswordInput } from "@/features/ui/input/password-input";
 import { TextInput } from "@/features/ui/input/text-input";
 import { NavLink } from "@/features/ui/navigation/nav-link";
 import { useToast } from "@/features/ui/toast";
 import { authClient } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearch } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 
@@ -23,22 +24,27 @@ const ENABLE_EMAIL_PASSWORD =
   import.meta.env.VITE_ENABLE_EMAIL_PASSWORD !== "false";
 
 // Validation schema
-const registerSchema = z.object({
-  firstname: z.string().min(1, "Firstname is required"),
-  suffix: z.string().optional(),
-  lastname: z.string().min(1, "Lastname is required"),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
+const registerSchema = z
+  .object({
+    firstname: z.string().min(1, "Firstname is required"),
+    suffix: z.string().optional(),
+    lastname: z.string().min(1, "Lastname is required"),
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    passwordConfirm: z.string().min(8, "Confirm your password"),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: "Passwords do not match",
+    path: ["passwordConfirm"],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resendLoading, setResendLoading] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const toast = useToast();
+  const navigate = useNavigate({ from: "/register" });
 
   const { redirect } = useSearch({ from: "/register" });
 
@@ -50,6 +56,7 @@ export function RegisterForm() {
       lastname: "",
       email: "",
       password: "",
+      passwordConfirm: "",
     },
   });
 
@@ -76,44 +83,19 @@ export function RegisterForm() {
         return;
       }
 
-      setRegistrationSuccess(true);
       toast.success(
-        "Account created successfully! Please check your email to verify your account."
+        "Account created! Check your email to verify, then sign in.",
       );
+      void navigate({
+        to: "/login",
+        search: { redirect },
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";
       setError(message);
       toast.error(message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleResendVerification = async () => {
-    const email = registerForm.getValues("email");
-    if (!email) {
-      toast.error("Please enter your email address");
-      return;
-    }
-
-    setResendLoading(true);
-    try {
-      const result = await authClient.sendVerificationEmail({
-        email,
-        callbackURL: redirect || "/",
-      });
-
-      if (result.error) {
-        toast.error(
-          result.error.message || "Failed to send verification email"
-        );
-      } else {
-        toast.success("Verification email sent! Please check your inbox.");
-      }
-    } catch (_err) {
-      toast.error("Failed to send verification email");
-    } finally {
-      setResendLoading(false);
     }
   };
 
@@ -127,40 +109,6 @@ export function RegisterForm() {
     );
   }
 
-  if (registrationSuccess) {
-    return (
-      <div className="space-y-6">
-        <div className="p-4 bg-success/10 border border-success rounded-2xl space-y-4">
-          <p className="text-success text-sm font-medium">
-            Account created successfully!
-          </p>
-          <p className="text-text-muted text-sm">
-            Please check your email to verify your account before logging in.
-          </p>
-          <div className="flex flex-col gap-2">
-            <Button
-              type="button"
-              clicked={handleResendVerification}
-              disabled={resendLoading}
-              className="w-full"
-              loading={{
-                isLoading: resendLoading,
-                text: "Sending verification email",
-              }}>
-              Resend verification email
-            </Button>
-            <NavLink
-              to="/login"
-              search={{ redirect }}
-              className="text-center text-sm">
-              Continue to login
-            </NavLink>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {error && (
@@ -169,7 +117,6 @@ export function RegisterForm() {
         </div>
       )}
 
-      {/* Registration Form */}
       <Form
         form={registerForm}
         onSubmit={handleRegister}
@@ -179,6 +126,7 @@ export function RegisterForm() {
             name="firstname"
             label="Firstname"
             placeholder="Your firstname"
+            autoComplete="given-name"
             disabled={loading}
           />
 
@@ -186,6 +134,7 @@ export function RegisterForm() {
             name="suffix"
             label="Suffix (optional)"
             placeholder="Your suffix"
+            autoComplete="additional-name"
             disabled={loading}
           />
         </div>
@@ -194,6 +143,7 @@ export function RegisterForm() {
           name="lastname"
           label="Lastname"
           placeholder="Your lastname"
+          autoComplete="family-name"
           disabled={loading}
         />
 
@@ -202,15 +152,23 @@ export function RegisterForm() {
           type="email"
           label="Email"
           placeholder="you@example.com"
+          autoComplete="username"
           disabled={loading}
         />
-        <BaseInput
+        <PasswordInput
           name="password"
-          type="password"
           label="Password"
           placeholder="••••••••"
+          autoComplete="new-password"
           disabled={loading}
           hint="Password must be at least 8 characters"
+        />
+        <PasswordInput
+          name="passwordConfirm"
+          label="Confirm password"
+          placeholder="••••••••"
+          autoComplete="new-password"
+          disabled={loading}
         />
 
         <Button
@@ -225,7 +183,6 @@ export function RegisterForm() {
         </Button>
       </Form>
 
-      {/* Link to Login */}
       <div className="text-center text-sm">
         <span className="text-text-muted">Already have an account? </span>
         <NavLink
