@@ -13,6 +13,7 @@ const candidates = [
   resolve(process.cwd(), "dist/client"),
   resolve(process.cwd(), ".output/public"),
   resolve(process.cwd(), ".tanstack/start/build/client-dist"),
+  resolve(process.cwd(), "dist"),
 ];
 
 const globDirectory = candidates.find((dir) => existsSync(dir));

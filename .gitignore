@@ -24,6 +24,8 @@
 
 # production
 /build
+.wrangler/
+dist/
 
 # misc
 .DS_Store

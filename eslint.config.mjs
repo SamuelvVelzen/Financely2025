@@ -18,6 +18,7 @@ export default tseslint.config(
       "dist/**",
       "next-env.d.ts",
       "src/features/shared/validation/generated.ts/**",
+      "worker-configuration.d.ts",
     ],
   },
   eslint.configs.recommended,

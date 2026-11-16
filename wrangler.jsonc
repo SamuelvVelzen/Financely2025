@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "financely",
+  "compatibility_date": "2025-11-16",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "src/server.ts",
+  "observability": {
+    "enabled": true,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "financely",
+      // Create with: wrangler d1 create financely — then paste the database_id here and in Cloudflare CI secrets if needed.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+    },
+  ],
+}

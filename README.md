@@ -196,25 +196,26 @@ To learn more about the technologies used, take a look at the following resource
 
 Full steps (DNS, env vars, SQLite, seed, troubleshooting): **[docs/deploy-cloudflare.md](docs/deploy-cloudflare.md)**.
 
-Locally, the app uses [Nitro](https://nitro.build/) as the Node host:
+Local dev and production builds use **TanStack Start** on **Cloudflare Workers** (`@cloudflare/vite-plugin` + Wrangler) with **D1**:
 
 ```bash
-yarn build
-yarn start
-# → node .output/server/index.mjs
+yarn db:d1:migrate:local   # first time / after new migrations
+yarn dev
+yarn build:cf              # deploy artifact
+yarn deploy                # build + wrangler deploy
 ```
 
-`yarn build` generates the Prisma Client, builds with Vite + Nitro, then writes the service worker via `scripts/generate-sw.ts`.
+`yarn build` generates the Prisma Client, builds the Worker bundle, then writes the service worker via `scripts/generate-sw.ts`.
 
 ### Production summary
 
-| Topic      | Where                                                           |
-| ---------- | --------------------------------------------------------------- |
-| Hosting    | Cloudflare Workers / Pages (`vanvelzen.dev` zone)               |
-| Auth URL   | `BETTER_AUTH_URL=https://financely.vanvelzen.dev`               |
-| Database   | SQLite via `DATABASE_URL` (persistent store on your CF runtime) |
-| Migrations | `yarn prisma:migrate` on deploy                                 |
-| Admin user | One-shot `yarn seed` (see deploy doc)                           |
-| Email      | Optional for now — use **seed login**, not public register      |
+| Topic      | Where                                                      |
+| ---------- | ---------------------------------------------------------- |
+| Hosting    | Cloudflare Workers (`vanvelzen.dev` zone)                  |
+| Auth URL   | `BETTER_AUTH_URL=https://financely.vanvelzen.dev`          |
+| Database   | D1 (`DB` binding) + Prisma D1 adapter                      |
+| Migrations | `yarn db:d1:migrate:remote` on deploy                      |
+| Admin user | One-shot `yarn seed` (see deploy doc)                      |
+| Email      | Optional for now — use **seed login**, not public register |
 
 [`railway.toml`](railway.toml) is **legacy** (previous Railway host); new deploys use Cloudflare.

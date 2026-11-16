@@ -1,105 +1,122 @@
-# Deploy on Cloudflare
+# Deploy on Cloudflare Workers + D1
 
-Production runs on **Cloudflare** at **https://financely.vanvelzen.dev** (Workers / Pages in the `vanvelzen.dev` zone).
+Production runs on **Cloudflare Workers** at **https://financely.vanvelzen.dev**, with **D1** (SQLite) as the database.
 
-Local development still uses **Node + Nitro** (`yarn dev` / `yarn start`). The same `yarn build` output is what you publish to Cloudflare.
+Local `yarn dev` uses the same stack: Vite + `@cloudflare/vite-plugin`, Wrangler local D1, and the custom worker entry in `src/server.ts`.
 
 ## Prerequisites
 
 - Cloudflare account with the `vanvelzen.dev` zone
-- A Workers or Pages project connected to this repository (or manual upload of build artifacts)
-- `BETTER_AUTH_SECRET` (32+ random bytes)
+- Wrangler logged in (`wrangler login`)
+- D1 database created and bound as `DB` in `wrangler.jsonc`
+- `BETTER_AUTH_SECRET` (32+ random bytes) set as a Worker **secret**
 
-## DNS
+## One-time D1 setup
 
-1. In **DNS** for `vanvelzen.dev`, add or keep a record for the app host, for example:
-   - **Name:** `financely`
-   - **Target:** your Cloudflare Workers / Pages hostname (or route defined in the dashboard)
-   - **Proxy:** proxied (orange cloud) is typical for HTTPS on a custom domain
-2. Attach **custom domain** `financely.vanvelzen.dev` on the Workers/Pages project so it matches `BETTER_AUTH_URL`.
+1. Create the database (if you have not already):
 
-Avoid attaching the same hostname to **two** Cloudflare products (for example Pages **and** a Worker route) — that can cause edge errors such as **1102 Worker exceeded CPU time limits** on some requests.
+   ```bash
+   wrangler d1 create financely
+   ```
+
+2. Copy the `database_id` from the command output into `wrangler.jsonc` under `d1_databases[0].database_id` (replace the placeholder).
+
+3. Apply schema to **remote** D1 (run after every release that includes new Prisma migrations):
+
+   ```bash
+   yarn db:d1:migrate:remote
+   ```
+
+4. For local dev / preview against local D1:
+
+   ```bash
+   yarn db:d1:migrate:local
+   ```
+
+Prisma migrations live under `prisma/migrations/`; the `db:d1:migrate:*` scripts execute each `migration.sql` in order via `wrangler d1 execute`.
+
+## DNS and custom domain
+
+1. In **DNS** for `vanvelzen.dev`, point `financely` at your Worker (or attach the hostname in the Worker dashboard).
+2. Set **`BETTER_AUTH_URL`** to `https://financely.vanvelzen.dev`.
+
+Avoid attaching the same hostname to two Cloudflare products (Pages and a Worker route), which can cause edge errors.
 
 ## Environment variables
 
-Set these in the Cloudflare dashboard (**Settings → Variables and secrets**) for the production environment.
+Set these on the Worker (**Settings → Variables and secrets**) for production.
 
-| Variable                     | Example                           | Notes                                                                             |
-| ---------------------------- | --------------------------------- | --------------------------------------------------------------------------------- |
-| `DATABASE_URL`               | `file:…`                          | Prisma SQLite URL pointing at **persistent** storage for your runtime (see below) |
-| `NODE_ENV`                   | `production`                      |                                                                                   |
-| `BETTER_AUTH_SECRET`         | (secret)                          | Required                                                                          |
-| `BETTER_AUTH_URL`            | `https://financely.vanvelzen.dev` | Must match the public URL                                                         |
-| `ENABLE_EMAIL_PASSWORD`      | `true`                            |                                                                                   |
-| `VITE_ENABLE_EMAIL_PASSWORD` | `true`                            | Client bundle                                                                     |
-| `VITE_ENABLE_MAGIC_LINK`     | `false`                           | Recommended until email is configured                                             |
-| `ENABLE_MAGIC_LINK`          | `false`                           |                                                                                   |
-| `RATE_LIMIT_DISABLED`        | `false`                           |                                                                                   |
+| Variable                     | Example                           | Notes                                      |
+| ---------------------------- | --------------------------------- | ------------------------------------------ |
+| `NODE_ENV`                   | `production`                      |                                            |
+| `BETTER_AUTH_SECRET`         | (secret)                          | Required                                   |
+| `BETTER_AUTH_URL`            | `https://financely.vanvelzen.dev` | Must match the public URL                  |
+| `ENABLE_EMAIL_PASSWORD`      | `true`                            |                                            |
+| `VITE_ENABLE_EMAIL_PASSWORD` | `true`                            | Client bundle (build-time on CI if needed) |
+| `VITE_ENABLE_MAGIC_LINK`     | `false`                           |                                            |
+| `ENABLE_MAGIC_LINK`          | `false`                           |                                            |
+| `RATE_LIMIT_DISABLED`        | `false`                           |                                            |
 
-**Email (Resend):** optional for now. Leave `RESEND_API_KEY` and `EMAIL_FROM` unset until you add a mail provider. Auth still uses email/password; verification and password-reset **emails** are not sent until Resend is configured (see [Auth without email](#auth-without-email-for-now)).
+You do **not** set `DATABASE_URL` in production; Prisma uses the **`DB`** D1 binding via `@prisma/adapter-d1`.
 
 Copy other flags from [`.env.example`](../.env.example) if you enable OAuth providers.
 
-## Database (SQLite)
+## One-shot production seed
 
-The schema targets **SQLite** via Prisma. Production must use a `DATABASE_URL` that survives deploys and restarts on your Cloudflare setup (same idea as the old Railway volume under `/data`).
+After migrations, seed once against remote D1. Use a machine with Wrangler access and production secrets, or run seed logic via a controlled admin path documented in your runbook.
 
-- Run migrations on deploy: `npx prisma migrate deploy` (or `yarn prisma:migrate`).
-- Do **not** run `yarn seed` on every deploy.
-
-### One-shot production seed
-
-Run once with production `DATABASE_URL` and guards from `.env.example`:
-
-```bash
-SEED_ALLOW_IN_PRODUCTION=true \
-SEED_USER_EMAIL=you@example.com \
-SEED_USER_PASSWORD='your-long-password' \
-SEED_USER_FIRST_NAME=Sam \
-SEED_USER_LAST_NAME=Ney \
-NODE_ENV=production \
-yarn seed
-```
-
-Then remove `SEED_ALLOW_IN_PRODUCTION` from production env so seed cannot run accidentally.
+Guards from `.env.example` still apply (`SEED_ALLOW_IN_PRODUCTION`, etc.). Do not run `yarn seed` on every deploy.
 
 ## Build and deploy
 
 ```bash
 corepack enable
 yarn install --immutable
-yarn build
+yarn build:cf
+yarn deploy
 ```
 
-The repo uses **Yarn 4** (`packageManager` in `package.json`). Cloudflare’s default install must not modify `yarn.lock`; use `--immutable` (or equivalent) in CI.
+Or:
 
-`yarn build` runs Prisma generate, Vite + Nitro build, and `scripts/generate-sw.ts` for the PWA service worker.
+```bash
+yarn deploy
+```
 
-Publish using your Cloudflare project’s workflow (Git integration, `wrangler deploy`, or Pages build command). Set the **build command** to `yarn build:cf` (alias of `yarn build`) or `yarn build`. Run migrations before or as part of the release step.
+Cloudflare CI should use **`yarn build:cf`** (Prisma generate, Vite Worker build, PWA `sw.js`) and deploy the Wrangler output.
+
+After deploy, run **`yarn db:d1:migrate:remote`** if this release added migrations.
 
 ### Post-deploy checks
 
 - `GET /login` returns **200**
-- Sign in with the seeded account (not public registration) until email is configured
-- After FX fixes ship: foreign-currency split expense converts (not stuck `pending`)
+- Sign in with the seeded account
+- Workers logs show no Prisma / D1 errors on first request
+
+## Local development
+
+```bash
+cp .env.example .env
+yarn db:d1:migrate:local
+yarn dev
+```
+
+Vitest still uses file SQLite (`DATABASE_URL` in test global setup), not D1.
 
 ## Auth without email (for now)
 
-- **Sign in** with the **seeded** user works with email/password.
-- **Register** on production is not the supported path until Resend (or another provider) is wired and verification is sorted out.
-- Magic link should stay **disabled** in production env until email works.
-
-When you add email later: set `RESEND_API_KEY` and `EMAIL_FROM`, verify the domain in Resend, and re-enable flows that send mail.
+- Sign in with the **seeded** user works with email/password.
+- **Register** on production is not the supported path until Resend (or another provider) is wired.
+- Keep magic link **disabled** in production until email works.
 
 ## Troubleshooting
 
-| Symptom                                | Things to check                                                                                |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Cloudflare **1102** (Worker CPU limit) | Worker/Pages routes for `financely.vanvelzen.dev`; duplicate hostname; Workers logs for Ray ID |
-| **500** on `/api/auth/sign-up/email`   | Expected without Resend in production; use seed login                                          |
-| **401** on API                         | Session cookie; `BETTER_AUTH_URL` must match browser origin                                    |
-| FX **pending**                         | Frankfurter API provider must match current API (see vacation fix list)                        |
+| Symptom               | Things to check                                                            |
+| --------------------- | -------------------------------------------------------------------------- |
+| **500** on all routes | D1 binding `DB`; migrations applied; `BETTER_AUTH_SECRET` set; Worker logs |
+| **500** on auth       | Prisma D1 adapter; schema applied to D1; cookie / `BETTER_AUTH_URL` origin |
+| Build fails           | Yarn 4 `--immutable`; `yarn prisma:generate` before build                  |
+| **1102** CPU limit    | Duplicate hostname / route; heavy work on edge                             |
 
-## Legacy: Railway
+## Legacy: Railway / Nitro
 
-[`railway.toml`](../railway.toml) is kept for reference only. Production hosting moved to Cloudflare; do not use Railway docs in the README for new deploys.
+[`railway.toml`](../railway.toml) and the old Nitro `node .output/server/index.mjs` flow are obsolete for production. The app targets **TanStack Start + Cloudflare Vite plugin + Wrangler**, not `nitro()` node-server.
