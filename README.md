@@ -25,7 +25,7 @@ npm install
 
 ### Database Setup
 
-This project uses [Prisma](https://www.prisma.io) with **SQLite** for local development and production (single-instance deploys with a persistent volume).
+This project uses [Prisma](https://www.prisma.io) with **SQLite** for local development and production (single-instance deploys with persistent database storage — **Cloudflare** in production; see [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md)).
 
 #### Initial Setup
 
@@ -191,7 +191,11 @@ To learn more about the technologies used, take a look at the following resource
 
 ## Build and Deploy
 
-The production server uses [Nitro](https://nitro.build/) (TanStack Start’s recommended Node host). Build and start:
+**Production:** [Cloudflare](docs/deploy-cloudflare.md) — **https://financely.vanvelzen.dev**
+
+Full steps (DNS, env vars, SQLite, seed, troubleshooting): **[docs/deploy-cloudflare.md](docs/deploy-cloudflare.md)**.
+
+Locally, the app uses [Nitro](https://nitro.build/) as the Node host:
 
 ```bash
 yarn build
@@ -201,41 +205,15 @@ yarn start
 
 `yarn build` generates the Prisma Client, builds with Vite + Nitro, then writes the service worker via `scripts/generate-sw.ts`.
 
-### Railway (SQLite)
+### Production summary
 
-Config is in [`railway.toml`](railway.toml). The app expects a **persistent volume** so the SQLite file survives redeploys.
+| Topic      | Where                                                           |
+| ---------- | --------------------------------------------------------------- |
+| Hosting    | Cloudflare Workers / Pages (`vanvelzen.dev` zone)               |
+| Auth URL   | `BETTER_AUTH_URL=https://financely.vanvelzen.dev`               |
+| Database   | SQLite via `DATABASE_URL` (persistent store on your CF runtime) |
+| Migrations | `yarn prisma:migrate` on deploy                                 |
+| Admin user | One-shot `yarn seed` (see deploy doc)                           |
+| Email      | Optional for now — use **seed login**, not public register      |
 
-1. Create a Railway service from this repo (EU region recommended).
-2. Attach a volume (e.g. mount `/data`).
-3. Set environment variables (see [`.env.example`](.env.example)):
-
-| Variable | Example |
-| --- | --- |
-| `DATABASE_URL` | `file:/data/financely.db` |
-| `NODE_ENV` | `production` |
-| `BETTER_AUTH_SECRET` | strong random 32+ bytes |
-| `BETTER_AUTH_URL` | `https://financely.vanvelzen.dev` |
-| `RESEND_API_KEY` / `EMAIL_FROM` | required for auth emails |
-| `ENABLE_*` / `VITE_ENABLE_*` | match chosen auth methods |
-
-4. Deploy. On start the service runs `prisma migrate deploy`, then `yarn start`.
-   (Migrate is in the start command because Railway volumes are not mounted during pre-deploy.)
-5. **One-shot seed** (do not put this on every deploy). In a Railway shell:
-
-```bash
-SEED_ALLOW_IN_PRODUCTION=true \
-SEED_USER_EMAIL=you@example.com \
-SEED_USER_PASSWORD='your-long-password' \
-SEED_USER_FIRST_NAME=Sam \
-SEED_USER_LAST_NAME=Ney \
-NODE_ENV=production \
-yarn seed
-```
-
-Then **unset** `SEED_ALLOW_IN_PRODUCTION` so it cannot be re-run accidentally. Production seed creates your admin (Personal workspace only), default tags, a few sample transactions, and one “Sample trip” split group.
-
-### Custom domain (Cloudflare)
-
-1. In Railway, attach custom domain `financely.vanvelzen.dev`.
-2. In Cloudflare DNS for `vanvelzen.dev`: `CNAME financely` → the Railway target.
-3. Keep apex `vanvelzen.dev` on Cloudflare Pages unchanged.
+[`railway.toml`](railway.toml) is **legacy** (previous Railway host); new deploys use Cloudflare.

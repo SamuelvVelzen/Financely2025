@@ -1,3 +1,5 @@
+# Legacy Railway deploy — production now uses Cloudflare (see docs/deploy-cloudflare.md).
+
 [build]
 builder = "RAILPACK"
 buildCommand = "yarn install --frozen-lockfile && yarn build"
