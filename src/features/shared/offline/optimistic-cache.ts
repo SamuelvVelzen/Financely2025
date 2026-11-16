@@ -322,6 +322,9 @@ export function buildOptimisticTransaction(
   return {
     id: tempId,
     type: input.type,
+    transferDirection: input.transferDirection ?? null,
+    transferGroupId: input.transferGroupId ?? null,
+    ledgerAccountId: input.ledgerAccountId ?? null,
     amount: input.amount,
     currency: input.currency,
     transactionDate: input.transactionDate,

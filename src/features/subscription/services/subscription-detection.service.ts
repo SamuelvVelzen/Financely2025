@@ -90,6 +90,9 @@ function groupTransactions(
   const groups = new Map<string, IRawTransaction[]>();
 
   for (const tx of transactions) {
+    if (tx.type !== "EXPENSE" && tx.type !== "INCOME") {
+      continue;
+    }
     const key = groupKey(tx);
     if (!groups.has(key)) {
       groups.set(key, []);

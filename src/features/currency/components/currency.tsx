@@ -8,7 +8,8 @@ type ICurrencyProps = {
   currency: string;
   searchQuery?: string;
   className?: string;
-  type?: "EXPENSE" | "INCOME";
+  type?: "EXPENSE" | "INCOME" | "TRANSFER";
+  transferDirection?: "OUT" | "IN" | null;
 } & IPropsWithClassName;
 
 /**
@@ -21,13 +22,23 @@ export function Currency({
   searchQuery,
   className,
   type,
+  transferDirection,
 }: ICurrencyProps) {
   const { highlightText } = useHighlightText();
-  const typedAmount = type === "EXPENSE" ? `-${amount}` : amount;
+  const typedAmount =
+    type === "EXPENSE" || (type === "TRANSFER" && transferDirection === "OUT")
+      ? `-${amount}`
+      : amount;
   const formattedAmount = formatCurrency(typedAmount, currency);
 
   return (
-    <span className={cn("tabular-nums text-text", type === "INCOME" && "text-income", className)}>
+    <span
+      className={cn(
+        "tabular-nums text-text",
+        type === "INCOME" && "text-income",
+        type === "TRANSFER" && "text-text-muted",
+        className,
+      )}>
       {highlightText(formattedAmount, searchQuery)}
     </span>
   );

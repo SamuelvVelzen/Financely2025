@@ -1,4 +1,4 @@
-import type { ITagRule, ITransactionType } from "@/features/shared/validation/schemas";
+import type { ITag, ITagRule } from "@/features/shared/validation/schemas";
 import { applyTagSuggestionsToCandidates } from "@/features/tag-rule/utils/apply-tag-suggestions-to-candidate";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { Button } from "@/features/ui/button/button";
@@ -25,7 +25,7 @@ export function useReviewStep(): IStepConfig<IStep> {
   const [tagRulesOpen, setTagRulesOpen] = useState(false);
 
   const tagTransactionTypes = useMemo(() => {
-    const map = new Map<string, ITransactionType>();
+    const map = new Map<string, ITag["transactionType"]>();
     for (const tag of tagsData?.data ?? []) {
       map.set(tag.id, tag.transactionType);
     }

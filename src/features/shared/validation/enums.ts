@@ -9,6 +9,7 @@ import {
   type IPaymentMethod,
 } from "@/features/transaction/config/payment-methods";
 import { TransactionTypeSchema as GeneratedTransactionTypeSchema } from "./generated.ts/schemas/enums/TransactionType.schema";
+import { TransferDirectionSchema as GeneratedTransferDirectionSchema } from "./generated.ts/schemas/enums/TransferDirection.schema";
 
 export const CurrencySchema = z
   .string()
@@ -18,6 +19,8 @@ export const CurrencySchema = z
 export const PaymentMethodSchema = z.enum([...PAYMENT_METHOD_VALUES]);
 
 export const TransactionTypeSchema = GeneratedTransactionTypeSchema;
+
+export const TransferDirectionSchema = GeneratedTransferDirectionSchema;
 
 export const NotificationTypeSchema = z.enum([
   "INFO",
@@ -30,6 +33,7 @@ export const TimePrecisionSchema = z.enum(["DateTime", "DateOnly"]);
 
 export type { ICurrency, IPaymentMethod };
 export type ITransactionType = z.infer<typeof TransactionTypeSchema>;
+export type ITransferDirection = z.infer<typeof TransferDirectionSchema>;
 export type INotificationType = z.infer<typeof NotificationTypeSchema>;
 export type ITimePrecision = z.infer<typeof TimePrecisionSchema>;
 

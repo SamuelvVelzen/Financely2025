@@ -15,7 +15,8 @@ import { Table } from "@/features/ui/table/table";
 import { TableRow } from "@/features/ui/table/table-row";
 import { DateFormatHelpers } from "@/features/util/date/date-format.helpers";
 import { useMemo } from "react";
-import { HiArrowPath } from "react-icons/hi2";
+import { getTransactionTypeLabel } from "@/features/transaction/utils/transaction-type-label";
+import { HiArrowPath, HiArrowsRightLeft } from "react-icons/hi2";
 
 type ITransactionTableProps = {
   data: ITransaction[];
@@ -185,9 +186,20 @@ export function TransactionTable({
                 hidden={isMobile}>
                 <Badge
                   variant={
-                    transaction.type === "EXPENSE" ? "danger" : "success"
+                    transaction.type === "EXPENSE"
+                      ? "danger"
+                      : transaction.type === "INCOME"
+                        ? "success"
+                        : "default"
                   }>
-                  {transaction.type === "EXPENSE" ? "Expense" : "Income"}
+                  {transaction.type === "TRANSFER" ? (
+                    <span className="inline-flex items-center gap-1">
+                      <HiArrowsRightLeft className="size-3.5" />
+                      {getTransactionTypeLabel(transaction)}
+                    </span>
+                  ) : (
+                    getTransactionTypeLabel(transaction)
+                  )}
                 </Badge>
               </BodyCell>
               <BodyCell

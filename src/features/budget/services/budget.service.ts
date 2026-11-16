@@ -122,6 +122,10 @@ function getTransactionBudgetContribution(
   budgetCurrency: string,
   ratesByDate: ReturnType<typeof buildRatesByDateMap>,
 ): number {
+  if (tx.type === "TRANSFER") {
+    return 0;
+  }
+
   const amountForBudget =
     tx.type === "INCOME"
       ? (tx.refundRemaining ?? tx.amount)
@@ -426,24 +430,17 @@ export class BudgetService {
     }
 
     // Duplicate check is done in CreateBudgetInputSchema superRefine (tagId + categoryType)
-    // Use transaction + unchecked BudgetItem creates so tagId and categoryType are accepted
-    const budget = await prisma.$transaction(async (tx) => {
-      const created = await tx.budget.create({
-        data: {
-          userId,
-          workspaceId,
-          name: validated.name,
-          periodType: validated.periodType,
-          startDate: new Date(validated.startDate),
-          endDate: new Date(validated.endDate),
-          currency: validated.currency,
-        },
-      });
-
-      for (const item of validated.items) {
-        await tx.budgetItem.create({
-          data: {
-            budgetId: created.id,
+    const budget = await prisma.budget.create({
+      data: {
+        userId,
+        workspaceId,
+        name: validated.name,
+        periodType: validated.periodType,
+        startDate: new Date(validated.startDate),
+        endDate: new Date(validated.endDate),
+        currency: validated.currency,
+        items: {
+          create: validated.items.map((item) => ({
             tagId: item.tagId,
             categoryType:
               item.tagId === null ? item.categoryType ?? null : null,
@@ -454,14 +451,10 @@ export class BudgetService {
                 expectedAmount: new Prisma.Decimal(ma.expectedAmount),
               })),
             },
-          },
-        });
-      }
-
-      return tx.budget.findUniqueOrThrow({
-        where: { id: created.id },
-        include: BUDGET_ITEMS_INCLUDE,
-      });
+          })),
+        },
+      },
+      include: BUDGET_ITEMS_INCLUDE,
     });
 
     return parseBudget(budget);
@@ -613,9 +606,9 @@ export class BudgetService {
       },
     });
 
-    const parsedTransactions: ITransaction[] = transactions.map((tx) =>
-      parseBudgetTransaction(tx),
-    );
+    const parsedTransactions: ITransaction[] = transactions
+      .map((tx) => parseBudgetTransaction(tx))
+      .filter((tx) => tx.type !== "TRANSFER");
 
     const transactionDateKeys = [
       ...new Set(

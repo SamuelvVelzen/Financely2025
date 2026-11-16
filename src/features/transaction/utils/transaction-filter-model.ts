@@ -286,7 +286,7 @@ function normalizeTransactionTypeFilter(types: unknown): string[] {
     return [];
   }
   // Filter out invalid values, only allow EXPENSE and INCOME
-  const validTypes = ["EXPENSE", "INCOME"];
+  const validTypes = ["EXPENSE", "INCOME", "TRANSFER"];
   const filtered = types.filter(
     (type): type is string =>
       typeof type === "string" && validTypes.includes(type)

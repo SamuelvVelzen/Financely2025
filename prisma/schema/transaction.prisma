@@ -5,6 +5,12 @@
 enum TransactionType {
   EXPENSE
   INCOME
+  TRANSFER
+}
+
+enum TransferDirection {
+  OUT
+  IN
 }
 
 enum TimePrecision {
@@ -19,6 +25,10 @@ model Transaction {
   workspaceId     Int
   workspace       Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   type            TransactionType
+  transferDirection TransferDirection?
+  transferGroupId   String?
+  ledgerAccountId   String?
+  ledgerAccount     LedgerAccount?    @relation(fields: [ledgerAccountId], references: [id], onDelete: SetNull)
   amount          Decimal
   currency        String
   transactionDate DateTime
@@ -46,6 +56,8 @@ model Transaction {
   @@index([workspaceId, transactionDate])
   @@index([workspaceId, type, transactionDate])
   @@index([subscriptionId])
+  @@index([ledgerAccountId, transactionDate])
+  @@index([transferGroupId])
 }
 
 model TransactionRefundAllocation {

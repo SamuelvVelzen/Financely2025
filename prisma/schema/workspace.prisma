@@ -19,6 +19,7 @@ model Workspace {
   settings               WorkspaceSetting?
   defaultForUserSettings UserSetting[]
   tagRules               TagRule[]
+  ledgerAccounts         LedgerAccount[]
 
   @@index([userId])
 }

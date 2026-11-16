@@ -7,8 +7,9 @@ import {
   type ICurrency,
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
-import { TagService } from "@/features/tag/services/tag.service";
 import { TagRuleService } from "@/features/tag-rule/services/tag-rule.service";
+import { TagService } from "@/features/tag/services/tag.service";
+import { toTagTransactionType } from "@/features/tag/utils/tag-transaction-type";
 import { prisma } from "@/features/util/prisma";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import type { BankEnum } from "../config/banks";
@@ -119,7 +120,7 @@ function detectDelimiter(firstLine: string): string {
  * Parse CSV headers from file
  */
 export async function parseCsvHeaders(
-  file: File | { text(): Promise<string> }
+  file: File | { text(): Promise<string> },
 ): Promise<string[]> {
   const text = await file.text();
   const lines = text.split(/\r?\n/).filter((line) => line.trim());
@@ -139,7 +140,7 @@ export async function parseCsvHeaders(
  * Parse all CSV rows from file (returns columns and all rows)
  */
 export async function parseAllCsvRows(
-  file: File | { text(): Promise<string> }
+  file: File | { text(): Promise<string> },
 ): Promise<{
   columns: string[];
   rows: Record<string, string>[];
@@ -182,7 +183,7 @@ export async function parseCsvRows(
   file: File | { text(): Promise<string> },
   mapping: ICsvFieldMapping,
   page: number,
-  limit: number
+  limit: number,
 ): Promise<{
   rows: Record<string, string>[];
   total: number;
@@ -279,7 +280,7 @@ export interface IAutoMappingResult {
  */
 export function autoDetectMapping(
   columns: string[],
-  bank?: BankEnum | null
+  bank?: BankEnum | null,
 ): IAutoMappingResult {
   const mapping: Partial<ICsvFieldMapping> = {};
   const normalizedColumns: NormalizedColumn[] = columns.map((col) => ({
@@ -289,7 +290,7 @@ export function autoDetectMapping(
   const usedColumnIndexes = new Set<number>();
 
   const applyHints = (
-    hints: Partial<Record<ITransactionFieldName, string[]>> | undefined
+    hints: Partial<Record<ITransactionFieldName, string[]>> | undefined,
   ) => {
     if (!hints) return;
 
@@ -298,7 +299,7 @@ export function autoDetectMapping(
         return;
       }
       const normalizedHints = columnHints.map((hint) =>
-        normalizeColumnName(hint)
+        normalizeColumnName(hint),
       );
 
       // First pass: look for exact matches (check hints in order, then find matching column)
@@ -346,10 +347,10 @@ export function autoDetectMapping(
   // Process primaryTag before tags to ensure "Tag" column maps to primaryTag, not tags
   const fallbackFields = Object.entries(FIELD_NAME_PATTERNS);
   const primaryTagEntry = fallbackFields.find(
-    ([field]) => field === "primaryTag"
+    ([field]) => field === "primaryTag",
   );
   const otherFields = fallbackFields.filter(
-    ([field]) => field !== "primaryTag"
+    ([field]) => field !== "primaryTag",
   );
   const orderedFields = primaryTagEntry
     ? [primaryTagEntry, ...otherFields]
@@ -367,7 +368,7 @@ export function autoDetectMapping(
 
       // First check for exact match (highest priority)
       const exactMatch = normalizedPatterns.some(
-        (pattern) => normalizedCol === pattern
+        (pattern) => normalizedCol === pattern,
       );
 
       // Then check for substring matches (only if no exact match)
@@ -377,7 +378,7 @@ export function autoDetectMapping(
           (pattern) =>
             normalizedCol.includes(pattern) ||
             (pattern.length > normalizedCol.length &&
-              pattern.includes(normalizedCol))
+              pattern.includes(normalizedCol)),
         );
 
       if (exactMatch || substringMatch) {
@@ -403,7 +404,7 @@ export function validateMapping(
   mapping: ICsvFieldMapping,
   requiredFields: readonly string[],
   bank?: BankEnum | null,
-  hasDefaultCurrency?: boolean
+  hasDefaultCurrency?: boolean,
 ): { valid: boolean; missingFields: string[] } {
   const missingFields: string[] = [];
 
@@ -440,7 +441,7 @@ export async function convertRowToTransaction(
   userId: string,
   typeDetectionStrategy: string,
   defaultCurrency?: ICurrency,
-  bank?: BankEnum | null
+  bank?: BankEnum | null,
 ): Promise<Partial<ICreateTransactionInput>> {
   const transaction: Partial<ICreateTransactionInput> = {};
 
@@ -474,7 +475,7 @@ export async function convertRowToTransaction(
   } else if (parsedAmount) {
     // Fallback to default strategy
     const strategy = TypeDetectionFactory.getStrategy(
-      DEFAULT_TYPE_DETECTION_STRATEGY
+      DEFAULT_TYPE_DETECTION_STRATEGY,
     );
     const context: ITypeDetectionContext = {
       amount: parsedAmount,
@@ -488,7 +489,7 @@ export async function convertRowToTransaction(
   // Extract description using strategy
   const descriptionStrategyName = getDefaultDescriptionExtractionForBank(bank);
   const descriptionStrategy = DescriptionExtractionFactory.getStrategy(
-    descriptionStrategyName
+    descriptionStrategyName,
   );
   const descriptionContext: IDescriptionExtractionContext = {
     row,
@@ -693,7 +694,7 @@ function parseTagNames(value: string): string[] {
 export async function fetchTagMetadataByNames(
   userId: string,
   workspaceId: IWorkspaceId,
-  tagNames: string[]
+  tagNames: string[],
 ): Promise<
   Map<string, { id: string; color: string | null; emoticon: string | null }>
 > {
@@ -742,9 +743,11 @@ export async function parseTags(
   value: string,
   userId: string,
   workspaceId: IWorkspaceId,
-  transactionType: ITransactionType
+  transactionType: ITransactionType,
 ): Promise<string[]> {
   if (!value) return [];
+
+  const tagType = toTagTransactionType(transactionType);
 
   const tagNames = value
     .split(",")
@@ -771,7 +774,7 @@ export async function parseTags(
       try {
         const newTag = await TagService.createTag(userId, workspaceId, {
           name: tagName,
-          transactionType,
+          transactionType: tagType,
         });
         tagIds.push(newTag.id);
       } catch (_error) {
@@ -804,11 +807,12 @@ export async function parsePrimaryTag(
   value: string,
   userId: string,
   workspaceId: IWorkspaceId,
-  transactionType: ITransactionType
+  transactionType: ITransactionType,
 ): Promise<string | null> {
   if (!value || !value.trim()) return null;
 
   const tagName = value.trim();
+  const tagType = toTagTransactionType(transactionType);
 
   // Try to find existing tag matching name and transaction type
   const existingTags = await prisma.tag.findMany({
@@ -816,7 +820,7 @@ export async function parsePrimaryTag(
       userId,
       workspaceId,
       name: tagName,
-      transactionType,
+      transactionType: tagType,
     },
     take: 1,
   });
@@ -829,7 +833,7 @@ export async function parsePrimaryTag(
   try {
     const newTag = await TagService.createTag(userId, workspaceId, {
       name: tagName,
-      transactionType,
+      transactionType: tagType,
     });
     return newTag.id;
   } catch (_error) {
@@ -839,7 +843,7 @@ export async function parsePrimaryTag(
         userId,
         workspaceId,
         name: tagName,
-        transactionType,
+        transactionType: tagType,
       },
       take: 1,
     });
@@ -930,8 +934,10 @@ export async function resolveTagNamesForImport(
   ): Promise<string | null> => {
     if (!name) return null;
 
+    const tagType = toTagTransactionType(transactionType);
+
     if (primary) {
-      const key = `${name}\0${transactionType}`;
+      const key = `${name}\0${tagType}`;
       const existing = tagIdByNameAndType.get(key);
       if (existing) return existing;
 
@@ -939,10 +945,9 @@ export async function resolveTagNamesForImport(
       const byName = existingTags.find(
         (tag) =>
           tag.name === name &&
-          (tag.transactionType === transactionType ||
-            tag.transactionType === null),
+          (tag.transactionType === tagType || tag.transactionType === null),
       );
-      if (byName && byName.transactionType === transactionType) {
+      if (byName && byName.transactionType === tagType) {
         tagIdByNameAndType.set(key, byName.id);
         return byName.id;
       }
@@ -950,19 +955,19 @@ export async function resolveTagNamesForImport(
       try {
         const newTag = await TagService.createTag(userId, workspaceId, {
           name,
-          transactionType,
+          transactionType: tagType,
         });
         tagIdByName.set(name, newTag.id);
         tagIdByNameAndType.set(key, newTag.id);
         existingTags.push({
           id: newTag.id,
           name,
-          transactionType,
+          transactionType: tagType,
         });
         return newTag.id;
       } catch {
         const retry = await prisma.tag.findFirst({
-          where: { userId, workspaceId, name, transactionType },
+          where: { userId, workspaceId, name, transactionType: tagType },
           select: { id: true },
         });
         if (retry) {
@@ -980,14 +985,14 @@ export async function resolveTagNamesForImport(
     try {
       const newTag = await TagService.createTag(userId, workspaceId, {
         name,
-        transactionType,
+        transactionType: tagType,
       });
       tagIdByName.set(name, newTag.id);
-      tagIdByNameAndType.set(`${name}\0${transactionType}`, newTag.id);
+      tagIdByNameAndType.set(`${name}\0${tagType}`, newTag.id);
       existingTags.push({
         id: newTag.id,
         name,
-        transactionType,
+        transactionType: tagType,
       });
       return newTag.id;
     } catch {
@@ -1049,7 +1054,7 @@ export async function resolveTagNamesForImport(
  */
 export function validateCandidateTransaction(
   candidate: Partial<ICreateTransactionInput>,
-  typeDetectionStrategy?: string
+  typeDetectionStrategy?: string,
 ): Array<{ field: string; message: string }> {
   const errors: Array<{ field: string; message: string }> = [];
 
@@ -1084,7 +1089,9 @@ export function validateCandidateTransaction(
       "errors" in error &&
       Array.isArray((error as { errors: unknown[] }).errors)
     ) {
-      for (const err of (error as { errors: Array<{ path: string[]; message?: string }> }).errors) {
+      for (const err of (
+        error as { errors: Array<{ path: string[]; message?: string }> }
+      ).errors) {
         const field = err.path.join(".");
         errors.push({
           field,
@@ -1107,7 +1114,7 @@ export async function convertRowsToCandidates(
   workspaceId: IWorkspaceId,
   typeDetectionStrategy: string,
   defaultCurrency?: ICurrency,
-  bank?: BankEnum | null
+  bank?: BankEnum | null,
 ): Promise<ICsvCandidateTransaction[]> {
   const candidates: ICsvCandidateTransaction[] = [];
   const allTagNames = new Set<string>();
@@ -1123,11 +1130,11 @@ export async function convertRowsToCandidates(
         userId,
         typeDetectionStrategy,
         defaultCurrency,
-        bank
+        bank,
       );
       const errors = validateCandidateTransaction(
         transaction,
-        typeDetectionStrategy
+        typeDetectionStrategy,
       );
 
       // Collect tag names for metadata lookup
@@ -1193,99 +1200,99 @@ export async function convertRowsToCandidates(
   const primaryTagMetadataMap = await fetchTagMetadataByNames(
     userId,
     workspaceId,
-    primaryTagNamesArray
+    primaryTagNamesArray,
   );
   const tagsMetadataMap = await fetchTagMetadataByNames(
     userId,
     workspaceId,
-    tagNamesArray
+    tagNamesArray,
   );
 
   // Second pass: add tag metadata to candidates
   const enrichedCandidates: ICsvCandidateTransaction[] = candidates.map(
     (candidate) => {
-    // Populate primary tag metadata
-    let primaryTagMetadata: {
-      id?: string;
-      name: string;
-      color: string | null;
-      emoticon: string | null;
-    } | null = null;
+      // Populate primary tag metadata
+      let primaryTagMetadata: {
+        id?: string;
+        name: string;
+        color: string | null;
+        emoticon: string | null;
+      } | null = null;
 
-    if (
-      candidate.data.primaryTagId &&
-      typeof candidate.data.primaryTagId === "string"
-    ) {
-      const primaryTagName = candidate.data.primaryTagId;
-      const metadata = primaryTagMetadataMap.get(primaryTagName);
-      if (metadata) {
-        // Tag exists: include id, name, color, emoticon
-        primaryTagMetadata = {
-          id: metadata.id,
-          name: primaryTagName,
-          color: metadata.color,
-          emoticon: metadata.emoticon,
-        };
-      } else {
-        // Tag doesn't exist: include name only (no id)
-        primaryTagMetadata = {
-          name: primaryTagName,
-          color: null,
-          emoticon: null,
-        };
-      }
-    }
-
-    // Populate tags metadata (excluding primary tag)
-    const tagsMetadata: Array<{
-      id?: string;
-      name: string;
-      color: string | null;
-      emoticon: string | null;
-    }> = [];
-
-    if (candidate.data.tagIds && Array.isArray(candidate.data.tagIds)) {
-      const primaryTagName =
+      if (
         candidate.data.primaryTagId &&
         typeof candidate.data.primaryTagId === "string"
-          ? candidate.data.primaryTagId
-          : null;
-
-      candidate.data.tagIds.forEach((tagName) => {
-        if (tagName && typeof tagName === "string") {
-          // Exclude primary tag from tags metadata
-          if (tagName === primaryTagName) {
-            return;
-          }
-
-          const metadata = tagsMetadataMap.get(tagName);
-          if (metadata) {
-            // Tag exists: include id, name, color, emoticon
-            tagsMetadata.push({
-              id: metadata.id,
-              name: tagName,
-              color: metadata.color,
-              emoticon: metadata.emoticon,
-            });
-          } else {
-            // Tag doesn't exist: include name only (no id)
-            tagsMetadata.push({
-              name: tagName,
-              color: null,
-              emoticon: null,
-            });
-          }
+      ) {
+        const primaryTagName = candidate.data.primaryTagId;
+        const metadata = primaryTagMetadataMap.get(primaryTagName);
+        if (metadata) {
+          // Tag exists: include id, name, color, emoticon
+          primaryTagMetadata = {
+            id: metadata.id,
+            name: primaryTagName,
+            color: metadata.color,
+            emoticon: metadata.emoticon,
+          };
+        } else {
+          // Tag doesn't exist: include name only (no id)
+          primaryTagMetadata = {
+            name: primaryTagName,
+            color: null,
+            emoticon: null,
+          };
         }
-      });
-    }
+      }
 
-    return {
-      ...candidate,
-      primaryTagMetadata,
-      tagsMetadata,
-      tagSuggestions: null,
-    };
-  },
+      // Populate tags metadata (excluding primary tag)
+      const tagsMetadata: Array<{
+        id?: string;
+        name: string;
+        color: string | null;
+        emoticon: string | null;
+      }> = [];
+
+      if (candidate.data.tagIds && Array.isArray(candidate.data.tagIds)) {
+        const primaryTagName =
+          candidate.data.primaryTagId &&
+          typeof candidate.data.primaryTagId === "string"
+            ? candidate.data.primaryTagId
+            : null;
+
+        candidate.data.tagIds.forEach((tagName) => {
+          if (tagName && typeof tagName === "string") {
+            // Exclude primary tag from tags metadata
+            if (tagName === primaryTagName) {
+              return;
+            }
+
+            const metadata = tagsMetadataMap.get(tagName);
+            if (metadata) {
+              // Tag exists: include id, name, color, emoticon
+              tagsMetadata.push({
+                id: metadata.id,
+                name: tagName,
+                color: metadata.color,
+                emoticon: metadata.emoticon,
+              });
+            } else {
+              // Tag doesn't exist: include name only (no id)
+              tagsMetadata.push({
+                name: tagName,
+                color: null,
+                emoticon: null,
+              });
+            }
+          }
+        });
+      }
+
+      return {
+        ...candidate,
+        primaryTagMetadata,
+        tagsMetadata,
+        tagSuggestions: null,
+      };
+    },
   );
 
   await TagRuleService.attachSuggestionsToCandidates(
@@ -1302,10 +1309,7 @@ export async function convertRowsToCandidates(
     let primaryTagMetadata = candidate.primaryTagMetadata;
     const tagsMetadata = [...candidate.tagsMetadata];
 
-    if (
-      candidate.tagSuggestions.primaryTagId &&
-      !primaryTagMetadata
-    ) {
+    if (candidate.tagSuggestions.primaryTagId && !primaryTagMetadata) {
       primaryTagMetadata = {
         id: candidate.tagSuggestions.primaryTagId,
         name: "",

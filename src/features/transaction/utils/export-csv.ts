@@ -37,7 +37,9 @@ function getColumnValue(transaction: ITransaction, column: string): string {
     case "Tags":
       return transaction.tags.map((tag) => tag.name).join(", ");
     case "Type":
-      return transaction.type === "EXPENSE" ? "Expense" : "Income";
+      if (transaction.type === "EXPENSE") return "Expense";
+      if (transaction.type === "INCOME") return "Income";
+      return "Transfer";
     default:
       return "";
   }

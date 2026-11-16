@@ -41,6 +41,9 @@ export async function GET({
         currency: url.searchParams.get("currency")
           ? url.searchParams.getAll("currency")
           : undefined,
+        ledgerAccountId: url.searchParams.get("ledgerAccountId") ?? undefined,
+        unassignedLedgerAccount:
+          url.searchParams.get("unassignedLedgerAccount") ?? undefined,
       };
 
       const validated = TransactionsQuerySchema.parse(query);

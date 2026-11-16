@@ -21,6 +21,7 @@ import {
   HiOutlineCurrencyEuro,
   HiOutlineTag,
   HiUsers,
+  HiWallet,
 } from "react-icons/hi2";
 import { IconButton } from "../button/icon-button";
 import { Container } from "../container/container";
@@ -93,6 +94,14 @@ export function Sidebar() {
               params={workspaceParams}
               label="Budgets"
               icon={HiOutlineCurrencyEuro}
+            />
+          </li>
+          <li>
+            <NavItem
+              to="/$workspaceId/accounts"
+              params={workspaceParams}
+              label="Accounts"
+              icon={HiWallet}
             />
           </li>
           <li>

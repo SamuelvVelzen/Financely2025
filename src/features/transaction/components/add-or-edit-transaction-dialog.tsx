@@ -4,9 +4,11 @@ import {
   CreateTransactionInputSchema,
   CurrencySchema,
   TransactionTypeSchema,
+  TransferDirectionSchema,
   type ITagSuggestions,
   type ITransaction,
 } from "@/features/shared/validation/schemas";
+import { LedgerAccountSelect } from "@/features/ledger-account/components/ledger-account-select";
 import { matchTagRules } from "@/features/tag-rule/api/client";
 import { TagSuggestionHint } from "@/features/tag-rule/components/tag-suggestion-hint";
 import { useTags } from "@/features/tag/hooks/useTags";
@@ -14,6 +16,7 @@ import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-me
 import {
   useCreateExpense,
   useCreateIncome,
+  useCreateTransaction,
   useTransaction,
   useUpdateTransaction,
 } from "@/features/transaction/hooks/useTransactions";
@@ -48,6 +51,7 @@ import {
   HiArrowTrendingDown,
   HiArrowTrendingUp,
   HiArrowUturnLeft,
+  HiArrowsRightLeft,
   HiChevronDown,
   HiChevronUp,
 } from "react-icons/hi2";
@@ -67,6 +71,8 @@ const TransactionFormSchema = CreateTransactionInputSchema.omit({
   transactionDate: true,
 }).extend({
   type: TransactionTypeSchema,
+  transferDirection: TransferDirectionSchema.nullable().optional(),
+  ledgerAccountId: z.string().nullable().optional(),
   amount: z
     .string()
     .min(1, "Amount is required")
@@ -97,6 +103,8 @@ const getEmptyFormValues = (currency: string): FormData => ({
   description: "",
   tagIds: [],
   primaryTagId: null,
+  transferDirection: null,
+  ledgerAccountId: null,
 });
 
 function getFormValuesForAnotherTransaction(
@@ -174,6 +182,7 @@ export function AddOrEditTransactionDialog({
     useCreateExpense();
   const { mutate: createIncome, mutateAsync: createIncomeAsync } =
     useCreateIncome();
+  const { mutate: createTransaction } = useCreateTransaction();
   const { mutate: updateTransaction } = useUpdateTransaction();
   const linkedTransactionQuery = useTransaction(expenseToOpenId);
   const linkedTransaction = linkedTransactionQuery.data ?? undefined;
@@ -480,6 +489,9 @@ export function AddOrEditTransactionDialog({
 
     const submitData = {
       type: data.type,
+      transferDirection:
+        data.type === "TRANSFER" ? (data.transferDirection ?? "OUT") : null,
+      ledgerAccountId: data.ledgerAccountId || null,
       name: data.name.trim(),
       amount: data.amount.trim(),
       currency: CurrencySchema.parse(data.currency),
@@ -543,6 +555,22 @@ export function AddOrEditTransactionDialog({
               setPendingAction(null);
               toast.error("Failed to create expense");
               throw error;
+            },
+          });
+        } else if (data.type === "TRANSFER") {
+          createTransaction(submitData, {
+            onSuccess: (created) => {
+              resetFormToClosedState();
+              onOpenChange(false);
+              setPendingAction(null);
+              if (!isOfflineMutationPlaceholder(created)) {
+                toast.success("Transfer created successfully");
+              }
+              onSuccess?.();
+            },
+            onError: () => {
+              setPendingAction(null);
+              toast.error("Failed to create transfer");
             },
           });
         } else {
@@ -705,7 +733,23 @@ export function AddOrEditTransactionDialog({
                 <RadioItem value="INCOME" icon={HiArrowTrendingUp}>
                   Income
                 </RadioItem>
+                <RadioItem value="TRANSFER" icon={HiArrowsRightLeft}>
+                  Transfer
+                </RadioItem>
               </RadioGroup>
+              {transactionType === "TRANSFER" ? (
+                <SelectDropdown
+                  name="transferDirection"
+                  label="Direction"
+                  options={[
+                    { value: "OUT", label: "Money out" },
+                    { value: "IN", label: "Money in" },
+                  ]}
+                  disabled={pending}
+                  required
+                />
+              ) : null}
+              <LedgerAccountSelect name="ledgerAccountId" disabled={pending} />
               <TextInput
                 name="name"
                 label="Name"
@@ -751,7 +795,9 @@ export function AddOrEditTransactionDialog({
                   multiple={false}
                   placeholder="Select primary tag..."
                   disabled={pending}
-                  transactionType={transactionType}
+                  transactionType={
+                    transactionType === "TRANSFER" ? undefined : transactionType
+                  }
                   hint="Used for budget, sorting and display"
                   onValueChange={handleTagFieldChange}
                 />

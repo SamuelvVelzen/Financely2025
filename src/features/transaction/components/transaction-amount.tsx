@@ -34,6 +34,7 @@ export function TransactionAmount({
       <Currency
         amount={displayAmount}
         type={transaction.type}
+        transferDirection={transaction.transferDirection ?? null}
         currency={transaction.currency}
         searchQuery={searchQuery}
         className="font-semibold"

@@ -38,10 +38,15 @@ export function BudgetSubscriptionsTab({
 
     return subscriptionsData.data
       .map((sub) => {
-        const txInPeriod = (sub.transactions ?? []).filter((tx) => {
-          const txDate = new Date(tx.transactionDate);
-          return txDate >= budgetStart && txDate <= budgetEnd;
-        });
+        const txInPeriod = (sub.transactions ?? [])
+          .filter((tx) => {
+            const txDate = new Date(tx.transactionDate);
+            return txDate >= budgetStart && txDate <= budgetEnd;
+          })
+          .filter(
+            (tx): tx is typeof tx & { type: "EXPENSE" | "INCOME" } =>
+              tx.type === "EXPENSE" || tx.type === "INCOME",
+          );
         return { ...sub, transactionsInPeriod: txInPeriod };
       })
       .filter((sub) => sub.active || sub.transactionsInPeriod.length > 0);

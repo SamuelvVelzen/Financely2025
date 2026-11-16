@@ -1,0 +1,29 @@
+// ----------
+// Ledger accounts (bank pockets, cash wallet)
+// ----------
+
+enum LedgerAccountKind {
+  BANK
+  CASH
+  CARD
+  SAVINGS
+}
+
+model LedgerAccount {
+  id                 String            @id @default(cuid())
+  workspaceId        Int
+  workspace          Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name               String
+  kind               LedgerAccountKind
+  currency           String
+  openingBalance     Decimal           @default(0)
+  openingBalanceDate DateTime?
+  bank               String?
+  sortOrder          Int               @default(0)
+  archivedAt         DateTime?
+  transactions       Transaction[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@index([workspaceId])
+}

@@ -89,6 +89,7 @@ export function FilterSheet({
     () => [
       { value: "EXPENSE", label: "Expense" },
       { value: "INCOME", label: "Income" },
+      { value: "TRANSFER", label: "Transfer" },
     ],
     []
   );

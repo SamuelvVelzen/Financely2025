@@ -1,6 +1,4 @@
-import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
-import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
-import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
+import { narrowBudgetCategoryType } from "@/features/budget/components/detail/budget-status";
 import {
   useBudget,
   useCreateBudget,
@@ -42,6 +40,9 @@ import {
 } from "@/features/ui/tab";
 import { useToast } from "@/features/ui/toast";
 import { Title } from "@/features/ui/typography/title";
+import { useActiveWorkspaceId } from "@/features/workspace/active-workspace-context";
+import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
+import { workspaceIdToRouteParam } from "@/features/workspace/workspace-id";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBlocker, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -80,7 +81,7 @@ const MonthlyAmountEntrySchema = z.object({
 const BUDGET_AMOUNT_REQUIRED_MESSAGE = "Amount is required";
 
 function budgetAmountIsFilled(
-  raw: string | number | undefined | null
+  raw: string | number | undefined | null,
 ): boolean {
   if (raw === null || raw === undefined) {
     return false;
@@ -115,96 +116,98 @@ function budgetAmountIsFilled(
   return Number.isFinite(n) && n >= 0;
 }
 
-const BudgetFormSchema = z.object({
-  general: z
-    .object({
-      name: z
-        .string()
-        .min(1, "Name is required")
-        .max(200, "Name must be less than 200 characters"),
-      startDate: z.string().min(1, "Start date is required"),
-      endDate: z.string().min(1, "End date is required"),
-      currency: z.string().min(1, "Currency is required"),
-      preset: z.enum(["monthly", "yearly", "yearly-per-month", "custom"]),
-      year: z
-        .number()
-        .int()
-        .min(MIN_BUDGET_YEAR, `Year must be at least ${MIN_BUDGET_YEAR}`)
-        .max(MAX_BUDGET_YEAR, `Year must be at most ${MAX_BUDGET_YEAR}`)
-        .optional(),
-      month: z.number().optional(),
-    })
-    .superRefine((data, ctx) => {
-      if (data.startDate && data.endDate) {
-        if (new Date(data.endDate) < new Date(data.startDate)) {
-          ctx.addIssue({
-            code: "custom",
-            message: "End date must be after or equal to start date",
-            path: ["endDate"],
-          });
+const BudgetFormSchema = z
+  .object({
+    general: z
+      .object({
+        name: z
+          .string()
+          .min(1, "Name is required")
+          .max(200, "Name must be less than 200 characters"),
+        startDate: z.string().min(1, "Start date is required"),
+        endDate: z.string().min(1, "End date is required"),
+        currency: z.string().min(1, "Currency is required"),
+        preset: z.enum(["monthly", "yearly", "yearly-per-month", "custom"]),
+        year: z
+          .number()
+          .int()
+          .min(MIN_BUDGET_YEAR, `Year must be at least ${MIN_BUDGET_YEAR}`)
+          .max(MAX_BUDGET_YEAR, `Year must be at most ${MAX_BUDGET_YEAR}`)
+          .optional(),
+        month: z.number().optional(),
+      })
+      .superRefine((data, ctx) => {
+        if (data.startDate && data.endDate) {
+          if (new Date(data.endDate) < new Date(data.startDate)) {
+            ctx.addIssue({
+              code: "custom",
+              message: "End date must be after or equal to start date",
+              path: ["endDate"],
+            });
+          }
         }
-      }
 
-      if (data.preset === "monthly") {
-        if (data.year === undefined || data.year === null) {
-          ctx.addIssue({
-            code: "custom",
-            message: "Year is required for monthly preset",
-            path: ["year"],
-          });
+        if (data.preset === "monthly") {
+          if (data.year === undefined || data.year === null) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Year is required for monthly preset",
+              path: ["year"],
+            });
+          }
+          if (data.month === undefined || data.month === null) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Month is required for monthly preset",
+              path: ["month"],
+            });
+          }
         }
-        if (data.month === undefined || data.month === null) {
-          ctx.addIssue({
-            code: "custom",
-            message: "Month is required for monthly preset",
-            path: ["month"],
-          });
-        }
-      }
 
-      if (data.preset === "yearly" || data.preset === "yearly-per-month") {
-        if (data.year === undefined || data.year === null) {
-          ctx.addIssue({
-            code: "custom",
-            message: "Year is required for yearly preset",
-            path: ["year"],
-          });
+        if (data.preset === "yearly" || data.preset === "yearly-per-month") {
+          if (data.year === undefined || data.year === null) {
+            ctx.addIssue({
+              code: "custom",
+              message: "Year is required for yearly preset",
+              path: ["year"],
+            });
+          }
         }
-      }
+      }),
+    tags: z.object({
+      selectedTagIds: z.array(z.string()),
     }),
-  tags: z.object({
-    selectedTagIds: z.array(z.string()),
-  }),
-  budget: z.object({
-    items: z
-      .array(
-        z
-          .object({
-            tagId: z.string().nullable(),
-            categoryType: z.enum(["EXPENSE", "INCOME"]).nullable().optional(),
-            expectedAmount: z.string(),
-            monthlyAmounts: z.array(MonthlyAmountEntrySchema).optional(),
-          })
-          .refine(
-            (item) => {
-              if (item.tagId === null) {
+    budget: z.object({
+      items: z
+        .array(
+          z
+            .object({
+              tagId: z.string().nullable(),
+              categoryType: z.enum(["EXPENSE", "INCOME"]).nullable().optional(),
+              expectedAmount: z.string(),
+              monthlyAmounts: z.array(MonthlyAmountEntrySchema).optional(),
+            })
+            .refine(
+              (item) => {
+                if (item.tagId === null) {
+                  return (
+                    item.categoryType !== null &&
+                    item.categoryType !== undefined
+                  );
+                }
                 return (
-                  item.categoryType !== null && item.categoryType !== undefined
+                  item.categoryType === null || item.categoryType === undefined
                 );
-              }
-              return (
-                item.categoryType === null || item.categoryType === undefined
-              );
-            },
-            {
-              message:
-                "categoryType is required when tagId is null; must be null when tagId is set",
-            },
-          ),
-      )
-      .min(1, "At least one budget item is required"),
-  }),
-})
+              },
+              {
+                message:
+                  "categoryType is required when tagId is null; must be null when tagId is set",
+              },
+            ),
+        )
+        .min(1, "At least one budget item is required"),
+    }),
+  })
   .superRefine((data, ctx) => {
     const preset = data.general.preset;
     if (preset === "yearly-per-month") {
@@ -309,7 +312,7 @@ function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
           const firstAmount = monthlyAmounts[0]?.expectedAmount ?? "";
           return {
             tagId: item.tagId,
-            categoryType: item.categoryType ?? undefined,
+            categoryType: narrowBudgetCategoryType(item.categoryType),
             expectedAmount: firstAmount,
             monthlyAmounts,
           };
@@ -319,7 +322,7 @@ function transformBudgetToFormData(budget: IBudget): IBudgetFormData {
         const firstAmount = item.monthlyAmounts[0]?.expectedAmount ?? "";
         return {
           tagId: item.tagId,
-          categoryType: item.categoryType ?? undefined,
+          categoryType: narrowBudgetCategoryType(item.categoryType),
           expectedAmount: firstAmount,
           monthlyAmounts: undefined,
         };
@@ -350,7 +353,7 @@ function getEmptyFormValues(currency = DEFAULT_CURRENCY): IBudgetFormData {
 }
 
 function getGroupErrorMessages(
-  groupErrors: FieldErrors<IBudgetFormData["tags"]> | undefined
+  groupErrors: FieldErrors<IBudgetFormData["tags"]> | undefined,
 ): string[] {
   if (!groupErrors) return [];
 
@@ -369,7 +372,7 @@ function getGroupErrorMessages(
 }
 
 function transformFormDataToApiInput(
-  data: IBudgetFormData
+  data: IBudgetFormData,
 ): ICreateBudgetInput | IUpdateBudgetInput {
   const preset = data.general.preset as IBudgetPreset;
   const periodType: IBudgetPeriodType = preset;
@@ -386,7 +389,7 @@ function transformFormDataToApiInput(
     currency: data.general.currency,
     items: (data.budget.items ?? []).map((item) => {
       const categoryType =
-        item.tagId === null ? item.categoryType ?? null : null;
+        item.tagId === null ? (item.categoryType ?? null) : null;
       if (preset === "yearly-per-month") {
         return {
           tagId: item.tagId,
@@ -438,7 +441,6 @@ export function BudgetCreateOrEditPage({
   const form = useFinForm<IBudgetFormData>({
     resolver: zodResolver(BudgetFormSchema),
     defaultValues: getEmptyFormValues(defaultCurrency),
-
   });
 
   const selectedTagIds = form.watch("tags.selectedTagIds");
@@ -724,9 +726,8 @@ export function BudgetCreateOrEditPage({
       <Form
         form={form}
         onSubmit={handleSubmit}
-        className={
-          embedded ? "flex flex-col" : "flex flex-col min-h-full"
-        }>
+        className={embedded ? "flex flex-col" : "flex flex-col min-h-full"}
+      >
         {!embedded && (
           <Container className="sticky top-0 z-10 bg-surface">
             <div className="flex items-center justify-between">
@@ -735,7 +736,8 @@ export function BudgetCreateOrEditPage({
                   clicked={handleBack}
                   ariaLabel={
                     isEditMode ? "Back to budget details" : "Back to budgets"
-                  }>
+                  }
+                >
                   <HiArrowLeft className="size-4" />
                 </IconButton>
                 <Title>
@@ -755,10 +757,9 @@ export function BudgetCreateOrEditPage({
             tabs={TABS_ARRAY}
             onChangeTab={(previousTab, newTab) => {
               setCurrentTab(newTab as ITabValue);
-            }}>
-            <Tab
-              value={TABS[0]}
-              showWarning={formErrors.hasGeneral}>
+            }}
+          >
+            <Tab value={TABS[0]} showWarning={formErrors.hasGeneral}>
               General
             </Tab>
             <TabContent value={TABS[0]}>
@@ -780,17 +781,13 @@ export function BudgetCreateOrEditPage({
               </div>
             </TabContent>
 
-            <Tab
-              value={TABS[1]}
-              showWarning={formErrors.hasTags}>
+            <Tab value={TABS[1]} showWarning={formErrors.hasTags}>
               Tags
             </Tab>
             <TabContent value={TABS[1]}>
               <div className="space-y-6">
                 {formErrors.hasTags && (
-                  <Alert
-                    variant="danger"
-                    title="Validation Errors">
+                  <Alert variant="danger" title="Validation Errors">
                     {formErrors.tags.length === 1 && (
                       <p>{formErrors.tags[0]}</p>
                     )}
@@ -800,9 +797,7 @@ export function BudgetCreateOrEditPage({
               </div>
             </TabContent>
 
-            <Tab
-              value={TABS[2]}
-              showWarning={formErrors.hasBudget}>
+            <Tab value={TABS[2]} showWarning={formErrors.hasBudget}>
               Budget
             </Tab>
             <TabContent value={TABS[2]}>
@@ -818,18 +813,18 @@ export function BudgetCreateOrEditPage({
             embedded
               ? "px-0 sticky bottom-0 bg-surface flex gap-2 justify-between mt-6 mb-0"
               : "sticky bottom-0 bg-surface flex gap-2 justify-between mt-auto mb-0"
-          }>
+          }
+        >
           {tabState.isFirstTab ? (
-            <Button
-              clicked={handleBack}
-              disabled={pending}>
+            <Button clicked={handleBack} disabled={pending}>
               Cancel
             </Button>
           ) : (
             <Button
               variant="default"
               disabled={pending}
-              clicked={handleTabBack}>
+              clicked={handleTabBack}
+            >
               Back
             </Button>
           )}
@@ -841,14 +836,12 @@ export function BudgetCreateOrEditPage({
               loading={{
                 isLoading: pending,
                 text: isEditMode ? "Updating budget" : "Creating budget",
-              }}>
+              }}
+            >
               {isEditMode ? "Update Budget" : "Create Budget"}
             </Button>
           ) : (
-            <Button
-              variant="primary"
-              disabled={pending}
-              clicked={handleNext}>
+            <Button variant="primary" disabled={pending} clicked={handleNext}>
               Next
             </Button>
           )}

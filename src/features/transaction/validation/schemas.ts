@@ -4,6 +4,7 @@ import {
   PaymentMethodSchema,
   TimePrecisionSchema,
   TransactionTypeSchema,
+  TransferDirectionSchema,
 } from "@/features/shared/validation/enums";
 import {
   DecimalStringSchema,
@@ -56,6 +57,9 @@ export const TransactionRefundAllocationSchema = z.object({
 export const TransactionSchema = z.object({
   id: z.string(),
   type: TransactionTypeSchema,
+  transferDirection: TransferDirectionSchema.nullable().optional(),
+  transferGroupId: z.string().nullable().optional(),
+  ledgerAccountId: z.string().nullable().optional(),
   amount: DecimalStringSchema,
   currency: CurrencySchema,
   transactionDate: ISODateStringSchema,
@@ -111,20 +115,41 @@ export const RefundAllocationSuggestionsResponseSchema = z.object({
   refundRemaining: DecimalStringSchema,
 });
 
-export const CreateTransactionInputSchema = z.object({
-  type: TransactionTypeSchema,
-  amount: DecimalStringSchema,
-  currency: CurrencySchema,
-  transactionDate: ISODateStringSchema,
-  timePrecision: TimePrecisionSchema.optional(),
-  name: z.string().min(1).max(200),
-  description: z.string().max(1000).nullable().optional(),
-  notes: z.string().max(2000).nullable().optional(),
-  externalId: z.string().max(200).nullable().optional(),
-  paymentMethod: PaymentMethodSchema,
-  tagIds: z.array(z.string()).optional().default([]),
-  primaryTagId: z.string().nullable().optional(),
-});
+export const CreateTransactionInputSchema = z
+  .object({
+    type: TransactionTypeSchema,
+    transferDirection: TransferDirectionSchema.nullable().optional(),
+    transferGroupId: z.string().nullable().optional(),
+    ledgerAccountId: z.string().nullable().optional(),
+    amount: DecimalStringSchema,
+    currency: CurrencySchema,
+    transactionDate: ISODateStringSchema,
+    timePrecision: TimePrecisionSchema.optional(),
+    name: z.string().min(1).max(200),
+    description: z.string().max(1000).nullable().optional(),
+    notes: z.string().max(2000).nullable().optional(),
+    externalId: z.string().max(200).nullable().optional(),
+    paymentMethod: PaymentMethodSchema,
+    tagIds: z.array(z.string()).optional().default([]),
+    primaryTagId: z.string().nullable().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === "TRANSFER") {
+      if (data.transferDirection !== "OUT" && data.transferDirection !== "IN") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "transferDirection is required for transfers",
+          path: ["transferDirection"],
+        });
+      }
+    } else if (data.transferDirection != null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "transferDirection is only for TRANSFER type",
+        path: ["transferDirection"],
+      });
+    }
+  });
 
 export const UpdateTransactionInputSchema =
   CreateTransactionInputSchema.partial();
@@ -159,6 +184,46 @@ export const TransactionsQuerySchema = PaginationQuerySchema.merge(
       if (!val) return undefined;
       return Array.isArray(val) ? val : [val];
     }),
+  ledgerAccountId: z.string().optional(),
+  transferGroupId: z.string().optional(),
+  unassignedLedgerAccount: z.coerce.boolean().optional(),
+});
+
+export const BulkUpdateTransactionTypeInputSchema = z.object({
+  transactionIds: z.array(z.string().min(1)).min(1),
+  type: TransactionTypeSchema,
+  transferDirection: TransferDirectionSchema.nullable().optional(),
+});
+
+export const CreateLinkedTransferInputSchema = z.object({
+  fromLedgerAccountId: z.string().min(1),
+  toLedgerAccountId: z.string().min(1),
+  amount: DecimalStringSchema,
+  receivedAmount: DecimalStringSchema.optional(),
+  currency: CurrencySchema,
+  receivedCurrency: CurrencySchema.optional(),
+  transactionDate: ISODateStringSchema,
+  name: z.string().min(1).max(200).optional(),
+  notes: z.string().max(2000).nullable().optional(),
+});
+
+export const PairTransferInputSchema = z.object({
+  otherTransactionId: z.string().min(1),
+});
+
+export const TransferSuggestionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  amount: DecimalStringSchema,
+  currency: CurrencySchema,
+  transactionDate: ISODateStringSchema,
+  transferDirection: TransferDirectionSchema.nullable(),
+  ledgerAccountId: z.string().nullable().optional(),
+  score: z.number(),
+});
+
+export const TransferSuggestionsResponseSchema = z.object({
+  suggestions: z.array(TransferSuggestionSchema),
 });
 
 export const PaginatedTransactionsResponseSchema = z.object({
@@ -283,3 +348,14 @@ export type ICsvTransformRequest = z.infer<typeof CsvTransformRequestSchema>;
 export type ICsvTransformResponse = z.infer<typeof CsvTransformResponseSchema>;
 export type ICsvImportRequest = z.infer<typeof CsvImportRequestSchema>;
 export type ICsvImportResponse = z.infer<typeof CsvImportResponseSchema>;
+export type IBulkUpdateTransactionTypeInput = z.infer<
+  typeof BulkUpdateTransactionTypeInputSchema
+>;
+export type ICreateLinkedTransferInput = z.infer<
+  typeof CreateLinkedTransferInputSchema
+>;
+export type IPairTransferInput = z.infer<typeof PairTransferInputSchema>;
+export type ITransferSuggestion = z.infer<typeof TransferSuggestionSchema>;
+export type ITransferSuggestionsResponse = z.infer<
+  typeof TransferSuggestionsResponseSchema
+>;

@@ -38,7 +38,7 @@ export const queryKeys = {
       limit?: number;
       from?: string;
       to?: string;
-      type?: "INCOME" | "EXPENSE";
+      type?: "INCOME" | "EXPENSE" | "TRANSFER";
       tagIds?: string[];
       q?: string;
       sort?: string;
@@ -46,6 +46,9 @@ export const queryKeys = {
   ) => ["transactions", workspaceId, params] as const,
   transaction: (workspaceId: number, transactionId: string) =>
     ["transactions", workspaceId, transactionId] as const,
+
+  ledgerAccounts: (workspaceId: number) =>
+    ["ledger-accounts", workspaceId] as const,
 
   expenses: (
     workspaceId: number,

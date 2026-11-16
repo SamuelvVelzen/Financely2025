@@ -26,6 +26,16 @@ import {
   TRANSACTION_REFUND_ALLOCATION_INCLUDE,
   type IAllocationParseInput,
 } from "./refund-allocation-helpers";
+import { LedgerAccountService } from "@/features/ledger-account/services/ledger-account.service";
+import {
+  BulkUpdateTransactionTypeInputSchema,
+  type IBulkUpdateTransactionTypeInput,
+} from "@/features/transaction/validation/schemas";
+import {
+  assertCreateTransferFields,
+  assertUpdateTransferFields,
+} from "./transaction-transfer-validation";
+import { TransferService } from "./transfer.service";
 
 /** Chunk size for bulk transaction creates (CSV import / bulk API). */
 export const BATCH_SIZE = 100;
@@ -48,9 +58,18 @@ const TRANSACTION_INCLUDE = {
  * Handles transaction-related business logic and data access
  */
 export class TransactionService {
+  static parseTransactionPublic(
+    tx: Parameters<typeof TransactionService.parseTransaction>[0],
+  ): ITransaction {
+    return this.parseTransaction(tx);
+  }
+
   private static parseTransaction(tx: {
     id: string;
     type: string;
+    transferDirection?: string | null;
+    transferGroupId?: string | null;
+    ledgerAccountId?: string | null;
     amount: { toString(): string };
     currency: string;
     transactionDate: Date;
@@ -87,6 +106,9 @@ export class TransactionService {
     return TransactionSchema.parse({
       id: tx.id,
       type: tx.type,
+      transferDirection: tx.transferDirection ?? null,
+      transferGroupId: tx.transferGroupId ?? null,
+      ledgerAccountId: tx.ledgerAccountId ?? null,
       amount: tx.amount.toString(),
       currency: tx.currency,
       transactionDate: tx.transactionDate.toISOString(),
@@ -145,6 +167,8 @@ export class TransactionService {
       maxAmount,
       paymentMethod,
       currency,
+      ledgerAccountId,
+      unassignedLedgerAccount,
     } = validated;
 
     // Build where clause
@@ -196,6 +220,8 @@ export class TransactionService {
       ...(currency && currency.length > 0
         ? { currency: { in: currency } }
         : {}),
+      ...(ledgerAccountId ? { ledgerAccountId } : {}),
+      ...(unassignedLedgerAccount ? { ledgerAccountId: null } : {}),
     };
 
     // Parse sort
@@ -289,6 +315,15 @@ export class TransactionService {
     input: ICreateTransactionInput
   ): Promise<ITransaction> {
     const validated = CreateTransactionInputSchema.parse(input);
+    assertCreateTransferFields(validated);
+
+    if (validated.ledgerAccountId) {
+      await LedgerAccountService.assertOwnedAccount(
+        userId,
+        workspaceId,
+        validated.ledgerAccountId,
+      );
+    }
 
     // Verify tags belong to user
     if (validated.tagIds && validated.tagIds.length > 0) {
@@ -319,9 +354,8 @@ export class TransactionService {
         throw new Error("Primary tag not found");
       }
 
-      // Validate transaction type match: tag.transactionType must be null (works with both) or match transaction type
       if (
-        primaryTag.transactionType !== null &&
+        validated.type !== "TRANSFER" &&
         primaryTag.transactionType !== validated.type
       ) {
         throw new Error(
@@ -349,21 +383,29 @@ export class TransactionService {
       }
     }
 
-    // Try to auto-flag to an existing subscription
-    const autoFlagSubId = await SubscriptionService.tryAutoFlag(
-      userId,
-      workspaceId,
-      validated.name,
-      validated.type,
-      validated.currency,
-      validated.amount,
-    );
+    const autoFlagSubId =
+      validated.type === "TRANSFER"
+        ? null
+        : await SubscriptionService.tryAutoFlag(
+            userId,
+            workspaceId,
+            validated.name,
+            validated.type,
+            validated.currency,
+            validated.amount,
+          );
 
     const transaction = await prisma.transaction.create({
       data: {
         userId,
         workspaceId,
         type: validated.type,
+        transferDirection:
+          validated.type === "TRANSFER"
+            ? validated.transferDirection ?? null
+            : null,
+        transferGroupId: validated.transferGroupId ?? null,
+        ledgerAccountId: validated.ledgerAccountId ?? null,
         amount: validated.amount,
         currency: validated.currency,
         transactionDate,
@@ -385,7 +427,7 @@ export class TransactionService {
     });
 
     // If not auto-flagged, check if this transaction forms a new subscription pattern
-    if (!autoFlagSubId) {
+    if (!autoFlagSubId && validated.type !== "TRANSFER") {
       this.triggerDetectionForTransaction(userId, workspaceId, transaction.id).catch(
         () => {},
       );
@@ -538,7 +580,7 @@ export class TransactionService {
           }
 
           if (
-            primaryTag.transactionType !== null &&
+            validatedItem.type !== "TRANSFER" &&
             primaryTag.transactionType !== validatedItem.type
           ) {
             errors.push({
@@ -563,13 +605,16 @@ export class TransactionService {
           }
         }
 
-        const subscriptionId = SubscriptionService.matchSubscriptionId(
-          subscriptions,
-          validatedItem.name,
-          validatedItem.type,
-          validatedItem.currency,
-          validatedItem.amount,
-        );
+        const subscriptionId =
+          validatedItem.type === "TRANSFER"
+            ? null
+            : SubscriptionService.matchSubscriptionId(
+                subscriptions,
+                validatedItem.name,
+                validatedItem.type,
+                validatedItem.currency,
+                validatedItem.amount,
+              );
 
         prepared.push({
           index,
@@ -594,6 +639,12 @@ export class TransactionService {
           userId,
           workspaceId,
           type: item.validatedItem.type,
+          transferDirection:
+            item.validatedItem.type === "TRANSFER"
+              ? item.validatedItem.transferDirection ?? null
+              : null,
+          transferGroupId: item.validatedItem.transferGroupId ?? null,
+          ledgerAccountId: item.validatedItem.ledgerAccountId ?? null,
           amount: item.validatedItem.amount,
           currency: item.validatedItem.currency,
           transactionDate: item.transactionDate,
@@ -705,6 +756,19 @@ export class TransactionService {
     }
 
     const validated = UpdateTransactionInputSchema.parse(input);
+    assertUpdateTransferFields(
+      existing.type,
+      existing.transferDirection ?? null,
+      validated,
+    );
+
+    if (validated.ledgerAccountId) {
+      await LedgerAccountService.assertOwnedAccount(
+        userId,
+        workspaceId,
+        validated.ledgerAccountId,
+      );
+    }
 
     // Verify tags if updating
     if (validated.tagIds) {
@@ -739,9 +803,8 @@ export class TransactionService {
         // Get transaction type (use validated type if updating, otherwise use existing)
         const transactionType = validated.type ?? existing.type;
 
-        // Validate transaction type match
         if (
-          primaryTag.transactionType !== null &&
+          transactionType !== "TRANSFER" &&
           primaryTag.transactionType !== transactionType
         ) {
           throw new Error(
@@ -754,6 +817,14 @@ export class TransactionService {
     // Handle transactionDate and precision updates
     const updateData: Prisma.TransactionUpdateInput = {
       ...(validated.type && { type: validated.type }),
+      ...(validated.transferDirection !== undefined && {
+        transferDirection: validated.transferDirection,
+      }),
+      ...(validated.ledgerAccountId !== undefined && {
+        ledgerAccount: validated.ledgerAccountId
+          ? { connect: { id: validated.ledgerAccountId } }
+          : { disconnect: true },
+      }),
       ...(validated.amount && { amount: validated.amount }),
       ...(validated.currency && { currency: validated.currency }),
       ...(validated.name && { name: validated.name }),
@@ -820,11 +891,23 @@ export class TransactionService {
       updateData.timePrecision = validated.timePrecision;
     }
 
+    const nextType = validated.type ?? existing.type;
+    if (nextType !== "TRANSFER") {
+      updateData.transferDirection = null;
+    }
+
     const transaction = await prisma.transaction.update({
       where: { id: transactionId },
       data: updateData,
       include: TRANSACTION_INCLUDE,
     });
+
+    if (existing.transferGroupId) {
+      await TransferService.syncPairedFields(userId, workspaceId, transactionId, {
+        ...(validated.amount ? { amount: validated.amount } : {}),
+        ...(validated.notes !== undefined ? { notes: validated.notes } : {}),
+      });
+    }
 
     const parsed = this.parseTransaction(transaction);
     const affectsExpenseBudget =
@@ -862,9 +945,48 @@ export class TransactionService {
       throw new Error("This transaction is managed by a split expense");
     }
 
+    if (existing.transferGroupId) {
+      await TransferService.deletePair(userId, workspaceId, transactionId, "both");
+      return;
+    }
+
     await prisma.transaction.delete({
       where: { id: transactionId },
     });
+  }
+
+  static async bulkUpdateTransactionType(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    input: IBulkUpdateTransactionTypeInput,
+  ): Promise<{ updated: number }> {
+    const validated = BulkUpdateTransactionTypeInputSchema.parse(input);
+    if (validated.type === "TRANSFER") {
+      if (
+        validated.transferDirection !== "OUT" &&
+        validated.transferDirection !== "IN"
+      ) {
+        throw new Error("transferDirection required when marking as TRANSFER");
+      }
+    }
+
+    const result = await prisma.transaction.updateMany({
+      where: {
+        id: { in: validated.transactionIds },
+        userId,
+        workspaceId,
+      },
+      data: {
+        type: validated.type,
+        transferDirection:
+          validated.type === "TRANSFER"
+            ? validated.transferDirection ?? null
+            : null,
+        ...(validated.type !== "TRANSFER" ? { transferGroupId: null } : {}),
+      },
+    });
+
+    return { updated: result.count };
   }
 
   /**
