@@ -6,7 +6,12 @@ import {
   RECOMMENDED_TAGS,
   type IRecommendedTag,
 } from "@/features/tag/config/recommended-tags";
-import { useCreateTag, useDeleteTag, useTags } from "@/features/tag/hooks/useTags";
+import {
+  useCreateTag,
+  useDeleteTag,
+  useTags,
+} from "@/features/tag/hooks/useTags";
+import { toTagTransactionType } from "@/features/tag/utils/tag-transaction-type";
 import { Button } from "@/features/ui/button/button";
 import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { Spinner } from "@/features/ui/loading/spinner";
@@ -45,7 +50,7 @@ export function TagsSetup() {
     createTag(
       {
         name: tag.name,
-        transactionType: tag.transactionType,
+        transactionType: toTagTransactionType(tag.transactionType),
         emoticon: tag.emoticon ?? null,
         color: tag.color ?? null,
         description: tag.description ?? null,
@@ -139,9 +144,7 @@ export function TagsSetup() {
               <HiOutlineTag className="size-8 text-primary" />
             </div>
             <Title className="text-2xl mb-2">Set Up Your Tags</Title>
-            <Text
-              isMuted
-              className="max-w-md">
+            <Text isMuted className="max-w-md">
               Tags help you categorize your transactions. Select the ones that
               match your spending habits, or create your own.
             </Text>
@@ -150,7 +153,8 @@ export function TagsSetup() {
             clicked={() => setShowCustomDialog(true)}
             variant="primary"
             size="md"
-            className="gap-2 shrink-0">
+            className="gap-2 shrink-0"
+          >
             <HiPlus className="size-4" />
             Create Custom Tag
           </Button>
@@ -169,7 +173,8 @@ export function TagsSetup() {
                 clicked={() => setShowCustomDialog(true)}
                 variant="default"
                 size="sm"
-                className="gap-2">
+                className="gap-2"
+              >
                 <HiPlus className="size-4" />
                 Custom
               </Button>
@@ -207,11 +212,10 @@ export function TagsSetup() {
       {(expenseTags.length > 0 || incomeTags.length > 0) && (
         <div className="mb-8">
           <div className="mb-4">
-            <Text className="font-semibold mb-2 text-text">Recommended Tags</Text>
-            <Text
-              isMuted
-              size="sm"
-              className="text-text-muted">
+            <Text className="font-semibold mb-2 text-text">
+              Recommended Tags
+            </Text>
+            <Text isMuted size="sm" className="text-text-muted">
               Tap to add common categories — you can change these later.
             </Text>
           </div>
@@ -241,7 +245,8 @@ export function TagsSetup() {
                             ? "bg-surface/50 border-border/50 cursor-wait opacity-70"
                             : "bg-surface/50 border-border/50 hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
                         }
-                      `}>
+                      `}
+                    >
                       {tag.emoticon && (
                         <span className="text-lg">{tag.emoticon}</span>
                       )}
@@ -285,7 +290,8 @@ export function TagsSetup() {
                             ? "bg-surface/50 border-border/50 cursor-wait opacity-70"
                             : "bg-surface/50 border-border/50 hover:border-primary/50 hover:bg-primary/5 cursor-pointer"
                         }
-                      `}>
+                      `}
+                    >
                       {tag.emoticon && (
                         <span className="text-lg">{tag.emoticon}</span>
                       )}
@@ -310,9 +316,7 @@ export function TagsSetup() {
         incomeTags.length === 0 &&
         existingTags.length > 0 && (
           <div className="mb-8 p-6 bg-surface/30 border border-border/50 rounded-2xl text-center">
-            <Text
-              isMuted
-              size="sm">
+            <Text isMuted size="sm">
               All recommended tags have been added. Use Create Custom Tag to add
               more categories.
             </Text>

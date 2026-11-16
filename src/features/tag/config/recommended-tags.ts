@@ -1,8 +1,8 @@
-import type { ITransactionType } from "@/features/shared/validation/schemas";
+import type { ITagTransactionType } from "@/features/tag/utils/tag-transaction-type";
 
 export interface IRecommendedTag {
   name: string;
-  transactionType: ITransactionType;
+  transactionType: ITagTransactionType;
   emoticon?: string;
   color?: string;
   description?: string;

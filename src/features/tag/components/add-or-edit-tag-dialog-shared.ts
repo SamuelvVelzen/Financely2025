@@ -1,8 +1,4 @@
-import type {
-  CreateTagFieldsSchema,
-  ITag,
-  ITransactionType,
-} from "@/features/shared/validation/schemas";
+import type { CreateTagFieldsSchema, ITag } from "@/features/shared/validation/schemas";
 import type { z } from "zod";
 
 export type IAddOrEditTagDialogProps = {
@@ -22,7 +18,7 @@ export const getEmptyTagFormValues = (): IAddOrEditTagFormData => ({
   color: "",
   description: "",
   emoticon: "",
-  transactionType: "EXPENSE" as ITransactionType,
+  transactionType: "EXPENSE",
 });
 
 export function buildTagSubmitData(data: IAddOrEditTagFormData) {
@@ -48,6 +44,6 @@ export function buildTagSubmitData(data: IAddOrEditTagFormData) {
       data.emoticon && data.emoticon.trim() !== ""
         ? data.emoticon.trim()
         : null,
-    transactionType: transactionType as ITransactionType,
+    transactionType,
   };
 }

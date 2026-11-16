@@ -1,5 +1,6 @@
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
-import type { ITag, ITransactionType } from "@/features/shared/validation/schemas";
+import type { ITag } from "@/features/shared/validation/schemas";
+import { toTagTransactionType } from "@/features/tag/utils/tag-transaction-type";
 import { CreateTagFieldsSchema } from "@/features/shared/validation/schemas";
 import { TagRulesForTagSection } from "@/features/tag-rule/components/tag-rules-for-tag-section";
 import { useCreateTagRule } from "@/features/tag-rule/hooks/useTagRules";
@@ -120,8 +121,9 @@ export function AddOrEditTagDialogContent({
         color: initialValues?.color || "",
         description: initialValues?.description || "",
         emoticon: initialValues?.emoticon || "",
-        transactionType: (initialValues?.transactionType ||
-          "EXPENSE") as ITransactionType,
+        transactionType: toTagTransactionType(
+          initialValues?.transactionType,
+        ),
       });
     }
     focusFirstInput();

@@ -10,6 +10,7 @@ import {
   type ITransactionType,
 } from "@/features/shared/validation/schemas";
 import { AddOrEditTagDialog } from "@/features/tag/components/add-or-edit-tag-dialog";
+import { toTagTransactionType } from "@/features/tag/utils/tag-transaction-type";
 import { formatTagLabel } from "@/features/tag/components/tag-display";
 import { useTags } from "@/features/tag/hooks/useTags";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
@@ -183,7 +184,9 @@ export function TagSelect({
         onOpenChange={setIsCreateDialogOpen}
         initialName={pendingTagName}
         initialValues={{
-          transactionType: transactionType || undefined,
+          transactionType: transactionType
+            ? toTagTransactionType(transactionType)
+            : undefined,
         }}
         onSuccess={handleTagCreated}
       />

@@ -1,11 +1,11 @@
-import type { ITransactionType } from "@/features/shared/validation/schemas";
 import { RECOMMENDED_TAGS } from "@/features/tag/config/recommended-tags";
+import type { ITagTransactionType } from "@/features/tag/utils/tag-transaction-type";
 
 export interface IDefaultTagRulePreset {
   id: string;
   label: string;
   tagName: string;
-  transactionType: ITransactionType;
+  transactionType: ITagTransactionType;
   keywords: string[];
   priority: number;
 }
@@ -158,7 +158,10 @@ export const DEFAULT_TAG_RULE_PRESETS: IDefaultTagRulePreset[] = [
 ];
 
 export function getPresetsForTag(
-  tag: Pick<{ name: string; transactionType: ITransactionType }, "name" | "transactionType">,
+  tag: Pick<
+    { name: string; transactionType: ITagTransactionType },
+    "name" | "transactionType"
+  >,
 ): IDefaultTagRulePreset[] {
   const normalizedName = tag.name.toLowerCase().trim();
   return DEFAULT_TAG_RULE_PRESETS.filter(
@@ -169,7 +172,10 @@ export function getPresetsForTag(
 }
 
 export function getRelatedPresetsForTag(
-  tag: Pick<{ name: string; transactionType: ITransactionType }, "name" | "transactionType">,
+  tag: Pick<
+    { name: string; transactionType: ITagTransactionType },
+    "name" | "transactionType"
+  >,
   rules: { source: string; label: string | null }[],
   allPresets: IDefaultTagRulePreset[] = DEFAULT_TAG_RULE_PRESETS,
 ): IDefaultTagRulePreset[] {

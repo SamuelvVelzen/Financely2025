@@ -25,6 +25,7 @@ import {
   getActualColor,
   getDifferenceColor,
   isBudgetViewPeriodEnded,
+  narrowBudgetCategoryType,
   type IBudgetCategoryType,
 } from "./budget-status";
 
@@ -86,7 +87,7 @@ export function BudgetDetailTagsContainer({
       return monthlyBreakdown.items.map((mi) => ({
         id: mi.tagId ?? `misc_${mi.categoryType ?? "EXPENSE"}`,
         tagId: mi.tagId,
-        categoryType: mi.categoryType ?? undefined,
+        categoryType: narrowBudgetCategoryType(mi.categoryType),
         expected: mi.expected,
         actual: mi.actual,
         difference: mi.difference,
@@ -101,7 +102,7 @@ export function BudgetDetailTagsContainer({
           ? ic.item.id
           : `misc_${ic.item.categoryType ?? "EXPENSE"}`,
       tagId: ic.item.tagId,
-      categoryType: ic.item.categoryType ?? undefined,
+      categoryType: narrowBudgetCategoryType(ic.item.categoryType),
       expected: ic.expected,
       actual: ic.actual,
       difference: ic.difference,

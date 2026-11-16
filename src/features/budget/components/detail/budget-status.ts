@@ -2,6 +2,13 @@ import { endOfMonth, parseISO } from "date-fns";
 
 export type IBudgetCategoryType = "EXPENSE" | "INCOME";
 
+export function narrowBudgetCategoryType(
+  value: string | null | undefined,
+): IBudgetCategoryType | undefined {
+  if (value === "EXPENSE" || value === "INCOME") return value;
+  return undefined;
+}
+
 export type IBudgetStatusParams = {
   percentage: number;
   categoryType?: IBudgetCategoryType;

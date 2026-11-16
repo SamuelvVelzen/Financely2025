@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TransactionTypeSchema } from "@/features/shared/validation/enums";
+const TagTransactionTypeSchema = z.enum(["EXPENSE", "INCOME"]);
 import { ISODateStringSchema } from "@/features/shared/validation/primitives";
 import { CreateTagRuleWithTagInputSchema } from "@/features/tag-rule/validation/rule-input-schemas";
 
@@ -21,7 +21,7 @@ export const TagSchema = z.object({
     .or(z.undefined())
     .transform((val) => val ?? null),
   order: z.number().int(),
-  transactionType: TransactionTypeSchema,
+  transactionType: TagTransactionTypeSchema,
   createdAt: ISODateStringSchema,
   updatedAt: ISODateStringSchema,
 });
@@ -100,7 +100,7 @@ export const CreateTagFieldsSchema = z.object({
     .nullable()
     .optional(),
   order: z.number().int().optional(),
-  transactionType: TransactionTypeSchema,
+  transactionType: TagTransactionTypeSchema,
 });
 
 export const CreateTagInputSchema = CreateTagFieldsSchema.extend({

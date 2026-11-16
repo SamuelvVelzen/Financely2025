@@ -6,9 +6,10 @@ import type {
 } from "@/features/shared/validation/schemas";
 import { AddOrEditTagDialog } from "@/features/tag/components/add-or-edit-tag-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
-import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
+import { toTagTransactionType } from "@/features/tag/utils/tag-transaction-type";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
 import { type IPropsWithClassName } from "@/features/util/type-helpers/props";
+import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
@@ -57,7 +58,7 @@ export function TagSelectCell({
     // Helper function to resolve a single tag value to either a tag ID or mark as not found
     // This logic is shared between multiple and single selection modes
     const resolveTagValue = (
-      tagId: string
+      tagId: string,
     ): { id: string } | { notFound: string } => {
       // Check if it's a tag name with metadata (found tag)
       const metadata = tagMetadataMap.get(tagId);
@@ -186,7 +187,9 @@ export function TagSelectCell({
         onOpenChange={setIsCreateDialogOpen}
         initialName={pendingTagName}
         initialValues={{
-          transactionType: transactionType || undefined,
+          transactionType: transactionType
+            ? toTagTransactionType(transactionType)
+            : undefined,
         }}
         onSuccess={handleTagCreated}
       />
