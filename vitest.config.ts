@@ -1,6 +1,6 @@
+import viteReact from "@vitejs/plugin-react";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import viteReact from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
@@ -13,7 +13,6 @@ export default defineConfig({
     pool: "forks",
     fileParallelism: false,
     testTimeout: 30_000,
-    globalSetup: [path.join(rootDir, "src/test/global-setup.ts")],
     projects: [
       {
         extends: true,
@@ -22,6 +21,7 @@ export default defineConfig({
           environment: "node",
           include: ["src/**/*.test.ts", "prisma/**/*.test.ts"],
           setupFiles: [path.join(rootDir, "src/test/setup.ts")],
+          globalSetup: [path.join(rootDir, "src/test/global-setup.ts")],
         },
       },
       {
