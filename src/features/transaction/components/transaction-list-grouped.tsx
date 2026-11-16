@@ -1,12 +1,13 @@
 import { useHighlightText } from "@/features/shared/hooks/useHighlightText";
 import { useIntersectionObserver } from "@/features/shared/hooks/useIntersectionObserver";
 import type { ITransaction } from "@/features/shared/validation/schemas";
+import { TagBadge } from "@/features/tag/components/tag-badge";
 import { TransactionAmount } from "@/features/transaction/components/transaction-amount";
 import { TransactionRefundBadge } from "@/features/transaction/components/transaction-refund-badge";
 import { TransactionRowActions } from "@/features/transaction/components/transaction-row-actions";
+import { TransactionRowSelectCheckbox } from "@/features/transaction/components/transaction-row-select-checkbox";
 import { PAYMENT_METHOD_LABELS } from "@/features/transaction/config/payment-methods";
 import { groupTransactionsByDate } from "@/features/transaction/utils/group-transactions-by-date";
-import { TagBadge } from "@/features/tag/components/tag-badge";
 import { Badge } from "@/features/ui/badge/badge";
 import { List } from "@/features/ui/list/list";
 import { ListItem } from "@/features/ui/list/list-item";
@@ -25,6 +26,8 @@ type ITransactionListGroupedProps = {
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => void;
+  isSelected?: (transactionId: string) => boolean;
+  onToggleSelect?: (transactionId: string) => void;
 };
 
 export function TransactionListGrouped({
@@ -37,7 +40,10 @@ export function TransactionListGrouped({
   hasNextPage = false,
   isFetchingNextPage = false,
   fetchNextPage,
+  isSelected,
+  onToggleSelect,
 }: ITransactionListGroupedProps) {
+  const bulkSelectEnabled = Boolean(isSelected) && Boolean(onToggleSelect);
   const { highlightText } = useHighlightText();
   const dateGroups = groupTransactionsByDate(data);
 
@@ -50,7 +56,7 @@ export function TransactionListGrouped({
     },
     {
       enabled: hasNextPage && !!fetchNextPage,
-    }
+    },
   );
 
   if (dateGroups.length === 0) {
@@ -60,9 +66,7 @@ export function TransactionListGrouped({
   return (
     <div className="overflow-hidden">
       {dateGroups.map((group, groupIndex) => (
-        <div
-          key={group.date}
-          className={cn("mb-4", groupIndex > 0 && "mt-6")}>
+        <div key={group.date} className={cn("mb-4", groupIndex > 0 && "mt-6")}>
           {/* Date Header */}
           <div className="px-4 py-2 mb-2">
             <h3 className="text-sm font-semibold text-text-muted">
@@ -73,16 +77,23 @@ export function TransactionListGrouped({
           {/* Transactions in this date group */}
           <List
             data={group.transactions}
-            getItemKey={(transaction) => transaction.id}>
+            getItemKey={(transaction) => transaction.id}
+          >
             {(transaction) => (
               <ListItem
                 className="flex-col items-stretch gap-1"
-                clicked={
-                  onEdit ? () => onEdit(transaction) : undefined
-                }>
+                clicked={onEdit ? () => onEdit(transaction) : undefined}
+              >
                 {/* Top row: Name, Time, Actions, Amount */}
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
+                    {bulkSelectEnabled ? (
+                      <TransactionRowSelectCheckbox
+                        transaction={transaction}
+                        checked={isSelected!(transaction.id)}
+                        onToggle={onToggleSelect!}
+                      />
+                    ) : null}
                     <span className="text-text font-medium truncate">
                       {highlightText(transaction.name, searchQuery)}
                     </span>
@@ -133,7 +144,8 @@ export function TransactionListGrouped({
                     {transaction.subscription && (
                       <Badge
                         variant="info"
-                        tooltip={`Part of "${transaction.subscription.name}" subscription`}>
+                        tooltip={`Part of "${transaction.subscription.name}" subscription`}
+                      >
                         <HiArrowPath className="size-3" />
                         Recurring
                       </Badge>
@@ -157,12 +169,10 @@ export function TransactionListGrouped({
       {hasNextPage && (
         <div
           ref={loadMoreRef}
-          className="flex items-center justify-center py-4">
+          className="flex items-center justify-center py-4"
+        >
           {isFetchingNextPage && (
-            <Loading
-              text="Loading more transactions"
-              size="sm"
-            />
+            <Loading text="Loading more transactions" size="sm" />
           )}
         </div>
       )}

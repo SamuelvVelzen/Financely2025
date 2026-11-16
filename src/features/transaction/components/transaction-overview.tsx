@@ -2,13 +2,16 @@ import { useOrderedData } from "@/features/shared/hooks/use-ordered-data";
 import { useScrollPosition } from "@/features/shared/hooks/use-scroll-position";
 import { useResponsive } from "@/features/shared/hooks/useResponsive";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
+import type { ITransferDirection } from "@/features/shared/validation/enums";
 import type {
   ICurrency,
   IPaymentMethod,
   ITransaction,
+  ITransactionType,
 } from "@/features/shared/validation/schemas";
 import { SubscriptionDetectionDialog } from "@/features/subscription/components/subscription-detection-dialog";
 import { useTags } from "@/features/tag/hooks/useTags";
+import { useTransactionBulkSelection } from "@/features/transaction/hooks/use-transaction-bulk-selection";
 import { useTransactionFilterProps } from "@/features/transaction/hooks/use-transaction-filter-props";
 import { useTransactionViewMode } from "@/features/transaction/hooks/use-transaction-view-mode";
 import { useTransactionFilters } from "@/features/transaction/hooks/useTransactionFilters";
@@ -16,6 +19,10 @@ import {
   useDeleteTransaction,
   useInfiniteTransactions,
 } from "@/features/transaction/hooks/useTransactions";
+import {
+  useBulkDeleteTransactions,
+  useBulkUpdateTransactionType,
+} from "@/features/transaction/hooks/useTransfers";
 import { calculateFilterCount } from "@/features/transaction/utils/filter-count";
 import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
 import { serializeFilterStateToQuery } from "@/features/transaction/utils/transaction-filter-model";
@@ -36,7 +43,9 @@ import { HiArrowsRightLeft } from "react-icons/hi2";
 import { exportTransactionsToCsv } from "../utils/export-csv";
 import { AddOrEditTransactionDialog } from "./add-or-edit-transaction-dialog";
 import { AllocateRefundDialog } from "./allocate-refund-dialog";
+import { CreateLinkedTransferDialog } from "./create-linked-transfer-dialog";
 import { OpenTransactionByIdDialog } from "./open-transaction-by-id-dialog";
+import { TransactionBulkActionsBar } from "./transaction-bulk-actions-bar";
 import { TransactionListGrouped } from "./transaction-list-grouped";
 import { TransactionOverviewHeader } from "./transaction-overview-header";
 import { TransactionTable } from "./transaction-table";
@@ -178,11 +187,35 @@ export function TransactionOverview({
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
 
+  const visibleTransactionIds = useMemo(
+    () => transactions.map((transaction) => transaction.id),
+    [transactions],
+  );
+
+  const {
+    selectedIds,
+    selectedIdList,
+    selectedCount,
+    toggle: toggleBulkSelect,
+    isSelected: isBulkSelected,
+    onSelectionChange: onBulkSelectionChange,
+    clear: clearBulkSelection,
+    selectAllVisible,
+    allVisibleSelected,
+  } = useTransactionBulkSelection(visibleTransactionIds);
+
   const { mutate: deleteTransaction } = useDeleteTransaction();
+  const { mutate: bulkDeleteTransactions, isPending: isBulkDeletePending } =
+    useBulkDeleteTransactions();
+  const { mutate: bulkUpdateType, isPending: isBulkUpdatePending } =
+    useBulkUpdateTransactionType();
   const toast = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] =
     useState(autoOpenCreate);
+  const [isLinkedTransferDialogOpen, setIsLinkedTransferDialogOpen] =
+    useState(false);
   const [isDetectDialogOpen, setIsDetectDialogOpen] = useState(false);
   const [isAllocateRefundDialogOpen, setIsAllocateRefundDialogOpen] =
     useState(false);
@@ -252,6 +285,68 @@ export function TransactionOverview({
     setSelectedTransaction(undefined);
   };
 
+  const handleBulkDeleteClick = useCallback(() => {
+    setIsBulkDeleteDialogOpen(true);
+  }, []);
+
+  const handleBulkDeleteConfirm = useCallback(() => {
+    if (selectedIdList.length === 0) {
+      return;
+    }
+    bulkDeleteTransactions(
+      { transactionIds: selectedIdList },
+      {
+        onSuccess: (result) => {
+          setIsBulkDeleteDialogOpen(false);
+          clearBulkSelection();
+          if (result.deleted > 0) {
+            toast.success(
+              `Deleted ${result.deleted} transaction${result.deleted === 1 ? "" : "s"}`,
+            );
+          }
+          if (result.errors.length > 0) {
+            toast.error(
+              `Could not delete ${result.errors.length} transaction${result.errors.length === 1 ? "" : "s"}`,
+            );
+          }
+        },
+        onError: () => {
+          toast.error("Failed to delete selected transactions");
+        },
+      },
+    );
+  }, [bulkDeleteTransactions, clearBulkSelection, selectedIdList, toast]);
+
+  const handleBulkChangeType = useCallback(
+    (type: ITransactionType, transferDirection?: ITransferDirection | null) => {
+      if (selectedIdList.length === 0) {
+        return;
+      }
+      bulkUpdateType(
+        {
+          transactionIds: selectedIdList,
+          type,
+          transferDirection:
+            type === "TRANSFER" ? (transferDirection ?? undefined) : undefined,
+        },
+        {
+          onSuccess: (result) => {
+            clearBulkSelection();
+            toast.success(
+              `Updated ${result.updated} transaction${result.updated === 1 ? "" : "s"}`,
+            );
+          },
+          onError: () => {
+            toast.error("Failed to update selected transactions");
+          },
+        },
+      );
+    },
+    [bulkUpdateType, clearBulkSelection, selectedIdList, toast],
+  );
+
+  const bulkActionsPending = isBulkDeletePending || isBulkUpdatePending;
+
   const isEmpty = useMemo(() => {
     return transactions.length === 0 && !hasActiveFilters;
   }, [transactions, hasActiveFilters]);
@@ -305,6 +400,7 @@ export function TransactionOverview({
   const actions = useMemo(
     () => ({
       onCreateTransaction: handleCreateTransaction,
+      onCreateLinkedTransfer: () => setIsLinkedTransferDialogOpen(true),
       onCsvImportClick: handleCsvImportClick,
       onCsvExportClick: handleCsvExport,
       onDetectSubscriptions: () => setIsDetectDialogOpen(true),
@@ -388,37 +484,59 @@ export function TransactionOverview({
           />
         )}
 
-        {hasTransactions &&
-          (layout === "list" ? (
-            <TransactionListGrouped
-              data={transactions}
-              searchQuery={searchQuery}
-              showDescription={showDescriptions}
-              onDelete={handleDeleteClick}
-              onEdit={handleEditTransaction}
-              onAllocateRefund={handleAllocateRefund}
-              hasNextPage={hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-              fetchNextPage={fetchNextPage}
+        {hasTransactions ? (
+          <div className="flex flex-col gap-3">
+            <TransactionBulkActionsBar
+              selectedCount={selectedCount}
+              visibleCount={visibleTransactionIds.length}
+              allVisibleSelected={allVisibleSelected}
+              onClear={clearBulkSelection}
+              onSelectAllVisible={selectAllVisible}
+              onDelete={handleBulkDeleteClick}
+              onChangeType={handleBulkChangeType}
+              pending={bulkActionsPending}
             />
-          ) : (
-            <TransactionTable
-              data={transactions}
-              searchQuery={searchQuery}
-              onDelete={handleDeleteClick}
-              onEdit={handleEditTransaction}
-              onAllocateRefund={handleAllocateRefund}
-              hasNextPage={hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-              fetchNextPage={fetchNextPage}
-            />
-          ))}
+            {layout === "list" ? (
+              <TransactionListGrouped
+                data={transactions}
+                searchQuery={searchQuery}
+                showDescription={showDescriptions}
+                onDelete={handleDeleteClick}
+                onEdit={handleEditTransaction}
+                onAllocateRefund={handleAllocateRefund}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                fetchNextPage={fetchNextPage}
+                isSelected={isBulkSelected}
+                onToggleSelect={toggleBulkSelect}
+              />
+            ) : (
+              <TransactionTable
+                data={transactions}
+                searchQuery={searchQuery}
+                onDelete={handleDeleteClick}
+                onEdit={handleEditTransaction}
+                onAllocateRefund={handleAllocateRefund}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                fetchNextPage={fetchNextPage}
+                selectedKeys={selectedIds}
+                onSelectionChange={onBulkSelectionChange}
+              />
+            )}
+          </div>
+        ) : null}
       </Container>
 
       <AddOrEditTransactionDialog
         open={isTransactionDialogOpen}
         onOpenChange={setIsTransactionDialogOpen}
         transaction={selectedTransaction}
+      />
+
+      <CreateLinkedTransferDialog
+        open={isLinkedTransferDialogOpen}
+        onOpenChange={setIsLinkedTransferDialogOpen}
       />
 
       <AllocateRefundDialog
@@ -442,8 +560,14 @@ export function TransactionOverview({
         }}
       />
       <DeleteDialog
-        title={`Delete ${selectedTransaction?.type === "EXPENSE" ? "Expense" : "Income"}`}
-        content={`Are you sure you want to delete the ${selectedTransaction?.type === "EXPENSE" ? "expense" : "income"} "${selectedTransaction?.name}"? This action cannot be undone.`}
+        title={`Delete ${
+          selectedTransaction?.type === "EXPENSE"
+            ? "Expense"
+            : selectedTransaction?.type === "INCOME"
+              ? "Income"
+              : "Transfer"
+        }`}
+        content={`Are you sure you want to delete "${selectedTransaction?.name}"? This action cannot be undone.`}
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         footerButtons={[
@@ -454,6 +578,24 @@ export function TransactionOverview({
           {
             buttonContent: "Delete",
             clicked: handleDeleteConfirm,
+            variant: "danger",
+          },
+        ]}
+      />
+
+      <DeleteDialog
+        title="Delete selected transactions"
+        content={`Are you sure you want to delete ${selectedCount} selected transaction${selectedCount === 1 ? "" : "s"}? Linked transfer pairs are removed together. This cannot be undone.`}
+        open={isBulkDeleteDialogOpen}
+        onOpenChange={setIsBulkDeleteDialogOpen}
+        footerButtons={[
+          {
+            buttonContent: "Cancel",
+            clicked: () => setIsBulkDeleteDialogOpen(false),
+          },
+          {
+            buttonContent: "Delete",
+            clicked: handleBulkDeleteConfirm,
             variant: "danger",
           },
         ]}
