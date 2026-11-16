@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "prisma generate && vite dev",
     "build": "prisma generate && vite build && tsx scripts/generate-sw.ts",
+    "build:cf": "yarn build",
     "pwa:sw": "tsx scripts/generate-sw.ts",
     "start": "node .output/server/index.mjs",
     "lint": "eslint . --max-warnings 0",

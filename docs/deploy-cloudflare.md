@@ -75,7 +75,7 @@ The repo uses **Yarn 4** (`packageManager` in `package.json`). Cloudflare’s de
 
 `yarn build` runs Prisma generate, Vite + Nitro build, and `scripts/generate-sw.ts` for the PWA service worker.
 
-Publish using your Cloudflare project’s workflow (Git integration, `wrangler deploy`, or Pages build command). Exact Wrangler config may live in the dashboard; keep build command aligned with `yarn build` and run migrations before or as part of the release step.
+Publish using your Cloudflare project’s workflow (Git integration, `wrangler deploy`, or Pages build command). Set the **build command** to `yarn build:cf` (alias of `yarn build`) or `yarn build`. Run migrations before or as part of the release step.
 
 ### Post-deploy checks
 
