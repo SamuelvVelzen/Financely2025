@@ -48,6 +48,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 dist/*
+/.output/
 
 # tanstack
 .tanstack/
@@ -61,6 +62,7 @@ prisma/data/*.db
 prisma/data/*.db-journal
 prisma/data/*.db-wal
 prisma/data/*.db-shm
+prisma/schema/data/
 
 # generated prisma zod schemas (auto-generated from schema.prisma)
 src/features/shared/validation/generated.ts/
