@@ -22,6 +22,11 @@ export interface IWizardProps {
   onStepChange: (stepIndex: number) => void;
   /** Callback when the wizard is completed */
   onComplete: () => void;
+  /** Exit wizard without completing (e.g. back to list) */
+  onCancel?: () => void;
+  cancelLabel?: string;
+  /** Block primary Next / Skip navigation */
+  isNextDisabled?: boolean;
 }
 
 export function Wizard({
@@ -29,6 +34,9 @@ export function Wizard({
   currentStep,
   onStepChange,
   onComplete,
+  onCancel,
+  cancelLabel = "Exit",
+  isNextDisabled = false,
 }: IWizardProps) {
   const lastIndex = Math.max(pages.length - 1, 0);
   const stepIndex =
@@ -45,12 +53,15 @@ export function Wizard({
   }, [isFirstStep, stepIndex, onStepChange]);
 
   const handleNext = useCallback(() => {
+    if (isNextDisabled) {
+      return;
+    }
     if (isLastStep) {
       onComplete();
     } else {
       onStepChange(stepIndex + 1);
     }
-  }, [isLastStep, stepIndex, onStepChange, onComplete]);
+  }, [isLastStep, isNextDisabled, stepIndex, onStepChange, onComplete]);
 
   if (!currentPage) {
     return null;
@@ -77,25 +88,34 @@ export function Wizard({
         className="rounded-b-none mb-0"
         as="footer">
         <div className="flex items-center justify-between container mx-auto">
-          {!isFirstStep ? (
-            <Button
-              clicked={handleBack}
-              variant="default"
-              size="md"
-              className="gap-2">
-              <HiArrowLeft className="size-4" />
-              Back
-            </Button>
-          ) : (
-            <div />
-          )}
+          <div className="flex items-center gap-2">
+            {onCancel ? (
+              <Button
+                clicked={onCancel}
+                variant="default"
+                size="md">
+                {cancelLabel}
+              </Button>
+            ) : null}
+            {!isFirstStep ? (
+              <Button
+                clicked={handleBack}
+                variant="default"
+                size="md"
+                className="gap-2">
+                <HiArrowLeft className="size-4" />
+                Back
+              </Button>
+            ) : null}
+          </div>
 
           <div className="flex items-center gap-3">
             {canSkipCurrentPage && !isLastStep && (
               <Button
                 clicked={handleNext}
                 variant="default"
-                size="md">
+                size="md"
+                disabled={isNextDisabled}>
                 Skip
               </Button>
             )}
@@ -104,7 +124,8 @@ export function Wizard({
               clicked={handleNext}
               variant="primary"
               size="md"
-              className="gap-2">
+              className="gap-2"
+              disabled={isNextDisabled}>
               {isLastStep ? (
                 <>
                   Complete

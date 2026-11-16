@@ -1,20 +1,20 @@
+import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
+import {
+  getEmptySplitGroupFormValues,
+  type ISplitGroupFormValues,
+} from "@/features/split/components/add-or-edit-split-group-dialog-shared";
 import { SplitGroupWizardDetailsStep } from "@/features/split/components/wizard/split-group-wizard-details-step";
 import { SplitGroupWizardFxNote } from "@/features/split/components/wizard/split-group-wizard-fx-note";
 import { SplitGroupWizardIntro } from "@/features/split/components/wizard/split-group-wizard-intro";
 import { SplitGroupWizardMembersStep } from "@/features/split/components/wizard/split-group-wizard-members-step";
 import { SplitGroupWizardReady } from "@/features/split/components/wizard/split-group-wizard-ready";
 import {
-  getEmptySplitGroupFormValues,
-  type ISplitGroupFormValues,
-} from "@/features/split/components/add-or-edit-split-group-dialog-shared";
-import {
   useCreateSplitGroup,
   useSplitGroup,
 } from "@/features/split/hooks/use-split-groups";
-import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import { Loading } from "@/features/ui/loading";
-import { type IWizardPage, Wizard } from "@/features/ui/wizard/wizard";
 import { useToast } from "@/features/ui/toast";
+import { type IWizardPage, Wizard } from "@/features/ui/wizard/wizard";
 import {
   useCompleteWizard,
   useUpdateWizardProgress,
@@ -24,7 +24,14 @@ import { WIZARD_IDS } from "@/features/wizard/wizard-ids";
 import { useNavWorkspaceId } from "@/features/workspace/hooks/use-nav-workspace-id";
 import { useDefaultCurrency } from "@/features/workspace/hooks/useWorkspaceSettings";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 export function SplitGroupWizardPage() {
   const navigate = useNavigate({ from: "/wizards/split-group" });
@@ -41,25 +48,29 @@ export function SplitGroupWizardPage() {
   const formId = useId();
 
   const [groupId, setGroupId] = useState<string | null>(null);
-  const draftRef = useRef<ISplitGroupFormValues>(
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [draft, setDraft] = useState<ISplitGroupFormValues>(() =>
     getEmptySplitGroupFormValues(defaultCurrency),
   );
   const creatingRef = useRef(false);
 
-  useEffect(() => {
-    if (!groupId) {
-      draftRef.current = getEmptySplitGroupFormValues(defaultCurrency);
-    }
-  }, [defaultCurrency, groupId]);
-
   const { data: liveGroup } = useSplitGroup(groupId ?? "");
+
+  const effectiveDraft = useMemo((): ISplitGroupFormValues => {
+    if (groupId) {
+      return draft;
+    }
+    return {
+      ...draft,
+      defaultCurrency,
+    };
+  }, [defaultCurrency, draft, groupId]);
 
   const ensureGroupCreated = useCallback(async (): Promise<string | null> => {
     if (groupId) {
       return groupId;
     }
-    const draft = draftRef.current;
-    if (!draft.name.trim()) {
+    if (!effectiveDraft.name.trim()) {
       toast.error("Enter a group name to continue");
       return null;
     }
@@ -67,10 +78,11 @@ export function SplitGroupWizardPage() {
       return null;
     }
     creatingRef.current = true;
+    setCreateError(null);
     try {
       const created = await createGroup.mutateAsync({
-        name: draft.name.trim(),
-        defaultCurrency: draft.defaultCurrency || defaultCurrency,
+        name: effectiveDraft.name.trim(),
+        defaultCurrency: effectiveDraft.defaultCurrency || defaultCurrency,
       });
       if (isOfflineMutationPlaceholder(created)) {
         const offlineId =
@@ -91,13 +103,16 @@ export function SplitGroupWizardPage() {
       setGroupId(id);
       toast.success("Group created");
       return id;
-    } catch {
-      toast.error("Could not create group");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not create group";
+      setCreateError(message);
+      toast.error(message);
       return null;
     } finally {
       creatingRef.current = false;
     }
-  }, [createGroup, defaultCurrency, groupId, toast]);
+  }, [createGroup, defaultCurrency, effectiveDraft, groupId, toast]);
 
   const pages = useMemo((): IWizardPage[] => {
     const members =
@@ -108,7 +123,7 @@ export function SplitGroupWizardPage() {
         role?: string;
       }>) ?? [];
     const groupName =
-      (liveGroup?.name as string | undefined) ?? draftRef.current.name;
+      (liveGroup?.name as string | undefined) ?? effectiveDraft.name;
     const guestAccessToken = liveGroup?.guestAccessToken as string | undefined;
     const currentMemberId =
       (liveGroup?.currentMemberId as string | undefined) ?? "";
@@ -126,13 +141,17 @@ export function SplitGroupWizardPage() {
         content: (
           <SplitGroupWizardDetailsStep
             formId={formId}
-            initialValues={draftRef.current}
+            initialValues={effectiveDraft}
             disabled={createGroup.isPending}
+            createError={createError}
             onValuesChange={(values) => {
-              draftRef.current = values;
+              setDraft(values);
+              if (createError) {
+                setCreateError(null);
+              }
             }}
             onSubmit={(values) => {
-              draftRef.current = values;
+              setDraft(values);
             }}
           />
         ),
@@ -167,7 +186,14 @@ export function SplitGroupWizardPage() {
         skippable: false,
       },
     ];
-  }, [createGroup.isPending, formId, groupId, liveGroup]);
+  }, [
+    createError,
+    createGroup.isPending,
+    effectiveDraft,
+    formId,
+    groupId,
+    liveGroup,
+  ]);
 
   const getStepIndexById = (id: string | undefined): number => {
     if (!id) return 0;
@@ -185,6 +211,18 @@ export function SplitGroupWizardPage() {
   const currentStep = urlStepId
     ? getStepIndexById(urlStepId)
     : (progress?.currentStepIndex ?? 0);
+
+  const currentStepId = getStepIdByIndex(currentStep);
+
+  useEffect(() => {
+    const stepsRequiringGroup = new Set(["members", "fx", "ready"]);
+    if (!groupId && stepsRequiringGroup.has(currentStepId)) {
+      navigate({
+        search: { step: "details" },
+        replace: true,
+      });
+    }
+  }, [currentStepId, groupId, navigate]);
 
   useEffect(() => {
     if (!isLoading && urlStepId === undefined && progress?.currentStepIndex) {
@@ -246,6 +284,9 @@ export function SplitGroupWizardPage() {
     );
   }
 
+  const isNextDisabled =
+    currentStepId === "details" && (createGroup.isPending || !!createError);
+
   return (
     <Wizard
       pages={pages}
@@ -256,6 +297,11 @@ export function SplitGroupWizardPage() {
       onComplete={() => {
         void handleComplete();
       }}
+      onCancel={() => {
+        navigate({ to: "/splits" });
+      }}
+      cancelLabel="Exit to splits"
+      isNextDisabled={isNextDisabled}
     />
   );
 }

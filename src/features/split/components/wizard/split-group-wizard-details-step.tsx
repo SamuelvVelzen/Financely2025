@@ -7,6 +7,7 @@ export interface ISplitGroupWizardDetailsStepProps {
   formId: string;
   initialValues: ISplitGroupFormValues;
   disabled?: boolean;
+  createError?: string | null;
   onValuesChange: (values: ISplitGroupFormValues) => void;
   onSubmit: (values: ISplitGroupFormValues) => void;
 }
@@ -15,6 +16,7 @@ export function SplitGroupWizardDetailsStep({
   formId,
   initialValues,
   disabled,
+  createError,
   onValuesChange,
   onSubmit,
 }: ISplitGroupWizardDetailsStepProps) {
@@ -30,7 +32,12 @@ export function SplitGroupWizardDetailsStep({
           Expenses can still use other currencies.
         </Text>
       </div>
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto space-y-4">
+        {createError ? (
+          <div className="p-4 bg-danger/10 border border-danger rounded-2xl">
+            <p className="text-danger text-sm">{createError}</p>
+          </div>
+        ) : null}
         <SplitGroupDetailsForm
           formId={formId}
           initialValues={initialValues}
