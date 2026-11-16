@@ -195,6 +195,20 @@ export const BulkUpdateTransactionTypeInputSchema = z.object({
   transferDirection: TransferDirectionSchema.nullable().optional(),
 });
 
+export const BulkDeleteTransactionsInputSchema = z.object({
+  transactionIds: z.array(z.string().min(1)).min(1),
+});
+
+export const BulkDeleteTransactionsResponseSchema = z.object({
+  deleted: z.number().int().min(0),
+  errors: z.array(
+    z.object({
+      id: z.string(),
+      message: z.string(),
+    }),
+  ),
+});
+
 export const CreateLinkedTransferInputSchema = z.object({
   fromLedgerAccountId: z.string().min(1),
   toLedgerAccountId: z.string().min(1),
@@ -350,6 +364,12 @@ export type ICsvImportRequest = z.infer<typeof CsvImportRequestSchema>;
 export type ICsvImportResponse = z.infer<typeof CsvImportResponseSchema>;
 export type IBulkUpdateTransactionTypeInput = z.infer<
   typeof BulkUpdateTransactionTypeInputSchema
+>;
+export type IBulkDeleteTransactionsInput = z.infer<
+  typeof BulkDeleteTransactionsInputSchema
+>;
+export type IBulkDeleteTransactionsResponse = z.infer<
+  typeof BulkDeleteTransactionsResponseSchema
 >;
 export type ICreateLinkedTransferInput = z.infer<
   typeof CreateLinkedTransferInputSchema

@@ -989,6 +989,46 @@ export class TransactionService {
     return { updated: result.count };
   }
 
+  static async bulkDeleteTransactions(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    transactionIds: string[],
+  ): Promise<{ deleted: number; errors: Array<{ id: string; message: string }> }> {
+    const uniqueIds = [...new Set(transactionIds)];
+    let deleted = 0;
+    const errors: Array<{ id: string; message: string }> = [];
+    const processedTransferGroups = new Set<string>();
+
+    for (const transactionId of uniqueIds) {
+      try {
+        const existing = await this.getTransactionById(
+          userId,
+          workspaceId,
+          transactionId,
+        );
+        if (!existing) {
+          continue;
+        }
+        if (existing.transferGroupId) {
+          if (processedTransferGroups.has(existing.transferGroupId)) {
+            continue;
+          }
+          processedTransferGroups.add(existing.transferGroupId);
+        }
+        await this.deleteTransaction(userId, workspaceId, transactionId);
+        deleted += 1;
+      } catch (error) {
+        errors.push({
+          id: transactionId,
+          message:
+            error instanceof Error ? error.message : "Could not delete transaction",
+        });
+      }
+    }
+
+    return { deleted, errors };
+  }
+
   /**
    * Add tag to transaction
    */
