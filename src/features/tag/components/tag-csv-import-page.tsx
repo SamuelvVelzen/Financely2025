@@ -384,10 +384,10 @@ export function TagCsvImportPage({
         </div>
 
         <SelectableTable
-          selectedRows={selectedRows}
+          selectedKeys={selectedRows}
           onSelectionChange={setSelectedRows}
           rowCount={candidates.length}
-          getRowIndex={(row: ReactElement) => {
+          getRowKey={(row: ReactElement) => {
             const props = row.props as { rowIndex?: number };
             return props.rowIndex ?? -1;
           }}

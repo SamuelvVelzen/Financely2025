@@ -6,13 +6,24 @@ import { LinkButton } from "../button/link-button";
 import { BodyCell } from "./body-cell";
 import { HeaderCell } from "./header-cell";
 import { type TableSearchConfig } from "./hooks/use-table-search";
+import { type SortConfig } from "./hooks/use-table-sort";
 import { type ITableProps, Table } from "./table";
 
-export type ISelectableTableProps<T = unknown> = {
-  selectedRows: Set<number>;
-  onSelectionChange: (selectedRows: Set<number>) => void;
+function isValidSelectableKey<TKey extends string | number>(key: TKey): boolean {
+  if (typeof key === "number") {
+    return Number.isFinite(key) && key >= 0;
+  }
+  return key.length > 0;
+}
+
+export type ISelectableTableProps<
+  T = unknown,
+  TKey extends string | number = number,
+> = {
+  selectedKeys: Set<TKey>;
+  onSelectionChange: (selectedKeys: Set<TKey>) => void;
   rowCount?: number;
-  getRowIndex: ((row: React.ReactElement) => number) | ((item: T) => number);
+  getRowKey: ((row: React.ReactElement) => TKey) | ((item: T) => TKey);
   headerCells: ITableProps<T>["headerCells"];
   data?: T[];
   enablePagination?: boolean;
@@ -20,22 +31,27 @@ export type ISelectableTableProps<T = unknown> = {
   initialPage?: number;
   search?: TableSearchConfig<T>;
   children?: React.ReactNode | ((paginatedData: T[]) => React.ReactNode);
-  // Gmail-style alert props
   onSelectAllValid?: () => void;
   getItemValidity?: (item: T) => boolean;
   selectAllAlertText?: (
     visibleCount: number,
-    totalCount: number
+    totalCount: number,
   ) => React.ReactNode;
   selectAllAlertButtonText?: string;
   showSelectAllAlert?: boolean;
+  defaultSort?: SortConfig<T>;
+  /** When false, row click does not toggle selection (checkbox only). Defaults to true. */
+  selectOnRowClick?: boolean;
 } & IPropsWithClassName;
 
-export function SelectableTable<T = unknown>({
-  selectedRows,
+export function SelectableTable<
+  T = unknown,
+  TKey extends string | number = number,
+>({
+  selectedKeys,
   onSelectionChange,
   rowCount,
-  getRowIndex,
+  getRowKey,
   className,
   children,
   headerCells,
@@ -49,167 +65,160 @@ export function SelectableTable<T = unknown>({
   selectAllAlertText,
   selectAllAlertButtonText = "Select all valid",
   showSelectAllAlert = true,
-}: ISelectableTableProps<T>) {
-  // If data is provided and children is a function, use function children pattern
-  // Otherwise, use the existing pattern with pre-rendered children
+  defaultSort,
+  selectOnRowClick = true,
+}: ISelectableTableProps<T, TKey>) {
   const isFunctionChildren =
     typeof children === "function" && data !== undefined;
 
-  // For function children, we need to compute selection state from the paginated data
-  // For pre-rendered children, we compute from the children elements
   const allSelected = useMemo(() => {
     if (isFunctionChildren && data) {
-      // This will be computed inside the function children based on paginated data
-      return false; // Will be computed per page
+      return false;
     }
 
-    if (!rowCount || rowCount === 0) return false;
+    if (!rowCount || rowCount === 0) {
+      return false;
+    }
 
-    // Collect all visible row indices from pre-rendered children
-    const visibleIndices = new Set<number>();
+    const visibleKeys = new Set<TKey>();
     if (typeof children !== "function") {
       React.Children.forEach(children, (row) => {
         if (React.isValidElement(row)) {
-          // For pre-rendered children, getRowIndex takes a ReactElement
-          const rowIndex = (getRowIndex as (row: React.ReactElement) => number)(
-            row
-          );
-          if (typeof rowIndex === "number" && rowIndex >= 0) {
-            visibleIndices.add(rowIndex);
+          const rowKey = (getRowKey as (row: React.ReactElement) => TKey)(row);
+          if (isValidSelectableKey(rowKey)) {
+            visibleKeys.add(rowKey);
           }
         }
       });
     }
 
-    // Check if all visible row indices are in selectedRows
     return (
-      visibleIndices.size > 0 &&
-      Array.from(visibleIndices).every((index) => selectedRows.has(index))
+      visibleKeys.size > 0 &&
+      Array.from(visibleKeys).every((key) => selectedKeys.has(key))
     );
-  }, [isFunctionChildren, data, children, selectedRows, getRowIndex, rowCount]);
+  }, [isFunctionChildren, data, children, selectedKeys, getRowKey, rowCount]);
 
   const someSelected = useMemo(() => {
     if (isFunctionChildren && data) {
-      // This will be computed inside the function children based on paginated data
-      return false; // Will be computed per page
+      return false;
     }
 
-    if (!rowCount || rowCount === 0) return false;
+    if (!rowCount || rowCount === 0) {
+      return false;
+    }
 
-    // Collect all visible row indices from pre-rendered children
-    const visibleIndices = new Set<number>();
+    const visibleKeys = new Set<TKey>();
     if (typeof children !== "function") {
       React.Children.forEach(children, (row) => {
         if (React.isValidElement(row)) {
-          // For pre-rendered children, getRowIndex takes a ReactElement
-          const rowIndex = (getRowIndex as (row: React.ReactElement) => number)(
-            row
-          );
-          if (typeof rowIndex === "number" && rowIndex >= 0) {
-            visibleIndices.add(rowIndex);
+          const rowKey = (getRowKey as (row: React.ReactElement) => TKey)(row);
+          if (isValidSelectableKey(rowKey)) {
+            visibleKeys.add(rowKey);
           }
         }
       });
     }
 
-    // Check if some (but not all) visible rows are selected
-    const selectedVisibleCount = Array.from(visibleIndices).filter((index) =>
-      selectedRows.has(index)
+    const selectedVisibleCount = Array.from(visibleKeys).filter((key) =>
+      selectedKeys.has(key),
     ).length;
 
-    return (
-      selectedVisibleCount > 0 && selectedVisibleCount < visibleIndices.size
-    );
-  }, [isFunctionChildren, data, children, selectedRows, getRowIndex, rowCount]);
+    return selectedVisibleCount > 0 && selectedVisibleCount < visibleKeys.size;
+  }, [isFunctionChildren, data, children, selectedKeys, getRowKey, rowCount]);
 
   const handleSelectAll = (paginatedData?: T[]) => {
     if (allSelected) {
-      // Deselect all
       onSelectionChange(new Set());
     } else {
-      // Select all - collect all row indices
-      const allIndices = new Set<number>();
-      if (paginatedData && typeof getRowIndex === "function") {
-        // Function children pattern: use paginated data
+      const allKeys = new Set<TKey>();
+      if (paginatedData && typeof getRowKey === "function") {
         paginatedData.forEach((item) => {
-          const rowIndex = (getRowIndex as (item: T) => number)(item);
-          if (typeof rowIndex === "number" && rowIndex >= 0) {
-            allIndices.add(rowIndex);
+          const rowKey = (getRowKey as (item: T) => TKey)(item);
+          if (isValidSelectableKey(rowKey)) {
+            allKeys.add(rowKey);
           }
         });
       } else if (typeof children !== "function") {
-        // Pre-rendered children pattern
         React.Children.forEach(children, (row) => {
           if (React.isValidElement(row)) {
-            // For pre-rendered children, getRowIndex takes a ReactElement
-            const rowIndex = (
-              getRowIndex as (row: React.ReactElement) => number
-            )(row);
-            if (typeof rowIndex === "number" && rowIndex >= 0) {
-              allIndices.add(rowIndex);
+            const rowKey = (getRowKey as (row: React.ReactElement) => TKey)(
+              row,
+            );
+            if (isValidSelectableKey(rowKey)) {
+              allKeys.add(rowKey);
             }
           }
         });
       }
-      onSelectionChange(allIndices);
+      onSelectionChange(allKeys);
     }
   };
 
-  const handleRowToggle = (rowIndex: number) => {
-    const newSelection = new Set(selectedRows);
-    if (newSelection.has(rowIndex)) {
-      newSelection.delete(rowIndex);
+  const handleRowToggle = (rowKey: TKey) => {
+    const newSelection = new Set(selectedKeys);
+    if (newSelection.has(rowKey)) {
+      newSelection.delete(rowKey);
     } else {
-      newSelection.add(rowIndex);
+      newSelection.add(rowKey);
     }
     onSelectionChange(newSelection);
   };
 
-  const handleRowClick = (rowIndex: number) => {
-    handleRowToggle(rowIndex);
+  const handleRowClick = (rowKey: TKey) => {
+    handleRowToggle(rowKey);
   };
 
   const currentPageDataRef = useRef<T[]>([]);
   const [currentPageData, setCurrentPageData] = useState<T[]>([]);
 
   const pageAllSelected = useMemo(() => {
-    if (!isFunctionChildren || currentPageData.length === 0) return false;
+    if (!isFunctionChildren || currentPageData.length === 0) {
+      return false;
+    }
     return currentPageData.every((item) => {
-      const rowIndex = (getRowIndex as (item: T) => number)(item);
-      return selectedRows.has(rowIndex);
+      const rowKey = (getRowKey as (item: T) => TKey)(item);
+      return selectedKeys.has(rowKey);
     });
-  }, [isFunctionChildren, currentPageData, selectedRows, getRowIndex]);
+  }, [isFunctionChildren, currentPageData, selectedKeys, getRowKey]);
 
   const pageSomeSelected = useMemo(() => {
-    if (!isFunctionChildren || currentPageData.length === 0) return false;
+    if (!isFunctionChildren || currentPageData.length === 0) {
+      return false;
+    }
     const selectedCount = currentPageData.filter((item) => {
-      const rowIndex = (getRowIndex as (item: T) => number)(item);
-      return selectedRows.has(rowIndex);
+      const rowKey = (getRowKey as (item: T) => TKey)(item);
+      return selectedKeys.has(rowKey);
     }).length;
     return selectedCount > 0 && selectedCount < currentPageData.length;
-  }, [isFunctionChildren, currentPageData, selectedRows, getRowIndex]);
+  }, [isFunctionChildren, currentPageData, selectedKeys, getRowKey]);
 
   const allVisibleRowsSelected = useMemo(() => {
-    if (!isFunctionChildren || currentPageData.length === 0) return false;
+    if (!isFunctionChildren || currentPageData.length === 0) {
+      return false;
+    }
     return currentPageData.every((item) => {
-      const rowIndex = (getRowIndex as (item: T) => number)(item);
-      return selectedRows.has(rowIndex);
+      const rowKey = (getRowKey as (item: T) => TKey)(item);
+      return selectedKeys.has(rowKey);
     });
-  }, [isFunctionChildren, currentPageData, selectedRows, getRowIndex]);
+  }, [isFunctionChildren, currentPageData, selectedKeys, getRowKey]);
 
   const totalValidItems = useMemo(() => {
-    if (!isFunctionChildren || !getItemValidity || !data) return 0;
+    if (!isFunctionChildren || !getItemValidity || !data) {
+      return 0;
+    }
     return data.filter(getItemValidity).length;
   }, [isFunctionChildren, data, getItemValidity]);
 
   const selectedValidCount = useMemo(() => {
-    if (!isFunctionChildren || !getItemValidity || !data) return 0;
+    if (!isFunctionChildren || !getItemValidity || !data) {
+      return 0;
+    }
     return data.filter(
       (item) =>
         getItemValidity(item) &&
-        selectedRows.has((getRowIndex as (item: T) => number)(item))
+        selectedKeys.has((getRowKey as (item: T) => TKey)(item)),
     ).length;
-  }, [isFunctionChildren, data, getItemValidity, selectedRows, getRowIndex]);
+  }, [isFunctionChildren, data, getItemValidity, selectedKeys, getRowKey]);
 
   const shouldShowAlert =
     isFunctionChildren &&
@@ -230,27 +239,24 @@ export function SelectableTable<T = unknown>({
 
   const handleSelectAllPage = () => {
     if (pageAllSelected) {
-      const pageIndices = currentPageDataRef.current.map((item) =>
-        (getRowIndex as (item: T) => number)(item)
+      const pageKeys = currentPageDataRef.current.map((item) =>
+        (getRowKey as (item: T) => TKey)(item),
       );
-      const newSelection = new Set(selectedRows);
-      pageIndices.forEach((idx) => newSelection.delete(idx));
+      const newSelection = new Set(selectedKeys);
+      pageKeys.forEach((key) => newSelection.delete(key));
       onSelectionChange(newSelection);
     } else {
-      const pageIndices = currentPageDataRef.current.map((item) =>
-        (getRowIndex as (item: T) => number)(item)
+      const pageKeys = currentPageDataRef.current.map((item) =>
+        (getRowKey as (item: T) => TKey)(item),
       );
-      const newSelection = new Set(selectedRows);
-      pageIndices.forEach((idx) => newSelection.add(idx));
+      const newSelection = new Set(selectedKeys);
+      pageKeys.forEach((key) => newSelection.add(key));
       onSelectionChange(newSelection);
     }
   };
 
   const headerCellsWithPageCheckbox = [
-    <HeaderCell
-      key="select-all-checkbox"
-      sortable={false}
-      sticky={true}>
+    <HeaderCell key="select-all-checkbox" sortable={false} sticky={true}>
       <Checkbox
         checked={pageAllSelected}
         indeterminate={pageSomeSelected}
@@ -263,12 +269,8 @@ export function SelectableTable<T = unknown>({
     ...headerCells,
   ];
 
-  // Add checkbox to header (prepend to headerCells)
   const headerCellsWithCheckbox = [
-    <HeaderCell
-      key="select-all-checkbox"
-      sortable={false}
-      sticky={true}>
+    <HeaderCell key="select-all-checkbox" sortable={false} sticky={true}>
       <Checkbox
         checked={allSelected}
         indeterminate={someSelected}
@@ -281,15 +283,11 @@ export function SelectableTable<T = unknown>({
     ...headerCells,
   ];
 
-  // If using function children pattern, wrap the function to add checkboxes
   if (isFunctionChildren && typeof children === "function") {
     return (
       <>
-        {/* Gmail-style alert */}
         {shouldShowAlert && (
-          <Alert
-            variant="info"
-            className="mb-4">
+          <Alert variant="info" className="mb-4">
             <div className="flex items-center justify-between gap-4">
               <div>
                 {selectAllAlertText
@@ -312,26 +310,24 @@ export function SelectableTable<T = unknown>({
           className={className}
           headerCells={headerCellsWithPageCheckbox}
           data={data}
+          defaultSort={defaultSort}
           enablePagination={enablePagination}
           pageSize={pageSize}
           initialPage={initialPage}
-          search={search}>
+          search={search}
+        >
           {(paginatedData: T[]) => {
-            // Update both ref and state with current page data
             currentPageDataRef.current = paginatedData;
-            // Update state to trigger re-renders for alert calculation
-            // Compare by length and first/last item to avoid unnecessary updates
             if (
               currentPageData.length !== paginatedData.length ||
               (paginatedData.length > 0 &&
                 (currentPageData[0] !== paginatedData[0] ||
                   currentPageData[currentPageData.length - 1] !==
-                  paginatedData[paginatedData.length - 1]))
+                    paginatedData[paginatedData.length - 1]))
             ) {
               setCurrentPageData(paginatedData);
             }
 
-            // Render rows with checkboxes
             const rows = children(paginatedData);
             const rowsArray = React.Children.toArray(rows);
 
@@ -340,14 +336,13 @@ export function SelectableTable<T = unknown>({
                 return row;
               }
 
-              // Get row index from data item
               const item = paginatedData[idx];
               if (!item) {
                 return row;
               }
 
-              const rowIndex = (getRowIndex as (item: T) => number)(item);
-              if (typeof rowIndex !== "number" || rowIndex < 0) {
+              const rowKey = (getRowKey as (item: T) => TKey)(item);
+              if (!isValidSelectableKey(rowKey)) {
                 return row;
               }
 
@@ -356,30 +351,29 @@ export function SelectableTable<T = unknown>({
                 onClick?: (e: React.MouseEvent<HTMLTableRowElement>) => void;
               };
               const rowChildren = React.Children.toArray(rowProps.children);
-              const isSelected = selectedRows.has(rowIndex);
+              const isRowSelected = selectedKeys.has(rowKey);
               const checkboxCell = (
-                <BodyCell
-                  key="row-checkbox"
-                  sticky={true}>
+                <BodyCell key="row-checkbox" sticky={true}>
                   <Checkbox
-                    checked={isSelected}
+                    checked={isRowSelected}
                     onChange={(e) => {
                       e.stopPropagation();
-                      handleRowToggle(rowIndex);
+                      handleRowToggle(rowKey);
                     }}
                   />
                 </BodyCell>
               );
 
-              // Combine existing onClick with row selection handler
               const existingOnClick = rowProps.onClick;
               const combinedOnClick = (
-                e: React.MouseEvent<HTMLTableRowElement>
+                e: React.MouseEvent<HTMLTableRowElement>,
               ) => {
                 if (existingOnClick) {
                   existingOnClick(e);
                 }
-                handleRowClick(rowIndex);
+                if (selectOnRowClick) {
+                  handleRowClick(rowKey);
+                }
               };
 
               return React.cloneElement(
@@ -388,10 +382,10 @@ export function SelectableTable<T = unknown>({
                   children?: React.ReactNode;
                 }>,
                 {
-                  key: row.key || rowIndex,
+                  key: row.key ?? String(rowKey),
                   onClick: combinedOnClick,
                 },
-                [checkboxCell, ...rowChildren]
+                [checkboxCell, ...rowChildren],
               );
             });
           }}
@@ -400,9 +394,7 @@ export function SelectableTable<T = unknown>({
     );
   }
 
-  // Pre-rendered children pattern (existing behavior)
   if (typeof children === "function") {
-    // This shouldn't happen if data is not provided, but handle gracefully
     return null;
   }
 
@@ -411,9 +403,8 @@ export function SelectableTable<T = unknown>({
       return row;
     }
 
-    // For pre-rendered children, getRowIndex takes a ReactElement
-    const rowIndex = (getRowIndex as (row: React.ReactElement) => number)(row);
-    if (typeof rowIndex !== "number" || rowIndex < 0) {
+    const rowKey = (getRowKey as (row: React.ReactElement) => TKey)(row);
+    if (!isValidSelectableKey(rowKey)) {
       return row;
     }
 
@@ -422,28 +413,27 @@ export function SelectableTable<T = unknown>({
       onClick?: (e: React.MouseEvent<HTMLTableRowElement>) => void;
     };
     const rowChildren = React.Children.toArray(rowProps.children);
-    const isSelected = selectedRows.has(rowIndex);
+    const isRowSelected = selectedKeys.has(rowKey);
     const checkboxCell = (
-      <BodyCell
-        key="row-checkbox"
-        sticky={true}>
+      <BodyCell key="row-checkbox" sticky={true}>
         <Checkbox
-          checked={isSelected}
+          checked={isRowSelected}
           onChange={(e) => {
             e.stopPropagation();
-            handleRowToggle(rowIndex);
+            handleRowToggle(rowKey);
           }}
         />
       </BodyCell>
     );
 
-    // Combine existing onClick with row selection handler
     const existingOnClick = rowProps.onClick;
     const combinedOnClick = (e: React.MouseEvent<HTMLTableRowElement>) => {
       if (existingOnClick) {
         existingOnClick(e);
       }
-      handleRowClick(rowIndex);
+      if (selectOnRowClick) {
+        handleRowClick(rowKey);
+      }
     };
 
     return React.cloneElement(
@@ -452,10 +442,10 @@ export function SelectableTable<T = unknown>({
         children?: React.ReactNode;
       }>,
       {
-        key: row.key || rowIndex,
+        key: row.key ?? String(rowKey),
         onClick: combinedOnClick,
       },
-      [checkboxCell, ...rowChildren]
+      [checkboxCell, ...rowChildren],
     );
   });
 
@@ -464,10 +454,12 @@ export function SelectableTable<T = unknown>({
       className={className}
       headerCells={headerCellsWithCheckbox}
       data={data}
+      defaultSort={defaultSort}
       enablePagination={enablePagination}
       pageSize={pageSize}
       initialPage={initialPage}
-      search={search}>
+      search={search}
+    >
       {rowsWithCheckboxes}
     </Table>
   );
