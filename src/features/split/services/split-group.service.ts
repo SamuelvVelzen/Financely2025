@@ -1,3 +1,4 @@
+import { newEntityId, runPrismaBatch } from "@/features/util/prisma-batch";
 import { prisma } from "@/features/util/prisma";
 import { randomBytes } from "node:crypto";
 import { formatFullName } from "@/features/users/validation/schemas";
@@ -132,20 +133,25 @@ export class SplitGroupService {
         .filter(Boolean)
         .join(" ") || userInfo.userInfo.email;
 
-    const group = await prisma.$transaction(async (tx) => {
-      const created = await tx.splitGroup.create({
+    const groupId = newEntityId();
+    const memberId = newEntityId();
+    const groupName = input.name.trim();
+
+    await runPrismaBatch([
+      prisma.splitGroup.create({
         data: {
-          name: input.name.trim(),
+          id: groupId,
+          name: groupName,
           defaultCurrency: input.defaultCurrency,
           createdByUserId: userId,
           guestAccessToken: generateGuestToken(),
           guestCanSettle: true,
         },
-      });
-
-      const member = await tx.splitGroupMember.create({
+      }),
+      prisma.splitGroupMember.create({
         data: {
-          groupId: created.id,
+          id: memberId,
+          groupId,
           userId,
           displayName,
           email: userInfo.userInfo.email,
@@ -153,24 +159,17 @@ export class SplitGroupService {
           status: "linked",
           role: "admin",
         },
-      });
+      }),
+      SplitActivityService.createLogOperation(groupId, {
+        actorMemberId: memberId,
+        action: "created",
+        entityType: "group",
+        entityId: groupId,
+        after: { name: groupName },
+      }),
+    ]);
 
-      await SplitActivityService.log(
-        created.id,
-        {
-          actorMemberId: member.id,
-          action: "created",
-          entityType: "group",
-          entityId: created.id,
-          after: { name: created.name },
-        },
-        tx,
-      );
-
-      return created;
-    });
-
-    return this.getGroup(group.id, userId);
+    return this.getGroup(groupId, userId);
   }
 
   static async updateGroup(

@@ -1,15 +1,24 @@
 import { prisma } from "@/features/util/prisma";
+import { newEntityId, runPrismaBatch } from "@/features/util/prisma-batch";
+import type { Prisma } from "@prisma/client";
 import {
   canEditSettlement,
   requireActiveMemberForUser,
 } from "../auth/split-group-access";
-import { SplitActivityService } from "./split-activity.service";
 import type {
   ICreateSplitSettlementInput,
   IUpdateSplitSettlementInput,
 } from "../validation/schemas";
+import { SplitActivityService } from "./split-activity.service";
 
 const EDIT_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+type ISplitSettlementWithMemberNames = Prisma.SplitSettlementGetPayload<{
+  include: {
+    fromMember: { select: { displayName: true } };
+    toMember: { select: { displayName: true } };
+  };
+}>;
 
 export class SplitSettlementService {
   static async listSettlementsForGroup(groupId: string) {
@@ -52,7 +61,11 @@ export class SplitSettlementService {
     }
 
     const actor = await prisma.splitGroupMember.findFirstOrThrow({
-      where: { id: actorMemberId, groupId, status: { in: ["linked", "guest"] } },
+      where: {
+        id: actorMemberId,
+        groupId,
+        status: { in: ["linked", "guest"] },
+      },
     });
 
     if (
@@ -63,9 +76,11 @@ export class SplitSettlementService {
       throw new Error("You must be involved in the settlement");
     }
 
-    const settlement = await prisma.$transaction(async (tx) => {
-      const created = await tx.splitSettlement.create({
+    const settlementId = newEntityId();
+    const [settlement] = (await runPrismaBatch([
+      prisma.splitSettlement.create({
         data: {
+          id: settlementId,
           groupId,
           fromMemberId: input.fromMemberId,
           toMemberId: input.toMemberId,
@@ -78,22 +93,15 @@ export class SplitSettlementService {
           fromMember: { select: { displayName: true } },
           toMember: { select: { displayName: true } },
         },
-      });
-
-      await SplitActivityService.log(
-        groupId,
-        {
-          actorMemberId: actor.id,
-          action: "created",
-          entityType: "settlement",
-          entityId: created.id,
-          after: { amount: input.amount },
-        },
-        tx,
-      );
-
-      return created;
-    });
+      }),
+      SplitActivityService.createLogOperation(groupId, {
+        actorMemberId: actor.id,
+        action: "created",
+        entityType: "settlement",
+        entityId: settlementId,
+        after: { amount: input.amount },
+      }),
+    ])) as [ISplitSettlementWithMemberNames];
 
     return {
       id: settlement.id,
@@ -146,8 +154,8 @@ export class SplitSettlementService {
       throw new Error("You must be involved in the settlement");
     }
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const result = await tx.splitSettlement.update({
+    const [updated] = (await runPrismaBatch([
+      prisma.splitSettlement.update({
         where: { id: settlementId },
         data: {
           fromMemberId,
@@ -156,29 +164,23 @@ export class SplitSettlementService {
           settledAt: input.settledAt
             ? new Date(input.settledAt)
             : settlement.settledAt,
-          note:
-            input.note !== undefined ? input.note : settlement.note,
+          note: input.note !== undefined ? input.note : settlement.note,
         },
         include: {
           fromMember: { select: { displayName: true } },
           toMember: { select: { displayName: true } },
         },
-      });
-
-      await SplitActivityService.log(
-        settlement.groupId,
-        {
-          actorMemberId: member.id,
-          action: "updated",
-          entityType: "settlement",
-          entityId: settlementId,
-          after: { amount: result.amount.toString() },
+      }),
+      SplitActivityService.createLogOperation(settlement.groupId, {
+        actorMemberId: member.id,
+        action: "updated",
+        entityType: "settlement",
+        entityId: settlementId,
+        after: {
+          amount: (input.amount ?? settlement.amount).toString(),
         },
-        tx,
-      );
-
-      return result;
-    });
+      }),
+    ])) as [ISplitSettlementWithMemberNames];
 
     return {
       id: updated.id,
@@ -212,21 +214,17 @@ export class SplitSettlementService {
       throw new Error("Not allowed to delete this settlement");
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.splitSettlement.update({
+    await runPrismaBatch([
+      prisma.splitSettlement.update({
         where: { id: settlementId },
         data: { deletedAt: new Date(), deletedByUserId: userId },
-      });
-      await SplitActivityService.log(
-        settlement.groupId,
-        {
-          actorMemberId: member.id,
-          action: "deleted",
-          entityType: "settlement",
-          entityId: settlementId,
-        },
-        tx,
-      );
-    });
+      }),
+      SplitActivityService.createLogOperation(settlement.groupId, {
+        actorMemberId: member.id,
+        action: "deleted",
+        entityType: "settlement",
+        entityId: settlementId,
+      }),
+    ]);
   }
 }

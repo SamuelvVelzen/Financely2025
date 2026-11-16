@@ -4,6 +4,33 @@ import type { Prisma } from "@prisma/client";
 import { TransactionType } from "@prisma/client";
 
 export class SplitTransactionSyncService {
+  static async buildPristineTransactionDeleteOperations(
+    shareIds: string[],
+  ): Promise<Prisma.PrismaPromise<unknown>[]> {
+    if (shareIds.length === 0) {
+      return [];
+    }
+
+    const shares = await prisma.splitExpenseShare.findMany({
+      where: { id: { in: shareIds } },
+      include: { transaction: true },
+    });
+
+    const operations: Prisma.PrismaPromise<unknown>[] = [];
+
+    for (const share of shares) {
+      if (share.transaction && !share.transaction.splitSyncDetachedAt) {
+        operations.push(
+          prisma.transaction.delete({
+            where: { id: share.transaction.id },
+          }),
+        );
+      }
+    }
+
+    return operations;
+  }
+
   static async upsertTransactionForShare(
     shareId: string,
     tx: Prisma.TransactionClient = prisma,
@@ -130,14 +157,12 @@ export class SplitTransactionSyncService {
       throw new Error("Transaction is not split-linked");
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.transaction.update({
-        where: { id: transactionId },
-        data: {
-          splitSyncDetachedAt: new Date(),
-          splitExpenseShareId: null,
-        },
-      });
+    await prisma.transaction.update({
+      where: { id: transactionId },
+      data: {
+        splitSyncDetachedAt: new Date(),
+        splitExpenseShareId: null,
+      },
     });
   }
 

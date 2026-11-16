@@ -1,20 +1,22 @@
 import { prisma } from "@/features/util/prisma";
 import type { Prisma } from "@prisma/client";
 
+type ISplitActivityLogParams = {
+  actorMemberId?: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  before?: unknown;
+  after?: unknown;
+};
+
 export class SplitActivityService {
-  static async log(
+  static createLogOperation(
     groupId: string,
-    params: {
-      actorMemberId?: string | null;
-      action: string;
-      entityType: string;
-      entityId: string;
-      before?: unknown;
-      after?: unknown;
-    },
-    tx: Prisma.TransactionClient = prisma,
-  ): Promise<void> {
-    await tx.splitActivity.create({
+    params: ISplitActivityLogParams,
+    client: Prisma.TransactionClient = prisma,
+  ) {
+    return client.splitActivity.create({
       data: {
         groupId,
         actorMemberId: params.actorMemberId ?? null,
@@ -25,5 +27,13 @@ export class SplitActivityService {
         afterJson: params.after ? JSON.stringify(params.after) : null,
       },
     });
+  }
+
+  static async log(
+    groupId: string,
+    params: ISplitActivityLogParams,
+    tx: Prisma.TransactionClient = prisma,
+  ): Promise<void> {
+    await this.createLogOperation(groupId, params, tx);
   }
 }

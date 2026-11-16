@@ -1,16 +1,18 @@
 import { prisma } from "@/features/util/prisma";
+import { newEntityId, runPrismaBatch } from "@/features/util/prisma-batch";
+import type { Prisma } from "@prisma/client";
 import {
   canEditExpense,
   requireActiveMemberForUser,
 } from "../auth/split-group-access";
 import { parseSplitMode } from "../utils/split-mode";
-import { SplitActivityService } from "./split-activity.service";
-import { SplitCurrencyService } from "./split-currency.service";
-import { SplitTransactionSyncService } from "./split-transaction-sync.service";
 import type {
   ICreateSplitExpenseInput,
   IUpdateSplitExpenseInput,
 } from "../validation/schemas";
+import { SplitActivityService } from "./split-activity.service";
+import { SplitCurrencyService } from "./split-currency.service";
+import { SplitTransactionSyncService } from "./split-transaction-sync.service";
 
 type IMappedShare = {
   id: string;
@@ -23,10 +25,7 @@ type IMappedShare = {
 };
 
 export class SplitExpenseService {
-  static async listExpensesForGroup(
-    groupId: string,
-    viewerMemberId?: string,
-  ) {
+  static async listExpensesForGroup(groupId: string, viewerMemberId?: string) {
     const expenses = await prisma.splitExpense.findMany({
       where: { groupId },
       include: {
@@ -40,7 +39,9 @@ export class SplitExpenseService {
       orderBy: { expenseDate: "desc" },
     });
 
-    return expenses.map((e) => SplitExpenseService.mapExpense(e, viewerMemberId));
+    return expenses.map((e) =>
+      SplitExpenseService.mapExpense(e, viewerMemberId),
+    );
   }
 
   private static mapShares(
@@ -81,9 +82,7 @@ export class SplitExpenseService {
   }
 
   private static mapExpense(
-    e: Awaited<
-      ReturnType<typeof prisma.splitExpense.findMany>
-    >[number] & {
+    e: Awaited<ReturnType<typeof prisma.splitExpense.findMany>>[number] & {
       paidByMember: { id: string; displayName: string };
       shares: Array<{
         id: string;
@@ -156,9 +155,15 @@ export class SplitExpenseService {
       exactShares: input.exactShares,
     });
 
-    const expense = await prisma.$transaction(async (tx) => {
-      const created = await tx.splitExpense.create({
+    const expenseId = newEntityId();
+    const expenseDescription = input.description.trim();
+    type IExpenseWithShares = Prisma.SplitExpenseGetPayload<{
+      include: { shares: true };
+    }>;
+    const [expense] = (await runPrismaBatch([
+      prisma.splitExpense.create({
         data: {
+          id: expenseId,
           groupId,
           paidByMemberId: input.paidByMemberId,
           amount: input.amount,
@@ -167,7 +172,7 @@ export class SplitExpenseService {
           conversionStatus: conversion.conversionStatus,
           exchangeRateDate: conversion.exchangeRateDate,
           exchangeRate: conversion.exchangeRate,
-          description: input.description.trim(),
+          description: expenseDescription,
           expenseDate,
           splitMode: input.splitMode,
           createdByUserId,
@@ -184,22 +189,15 @@ export class SplitExpenseService {
           },
         },
         include: { shares: true },
-      });
-
-      await SplitActivityService.log(
-        groupId,
-        {
-          actorMemberId: member.id,
-          action: "created",
-          entityType: "expense",
-          entityId: created.id,
-          after: { description: created.description, amount: input.amount },
-        },
-        tx,
-      );
-
-      return created;
-    });
+      }),
+      SplitActivityService.createLogOperation(groupId, {
+        actorMemberId: member.id,
+        action: "created",
+        entityType: "expense",
+        entityId: expenseId,
+        after: { description: expenseDescription, amount: input.amount },
+      }),
+    ])) as [IExpenseWithShares];
 
     await SplitTransactionSyncService.syncSharesForExpense(expense.id);
 
@@ -291,16 +289,15 @@ export class SplitExpenseService {
       exactShares,
     });
 
-    await prisma.$transaction(async (tx) => {
-      for (const share of existingShares) {
-        await SplitTransactionSyncService.deletePristineTransactionForShare(
-          share.id,
-          tx,
-        );
-      }
-      await tx.splitExpenseShare.deleteMany({ where: { expenseId } });
+    const deleteTransactionOps =
+      await SplitTransactionSyncService.buildPristineTransactionDeleteOperations(
+        existingShares.map((share) => share.id),
+      );
 
-      await tx.splitExpense.update({
+    await runPrismaBatch([
+      ...deleteTransactionOps,
+      prisma.splitExpenseShare.deleteMany({ where: { expenseId } }),
+      prisma.splitExpense.update({
         where: { id: expenseId },
         data: {
           paidByMemberId,
@@ -320,25 +317,21 @@ export class SplitExpenseService {
               shareGroupAmount: s.shareGroupAmount,
               status: "active",
               addToTransactions:
-                s.memberId === member.id && input.addToTransactions !== undefined
+                s.memberId === member.id &&
+                input.addToTransactions !== undefined
                   ? input.addToTransactions
                   : (addToTransactionsByMemberId.get(s.memberId) ?? false),
             })),
           },
         },
-      });
-
-      await SplitActivityService.log(
-        groupId,
-        {
-          actorMemberId: member.id,
-          action: "updated",
-          entityType: "expense",
-          entityId: expenseId,
-        },
-        tx,
-      );
-    });
+      }),
+      SplitActivityService.createLogOperation(groupId, {
+        actorMemberId: member.id,
+        action: "updated",
+        entityType: "expense",
+        entityId: expenseId,
+      }),
+    ]);
 
     await SplitTransactionSyncService.syncSharesForExpense(expenseId);
 
@@ -390,28 +383,28 @@ export class SplitExpenseService {
       throw new Error("Not allowed to delete this expense");
     }
 
-    await prisma.$transaction(async (tx) => {
-      for (const share of expense.shares) {
-        await SplitTransactionSyncService.deletePristineTransactionForShare(
-          share.id,
-          tx,
-        );
-      }
-      await tx.splitExpense.delete({ where: { id: expenseId } });
-      await SplitActivityService.log(
-        groupId,
-        {
-          actorMemberId: member.id,
-          action: "deleted",
-          entityType: "expense",
-          entityId: expenseId,
-        },
-        tx,
+    const deleteTransactionOps =
+      await SplitTransactionSyncService.buildPristineTransactionDeleteOperations(
+        expense.shares.map((share) => share.id),
       );
-    });
+
+    await runPrismaBatch([
+      ...deleteTransactionOps,
+      prisma.splitExpense.delete({ where: { id: expenseId } }),
+      SplitActivityService.createLogOperation(groupId, {
+        actorMemberId: member.id,
+        action: "deleted",
+        entityType: "expense",
+        entityId: expenseId,
+      }),
+    ]);
   }
 
-  static async convertExpense(groupId: string, expenseId: string, userId: string) {
+  static async convertExpense(
+    groupId: string,
+    expenseId: string,
+    userId: string,
+  ) {
     await requireActiveMemberForUser(groupId, userId);
     const expense = await prisma.splitExpense.findFirstOrThrow({
       where: { id: expenseId, groupId },
@@ -441,15 +434,15 @@ export class SplitExpenseService {
       })),
     });
 
-    await prisma.$transaction(async (tx) => {
-      for (const share of expense.shares) {
-        await SplitTransactionSyncService.deletePristineTransactionForShare(
-          share.id,
-          tx,
-        );
-      }
-      await tx.splitExpenseShare.deleteMany({ where: { expenseId } });
-      await tx.splitExpense.update({
+    const deleteTransactionOps =
+      await SplitTransactionSyncService.buildPristineTransactionDeleteOperations(
+        expense.shares.map((share) => share.id),
+      );
+
+    await runPrismaBatch([
+      ...deleteTransactionOps,
+      prisma.splitExpenseShare.deleteMany({ where: { expenseId } }),
+      prisma.splitExpense.update({
         where: { id: expenseId },
         data: {
           groupAmount: conversion.groupAmount,
@@ -467,8 +460,8 @@ export class SplitExpenseService {
             })),
           },
         },
-      });
-    });
+      }),
+    ]);
 
     await SplitTransactionSyncService.syncSharesForExpense(expenseId);
 

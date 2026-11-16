@@ -1,5 +1,6 @@
 import { formatFullName } from "@/features/shared/validation/schemas";
 import { prisma } from "@/features/util/prisma";
+import { newEntityId, runPrismaBatch } from "@/features/util/prisma-batch";
 
 // Re-export for convenience
 export { formatFullName };
@@ -38,24 +39,26 @@ export class UserInfoService {
     const suffix = data.suffix?.trim() || null;
     const image = data.avatar_url?.trim() || null;
 
-    return await prisma.$transaction(async (tx) => {
-      const userInfo = await tx.userInfo.create({
+    const userInfoId = newEntityId();
+    const [userInfo] = (await runPrismaBatch([
+      prisma.userInfo.create({
         data: {
+          id: userInfoId,
           email: `${userId}@placeholder.local`,
           firstName,
           lastName,
           suffix,
           image,
         },
-      });
-      await tx.user.create({
+      }),
+      prisma.user.create({
         data: {
           id: userId,
-          userInfoId: userInfo.id,
+          userInfoId,
         },
-      });
-      return userInfo;
-    });
+      }),
+    ])) as [Awaited<ReturnType<typeof prisma.userInfo.create>>];
+    return userInfo;
   }
 
   /**

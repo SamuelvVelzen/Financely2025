@@ -262,17 +262,17 @@ export class TagRuleService {
     return rule ? mapTagRule(rule as ITagRuleRow) : null;
   }
 
-  static async createRulesForTag(
+  static createRuleOperations(
     userId: string,
     workspaceId: IWorkspaceId,
     tagId: string,
     rules: ICreateTagRuleWithTagInput[],
-    tx: Prisma.TransactionClient = prisma,
-  ): Promise<void> {
-    for (const rule of rules) {
+    client: Prisma.TransactionClient = prisma,
+  ): Prisma.PrismaPromise<unknown>[] {
+    return rules.map((rule) => {
       const validated = CreateTagRuleWithTagInputSchema.parse(rule);
 
-      await tx.tagRule.create({
+      return client.tagRule.create({
         data: {
           userId,
           workspaceId,
@@ -288,6 +288,24 @@ export class TagRuleService {
           enabled: validated.enabled,
         },
       });
+    });
+  }
+
+  static async createRulesForTag(
+    userId: string,
+    workspaceId: IWorkspaceId,
+    tagId: string,
+    rules: ICreateTagRuleWithTagInput[],
+    tx: Prisma.TransactionClient = prisma,
+  ): Promise<void> {
+    for (const operation of this.createRuleOperations(
+      userId,
+      workspaceId,
+      tagId,
+      rules,
+      tx,
+    )) {
+      await operation;
     }
   }
 

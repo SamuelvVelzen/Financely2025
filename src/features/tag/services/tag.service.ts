@@ -16,7 +16,9 @@ import {
 } from "@/features/shared/validation/schemas";
 import { TagRuleService } from "@/features/tag-rule/services/tag-rule.service";
 import { prisma } from "@/features/util/prisma";
+import { newEntityId, runPrismaBatch } from "@/features/util/prisma-batch";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
+import type { Tag } from "@prisma/client";
 
 /**
  * Tag Service
@@ -26,7 +28,7 @@ export class TagService {
   static async listTags(
     userId: string,
     workspaceId: IWorkspaceId,
-    query: ITagsQuery
+    query: ITagsQuery,
   ): Promise<{ data: ITag[] }> {
     const validated = TagsQuerySchema.parse(query);
 
@@ -65,21 +67,11 @@ export class TagService {
       data: tags
         .filter((tag) => {
           return (
-            tag.transactionType === "EXPENSE" || tag.transactionType === "INCOME"
+            tag.transactionType === "EXPENSE" ||
+            tag.transactionType === "INCOME"
           );
         })
-        .map(
-          (tag: {
-            id: string;
-            name: string;
-            color: string | null;
-            description: string | null;
-            emoticon: string | null;
-            order: number;
-            transactionType: "EXPENSE" | "INCOME";
-            createdAt: Date;
-            updatedAt: Date;
-          }) =>
+        .map((tag) =>
             TagSchema.parse({
               id: tag.id,
               name: tag.name,
@@ -90,7 +82,7 @@ export class TagService {
               transactionType: tag.transactionType,
               createdAt: tag.createdAt.toISOString(),
               updatedAt: tag.updatedAt.toISOString(),
-            })
+            }),
         ),
     };
   }
@@ -98,7 +90,7 @@ export class TagService {
   static async getTagById(
     userId: string,
     workspaceId: IWorkspaceId,
-    tagId: string
+    tagId: string,
   ): Promise<ITag | null> {
     const tag = await prisma.tag.findFirst({
       where: {
@@ -128,7 +120,7 @@ export class TagService {
   static async createTag(
     userId: string,
     workspaceId: IWorkspaceId,
-    input: ICreateTagInput
+    input: ICreateTagInput,
   ): Promise<ITag> {
     const validated = CreateTagInputSchema.parse(input);
     const { rules = [], ...tagFields } = validated;
@@ -159,9 +151,11 @@ export class TagService {
       order = maxOrderTag ? maxOrderTag.order + 1 : 0;
     }
 
-    const tag = await prisma.$transaction(async (tx) => {
-      const createdTag = await tx.tag.create({
+    const tagId = newEntityId();
+    const [tag] = (await runPrismaBatch([
+      prisma.tag.create({
         data: {
+          id: tagId,
           userId,
           workspaceId,
           name: parsedTagFields.name,
@@ -171,20 +165,9 @@ export class TagService {
           order,
           transactionType: parsedTagFields.transactionType,
         },
-      });
-
-      if (rules.length > 0) {
-        await TagRuleService.createRulesForTag(
-          userId,
-          workspaceId,
-          createdTag.id,
-          rules,
-          tx,
-        );
-      }
-
-      return createdTag;
-    });
+      }),
+      ...TagRuleService.createRuleOperations(userId, workspaceId, tagId, rules),
+    ])) as [Tag];
 
     return TagSchema.parse({
       id: tag.id,
@@ -203,7 +186,7 @@ export class TagService {
     userId: string,
     workspaceId: IWorkspaceId,
     tagId: string,
-    input: IUpdateTagInput
+    input: IUpdateTagInput,
   ): Promise<ITag> {
     const existing = await this.getTagById(userId, workspaceId, tagId);
     if (!existing) {
@@ -261,7 +244,7 @@ export class TagService {
   static async deleteTag(
     userId: string,
     workspaceId: IWorkspaceId,
-    tagId: string
+    tagId: string,
   ): Promise<void> {
     const existing = await this.getTagById(userId, workspaceId, tagId);
     if (!existing) {
@@ -276,7 +259,7 @@ export class TagService {
   static async bulkCreateTags(
     userId: string,
     workspaceId: IWorkspaceId,
-    input: IBulkCreateTagInput
+    input: IBulkCreateTagInput,
   ): Promise<IBulkCreateTagResponse> {
     const validated = BulkCreateTagInputSchema.parse(input);
 
@@ -290,7 +273,7 @@ export class TagService {
       select: { name: true },
     });
     const existingNames = new Set(
-      existingTags.map((tag: { name: string }) => tag.name)
+      existingTags.map((tag: { name: string }) => tag.name),
     );
 
     for (let index = 0; index < validated.length; index++) {
@@ -374,7 +357,7 @@ export class TagService {
   static async reorderTags(
     userId: string,
     workspaceId: IWorkspaceId,
-    input: IReorderTagsInput
+    input: IReorderTagsInput,
   ): Promise<void> {
     const validated = ReorderTagsInputSchema.parse(input);
 
@@ -396,8 +379,8 @@ export class TagService {
         prisma.tag.update({
           where: { id: tagId },
           data: { order: index },
-        })
-      )
+        }),
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import {
   type IReplaceRefundAllocationsInput,
   type ITransaction,
 } from "@/features/shared/validation/schemas";
+import { runPrismaBatch } from "@/features/util/prisma-batch";
 import { prisma } from "@/features/util/prisma";
 import type { IWorkspaceId } from "@/features/workspace/workspace-id";
 import { Prisma, TransactionType } from "@prisma/client";
@@ -30,6 +31,9 @@ export class RefundAllocationService {
     });
     if (!refund) {
       throw new Error("Transaction not found");
+    }
+    if (refund.type === TransactionType.TRANSFER) {
+      throw new Error("Transfers cannot be refund allocations");
     }
     if (refund.type !== TransactionType.INCOME) {
       throw new Error("Refund allocations require an income transaction");
@@ -108,23 +112,22 @@ export class RefundAllocationService {
       }
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.transactionRefundAllocation.deleteMany({
+    await runPrismaBatch([
+      prisma.transactionRefundAllocation.deleteMany({
         where: { refundTransactionId },
-      });
-
-      if (validated.allocations.length === 0) {
-        return;
-      }
-
-      await tx.transactionRefundAllocation.createMany({
-        data: validated.allocations.map((allocation) => ({
-          refundTransactionId,
-          expenseTransactionId: allocation.expenseTransactionId,
-          amount: new Prisma.Decimal(allocation.amount),
-        })),
-      });
-    });
+      }),
+      ...(validated.allocations.length > 0
+        ? [
+            prisma.transactionRefundAllocation.createMany({
+              data: validated.allocations.map((allocation) => ({
+                refundTransactionId,
+                expenseTransactionId: allocation.expenseTransactionId,
+                amount: new Prisma.Decimal(allocation.amount),
+              })),
+            }),
+          ]
+        : []),
+    ]);
 
     const result = await TransactionService.getTransactionById(
       userId,
@@ -229,23 +232,22 @@ export class RefundAllocationService {
       }
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.transactionRefundAllocation.deleteMany({
+    await runPrismaBatch([
+      prisma.transactionRefundAllocation.deleteMany({
         where: { expenseTransactionId },
-      });
-
-      if (validated.allocations.length === 0) {
-        return;
-      }
-
-      await tx.transactionRefundAllocation.createMany({
-        data: validated.allocations.map((allocation) => ({
-          refundTransactionId: allocation.refundTransactionId,
-          expenseTransactionId,
-          amount: new Prisma.Decimal(allocation.amount),
-        })),
-      });
-    });
+      }),
+      ...(validated.allocations.length > 0
+        ? [
+            prisma.transactionRefundAllocation.createMany({
+              data: validated.allocations.map((allocation) => ({
+                refundTransactionId: allocation.refundTransactionId,
+                expenseTransactionId,
+                amount: new Prisma.Decimal(allocation.amount),
+              })),
+            }),
+          ]
+        : []),
+    ]);
 
     const result = await TransactionService.getTransactionById(
       userId,
