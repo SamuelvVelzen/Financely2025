@@ -13,7 +13,7 @@ import { DeleteDialog } from "@/features/ui/dialog/delete-dialog";
 import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { List } from "@/features/ui/list/list";
 import { useToast } from "@/features/ui/toast";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type IDraftAllocation = {
   counterpartId: string;
@@ -76,29 +76,52 @@ export function AllocateRefundDialog({
   onSaved,
   onOpenTransaction,
 }: IAllocateRefundDialogProps) {
+  if (!open || !transaction) {
+    return null;
+  }
+
+  const isIncome = transaction.type === "INCOME";
+  const isExpense = transaction.type === "EXPENSE";
+  if (!isIncome && !isExpense) {
+    return null;
+  }
+
+  return (
+    <AllocateRefundDialogContent
+      key={transaction.id}
+      open={open}
+      onOpenChange={onOpenChange}
+      transaction={transaction}
+      onSaved={onSaved}
+      onOpenTransaction={onOpenTransaction}
+    />
+  );
+}
+
+function AllocateRefundDialogContent({
+  open,
+  onOpenChange,
+  transaction,
+  onSaved,
+  onOpenTransaction,
+}: IAllocateRefundDialogProps & { transaction: ITransaction }) {
   const toast = useToast();
   const replaceMutation = useReplaceRefundAllocations();
-  const [drafts, setDrafts] = useState<IDraftAllocation[]>([]);
+  const [drafts, setDrafts] = useState(() =>
+    toDraftFromTransaction(transaction),
+  );
   const [draftToRemove, setDraftToRemove] = useState<IDraftAllocation | null>(
     null,
   );
 
-  const isIncome = transaction?.type === "INCOME";
-  const isExpense = transaction?.type === "EXPENSE";
-  const transactionId = transaction?.id ?? null;
+  const isIncome = transaction.type === "INCOME";
+  const isExpense = transaction.type === "EXPENSE";
   const suggestionsQuery = useRefundAllocationSuggestions(
-    transactionId,
+    transaction.id,
     open && (isIncome || isExpense),
   );
 
-  useEffect(() => {
-    if (open && transaction) {
-      setDrafts(toDraftFromTransaction(transaction));
-      setDraftToRemove(null);
-    }
-  }, [open, transaction]);
-
-  const sourceAmount = parseFloat(transaction?.amount ?? "0");
+  const sourceAmount = parseFloat(transaction.amount ?? "0");
   const allocatedTotal = drafts.reduce(
     (sum, draft) => sum + (parseFloat(draft.amount) || 0),
     0,
@@ -268,10 +291,6 @@ export function AllocateRefundDialog({
       );
     }
   };
-
-  if (!transaction || (!isIncome && !isExpense)) {
-    return null;
-  }
 
   return (
     <>

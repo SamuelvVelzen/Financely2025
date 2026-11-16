@@ -20,6 +20,7 @@ import { calculateFilterCount } from "@/features/transaction/utils/filter-count"
 import type { ITransactionFilterState } from "@/features/transaction/utils/transaction-filter-model";
 import { serializeFilterStateToQuery } from "@/features/transaction/utils/transaction-filter-model";
 import type { ITransactionFilterQueryParams } from "@/features/transaction/utils/transaction-filter-query-schema";
+import type { ITransactionsQuery } from "@/features/transaction/validation/schemas";
 import { Container } from "@/features/ui/container/container";
 import { EmptyPage } from "@/features/ui/container/empty-container";
 import { QueryErrorState } from "@/features/ui/container/query-error-state";
@@ -39,6 +40,7 @@ import { OpenTransactionByIdDialog } from "./open-transaction-by-id-dialog";
 import { TransactionListGrouped } from "./transaction-list-grouped";
 import { TransactionOverviewHeader } from "./transaction-overview-header";
 import { TransactionTable } from "./transaction-table";
+import { TripSummaryCard } from "./trip-summary-card";
 
 const PAGE_SIZE = 20;
 
@@ -81,7 +83,7 @@ export function TransactionOverview({
   // Calculate filter count for sticky header
   const filterCount = useMemo(
     () => calculateFilterCount(filterState),
-    [filterState]
+    [filterState],
   );
 
   // Set up scroll detection for expanded header
@@ -108,16 +110,19 @@ export function TransactionOverview({
   }, [debouncedFilterState, navigate, workspaceId, workspaceRouteParam]);
 
   // Build query with all filters (backend filtering) - no page param for infinite query
-  const query = useMemo((): Parameters<typeof useInfiniteTransactions>[0] => {
+  const query = useMemo((): Omit<ITransactionsQuery, "page"> => {
     // Transaction type logic: if both selected or empty, send undefined (show all)
     // If only one selected, send that single type
-    let typeFilter: "EXPENSE" | "INCOME" | undefined = undefined;
-    if (
-      filterState.transactionTypeFilter.length === 1 &&
-      (filterState.transactionTypeFilter[0] === "EXPENSE" ||
-        filterState.transactionTypeFilter[0] === "INCOME")
-    ) {
-      typeFilter = filterState.transactionTypeFilter[0] as "EXPENSE" | "INCOME";
+    let typeFilter: ITransactionsQuery["type"] = undefined;
+    if (filterState.transactionTypeFilter.length === 1) {
+      const single = filterState.transactionTypeFilter[0];
+      if (
+        single === "EXPENSE" ||
+        single === "INCOME" ||
+        single === "TRANSFER"
+      ) {
+        typeFilter = single;
+      }
     }
 
     return {
@@ -184,9 +189,8 @@ export function TransactionOverview({
   const [selectedTransaction, setSelectedTransaction] = useState<
     ITransaction | undefined
   >(undefined);
-  const [allocateRefundTransaction, setAllocateRefundTransaction] = useState<
-    ITransaction | null
-  >(null);
+  const [allocateRefundTransaction, setAllocateRefundTransaction] =
+    useState<ITransaction | null>(null);
   const [expenseToOpenId, setExpenseToOpenId] = useState<string | null>(null);
 
   // Tags for filter dropdown
@@ -199,10 +203,6 @@ export function TransactionOverview({
     setIsTransactionDialogOpen(true);
   }, []);
 
-  useEffect(() => {
-    if (!autoOpenCreate) return;
-    handleCreateTransaction();
-  }, [autoOpenCreate, handleCreateTransaction]);
   const handleStickyFiltersClick = () => {
     if (isMobile) {
       // On mobile, open the filter sheet
@@ -268,7 +268,7 @@ export function TransactionOverview({
     exportTransactionsToCsv(
       transactions,
       ["Name", "Amount", "Date", "Description", "Tags", "Type"],
-      "transactions"
+      "transactions",
     );
   }, [transactions]);
 
@@ -298,7 +298,7 @@ export function TransactionOverview({
       filterSheetOpen: isFilterSheetOpen,
       onFilterSheetOpenChange: setIsFilterSheetOpen,
     },
-    hasActiveFilters
+    hasActiveFilters,
   );
 
   // Group action handlers
@@ -309,16 +309,13 @@ export function TransactionOverview({
       onCsvExportClick: handleCsvExport,
       onDetectSubscriptions: () => setIsDetectDialogOpen(true),
     }),
-    [handleCreateTransaction, handleCsvImportClick, handleCsvExport]
+    [handleCreateTransaction, handleCsvImportClick, handleCsvExport],
   );
 
   return (
     <>
       {/* Sentinel element - used to detect when header should become sticky */}
-      <div
-        ref={expandedHeaderRef}
-        className="h-0"
-      />
+      <div ref={expandedHeaderRef} className="h-0" />
 
       <TransactionOverviewHeader
         filterProps={filterProps}
@@ -335,6 +332,22 @@ export function TransactionOverview({
       />
 
       <Container>
+        {filterState.tagFilter.length > 0 ? (
+          <TripSummaryCard
+            tagIds={filterState.tagFilter}
+            from={
+              filterState.dateFilter.type !== "allTime"
+                ? filterState.dateFilter.from
+                : undefined
+            }
+            to={
+              filterState.dateFilter.type !== "allTime"
+                ? filterState.dateFilter.to
+                : undefined
+            }
+          />
+        ) : null}
+
         {showTransactionsLoading && (
           <div className="flex items-center justify-center">
             <Loading text="Loading transactions" />
@@ -358,7 +371,8 @@ export function TransactionOverview({
             button={{
               buttonContent: "Add transaction",
               clicked: handleCreateTransaction,
-            }}></EmptyPage>
+            }}
+          ></EmptyPage>
         )}
 
         {isEmptyWithFilters && !showTransactionsLoading && (
@@ -374,8 +388,8 @@ export function TransactionOverview({
           />
         )}
 
-        {hasTransactions && (
-          layout === "list" ? (
+        {hasTransactions &&
+          (layout === "list" ? (
             <TransactionListGrouped
               data={transactions}
               searchQuery={searchQuery}
@@ -398,8 +412,7 @@ export function TransactionOverview({
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
             />
-          )
-        )}
+          ))}
       </Container>
 
       <AddOrEditTransactionDialog

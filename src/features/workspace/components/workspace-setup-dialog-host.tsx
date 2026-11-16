@@ -4,23 +4,12 @@ import {
 } from "@/features/workspace/components/workspace-setup-dialog";
 import { consumePendingWorkspaceSetup } from "@/features/workspace/utils/pending-workspace-setup";
 import { useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-/**
- * Opens the workspace setup dialog after create (queued via sessionStorage).
- */
-export function WorkspaceSetupDialogHost() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+function WorkspaceSetupDialogHostInner() {
   const [workspace, setWorkspace] = useState<IWorkspaceSetupDialogTarget | null>(
-    null,
+    () => consumePendingWorkspaceSetup(),
   );
-
-  useEffect(() => {
-    const pending = consumePendingWorkspaceSetup();
-    if (pending) {
-      setWorkspace(pending);
-    }
-  }, [pathname]);
 
   return (
     <WorkspaceSetupDialog
@@ -33,4 +22,13 @@ export function WorkspaceSetupDialogHost() {
       workspace={workspace}
     />
   );
+}
+
+/**
+ * Opens the workspace setup dialog after create (queued via sessionStorage).
+ */
+export function WorkspaceSetupDialogHost() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  return <WorkspaceSetupDialogHostInner key={pathname} />;
 }
