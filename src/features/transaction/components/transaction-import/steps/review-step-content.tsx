@@ -1,8 +1,9 @@
-import type { ICurrency } from "@/features/shared/validation/schemas";
 import { CurrencySelect } from "@/features/currency/components/currency-select";
-import { TagSelectCell } from "@/features/tag/components/tag-select-cell";
+import type { ICurrency } from "@/features/shared/validation/schemas";
 import { TagSuggestionHint } from "@/features/tag-rule/components/tag-suggestion-hint";
+import { TagSelectCell } from "@/features/tag/components/tag-select-cell";
 import { DateSelectCell } from "@/features/transaction/components/date-select-cell";
+import { ImportTransferPairsCard } from "@/features/transaction/components/transaction-import/import-transfer-pairs-card";
 import { Badge } from "@/features/ui/badge/badge";
 import { Button } from "@/features/ui/button/button";
 import { LinkButton } from "@/features/ui/button/link-button";
@@ -23,6 +24,7 @@ import { useTransactionImportContext } from "./transaction-import-context";
 const TRANSACTION_TYPE_OPTIONS = [
   { value: "EXPENSE", label: "Expense" },
   { value: "INCOME", label: "Income" },
+  { value: "TRANSFER", label: "Transfer" },
 ] as const;
 
 type IReviewStepContentProps = {
@@ -49,7 +51,7 @@ export function ReviewStepContent({
 
   const hiddenFields = useMemo(
     () => BankProfileFactory.getHiddenFields(selectedBank),
-    [selectedBank]
+    [selectedBank],
   );
   const isTagsHidden = hiddenFields.includes("tags");
 
@@ -82,11 +84,11 @@ export function ReviewStepContent({
         return searchableValues.some((value) =>
           String(value ?? "")
             .toLowerCase()
-            .includes(query)
+            .includes(query),
         );
       },
     }),
-    []
+    [],
   );
 
   if (transformMutation.isPending) {
@@ -114,6 +116,7 @@ export function ReviewStepContent({
 
   return (
     <div className="space-y-4">
+      <ImportTransferPairsCard />
       <div className="flex items-center justify-between">
         <div className="text-sm">
           {transformResponse?.total || candidates.length} transactions (
@@ -141,9 +144,9 @@ export function ReviewStepContent({
       </div>
 
       <SelectableTable
-        selectedRows={selectedRows}
+        selectedKeys={selectedRows}
         onSelectionChange={setSelectedRows}
-        getRowIndex={(item: (typeof candidates)[0]) => item.rowIndex}
+        getRowKey={(item: (typeof candidates)[0]) => item.rowIndex}
         data={candidates}
         enablePagination={true}
         pageSize={20}
@@ -160,36 +163,25 @@ export function ReviewStepContent({
         headerCells={[
           <HeaderCell key="status">Status</HeaderCell>,
           <HeaderCell key="date">Date</HeaderCell>,
-          <HeaderCell
-            key="name"
-            autoFit={false}
-            className="min-w-[250px]">
+          <HeaderCell key="name" autoFit={false} className="min-w-[250px]">
             Name
           </HeaderCell>,
           <HeaderCell key="amount">Amount</HeaderCell>,
           <HeaderCell key="currency">Currency</HeaderCell>,
-          <HeaderCell
-            key="type"
-            autoFit={false}>
+          <HeaderCell key="type" autoFit={false}>
             Type
           </HeaderCell>,
-          <HeaderCell
-            key="primaryTag"
-            autoFit={false}>
+          <HeaderCell key="primaryTag" autoFit={false}>
             Primary Tag
           </HeaderCell>,
-          <HeaderCell
-            key="tags"
-            hidden={isTagsHidden}>
+          <HeaderCell key="tags" hidden={isTagsHidden}>
             Tags
           </HeaderCell>,
-          <HeaderCell
-            key="errors"
-            hidden={!hasAnyErrors}
-            align="center">
+          <HeaderCell key="errors" hidden={!hasAnyErrors} align="center">
             Errors
           </HeaderCell>,
-        ]}>
+        ]}
+      >
         {(paginatedCandidates) => {
           return paginatedCandidates.map((candidate) => {
             return (
@@ -198,13 +190,15 @@ export function ReviewStepContent({
                 rowIndex={candidate.rowIndex}
                 className={cn(
                   "border-t border-border",
-                  candidate.status === "invalid" && "bg-danger/5"
-                )}>
+                  candidate.status === "invalid" && "bg-danger/5",
+                )}
+              >
                 <BodyCell>
                   <Badge
                     variant={
                       candidate.status === "valid" ? "success" : "danger"
-                    }>
+                    }
+                  >
                     {candidate.status}
                   </Badge>
                 </BodyCell>
@@ -243,10 +237,14 @@ export function ReviewStepContent({
                 </BodyCell>
                 <BodyCell>
                   <CurrencySelect
-                    value={(candidate.data.currency || defaultCurrency) as ICurrency}
+                    value={
+                      (candidate.data.currency || defaultCurrency) as ICurrency
+                    }
                     onChange={(value) => {
                       updateCandidate(candidate.rowIndex, {
-                        currency: (value || defaultCurrency || "EUR") as ICurrency,
+                        currency: (value ||
+                          defaultCurrency ||
+                          "EUR") as ICurrency,
                       });
                     }}
                   />
@@ -303,7 +301,7 @@ export function ReviewStepContent({
                     const { tagIds, primaryTagId } = candidate.data;
 
                     const otherTagIds = tagIds.filter(
-                      (tagId) => tagId !== primaryTagId
+                      (tagId) => tagId !== primaryTagId,
                     );
 
                     return (
@@ -360,7 +358,6 @@ export function ReviewStepContent({
           }
         }}
       />
-
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { CurrencySelect } from "@/features/currency/components/currency-select";
+import { LedgerAccountSelect } from "@/features/ledger-account/components/ledger-account-select";
 import { isOfflineMutationPlaceholder } from "@/features/shared/offline/offline-mutation-errors";
 import {
   CreateTransactionInputSchema,
@@ -8,10 +9,12 @@ import {
   type ITagSuggestions,
   type ITransaction,
 } from "@/features/shared/validation/schemas";
-import { LedgerAccountSelect } from "@/features/ledger-account/components/ledger-account-select";
 import { matchTagRules } from "@/features/tag-rule/api/client";
 import { TagSuggestionHint } from "@/features/tag-rule/components/tag-suggestion-hint";
 import { useTags } from "@/features/tag/hooks/useTags";
+import { AllocateRefundDialog } from "@/features/transaction/components/allocate-refund-dialog";
+import { PairTransferSection } from "@/features/transaction/components/pair-transfer-section";
+import { SubscriptionInfo } from "@/features/transaction/components/subscription-info";
 import { PAYMENT_METHOD_OPTIONS } from "@/features/transaction/config/payment-methods";
 import {
   useCreateExpense,
@@ -20,8 +23,7 @@ import {
   useTransaction,
   useUpdateTransaction,
 } from "@/features/transaction/hooks/useTransactions";
-import { SubscriptionInfo } from "@/features/transaction/components/subscription-info";
-import { AllocateRefundDialog } from "@/features/transaction/components/allocate-refund-dialog";
+import { Button } from "@/features/ui/button/button";
 import { ResponsiveDialog } from "@/features/ui/dialog/responsive-dialog";
 import { UnsavedChangesDialog } from "@/features/ui/dialog/unsaved-changes-dialog";
 import { Form } from "@/features/ui/form/form";
@@ -34,7 +36,6 @@ import { RadioGroup } from "@/features/ui/radio/radio-group";
 import { RadioItem } from "@/features/ui/radio/radio-item";
 import { SelectDropdown } from "@/features/ui/select-dropdown/select-dropdown";
 import { TagSelect } from "@/features/ui/tag-select/tag-select";
-import { Button } from "@/features/ui/button/button";
 import { useToast } from "@/features/ui/toast";
 import {
   dateOnlyToIso,
@@ -139,7 +140,9 @@ export function AddOrEditTransactionDialog({
     showAdvanced: false,
   });
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [tagSuggestion, setTagSuggestion] = useState<ITagSuggestions | null>(null);
+  const [tagSuggestion, setTagSuggestion] = useState<ITagSuggestions | null>(
+    null,
+  );
   const [userEditedTags, setUserEditedTags] = useState(false);
   const [isAllocateRefundOpen, setIsAllocateRefundOpen] = useState(false);
   const [workingTransaction, setWorkingTransaction] = useState<
@@ -294,7 +297,14 @@ export function AddOrEditTransactionDialog({
       form.reset(getEmptyFormValues(defaultCurrency));
     }
     focusFirstInput();
-  }, [open, transaction?.id, form, focusFirstInput, defaultCurrency, transaction]);
+  }, [
+    open,
+    transaction?.id,
+    form,
+    focusFirstInput,
+    defaultCurrency,
+    transaction,
+  ]);
 
   useEffect(() => {
     if (!open || isEditMode || userEditedTags) {
@@ -353,15 +363,17 @@ export function AddOrEditTransactionDialog({
           suggested: true,
           primaryRule: primaryMatch
             ? {
-              ruleId: primaryMatch.ruleId,
-              ruleLabel: primaryMatch.ruleLabel,
-              source: primaryMatch.source,
-            }
+                ruleId: primaryMatch.ruleId,
+                ruleLabel: primaryMatch.ruleLabel,
+                source: primaryMatch.source,
+              }
             : null,
         };
 
         if (suggestedPrimary) {
-          form.setValue("primaryTagId", suggestedPrimary, { shouldDirty: true });
+          form.setValue("primaryTagId", suggestedPrimary, {
+            shouldDirty: true,
+          });
         }
         if (suggestedTagIds.length > 0) {
           form.setValue("tagIds", suggestedTagIds, { shouldDirty: true });
@@ -719,14 +731,10 @@ export function AddOrEditTransactionDialog({
           <Form<FormData>
             form={form}
             onSubmit={(data) => processFormSubmit(data, "close")}
-            id={formId}>
+            id={formId}
+          >
             <div className="space-y-4">
-              <RadioGroup
-                name="type"
-                label="Type"
-                required
-                disabled={pending}
-              >
+              <RadioGroup name="type" label="Type" required disabled={pending}>
                 <RadioItem value="EXPENSE" icon={HiArrowTrendingDown}>
                   Expense
                 </RadioItem>
@@ -750,12 +758,16 @@ export function AddOrEditTransactionDialog({
                 />
               ) : null}
               <LedgerAccountSelect name="ledgerAccountId" disabled={pending} />
-              <TextInput
-                name="name"
-                label="Name"
-                disabled={pending}
-                required
-              />
+              {isEditMode && workingTransaction ? (
+                <PairTransferSection
+                  transaction={workingTransaction}
+                  onPaired={() => {
+                    onOpenChange(false);
+                    onSuccess?.();
+                  }}
+                />
+              ) : null}
+              <TextInput name="name" label="Name" disabled={pending} required />
               <div className="grid grid-cols-2 gap-4">
                 <DecimalInput
                   name="amount"
@@ -807,7 +819,8 @@ export function AddOrEditTransactionDialog({
                 type="button"
                 className="flex items-center gap-1 text-sm text-info hover:underline disabled:opacity-50 disabled:pointer-events-none"
                 disabled={pending}
-                onClick={() => setShowAdvanced(!showAdvanced)}>
+                onClick={() => setShowAdvanced(!showAdvanced)}
+              >
                 {showAdvanced ? (
                   <HiChevronUp className="size-4 shrink-0" />
                 ) : (
@@ -862,52 +875,53 @@ export function AddOrEditTransactionDialog({
 
               {(transactionType === "INCOME" ||
                 transactionType === "EXPENSE") && (
-                  <div className="rounded-md border border-border p-3">
-                    <div className="mb-2 text-sm text-text-muted">
-                      {workingTransaction ? (
-                        transactionType === "INCOME" ? (
-                          <>
-                            Remaining to allocate:{" "}
-                            <span className="font-semibold text-text">
-                              {workingTransaction.refundRemaining ??
-                                workingTransaction.amount}{" "}
-                              {workingTransaction.currency}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            Net after refunds:{" "}
-                            <span className="font-semibold text-text">
-                              {workingTransaction.expenseNet ??
-                                workingTransaction.amount}{" "}
-                              {workingTransaction.currency}
-                            </span>
-                          </>
-                        )
-                      ) : transactionType === "INCOME" ? (
-                        "Link this income to expenses after creating it."
+                <div className="rounded-md border border-border p-3">
+                  <div className="mb-2 text-sm text-text-muted">
+                    {workingTransaction ? (
+                      transactionType === "INCOME" ? (
+                        <>
+                          Remaining to allocate:{" "}
+                          <span className="font-semibold text-text">
+                            {workingTransaction.refundRemaining ??
+                              workingTransaction.amount}{" "}
+                            {workingTransaction.currency}
+                          </span>
+                        </>
                       ) : (
-                        "Link refund incomes to this expense after creating it."
-                      )}
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      disabled={pending}
-                      clicked={() => {
-                        void handleOpenAllocateRefund();
-                      }}>
-                      <HiArrowUturnLeft className="size-4" />
-                      {workingTransaction
-                        ? transactionType === "INCOME"
-                          ? "Allocate refund"
-                          : "Link refund"
-                        : transactionType === "INCOME"
-                          ? "Create & allocate refund"
-                          : "Create & link refund"}
-                    </Button>
+                        <>
+                          Net after refunds:{" "}
+                          <span className="font-semibold text-text">
+                            {workingTransaction.expenseNet ??
+                              workingTransaction.amount}{" "}
+                            {workingTransaction.currency}
+                          </span>
+                        </>
+                      )
+                    ) : transactionType === "INCOME" ? (
+                      "Link this income to expenses after creating it."
+                    ) : (
+                      "Link refund incomes to this expense after creating it."
+                    )}
                   </div>
-                )}
+                  <Button
+                    size="sm"
+                    variant="default"
+                    disabled={pending}
+                    clicked={() => {
+                      void handleOpenAllocateRefund();
+                    }}
+                  >
+                    <HiArrowUturnLeft className="size-4" />
+                    {workingTransaction
+                      ? transactionType === "INCOME"
+                        ? "Allocate refund"
+                        : "Link refund"
+                      : transactionType === "INCOME"
+                        ? "Create & allocate refund"
+                        : "Create & link refund"}
+                  </Button>
+                </div>
+              )}
             </div>
           </Form>
         }
@@ -919,20 +933,20 @@ export function AddOrEditTransactionDialog({
           },
           ...(!isEditMode
             ? [
-              {
-                clicked: () => {
-                  void form.handleSubmit((data) =>
-                    processFormSubmit(data, "addAnother"),
-                  )();
-                },
-                disabled: pending,
-                loading: {
-                  isLoading: pendingAction === "addAnother",
-                  text: `Creating ${transactionType === "EXPENSE" ? "expense" : "income"}`,
-                },
-                buttonContent: "Create & add another",
-              } as const,
-            ]
+                {
+                  clicked: () => {
+                    void form.handleSubmit((data) =>
+                      processFormSubmit(data, "addAnother"),
+                    )();
+                  },
+                  disabled: pending,
+                  loading: {
+                    isLoading: pendingAction === "addAnother",
+                    text: `Creating ${transactionType === "EXPENSE" ? "expense" : "income"}`,
+                  },
+                  buttonContent: "Create & add another",
+                } as const,
+              ]
             : []),
           {
             variant: "primary" as const,

@@ -8,11 +8,7 @@ import { Button } from "@/features/ui/button/button";
 import { IconButton } from "@/features/ui/button/icon-button";
 import { Container } from "@/features/ui/container/container";
 import { cn } from "@/features/util/cn";
-import {
-  HiArrowsRightLeft,
-  HiFunnel,
-  HiPlus,
-} from "react-icons/hi2";
+import { HiArrowsRightLeft, HiFunnel, HiPlus } from "react-icons/hi2";
 import { TransactionFilters } from "./transaction-filters";
 import { TransactionHeaderMenu } from "./transaction-header-menu";
 import { TransactionViewControls } from "./transaction-view-controls";
@@ -22,6 +18,7 @@ import { TransactionViewControls } from "./transaction-view-controls";
  */
 export interface IActionHandlers {
   onCreateTransaction: () => void;
+  onCreateLinkedTransfer: () => void;
   onCsvImportClick: () => void;
   onCsvExportClick: () => void;
   onDetectSubscriptions: () => void;
@@ -69,25 +66,29 @@ export function TransactionOverviewHeader({
   });
 
   return (
-    <Container className={cn("sticky top-0 z-20 min-w-0 overflow-hidden transition-all")}>
+    <Container
+      className={cn("sticky top-0 z-20 min-w-0 overflow-hidden transition-all")}
+    >
       <div
         className={cn(
           "flex min-w-0 items-center gap-2 transition-all justify-between",
-          !isSticky && "mb-3"
-        )}>
+          !isSticky && "mb-3",
+        )}
+      >
         <div className="flex shrink-0 items-center gap-2 min-w-0">
           <HiArrowsRightLeft
             className={cn(
               "shrink-0 transition-all",
-              isSticky ? "size-5" : "size-6"
+              isSticky ? "size-5" : "size-6",
             )}
           />
           <div className="flex items-center gap-2 min-w-0">
             <span
               className={cn(
                 "transition-all shrink-0",
-                isSticky ? "text-base font-semibold" : "text-xl font-bold"
-              )}>
+                isSticky ? "text-base font-semibold" : "text-xl font-bold",
+              )}
+            >
               Transactions
             </span>
             {!isSticky && (
@@ -110,17 +111,14 @@ export function TransactionOverviewHeader({
           {isSticky ? (
             <>
               {!isMobile && (
-                <TransactionViewControls
-                  {...viewMode}
-                  compact
-                  size="sm"
-                />
+                <TransactionViewControls {...viewMode} compact size="sm" />
               )}
               {!isMobile && (
                 <Button
                   clicked={actions.onCreateTransaction}
                   variant="primary"
-                  size={"sm"}>
+                  size={"sm"}
+                >
                   <HiPlus className={addIconClass} /> Add
                 </Button>
               )}
@@ -139,7 +137,9 @@ export function TransactionOverviewHeader({
                     {!isMobile && (
                       <span>
                         Filters
-                        {filterProps.hasActiveFilters ? ` (${filterCount})` : ""}
+                        {filterProps.hasActiveFilters
+                          ? ` (${filterCount})`
+                          : ""}
                       </span>
                     )}
                     {isMobile && filterProps.hasActiveFilters && (
@@ -163,14 +163,16 @@ export function TransactionOverviewHeader({
                   clicked={actions.onCreateTransaction}
                   variant="primary"
                   size={buttonSize}
-                  ariaLabel="Add transaction">
+                  ariaLabel="Add transaction"
+                >
                   <HiPlus className={addIconClass} />
                 </IconButton>
               ) : (
                 <Button
                   clicked={actions.onCreateTransaction}
                   variant="primary"
-                  size={buttonSize}>
+                  size={buttonSize}
+                >
                   <HiPlus className={addIconClass} /> Add
                 </Button>
               )}
@@ -185,8 +187,11 @@ export function TransactionOverviewHeader({
         inert={isSticky ? true : undefined}
         className={cn(
           "grid transition-[grid-template-rows,opacity] ease-out",
-          isSticky ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
-        )}>
+          isSticky
+            ? "grid-rows-[0fr] opacity-0"
+            : "grid-rows-[1fr] opacity-100",
+        )}
+      >
         <div className={cn(isSticky && "overflow-hidden", "min-w-0")}>
           <TransactionFilters
             {...filterProps}

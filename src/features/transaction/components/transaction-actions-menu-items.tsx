@@ -4,6 +4,7 @@ import {
   HiArrowDownTray,
   HiArrowPath,
   HiArrowUpTray,
+  HiArrowsRightLeft,
   HiPlus,
 } from "react-icons/hi2";
 import type { IActionHandlers } from "./transaction-overview-header";
@@ -23,27 +24,34 @@ export function TransactionActionsMenuItems({
         <>
           <DropdownItem
             icon={<HiPlus className="size-4" />}
-            clicked={actions.onCreateTransaction}>
+            clicked={actions.onCreateTransaction}
+          >
             Add transaction
+          </DropdownItem>
+          <DropdownItem
+            icon={<HiArrowsRightLeft className="size-4" />}
+            clicked={actions.onCreateLinkedTransfer}
+          >
+            Record transfer
           </DropdownItem>
           <DropdownDivider />
         </>
       )}
       <DropdownItem
         icon={<HiArrowPath />}
-        clicked={actions.onDetectSubscriptions}>
+        clicked={actions.onDetectSubscriptions}
+      >
         Detect Subscriptions
       </DropdownItem>
       <DropdownDivider />
       <DropdownItem
         icon={<HiArrowDownTray />}
-        clicked={actions.onCsvImportClick}>
+        clicked={actions.onCsvImportClick}
+      >
         Import from CSV
       </DropdownItem>
       <DropdownDivider />
-      <DropdownItem
-        icon={<HiArrowUpTray />}
-        clicked={actions.onCsvExportClick}>
+      <DropdownItem icon={<HiArrowUpTray />} clicked={actions.onCsvExportClick}>
         Export to CSV
       </DropdownItem>
     </>
